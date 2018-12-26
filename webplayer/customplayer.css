@@ -1,0 +1,18 @@
+.plyr__captions .plyr__caption {
+   background: rgba(0,0,0,0);
+   text-shadow: -1px -1px 1px #000000, -1px 1px 1px #000000, 1px -1px 1px #000000, 1px 1px 1px #000000;
+   font-family: sans-serif;
+   font-weight: bold;
+   line-height: 1.3;
+}
+
+@media {
+   .plyr__captions{font-size:2.2vw}
+}
+
+@media {
+   .plyr:-webkit-full-screen .plyr__captions{font-size:2.2vw}
+   .plyr:-moz-full-screen .plyr__captions{font-size:2.2vw}
+   .plyr:-ms-fullscreen .plyr__captions{font-size:2.2vw}
+   .plyr:fullscreen .plyr__captions{font-size:2.2vw}
+}

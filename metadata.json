@@ -1,0 +1,11 @@
+{
+"extension-id": "cast-to-tv",
+"uuid": "cast-to-tv@rafostar.github.com",
+"name": "Cast to TV",
+"description": "Cast files to your Chromecast or other devices over local network.\n\nThis extension requires some additional dependencies.\nVisit this extension homepage for more info on how to install and use.\n\nPlease use GitHub to report issues.",
+"shell-version": ["3.26", "3.28", "3.30"],
+"gettext-domain": "cast-to-tv",
+"settings-schema": "org.gnome.shell.extensions.cast-to-tv",
+"url": "https://github.com/Rafostar/gnome-shell-extension-cast-to-tv",
+"version": 1
+}
