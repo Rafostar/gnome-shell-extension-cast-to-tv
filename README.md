@@ -33,7 +33,7 @@ You can use hardware VAAPI encoding (optional). This of course requires working 
 * Play audio with music visualizations (requires fast cpu)
 
 ## Special Thanks
-Special thanks go to [xat](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [sampotts](https://github.com/sampotts) for making [plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
+Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
 
 ## Donation
 If you like my work please support it by buying me a cup of coffee :grin:
