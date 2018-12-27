@@ -452,9 +452,6 @@ function enable()
 
 	/* Stop earlier started processes (for gnome-shell restart) */
 	Util.spawn(['pkill', '-SIGINT', '-f', Local.path]);
-
-	/* Start castserver */
-	Util.spawn(['node', Local.path + '/castserver']);
 }
 
 function disable()

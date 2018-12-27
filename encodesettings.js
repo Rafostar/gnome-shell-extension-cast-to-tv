@@ -20,10 +20,14 @@ String.prototype.replaceAt = function(index, replacement)
 exports.refreshConfig = function()
 {
 	config = configbridge.config;
+	ffprobeAnalyzeFile(config.filePath);
+}
 
-	if(config.filePath)
+function ffprobeAnalyzeFile(fileToAnalyze)
+{
+	if(fileToAnalyze)
 	{
-		var ffprobePromise = ffprobe(config.filePath, { path: config.ffprobePath });
+		var ffprobePromise = ffprobe(fileToAnalyze, { path: config.ffprobePath });
 		ffprobePromise.then(value => {
 
 			checkBuiltInSubs(value);			

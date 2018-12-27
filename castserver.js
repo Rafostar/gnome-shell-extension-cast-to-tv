@@ -16,7 +16,7 @@ exports.refreshConfig = function()
 	{
 		server.close();
 		listeningPort = config.listeningPort;
-		server = app.listen(listeningPort);
+		server = app.listen(listeningPort).on('error', function(err) { process.exit() });
 	}
 }
 
@@ -105,4 +105,5 @@ app.get('/*', function(req, res)
 	webcreator.pageWrong(req, res);
 });
 
-var server = app.listen(listeningPort);
+var server = app.listen(listeningPort).on('error', function(err) { process.exit() });
+encodesettings.refreshConfig();

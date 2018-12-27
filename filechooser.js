@@ -128,6 +128,9 @@ void function selectFile()
 	/* Save config to file */
 	GLib.file_set_contents(configPath, JSON.stringify(configContents, null, 1));
 
+	/* Run server (process exits if already running) */
+	GLib.spawn_async('/bin', ['node', localPath + '/castserver'], null, 0, null);
+
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
@@ -136,7 +139,7 @@ void function selectFile()
 			initType = 'LIVE';
 		}
 
-		GLib.spawn_async('/bin', ['node', localPath + '/castfunctions', initType], null, 0, null);	
+		GLib.spawn_async('/bin', ['node', localPath + '/castfunctions', initType], null, 0, null);
 	}
 }();
 
