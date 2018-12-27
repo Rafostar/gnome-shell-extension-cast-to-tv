@@ -4,7 +4,7 @@
   "description": "Cast files to your Chromecast or other devices over local network.",
   "main": "castserver.js",
   "author": "Rafostar",
-  "license": "Apache-2.0",
+  "license": "GPL-3.0-only",
   "dependencies": {
     "chromecast-player": "^0.2.3",
     "express": "^4.16.4",
@@ -12,6 +12,9 @@
     "internal-ip": "^3.0.1",
     "path": "^0.12.7",
     "range-parser": "^1.2.0"
+  },
+  "devDependencies": {
+    "protobufjs": ">=5.0.3"
   },
   "repository": {
     "type": "git",
