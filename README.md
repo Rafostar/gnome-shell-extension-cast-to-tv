@@ -32,6 +32,16 @@ You can use hardware VAAPI encoding (optional). This of course requires working 
 * Optional VAAPI video encoding for low cpu usage
 * Play audio with music visualizations (requires fast cpu)
 
+### Install from source
+You can install extension by cloning latest development code from GitHub.
+
+```
+cd ~/.local/share/gnome-shell/extensions
+git clone https://github.com/Rafostar/gnome-shell-extension-cast-to-tv.git cast-to-tv@rafostar.github.com
+```
+
+After doing so, remember to install dependencies.
+
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
 
