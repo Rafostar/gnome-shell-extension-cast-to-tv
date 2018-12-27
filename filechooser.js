@@ -134,9 +134,18 @@ void function selectFile()
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
-		if(configContents.streamType != 'VIDEO')
+		switch(configContents.streamType)
 		{
-			initType = 'LIVE';
+			case 'VIDEO':
+				break;
+			case 'MUSIC':
+				if(configContents.musicVisualizer)
+				{
+					initType = 'LIVE';
+				}
+				break;
+			default:
+				initType = 'LIVE';
 		}
 
 		GLib.spawn_async('/bin', ['node', localPath + '/castfunctions', initType], null, 0, null);
