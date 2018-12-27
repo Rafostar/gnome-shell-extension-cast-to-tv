@@ -8,6 +8,7 @@ const St = imports.gi.St;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
+const ByteArray = imports.byteArray;
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
@@ -227,7 +228,7 @@ function initChromecastRemote()
 	remoteButton = new ChromecastRemoteMenu;
 
 	/* Check if video is transcoded and disable seeking*/
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	switch(configContents.streamType)
 	{
 		case 'VIDEO':
@@ -277,7 +278,7 @@ function enableSeekButtons(isEnabled)
 
 function changeFFmpegPath()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.ffmpegPath = Settings.get_string('ffmpeg-path');
 
 	if(!configContents.ffmpegPath)
@@ -290,7 +291,7 @@ function changeFFmpegPath()
 
 function changeFFprobePath()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.ffprobePath = Settings.get_string('ffprobe-path');
 
 	if(!configContents.ffprobePath)
@@ -303,7 +304,7 @@ function changeFFprobePath()
 
 function changeReceiverType()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.receiverType = Settings.get_string('receiver-type');
 	writeDataToFile(configPath, configContents);
 	initChromecastRemote();
@@ -311,28 +312,28 @@ function changeReceiverType()
 
 function changeListeningPort()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.listeningPort = Settings.get_int('listening-port');
 	writeDataToFile(configPath, configContents);
 }
 
 function changeVideoBitrate()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.videoBitrate = Settings.get_double('video-bitrate');
 	writeDataToFile(configPath, configContents);
 }
 
 function changeVideoAcceleration()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.videoAcceleration = Settings.get_string('video-acceleration');
 	writeDataToFile(configPath, configContents);
 }
 
 function changeMusicVisualizer()
 {
-	readDataFromFile(configPath);
+	readConfigFromFile();
 	configContents.musicVisualizer = Settings.get_boolean('music-visualizer');
 	writeDataToFile(configPath, configContents);
 }
@@ -383,14 +384,21 @@ function writeDataToFile(path, contents)
 	GLib.file_set_contents(path, JSON.stringify(contents, null, 1));
 }
 
-function readDataFromFile(path)
+function readConfigFromFile()
 {
 	/* Read config data from temp file */
 	let [readOk, readFile] = GLib.file_get_contents(path);
 
 	if(readOk)
 	{
-		configContents = JSON.parse(readFile);
+		if(readFile instanceof Uint8Array)
+		{
+			configContents = JSON.parse(ByteArray.toString(readFile));
+		}
+		else
+		{
+			configContents = JSON.parse(readFile);
+		}
 	}
 	else
 	{

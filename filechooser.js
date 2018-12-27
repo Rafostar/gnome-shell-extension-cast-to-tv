@@ -2,6 +2,7 @@ imports.gi.versions.Gtk = '3.0';
 const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
+const ByteArray = imports.byteArray;
 
 const localPath = ARGV[0];
 const configPath = '/tmp/.cast-to-tv.json';
@@ -20,7 +21,15 @@ void function selectFile()
 {
 	if(readOk)
 	{
-		configContents = JSON.parse(configFile);
+		if(configFile instanceof Uint8Array)
+		{
+			configContents = JSON.parse(ByteArray.toString(configFile));
+		}
+		else
+		{
+			configContents = JSON.parse(configFile);
+		}
+
 		configContents.streamType = ARGV[1];
 	}
 	else
