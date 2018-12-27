@@ -283,7 +283,7 @@ function changeFFmpegPath()
 
 	if(!configContents.ffmpegPath)
 	{
-		configContents.ffmpegPath = '/bin/ffmpeg';
+		configContents.ffmpegPath = '/usr/bin/ffmpeg';
 	}
 
 	writeDataToFile(configPath, configContents);
@@ -296,7 +296,7 @@ function changeFFprobePath()
 
 	if(!configContents.ffprobePath)
 	{
-		configContents.ffprobePath = '/bin/ffprobe';
+		configContents.ffprobePath = '/usr/bin/ffprobe';
 	}
 
 	writeDataToFile(configPath, configContents);
@@ -367,12 +367,12 @@ function setConfigFile()
 	/* Use default paths if custom paths are not defined */
 	if(!configContents.ffmpegPath)
 	{
-		configContents.ffmpegPath = '/bin/ffmpeg';
+		configContents.ffmpegPath = '/usr/bin/ffmpeg';
 	}
 
 	if(!configContents.ffprobePath)
 	{
-		configContents.ffprobePath = '/bin/ffprobe';
+		configContents.ffprobePath = '/usr/bin/ffprobe';
 	}
 
 	writeDataToFile(configPath, configContents);

@@ -47,7 +47,7 @@ _init: function(params)
 		margin_left: 12
 	});
 	widget = new Gtk.Entry({hexpand: true, halign:Gtk.Align.FILL});
-	widget.set_placeholder_text("/bin/ffmpeg");
+	widget.set_placeholder_text("/usr/bin/ffmpeg");
 	this._settings.bind('ffmpeg-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
 	this.attach(label, 0, 1, 1, 1);
 	this.attach(widget, 1, 1, 1, 1);
@@ -60,7 +60,7 @@ _init: function(params)
 		margin_left: 12
 	});
 	widget = new Gtk.Entry({hexpand: true, halign:Gtk.Align.FILL});
-	widget.set_placeholder_text("/bin/ffprobe");
+	widget.set_placeholder_text("/usr/bin/ffprobe");
 	this._settings.bind('ffprobe-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
 	this.attach(label, 0, 2, 1, 1);
 	this.attach(widget, 1, 2, 1, 1);
