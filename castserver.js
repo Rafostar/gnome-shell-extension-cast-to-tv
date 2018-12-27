@@ -46,6 +46,12 @@ app.get('/', function(req, res)
 		return;
 	}
 
+	if(encodesettings.streamProcess)
+	{
+		res.end("Streaming is already active!");
+		return;
+	}
+
 	switch(config.streamType)
 	{
 		case 'VIDEO':
