@@ -387,7 +387,7 @@ function writeDataToFile(path, contents)
 function readConfigFromFile()
 {
 	/* Read config data from temp file */
-	let [readOk, readFile] = GLib.file_get_contents(path);
+	let [readOk, readFile] = GLib.file_get_contents(configPath);
 
 	if(readOk)
 	{
