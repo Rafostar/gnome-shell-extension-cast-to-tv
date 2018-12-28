@@ -106,8 +106,15 @@ exports.videoConfig = function()
 		encodeOpts.splice(encodeOpts.length - 5, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
 	}
 
-	return exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
+	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
+
+	exports.streamProcess.on('close', function()
+	{
+		exports.streamProcess = null;
+	});
+
+	return exports.streamProcess;
 }
 
 exports.videoVaapiConfig = function()
@@ -134,13 +141,20 @@ exports.videoVaapiConfig = function()
 		encodeOpts.splice(4, 0, '-vf', 'format=nv12,hwupload');
 	}
 
-	return exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
+	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
+
+	exports.streamProcess.on('close', function()
+	{
+		exports.streamProcess = null;
+	});
+
+	return exports.streamProcess;
 }
 
 exports.pictureConfig = function()
 {
-	return exports.streamProcess = spawn(config.ffmpegPath, [
+	var encodeOpts = [
 	'-framerate', '5',
 	'-loop', '1',
 	'-i', config.filePath,
@@ -153,8 +167,17 @@ exports.pictureConfig = function()
 	'-metadata', 'title=Cast to TV - Picture Stream',
 	'-f', 'matroska',
 	'pipe:1'
-	],
+	];
+
+	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
+
+	exports.streamProcess.on('close', function()
+	{
+		exports.streamProcess = null;
+	});
+
+	return exports.streamProcess;
 }
 
 exports.musicVisualizerConfig = function()
@@ -195,6 +218,13 @@ exports.musicVisualizerConfig = function()
 	'pipe:1'
 	];
 
-	return exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
+	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
+
+	exports.streamProcess.on('close', function()
+	{
+		exports.streamProcess = null;
+	});
+
+	return exports.streamProcess;
 }

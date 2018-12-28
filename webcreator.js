@@ -88,8 +88,8 @@ exports.encodedStream = function(req, res)
 	/* Prevent spawning more then one ffmpeg encode process */
 	if(encodesettings.streamProcess)
 	{
-		res.statusCode = 404;
-		res.end();
+		res.statusCode = 429;
+		res.end("Streaming is already active!");
 		return;
 	}
 
