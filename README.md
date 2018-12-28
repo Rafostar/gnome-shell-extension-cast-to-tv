@@ -44,6 +44,9 @@ git clone https://github.com/Rafostar/gnome-shell-extension-cast-to-tv.git cast-
 After doing so, remember to install dependencies.
 Restart gnome-shell (Alt+F2, type "r"), then you can enable extension using Gnome Tweak Tool.
 
+### How to use
+Detailed instructions related to configuration and using the extension are on [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
+
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
 
