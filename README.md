@@ -18,7 +18,7 @@ After doing so, remember to install [required dependencies](https://github.com/R
 Restart gnome-shell (Alt+F2, type "r"), then you can enable extension using Gnome Tweak Tool.
 
 ## Requirements
-Here is a list of required programs that cast-to-tv depends on:
+Here is a list of required programs that Cast to TV depends on:
 * [nodejs](https://www.npmjs.com/get-npm) (with npm package manager)
 * [ffmpeg](https://ffmpeg.org) (with ffprobe)
 
