@@ -148,7 +148,7 @@ _init: function(params)
 
 	// Label: Chromecast Remote
 	label = new Gtk.Label({
-		label: '<b><big>' + _('Chromecast remote') + '</big></b>',
+		label: '<b><big>' + _('Chromecast Remote') + '</big></b>',
 		use_markup: true,
 		hexpand: true,
 		margin_top: 20,
