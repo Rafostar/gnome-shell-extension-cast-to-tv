@@ -1,6 +1,7 @@
 # gnome-shell-extension-cast-to-tv
 [![HitCount](http://hits.dwyl.io/Rafostar/gnome-shell-extension-cast-to-tv.svg)](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
+[![Donate](https://img.shields.io/badge/Donate-PayPal.Me-lightgrey.svg)](https://www.paypal.me/Rafostar)
 
 Cast files to your Chromecast or other devices over local network.
 
@@ -13,7 +14,7 @@ Please make sure you have all of the above installed.
 They might be available in your linux distro repos.
 Try installing them with your package manager or follow the links for more info.
 
-**Before running cast-to-tv** you also **must** install some additional npm packages.
+**Before using cast-to-tv** you also **must** install some additional npm packages.
 
 * Install npm dependencies:
 ```
