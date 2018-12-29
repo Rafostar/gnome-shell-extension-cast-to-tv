@@ -10,7 +10,7 @@ var subsPathEscaped;
 var subtitlesBuiltIn;
 var codecAudio = 'copy';
 
-exports.streamProcess;
+exports.streamProcess = null;
 
 String.prototype.replaceAt = function(index, replacement)
 {

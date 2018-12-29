@@ -5,6 +5,6 @@ const playerOptions = {
 	"invertTime": false,
 	"keyboard": { focused: true, global: true },
 	"captions": { active: true, language: 'auto', update: false },
-	"iconUrl": '/webplayer/plyr/dist/plyr.svg',
-	"blankVideo": '/webplayer/plyr/dist/blank.mp4'
+	"iconUrl": '/plyr/dist/plyr.svg',
+	"blankVideo": '/plyr/dist/blank.mp4'
 };

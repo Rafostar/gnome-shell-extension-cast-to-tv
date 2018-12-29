@@ -48,7 +48,7 @@ app.get('/', function(req, res)
 
 	if(encodesettings.streamProcess)
 	{
-		res.end("Streaming is already active!");
+		res.end("Streaming process is still active!");
 		return;
 	}
 
@@ -105,6 +105,7 @@ app.get('/config', function(req, res)
 });
 
 app.use('/webplayer', express.static(__dirname + '/webplayer'));
+app.use('/plyr', express.static(__dirname + '/node_modules/plyr'));
 
 app.get('/*', function(req, res)
 {
