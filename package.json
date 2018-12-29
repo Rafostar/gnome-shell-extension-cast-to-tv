@@ -1,20 +1,18 @@
 {
   "name": "cast-to-tv",
-  "version": "1.0.0",
   "description": "Cast files to your Chromecast or other devices over local network.",
   "main": "castserver.js",
   "author": "Rafostar",
-  "license": "GPL-3.0",
+  "license": "GPL-2.0",
   "dependencies": {
     "chromecast-player": "^0.2.3",
     "express": "^4.16.4",
     "ffprobe": "^1.1.0",
     "internal-ip": "^3.0.1",
     "path": "^0.12.7",
+    "plyr": "^3.4.7",
+    "protobufjs": "5.0.3",
     "range-parser": "^1.2.0"
-  },
-  "devDependencies": {
-    "protobufjs": ">=5.0.3 <6.0.0"
   },
   "repository": {
     "type": "git",
