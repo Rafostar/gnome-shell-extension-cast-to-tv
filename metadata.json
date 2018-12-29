@@ -7,5 +7,5 @@
 "gettext-domain": "cast-to-tv",
 "settings-schema": "org.gnome.shell.extensions.cast-to-tv",
 "url": "https://github.com/Rafostar/gnome-shell-extension-cast-to-tv",
-"version": 1
+"version": 2
 }
