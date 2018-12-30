@@ -5,7 +5,9 @@
 
 Cast files to your Chromecast or other devices over local network.
 
-![Cast to TV](https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png" height="500">
+</p>
 
 ## Installation
 ### Latest release
