@@ -23,15 +23,23 @@ const configPath = '/tmp/.cast-to-tv.json';
 const remotePath = '/tmp/.chromecast-remote.json';
 const iconName = 'tv-symbolic';
 
-
 let castMenu;
 let remoteButton;
 
 let statusIcon;
 let configContents, remoteContents;
 let seekTime;
-let playButton, pauseButton, seekBackwardButton, seekForwardButton;
 
+/* Media buttons */
+let playButton;
+let pauseButton;
+let seekBackwardButton;
+let seekForwardButton;
+let skipBackwardButton;
+let skipForwardButton;
+let repeatButton;
+
+/* Signals */
 let ffmpegPathChanged;
 let ffprobePathChanged;
 let receiverTypeChanged;
@@ -84,11 +92,13 @@ const CastToTvMenu = new Lang.Class
 		/* Expandable menu */
 		let videoMenuItem = new PopupMenu.PopupImageMenuItem('Video', 'folder-videos-symbolic');
 		let musicMenuItem = new PopupMenu.PopupImageMenuItem('Music', 'folder-music-symbolic');
+		let pictureMenuItem = new PopupMenu.PopupImageMenuItem('Picture', 'folder-pictures-symbolic');
 		let settingsMenuItem = new PopupMenu.PopupMenuItem('Cast Settings');
 
 		/* Assemble all menu items */
 		this.menu.addMenuItem(videoMenuItem);
 		this.menu.addMenuItem(musicMenuItem);
+		this.menu.addMenuItem(pictureMenuItem);
 		this.menu.addMenuItem(settingsMenuItem);
 
 		/* Signals connections */
@@ -104,6 +114,12 @@ const CastToTvMenu = new Lang.Class
 			spawnFileChooser();
 		}));
 
+		pictureMenuItem.connect('activate', Lang.bind(this, function()
+		{
+			configContents.streamType = 'PICTURE';
+			spawnFileChooser();
+		}));
+
 		settingsMenuItem.connect('activate', Lang.bind(this, function()
 		{
 			Util.spawn(['gnome-shell-extension-prefs', 'cast-to-tv@rafostar.github.com']);
@@ -116,7 +132,7 @@ const CastToTvMenu = new Lang.Class
 	}
 });
 
-const ChromecastRemoteMenu = new Lang.Class
+const ChromecastMediaRemoteMenu = new Lang.Class
 ({
 	Name: 'Chromecast Remote',
 	Extends: PanelMenu.Button,
@@ -148,8 +164,8 @@ const ChromecastRemoteMenu = new Lang.Class
 		pauseButton = new MediaControlButton("media-playback-pause-symbolic");
 		seekBackwardButton = new MediaControlButton("media-seek-backward-symbolic");
 		seekForwardButton = new MediaControlButton("media-seek-forward-symbolic");
+		repeatButton = new MediaControlButton("media-playlist-repeat-symbolic");
 		let stopButton = new MediaControlButton("media-playback-stop-symbolic");
-		let repeatButton = new MediaControlButton("media-playlist-repeat-symbolic");
 
 		/* Add space between stop and the remaining buttons */
 		stopButton.style = "padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;";
@@ -210,6 +226,73 @@ const ChromecastRemoteMenu = new Lang.Class
 	}
 });
 
+const ChromecastPictureRemoteMenu = new Lang.Class
+({
+	Name: 'Chromecast Picture Remote',
+	Extends: PanelMenu.Button,
+
+	_init: function()
+	{
+		this.parent(0.5, 'Chromecast Picture Remote', false);
+
+		let box = new St.BoxLayout();
+		let icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
+		let toplabel = new St.Label({ text: 'Cast Remote', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+
+		/* Display app icon, label and dropdown arrow */
+		box.add(icon);
+		box.add(toplabel);
+		box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
+
+		this.actor.add_child(box);
+
+		/* Create base for media control buttons */
+		let popupBase = new PopupMenu.PopupBaseMenuItem({hover: false, reactive: true});
+
+		let controlsButtonBox = new St.BoxLayout({
+			x_align: Clutter.ActorAlign.CENTER,
+			x_expand: true
+		});
+
+		skipBackwardButton = new MediaControlButton("media-skip-backward-symbolic");
+		skipForwardButton = new MediaControlButton("media-skip-forward-symbolic");
+		let stopButton = new MediaControlButton("media-playback-stop-symbolic");
+
+		/* Assemble playback controls */
+		controlsButtonBox.add(skipBackwardButton);
+		controlsButtonBox.add(stopButton);
+		controlsButtonBox.add(skipForwardButton);
+
+		popupBase.actor.add(controlsButtonBox);
+		this.menu.addMenuItem(popupBase);
+
+		/* Signals connections */
+		skipBackwardButton.connect('clicked', Lang.bind(this, function()
+		{
+			setRemoteFile('SKIP-');
+		}));
+
+		skipForwardButton.connect('clicked', Lang.bind(this, function()
+		{
+			setRemoteFile('SKIP+');
+		}));
+
+		stopButton.connect('clicked', Lang.bind(this, function()
+		{
+			setRemoteFile('STOP');
+		}));
+
+		/* Disable not fully implemented buttons */
+		skipBackwardButton.reactive = false;
+		skipForwardButton.reactive= false;
+	},
+
+	destroy: function()
+	{
+		this.parent();
+	}
+});
+
 function initChromecastRemote()
 {
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
@@ -225,25 +308,27 @@ function initChromecastRemote()
 		return;
 	}
 
-	remoteButton = new ChromecastRemoteMenu;
-
-	/* Check if video is transcoded and disable seeking*/
+	/* Choose remote to create */
 	readConfigFromFile();
-	switch(configContents.streamType)
+	if(configContents.streamType != 'PICTURE')
 	{
-		case 'VIDEO':
-			enableSeekButtons(true);
-			break;
-		case 'MUSIC':
-			if(configContents.musicVisualizer)
-			{
-				enableSeekButtons(false);
+		remoteButton = new ChromecastMediaRemoteMenu;
+
+		/* Check if video is transcoded and disable seeking*/
+		switch(configContents.streamType)
+		{
+			case 'VIDEO':
 				break;
-			}
-			enableSeekButtons(true);
-			break;
-		default:
-			enableSeekButtons(false);
+			case 'MUSIC':
+				if(configContents.musicVisualizer) enableSeekButtons(false);
+				break;
+			default:
+				enableSeekButtons(false);
+		}
+	}
+	else
+	{
+		remoteButton = new ChromecastPictureRemoteMenu;
 	}
 
 	let children;
@@ -272,6 +357,7 @@ function initChromecastRemote()
 
 function enableSeekButtons(isEnabled)
 {
+	repeatButton.reactive = isEnabled;
 	seekBackwardButton.reactive = isEnabled;
 	seekForwardButton.reactive = isEnabled;
 }
@@ -418,7 +504,7 @@ function setRemoteFile(castAction, castValue)
 
 function init()
 {
-	//Convenience.initTranslations(); // No translations yet
+	Convenience.initTranslations();
 }
 
 function enable()
@@ -485,6 +571,7 @@ function disable()
 	if(remoteButton)
 	{
 		remoteButton.destroy();
+		remoteButton = null;
 	}
 
 	/* Remove indicator and menu item object */
