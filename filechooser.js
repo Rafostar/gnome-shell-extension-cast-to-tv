@@ -10,12 +10,12 @@ const subsFormats = ['srt', 'ass', 'vtt'];
 let [readOk, configFile] = GLib.file_get_contents(configPath);
 let configContents;
 
-let filePathChosen;
-let initType = 'BUFFERED';
-
 let fileChooser;
 let fileFilter;
+let buttonCast;
 let buttonSubs;
+
+let filePathChosen;
 
 void function selectFile()
 {
@@ -51,42 +51,50 @@ void function selectFile()
 	fileChooser.set_show_hidden(false);
 	//fileChooser.set_select_multiple(true); // Not supported yet
 	fileChooser.add_button(("Cancel"), Gtk.ResponseType.CANCEL);
-	fileChooser.add_button(("Cast Media File"), Gtk.ResponseType.OK);
+	buttonCast = fileChooser.add_button(("Cast Video"), Gtk.ResponseType.OK);
 
-	if(configContents.streamType == 'VIDEO')
+	let initType = 'BUFFERED';
+	let mimeType;
+
+	switch(configContents.streamType)
 	{
-		buttonSubs = fileChooser.add_button(("Add Subtitles"), Gtk.ResponseType.APPLY);
-		fileChooser.set_title('Select Video');
-		fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
-		fileChooser.set_extra_widget(box);
+		case 'VIDEO':
+			buttonSubs = fileChooser.add_button(("Add Subtitles"), Gtk.ResponseType.APPLY);
+			fileChooser.set_title('Select Video');
+			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
+			fileChooser.set_extra_widget(box);
 
-		fileFilter.set_name('Video Files');
-		fileFilter.add_mime_type('video/*');
-	}
-	else if(configContents.streamType == 'MUSIC')
-	{
-		fileChooser.set_title('Select Music');
-		fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
+			fileFilter.set_name('Video Files');
+			mimeType = 'video/*';
+			fileFilter.add_mime_type(mimeType);
+			break;
+		case 'MUSIC':
+			buttonCast.label = "Cast Music";
+			fileChooser.set_title('Select Music');
+			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
 
-		fileFilter.set_name('Music Files');
-		fileFilter.add_mime_type('audio/*');
-	}
-	else if(configContents.streamType == 'PICTURE')
-	{
-		fileChooser.set_title('Select Picture');
-		fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
+			fileFilter.set_name('Music Files');
+			mimeType = 'audio/*';
+			fileFilter.add_mime_type(mimeType);
 
-		fileFilter.set_name('Pictures');
-		fileFilter.add_pixbuf_formats();
+			if(configContents.musicVisualizer)
+			{
+				mimeType = 'video/*';
+				initType = 'LIVE';
+			}
 
-		if(configContents.receiverType == 'chromecast')
-		{
-			configContents.streamType += '_ENCODE';
-		}
-	}
-	else
-	{
-		return;
+			break;
+		case 'PICTURE':
+			buttonCast.label = "Cast Picture";
+			fileChooser.set_title('Select Picture');
+			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
+
+			fileFilter.set_name('Pictures');
+			mimeType = 'image/*';
+			fileFilter.add_pixbuf_formats();
+			break;
+		default:
+			return;
 	}
 
 	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
@@ -120,17 +128,16 @@ void function selectFile()
 	/* Handle convert button */
 	if(buttonConvert.get_active())
 	{
-		if(configContents.videoAcceleration == 'vaapi')
+		switch(configContents.videoAcceleration)
 		{
-			configContents.streamType += '_VAAPI';
-		}
-		else if(configContents.videoAcceleration == 'nvenc')
-		{
-			configContents.streamType += '_NVENC';
-		}
-		else
-		{
-			configContents.streamType += '_ENCODE';
+			case 'vaapi':
+				configContents.streamType += '_VAAPI';
+				break;
+			case 'nvenc':
+				configContents.streamType += '_NVENC';
+				break;
+			default:
+				configContents.streamType += '_ENCODE';
 		}
 	}
 
@@ -143,21 +150,7 @@ void function selectFile()
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
-		switch(configContents.streamType)
-		{
-			case 'VIDEO':
-				break;
-			case 'MUSIC':
-				if(configContents.musicVisualizer)
-				{
-					initType = 'LIVE';
-				}
-				break;
-			default:
-				initType = 'LIVE';
-		}
-
-		GLib.spawn_async('/usr/bin', ['node', localPath + '/castfunctions', initType], null, 0, null);
+		GLib.spawn_async('/usr/bin', ['node', localPath + '/castfunctions', initType, mimeType], null, 0, null);
 	}
 }();
 
@@ -167,6 +160,7 @@ function selectSubtitles()
 
 	fileChooser.set_title('Select Subtitles');
 	buttonSubs.hide();
+	buttonCast.label = "Cast Subtitles";
 
 	/* Add supported subtitles formats to filter */
 	subsFilter.set_name('Subtitle Files');

@@ -9,6 +9,7 @@ const statusPath = '/tmp/.chromecast-status.json';
 const webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
 const schemaDir = path.join(__dirname + '/schemas');
 const initType = process.argv[2];
+const mimeType = process.argv[3];
 const searchTimeout = 4000;
 const retryNumber = 2;
 
@@ -18,6 +19,17 @@ var videoNewPosition;
 var loopCounter = 0;
 var connectRetry = 0;
 
+switch(mimeType)
+{
+	case 'video/*':
+	case 'audio/*':
+	case 'image/*':
+		break;
+	default:
+		console.log(`Unsupported mimeType: ${mimeType}`);
+		process.exit();
+}
+
 switch(initType)
 {
 	case 'LIVE':
@@ -26,11 +38,8 @@ switch(initType)
 		launchCast();
 		break;
 	default:
-		if(!initType)
-		{
-			console.log("No streamType specified!");
-		}
-		return;
+		if(!initType) console.log("No streamType specified!");
+		else console.log(`Unsupported streamType: ${initType}`);
 }
 
 function setEmptyRemoteFile()
@@ -61,7 +70,7 @@ function showGnomeRemote(enable)
 
 function launchCast()
 {
-	player.launch({path: webUrl, streamType: initType, ttl: searchTimeout}, (err, p) => {
+	player.launch({path: webUrl, type: mimeType, streamType: initType, ttl: searchTimeout}, (err, p) => {
 
 		if(err && connectRetry < retryNumber)
 		{
@@ -72,9 +81,8 @@ function launchCast()
 		{
 			showGnomeRemote(false);
 		}
-
-		p.once('playing', () => {
-
+		else if(p)
+		{
 			showGnomeRemote(true);
 
 			castInterval = setInterval(() => {
@@ -130,6 +138,10 @@ function launchCast()
 							}
 							setEmptyRemoteFile();
 							break;
+						case 'SKIP+':
+							break;
+						case 'SKIP-':
+							break;
 						case 'REPLAY':
 							p.seek(0);
 							setEmptyRemoteFile();
@@ -137,6 +149,8 @@ function launchCast()
 						case 'STOP':
 							p.stop();
 							setEmptyRemoteFile();
+							break;
+						case 'LOAD':
 							break;
 						default:
 							break;
@@ -147,6 +161,6 @@ function launchCast()
 				loopCounter++;
 
 			}, 250);
-		});
+		}
 	});
 }
