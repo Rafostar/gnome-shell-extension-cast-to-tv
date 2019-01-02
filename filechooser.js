@@ -128,6 +128,8 @@ void function selectFile()
 	/* Handle convert button */
 	if(buttonConvert.get_active())
 	{
+		initType = 'LIVE';
+
 		switch(configContents.videoAcceleration)
 		{
 			case 'vaapi':
