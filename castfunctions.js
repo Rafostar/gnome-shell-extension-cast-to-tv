@@ -147,8 +147,10 @@ function launchCast()
 							setEmptyRemoteFile();
 							break;
 						case 'SKIP+':
+							setEmptyRemoteFile();
 							break;
 						case 'SKIP-':
+							setEmptyRemoteFile();
 							break;
 						case 'REPLAY':
 							p.seek(0);
@@ -158,7 +160,9 @@ function launchCast()
 							p.stop();
 							setEmptyRemoteFile();
 							break;
-						case 'LOAD':
+						case 'RELOAD':
+							p.load({path: webUrl, type: remoteContents.mimeType, streamType: remoteContents.initType});
+							setEmptyRemoteFile();
 							break;
 						default:
 							break;

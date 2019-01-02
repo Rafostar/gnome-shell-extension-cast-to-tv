@@ -6,6 +6,8 @@ const ByteArray = imports.byteArray;
 
 const localPath = ARGV[0];
 const configPath = '/tmp/.cast-to-tv.json';
+const statusPath = '/tmp/.chromecast-status.json';
+const remotePath = '/tmp/.chromecast-remote.json';
 const subsFormats = ['srt', 'ass', 'vtt'];
 let [readOk, configFile] = GLib.file_get_contents(configPath);
 let configContents;
@@ -16,6 +18,8 @@ let buttonCast;
 let buttonSubs;
 
 let filePathChosen;
+let initType = 'BUFFERED';
+let mimeType;
 
 void function selectFile()
 {
@@ -52,9 +56,6 @@ void function selectFile()
 	//fileChooser.set_select_multiple(true); // Not supported yet
 	fileChooser.add_button(("Cancel"), Gtk.ResponseType.CANCEL);
 	buttonCast = fileChooser.add_button(("Cast Video"), Gtk.ResponseType.OK);
-
-	let initType = 'BUFFERED';
-	let mimeType;
 
 	switch(configContents.streamType)
 	{
@@ -105,14 +106,14 @@ void function selectFile()
 		filePathChosen = fileChooser.get_filename();
 	}));
 
-	var DialogResponse = fileChooser.run();
+	let DialogResponse = fileChooser.run();
 	configContents.filePath = filePathChosen;
 
 	if(DialogResponse != Gtk.ResponseType.OK)
 	{
 		if(DialogResponse == Gtk.ResponseType.APPLY)
 		{
-			var SubsDialogResponse = selectSubtitles();
+			let SubsDialogResponse = selectSubtitles();
 
 			if(SubsDialogResponse != 0)
 			{
@@ -152,7 +153,7 @@ void function selectFile()
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
-		GLib.spawn_async('/usr/bin', ['node', localPath + '/castfunctions', initType, mimeType], null, 0, null);
+		sendToChromecast();
 	}
 }();
 
@@ -183,5 +184,55 @@ function selectSubtitles()
 	{
 		configContents.subsPath = filePathChosen;
 		return 0;
+	}
+}
+
+function checkChromecastState()
+{
+	/* Check if file exists (EXISTS = 16) */
+	let configExists = GLib.file_test(statusPath, 16);
+
+	let statusContents = {
+		playerState: null
+	};
+
+	if(configExists)
+	{
+		/* Read config data from temp file */
+		let [readOk, readFile] = GLib.file_get_contents(statusPath);
+
+		if(readOk)
+		{
+			if(readFile instanceof Uint8Array)
+			{
+				statusContents = JSON.parse(ByteArray.toString(readFile));
+			}
+			else
+			{
+				statusContents = JSON.parse(readFile);
+			}
+		}
+	}
+
+	return statusContents.playerState;
+}
+
+function sendToChromecast()
+{
+	let isChromecastPlaying = checkChromecastState();
+
+	if(!isChromecastPlaying)
+	{
+		GLib.spawn_async('/usr/bin', ['node', localPath + '/castfunctions', initType, mimeType], null, 0, null);
+	}
+	else
+	{
+		let remoteContents = {
+			action: 'RELOAD',
+			mimeType: mimeType,
+			initType: initType
+		};
+
+		GLib.file_set_contents(remotePath, JSON.stringify(remoteContents, null, 1));
 	}
 }
