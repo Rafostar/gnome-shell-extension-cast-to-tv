@@ -18,59 +18,48 @@ exports.fileStream = function(req, res)
 	}
 
 	/* Return if file does not exist or cannot be read */
-	fs.exists(filePath, function(exist)
+	var exist = fs.existsSync(filePath);
+
+	if(exist)
 	{
-		if(!exist)
+		res.setHeader('Access-Control-Allow-Origin', '*');
+
+		/* Pipe picture stream and exit function */
+		if(streamType == 'PICTURE')
 		{
-			res.statusCode = 404;
-			res.end(`File ${filePath} not found!`);
-			return;
+			res.setHeader('Content-Type', 'image/png');
+			return fs.createReadStream(filePath).pipe(res);
 		}
 
-		fs.readFile(filePath, function(err, data)
+		res.setHeader('Content-Type', 'application/octet-stream');
+
+		/* Calculate file range for chunked streaming */
+		var stat = fs.statSync(filePath);
+		var total = stat.size;
+		var range = req.headers.range;
+
+		if (!range)
 		{
-			if(err)
-			{
-				res.statusCode = 500;
-				res.end(`Error getting the file: ${err}.`);
-			}
-			else
-			{
-				res.setHeader('Access-Control-Allow-Origin', '*');
+			res.setHeader('Content-Length', total);
+			res.statusCode = 200;
+			return fs.createReadStream(filePath).pipe(res);
+		}
 
-				/* Pipe picture stream and exit function */
-				if(streamType == 'PICTURE')
-				{
-					res.setHeader('Content-Type', 'image/png');
-					return fs.createReadStream(filePath).pipe(res);
-				}
+		var part = rangeParser(total, range)[0];
+		var chunksize = (part.end - part.start) + 1;
+		var file = fs.createReadStream(filePath, {start: part.start, end: part.end});
 
-				res.setHeader('Content-Type', 'application/octet-stream');
-
-				/* Calculate file range for chunked streaming */
-				var stat = fs.statSync(filePath);
-				var total = stat.size;
-				var range = req.headers.range;
-
-				if (!range)
-				{
-					res.setHeader('Content-Length', total);
-					res.statusCode = 200;
-					return fs.createReadStream(filePath).pipe(res);
-				}
-
-				var part = rangeParser(total, range)[0];
-				var chunksize = (part.end - part.start) + 1;
-				var file = fs.createReadStream(filePath, {start: part.start, end: part.end});
-
-				res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
-				res.setHeader('Accept-Ranges', 'bytes');
-				res.setHeader('Content-Length', chunksize);
-				res.statusCode = 206;
-				return file.pipe(res);
-			}
-		});
-	});
+		res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
+		res.setHeader('Accept-Ranges', 'bytes');
+		res.setHeader('Content-Length', chunksize);
+		res.statusCode = 206;
+		return file.pipe(res);
+	}
+	else
+	{
+		res.statusCode = 404;
+		res.end(`File ${filePath} not found!`);
+	}
 }
 
 exports.encodedStream = function(req, res)
@@ -108,32 +97,21 @@ exports.encodedStream = function(req, res)
 	}
 
 	/* Return if file does not exist or cannot be read */
-	fs.exists(filePath, function (exist)
-	{
-		if(!exist)
-		{
-			res.statusCode = 404;
-			res.end(`File ${filePath} not found!`);
-			return;
-		}
+	var exist = fs.existsSync(filePath);
 
-		fs.readFile(filePath, function(err, data)
-		{
-			if(err)
-			{
-				res.statusCode = 500;
-				res.end(`Error getting the file: ${err}.`);
-			}
-			else
-			{
-				if(streamType == 'VIDEO_ENCODE') encodesettings.videoConfig().stdout.pipe(res);
-				else if(streamType == 'VIDEO_VAAPI') encodesettings.videoVaapiConfig().stdout.pipe(res);
-				else if(streamType == 'VIDEO_NVENC') encodesettings.videoNvencConfig().stdout.pipe(res);
-				else if(streamType == 'MUSIC') encodesettings.musicVisualizerConfig().stdout.pipe(res);
-				else res.end();
-			}
-		});
-	});
+	if(exist)
+	{
+		if(streamType == 'VIDEO_ENCODE') encodesettings.videoConfig().stdout.pipe(res);
+		else if(streamType == 'VIDEO_VAAPI') encodesettings.videoVaapiConfig().stdout.pipe(res);
+		else if(streamType == 'VIDEO_NVENC') encodesettings.videoNvencConfig().stdout.pipe(res);
+		else if(streamType == 'MUSIC') encodesettings.musicVisualizerConfig().stdout.pipe(res);
+		else res.end();
+	}
+	else
+	{
+		res.statusCode = 404;
+		res.end(`File ${filePath} not found!`);
+	}
 }
 
 exports.subsStream = function(req, res)
@@ -150,30 +128,19 @@ exports.subsStream = function(req, res)
 	}
 
 	/* Return if file does not exist or cannot be read */
-	fs.exists(subsPath, function(exist)
-	{
-		if(!exist)
-		{
-			res.statusCode = 302;
-			res.end();
-			return;
-		}
+	var exist = fs.existsSync(filePath);
 
-		fs.readFile(subsPath, function(err, data)
-		{
-			if(err)
-			{
-				res.statusCode = 500;
-				res.end(`Error getting the file: ${err}.`);
-			}
-			else
-			{
-				res.statusCode = 200;
-				if(req.url == '/subswebplayer') return fs.createReadStream(webplayerSubsPath).pipe(res);
-				else return fs.createReadStream(subsPath).pipe(res);
-			}
-		});
-	});
+	if(exist)
+	{
+		res.statusCode = 200;
+		if(req.url == '/subswebplayer') return fs.createReadStream(webplayerSubsPath).pipe(res);
+		else return fs.createReadStream(subsPath).pipe(res);
+	}
+	else
+	{
+		res.statusCode = 302;
+		res.end();
+	}
 }
 
 exports.pageWrong = function(req, res)
