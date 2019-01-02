@@ -472,18 +472,24 @@ function writeDataToFile(path, contents)
 
 function readConfigFromFile()
 {
-	/* Read config data from temp file */
-	let [readOk, readFile] = GLib.file_get_contents(configPath);
+	/* Check if file exists (EXISTS = 16) */
+	var configExists = GLib.file_test(configPath, 16);
 
-	if(readOk)
+	if(configExists)
 	{
-		if(readFile instanceof Uint8Array)
+		/* Read config data from temp file */
+		let [readOk, readFile] = GLib.file_get_contents(configPath);
+
+		if(readOk)
 		{
-			configContents = JSON.parse(ByteArray.toString(readFile));
-		}
-		else
-		{
-			configContents = JSON.parse(readFile);
+			if(readFile instanceof Uint8Array)
+			{
+				configContents = JSON.parse(ByteArray.toString(readFile));
+			}
+			else
+			{
+				configContents = JSON.parse(readFile);
+			}
 		}
 	}
 	else
@@ -538,7 +544,8 @@ function enable()
 	Indicator.add_child(statusIcon);
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
 
-	/* Add Chromecast remote to top bar if already playing */
+	/* Add Chromecast remote to top bar if already playing,
+	Generates initial temp config file if it does not exist */
 	initChromecastRemote();
 }
 
