@@ -42,6 +42,15 @@ switch(initType)
 		else console.log(`Unsupported streamType: ${initType}`);
 }
 
+process.on('exit', () => {
+
+	if(castInterval) clearInterval(castInterval);
+	showGnomeRemote(false);
+
+	var exist = fs.existsSync(statusPath);
+	if(exist) fs.unlinkSync(statusPath);
+});
+
 function setEmptyRemoteFile()
 {
 	remoteContents = {
@@ -97,11 +106,10 @@ function launchCast()
 					}
 					else if(!status || err)
 					{
-						fs.unlinkSync(statusPath);
-						showGnomeRemote(false);
 						clearInterval(castInterval);
+						castInterval = null;
 						p.close();
-						return;
+						process.exit();
 					}
 
 					switch(remoteContents.action)
