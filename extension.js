@@ -296,6 +296,7 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 function initChromecastRemote()
 {
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+	readConfigFromFile();
 
 	if(remoteButton)
 	{
@@ -309,7 +310,6 @@ function initChromecastRemote()
 	}
 
 	/* Choose remote to create */
-	readConfigFromFile();
 	if(configContents.streamType != 'PICTURE')
 	{
 		remoteButton = new ChromecastMediaRemoteMenu;
@@ -512,9 +512,6 @@ function enable()
 	/* Create new object from class CastToTvMenu */
 	castMenu = new CastToTvMenu;
 
-	/* Create config file */
-	setConfigFile();
-
 	/* Get remaining necessary settings */
 	seekTime = Settings.get_int('seek-time');
 
@@ -543,15 +540,16 @@ function enable()
 
 	/* Add Chromecast remote to top bar if already playing */
 	initChromecastRemote();
-
-	/* Stop earlier started processes (for gnome-shell restart) */
-	Util.spawn(['pkill', '-SIGINT', '-f', Local.path]);
 }
 
 function disable()
 {
-	/* Stop processes containing local path */
-	Util.spawn(['pkill', '-SIGINT', '-f', Local.path]);
+	let lockingScreen = (Main.sessionMode.currentMode == "unlock-dialog" || Main.sessionMode.currentMode == "lock-screen");
+
+	if(!lockingScreen)
+	{
+		Util.spawn(['pkill', '-SIGINT', '-f', Local.path]);
+	}
 
 	/* Disconnect signals from settings */
 	Settings.disconnect(ffmpegPathChanged);
