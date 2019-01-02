@@ -129,7 +129,6 @@ exports.encodedStream = function(req, res)
 				if(streamType == 'VIDEO_ENCODE') encodesettings.videoConfig().stdout.pipe(res);
 				else if(streamType == 'VIDEO_VAAPI') encodesettings.videoVaapiConfig().stdout.pipe(res);
 				else if(streamType == 'VIDEO_NVENC') encodesettings.videoNvencConfig().stdout.pipe(res);
-				else if(streamType == 'PICTURE_ENCODE') encodesettings.pictureConfig().stdout.pipe(res);
 				else if(streamType == 'MUSIC') encodesettings.musicVisualizerConfig().stdout.pipe(res);
 				else res.end();
 			}

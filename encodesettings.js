@@ -152,34 +152,6 @@ exports.videoVaapiConfig = function()
 	return exports.streamProcess;
 }
 
-exports.pictureConfig = function()
-{
-	var encodeOpts = [
-	'-framerate', '5',
-	'-loop', '1',
-	'-i', config.filePath,
-	'-vf', 'scale=-2:1080',
-	'-c:v', 'libx264',
-	'-t', '30',
-	'-pix_fmt', 'yuv420p',
-	'-preset', 'ultrafast',
-	'-level:v', '4.1',
-	'-metadata', 'title=Cast to TV - Picture Stream',
-	'-f', 'matroska',
-	'pipe:1'
-	];
-
-	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', 'ignore'] });
-
-	exports.streamProcess.on('close', function()
-	{
-		exports.streamProcess = null;
-	});
-
-	return exports.streamProcess;
-}
-
 exports.musicVisualizerConfig = function()
 {
 	var encodeOpts = [
