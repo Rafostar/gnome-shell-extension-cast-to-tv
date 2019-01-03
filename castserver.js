@@ -64,9 +64,6 @@ app.get('/', function(req, res)
 		case 'PICTURE':
 			webcreator.fileStream(req, res);
 			break;
-		case 'DESKTOP':
-			res.sendFile(path.join(__dirname + '/webplayer/desktop_player.html'));
-			break;
 		default:
 			res.sendFile(path.join(__dirname + '/webplayer/encode_player.html'));
 	}

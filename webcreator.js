@@ -89,13 +89,6 @@ exports.encodedStream = function(req, res)
 
 	streamType = configbridge.config.streamType;
 
-	/* Spawn desktop stream and exit function */
-	if(streamType == 'DESKTOP')
-	{
-		encodesettings.desktopConfig().stdout.pipe(res);
-		return;
-	}
-
 	/* Return if file does not exist or cannot be read */
 	var exist = fs.existsSync(filePath);
 
