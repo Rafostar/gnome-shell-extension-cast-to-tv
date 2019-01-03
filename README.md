@@ -6,20 +6,14 @@
 Cast files to your Chromecast or other devices over local network.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png" height="500">
+<img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png" width="80%" height="80%">
 </p>
 
 ## Installation
 ### Latest release
 [<img src="https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/Gnome-Extensions.png" height="122">](https://extensions.gnome.org/extension/1544/cast-to-tv)
-### Install from source
-You can alternatively install this extension by cloning latest development code from GitHub. Keep in mind that this might introduce new features, but the code may be buggy or unfinished.
-```
-cd ~/.local/share/gnome-shell/extensions
-git clone https://github.com/Rafostar/gnome-shell-extension-cast-to-tv.git cast-to-tv@rafostar.github.com
-```
-After doing so, remember to install [required dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements).
-Restart gnome-shell (Alt+F2, type `r`), then you can enable extension using Gnome Tweak Tool.
+
+After enabling the extension, remember to install [required dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements).
 
 ## Requirements
 Here is a list of required programs that Cast to TV depends on:
@@ -50,6 +44,18 @@ You can use hardware VAAPI encoding (optional). This of course requires working 
 
 ## How to use
 Detailed instructions related to configuration and using the extension are on [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
+
+## For Translators
+Before translating use Makefile to generate updated POT file.
+```
+make potfile
+```
+Use `cast-to-tv.pot` file in `./po` directory to generate `.po` file.
+After translating, you can test your translation by running:
+```
+make compilemo
+```
+This will create `.mo` files. Restart gnome-shell for changes to be applied.
 
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [Plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.

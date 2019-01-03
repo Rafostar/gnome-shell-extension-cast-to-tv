@@ -1,7 +1,7 @@
 # Basic Makefile
 
 UUID = cast-to-tv@rafostar.github.com
-TOLOCALIZE =  extension.js filechooser.js prefs.js
+TOLOCALIZE = extension.js filechooser.js prefs.js
 MSGSRC = $(wildcard ./po/*.po)
 POTFILE = ./po/cast-to-tv.pot
 
