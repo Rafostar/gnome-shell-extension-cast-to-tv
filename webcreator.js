@@ -121,7 +121,7 @@ exports.subsStream = function(req, res)
 	}
 
 	/* Return if file does not exist or cannot be read */
-	var exist = fs.existsSync(filePath);
+	var exist = fs.existsSync(subsPath);
 
 	if(exist)
 	{
