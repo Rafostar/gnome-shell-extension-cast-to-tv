@@ -3,18 +3,23 @@ const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const ByteArray = imports.byteArray;
+const Gettext = imports.gettext;
+const MetadataDomain = 'cast-to-tv';
+const GettextDomain = Gettext.domain(MetadataDomain);
+const _ = GettextDomain.gettext;
 
 const localPath = ARGV[0];
 const configPath = '/tmp/.cast-to-tv.json';
 const statusPath = '/tmp/.chromecast-status.json';
 const remotePath = '/tmp/.chromecast-remote.json';
 const subsFormats = ['srt', 'ass', 'vtt'];
+
+Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 let [readOk, configFile] = GLib.file_get_contents(configPath);
 let configContents;
 
 let fileChooser;
 let fileFilter;
-let buttonCast;
 let buttonSubs;
 
 let filePathChosen;
@@ -45,7 +50,7 @@ void function selectFile()
 
 	fileChooser = new Gtk.FileChooserDialog();
 	fileFilter = new Gtk.FileFilter();
-	let buttonConvert = new Gtk.CheckButton({label: 'Transcode Video'});
+	let buttonConvert = new Gtk.CheckButton({label: _("Transcode Video")});
 	let box = new Gtk.Box({spacing: 10});
 
 	box.pack_start(buttonConvert, true, true, 0);
@@ -54,27 +59,26 @@ void function selectFile()
 	fileChooser.set_local_only(true);
 	fileChooser.set_show_hidden(false);
 	//fileChooser.set_select_multiple(true); // Not supported yet
-	fileChooser.add_button(("Cancel"), Gtk.ResponseType.CANCEL);
-	buttonCast = fileChooser.add_button(("Cast Video"), Gtk.ResponseType.OK);
+	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
+	fileChooser.add_button(_("Cast selected file"), Gtk.ResponseType.OK);
 
 	switch(configContents.streamType)
 	{
 		case 'VIDEO':
-			buttonSubs = fileChooser.add_button(("Add Subtitles"), Gtk.ResponseType.APPLY);
-			fileChooser.set_title('Select Video');
+			buttonSubs = fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
+			fileChooser.set_title(_("Select Video"));
 			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
 			fileChooser.set_extra_widget(box);
 
-			fileFilter.set_name('Video Files');
+			fileFilter.set_name(_("Video Files"));
 			mimeType = 'video/*';
 			fileFilter.add_mime_type(mimeType);
 			break;
 		case 'MUSIC':
-			buttonCast.label = "Cast Music";
-			fileChooser.set_title('Select Music');
+			fileChooser.set_title(_("Select Music"));
 			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
 
-			fileFilter.set_name('Music Files');
+			fileFilter.set_name(_("Audio Files"));
 			mimeType = 'audio/*';
 			fileFilter.add_mime_type(mimeType);
 
@@ -86,11 +90,10 @@ void function selectFile()
 
 			break;
 		case 'PICTURE':
-			buttonCast.label = "Cast Picture";
-			fileChooser.set_title('Select Picture');
+			fileChooser.set_title(_("Select Picture"));
 			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
 
-			fileFilter.set_name('Pictures');
+			fileFilter.set_name(_("Pictures"));
 			mimeType = 'image/*';
 			fileFilter.add_pixbuf_formats();
 			break;
@@ -161,12 +164,11 @@ function selectSubtitles()
 {
 	let subsFilter = new Gtk.FileFilter();
 
-	fileChooser.set_title('Select Subtitles');
+	fileChooser.set_title(_("Select Subtitles"));
 	buttonSubs.hide();
-	buttonCast.label = "Cast Subtitles";
 
 	/* Add supported subtitles formats to filter */
-	subsFilter.set_name('Subtitle Files');
+	subsFilter.set_name(_("Subtitle Files"));
 
 	subsFormats.forEach(function(extension)
 	{

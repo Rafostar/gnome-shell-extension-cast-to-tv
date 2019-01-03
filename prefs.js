@@ -4,9 +4,9 @@ const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 
 const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const Convenience = Me.imports.convenience;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
+const Local = ExtensionUtils.getCurrentExtension();
+const Convenience = Local.imports.convenience;
+const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
 function init()
@@ -32,7 +32,7 @@ _init: function(params)
 
 	// Label: General
 	label = new Gtk.Label({
-		label: '<b><big>' + _('General') + '</big></b>',
+		label: '<b><big>' + _("General") + '</big></b>',
 		use_markup: true,
 		hexpand: true,
 		halign: Gtk.Align.START
@@ -41,7 +41,7 @@ _init: function(params)
 
 	// FFmpeg Path
 	label = new Gtk.Label({
-		label: _('FFmpeg path'),
+		label: _("FFmpeg path"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
@@ -54,7 +54,7 @@ _init: function(params)
 
 	// FFprobe Path
 	label = new Gtk.Label({
-		label: _('FFprobe path'),
+		label: _("FFprobe path"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
@@ -67,13 +67,13 @@ _init: function(params)
 
 	// Receiver Type
 	label = new Gtk.Label({
-		label: _('Receiver type'),
+		label: _("Receiver type"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
 	});
 	widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-	widget.append('chromecast', _("Chromecast"));
+	widget.append('chromecast', "Chromecast");
 	widget.append('other', _("Other device"));
 	this._settings.bind('receiver-type', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 	this.attach(label, 0, 3, 1, 1);
@@ -82,7 +82,7 @@ _init: function(params)
 
 	// Listening Port
 	label = new Gtk.Label({
-		label: _('Listening port'),
+		label: _("Listening port"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
@@ -102,7 +102,7 @@ _init: function(params)
 
 	// Label: Media Encoding
 	label = new Gtk.Label({
-		label: '<b><big>' + _('Media Encoding') + '</big></b>',
+		label: '<b><big>' + _("Media Encoding") + '</big></b>',
 		use_markup: true,
 		hexpand: true,
 		margin_top: 20,
@@ -112,7 +112,7 @@ _init: function(params)
 
 	// Video Bitrate
 	label = new Gtk.Label({
-		label: _('Bitrate (Mbps)'),
+		label: _("Bitrate (Mbps)"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
@@ -133,22 +133,22 @@ _init: function(params)
 
 	// Hardware Acceleration
 	label = new Gtk.Label({
-		label: _('Hardware acceleration'),
+		label: _("Hardware acceleration"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
 	});
 	widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 	widget.append('none', _("None"));
-	widget.append('vaapi', _("VAAPI"));
-	//widget.append('nvenc', _("NVENC"));
+	widget.append('vaapi', "VAAPI");
+	//widget.append('nvenc', "NVENC");
 	this._settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 	this.attach(label, 0, 7, 1, 1);
 	this.attach(widget, 1, 7, 1, 1);
 
 	// Label: Chromecast Remote
 	label = new Gtk.Label({
-		label: '<b><big>' + _('Chromecast Remote') + '</big></b>',
+		label: '<b><big>' + _("Chromecast Remote") + '</big></b>',
 		use_markup: true,
 		hexpand: true,
 		margin_top: 20,
@@ -158,7 +158,7 @@ _init: function(params)
 
 	// Remote Position
 	label = new Gtk.Label({
-		label: _('Remote position'),
+		label: _("Remote position"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
@@ -174,7 +174,7 @@ _init: function(params)
 
 	// Seek Backward/Forward
 	label = new Gtk.Label({
-		label: _('Seek backward/forward (seconds)'),
+		label: _("Seek backward/forward (seconds)"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12
@@ -194,7 +194,7 @@ _init: function(params)
 
 	// Label: Miscellaneous
 	label = new Gtk.Label({
-		label: '<b><big>' + _('Miscellaneous') + '</big></b>',
+		label: '<b><big>' + _("Miscellaneous") + '</big></b>',
 		use_markup: true,
 		hexpand: true,
 		margin_top: 20,
@@ -204,7 +204,7 @@ _init: function(params)
 
 	// Music Visualizer
 	label = new Gtk.Label({
-		label: _('Music visualizer'),
+		label: _("Music visualizer"),
 		hexpand: true,
 		halign: Gtk.Align.START,
 		margin_left: 12

@@ -17,11 +17,14 @@ const Indicator = AggregateMenu._network.indicators;
 const Lang = imports.lang;
 const Util = imports.misc.util;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
+const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const configPath = '/tmp/.cast-to-tv.json';
 const remotePath = '/tmp/.chromecast-remote.json';
 const iconName = 'tv-symbolic';
+const remoteName = _("Chromecast Remote");
 
 let castMenu;
 let remoteButton;
@@ -52,11 +55,11 @@ let musicVisualizerChanged;
 let chromecastPlayingChanged;
 
 const MediaControlButton = GObject.registerClass({
-	GTypeName: "MediaControlButton"
+	GTypeName: 'MediaControlButton'
 }, class MediaControlButton extends St.Button {
 	_init(buttonIconName) {
 		super._init({
-			style: "padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;",
+			style: 'padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;',
 			opacity: 130,
 			child: new St.Icon({
 				icon_name: buttonIconName,
@@ -70,9 +73,9 @@ const MediaControlButton = GObject.registerClass({
 		};
 
 		let signalIds = [
-			this.connect("notify::hover", callback),
-			this.connect("notify::reactive", callback),
-			this.connect("destroy", () => {
+			this.connect('notify::hover', callback),
+			this.connect('notify::reactive', callback),
+			this.connect('destroy', () => {
 				signalIds.forEach(signalId => this.disconnect(signalId));
 			})
 		];
@@ -86,14 +89,14 @@ const CastToTvMenu = new Lang.Class
 
 	_init: function()
 	{
-		this.parent('Cast Media', true);
+		this.parent(_('Cast Media'), true);
 		this.icon.icon_name = iconName;
 
 		/* Expandable menu */
-		let videoMenuItem = new PopupMenu.PopupImageMenuItem('Video', 'folder-videos-symbolic');
-		let musicMenuItem = new PopupMenu.PopupImageMenuItem('Music', 'folder-music-symbolic');
-		let pictureMenuItem = new PopupMenu.PopupImageMenuItem('Picture', 'folder-pictures-symbolic');
-		let settingsMenuItem = new PopupMenu.PopupMenuItem('Cast Settings');
+		let videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
+		let musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
+		let pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
+		let settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
 
 		/* Assemble all menu items */
 		this.menu.addMenuItem(videoMenuItem);
@@ -139,11 +142,11 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 
 	_init: function()
 	{
-		this.parent(0.5, 'Chromecast Remote', false);
+		this.parent(0.5, remoteName, false);
 
 		let box = new St.BoxLayout();
 		let icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
-		let toplabel = new St.Label({ text: 'Cast Remote', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+		let toplabel = new St.Label({ text: remoteName, y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
 		/* Display app icon, label and dropdown arrow */
 		box.add(icon);
@@ -160,15 +163,15 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 			x_expand: true
 		});
 
-		playButton = new MediaControlButton("media-playback-start-symbolic");
-		pauseButton = new MediaControlButton("media-playback-pause-symbolic");
-		seekBackwardButton = new MediaControlButton("media-seek-backward-symbolic");
-		seekForwardButton = new MediaControlButton("media-seek-forward-symbolic");
-		repeatButton = new MediaControlButton("media-playlist-repeat-symbolic");
-		let stopButton = new MediaControlButton("media-playback-stop-symbolic");
+		playButton = new MediaControlButton('media-playback-start-symbolic');
+		pauseButton = new MediaControlButton('media-playback-pause-symbolic');
+		seekBackwardButton = new MediaControlButton('media-seek-backward-symbolic');
+		seekForwardButton = new MediaControlButton('media-seek-forward-symbolic');
+		repeatButton = new MediaControlButton('media-playlist-repeat-symbolic');
+		let stopButton = new MediaControlButton('media-playback-stop-symbolic');
 
 		/* Add space between stop and the remaining buttons */
-		stopButton.style = "padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;";
+		stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;';
 
 		/* Assemble playback controls */
 		controlsButtonBox.add(repeatButton);
@@ -233,11 +236,11 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 
 	_init: function()
 	{
-		this.parent(0.5, 'Chromecast Picture Remote', false);
+		this.parent(0.5, remoteName, false);
 
 		let box = new St.BoxLayout();
 		let icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
-		let toplabel = new St.Label({ text: 'Cast Remote', y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+		let toplabel = new St.Label({ text: remoteName, y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
 		/* Display app icon, label and dropdown arrow */
 		box.add(icon);
@@ -254,9 +257,9 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 			x_expand: true
 		});
 
-		skipBackwardButton = new MediaControlButton("media-skip-backward-symbolic");
-		skipForwardButton = new MediaControlButton("media-skip-forward-symbolic");
-		let stopButton = new MediaControlButton("media-playback-stop-symbolic");
+		skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
+		skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
+		let stopButton = new MediaControlButton('media-playback-stop-symbolic');
 
 		/* Assemble playback controls */
 		controlsButtonBox.add(skipBackwardButton);
@@ -473,7 +476,7 @@ function writeDataToFile(path, contents)
 function readConfigFromFile()
 {
 	/* Check if file exists (EXISTS = 16) */
-	var configExists = GLib.file_test(configPath, 16);
+	let configExists = GLib.file_test(configPath, 16);
 
 	if(configExists)
 	{
@@ -551,7 +554,7 @@ function enable()
 
 function disable()
 {
-	let lockingScreen = (Main.sessionMode.currentMode == "unlock-dialog" || Main.sessionMode.currentMode == "lock-screen");
+	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 
 	if(!lockingScreen)
 	{
