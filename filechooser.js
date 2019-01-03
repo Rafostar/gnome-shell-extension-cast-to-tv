@@ -61,7 +61,7 @@ void function selectFile()
 	fileChooser.set_show_hidden(false);
 	//fileChooser.set_select_multiple(true); // Not supported yet
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
-	fileChooser.add_button(_("Cast selected file"), Gtk.ResponseType.OK);
+	fileChooser.add_button(_("Cast Selected File"), Gtk.ResponseType.OK);
 
 	switch(configContents.streamType)
 	{
