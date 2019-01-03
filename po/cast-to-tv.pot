@@ -1,0 +1,162 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Cast to TV package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Cast to TV\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-03 11:40+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: extension.js:27 prefs.js:151
+msgid "Chromecast Remote"
+msgstr ""
+
+#: extension.js:92
+msgid "Cast Media"
+msgstr ""
+
+#: extension.js:96
+msgid "Video"
+msgstr ""
+
+#: extension.js:97
+msgid "Music"
+msgstr ""
+
+#: extension.js:98
+msgid "Picture"
+msgstr ""
+
+#: extension.js:99
+msgid "Cast Settings"
+msgstr ""
+
+#: filechooser.js:53
+msgid "Transcode Video"
+msgstr ""
+
+#: filechooser.js:62
+msgid "Cancel"
+msgstr ""
+
+#: filechooser.js:63
+msgid "Cast selected file"
+msgstr ""
+
+#: filechooser.js:68
+msgid "Add Subtitles"
+msgstr ""
+
+#: filechooser.js:69
+msgid "Select Video"
+msgstr ""
+
+#: filechooser.js:73
+msgid "Video Files"
+msgstr ""
+
+#: filechooser.js:78
+msgid "Select Music"
+msgstr ""
+
+#: filechooser.js:81
+msgid "Audio Files"
+msgstr ""
+
+#: filechooser.js:93
+msgid "Select Picture"
+msgstr ""
+
+#: filechooser.js:96
+msgid "Pictures"
+msgstr ""
+
+#: filechooser.js:167
+msgid "Select Subtitles"
+msgstr ""
+
+#: filechooser.js:171
+msgid "Subtitle Files"
+msgstr ""
+
+#: prefs.js:35
+msgid "General"
+msgstr ""
+
+#: prefs.js:44
+msgid "FFmpeg path"
+msgstr ""
+
+#: prefs.js:57
+msgid "FFprobe path"
+msgstr ""
+
+#: prefs.js:70
+msgid "Receiver type"
+msgstr ""
+
+#: prefs.js:77
+msgid "Other device"
+msgstr ""
+
+#: prefs.js:85
+msgid "Listening port"
+msgstr ""
+
+#: prefs.js:105
+msgid "Media Encoding"
+msgstr ""
+
+#: prefs.js:115
+msgid "Bitrate (Mbps)"
+msgstr ""
+
+#: prefs.js:136
+msgid "Hardware acceleration"
+msgstr ""
+
+#: prefs.js:142
+msgid "None"
+msgstr ""
+
+#: prefs.js:161
+msgid "Remote position"
+msgstr ""
+
+#: prefs.js:167
+msgid "Left"
+msgstr ""
+
+#: prefs.js:168
+msgid "Center (left side)"
+msgstr ""
+
+#: prefs.js:169
+msgid "Center (right side)"
+msgstr ""
+
+#: prefs.js:170
+msgid "Right"
+msgstr ""
+
+#: prefs.js:177
+msgid "Seek backward/forward (seconds)"
+msgstr ""
+
+#: prefs.js:197
+msgid "Miscellaneous"
+msgstr ""
+
+#: prefs.js:207
+msgid "Music visualizer"
+msgstr ""
