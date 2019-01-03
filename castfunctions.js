@@ -8,11 +8,11 @@ const remotePath = '/tmp/.chromecast-remote.json';
 const statusPath = '/tmp/.chromecast-status.json';
 const webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
 const schemaDir = path.join(__dirname + '/schemas');
-const initType = process.argv[2];
-const mimeType = process.argv[3];
 const searchTimeout = 4000;
 const retryNumber = 2;
 
+var initType = process.argv[2];
+var mimeType = process.argv[3];
 var remoteContents, statusContents;
 var castInterval;
 var videoNewPosition;
@@ -161,9 +161,13 @@ function launchCast()
 							setEmptyRemoteFile();
 							break;
 						case 'RELOAD':
-							p.load({path: webUrl, type: remoteContents.mimeType, streamType: remoteContents.initType});
+							mimeType = remoteContents.mimeType;
+							initType = remoteContents.initType;
+							clearInterval(castInterval);
 							setEmptyRemoteFile();
-							break;
+							showGnomeRemote(false);
+							p.close();
+							return launchCast();
 						default:
 							break;
 					}
