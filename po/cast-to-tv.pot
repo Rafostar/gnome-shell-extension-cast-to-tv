@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-03 11:40+0100\n"
+"POT-Creation-Date: 2019-01-03 16:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,51 +41,51 @@ msgstr ""
 msgid "Cast Settings"
 msgstr ""
 
-#: filechooser.js:53
+#: filechooser.js:54
 msgid "Transcode Video"
 msgstr ""
 
-#: filechooser.js:62
+#: filechooser.js:63
 msgid "Cancel"
 msgstr ""
 
-#: filechooser.js:63
-msgid "Cast selected file"
-msgstr ""
-
-#: filechooser.js:68
-msgid "Add Subtitles"
+#: filechooser.js:64
+msgid "Cast Selected File"
 msgstr ""
 
 #: filechooser.js:69
+msgid "Add Subtitles"
+msgstr ""
+
+#: filechooser.js:70
 msgid "Select Video"
 msgstr ""
 
-#: filechooser.js:73
+#: filechooser.js:74
 msgid "Video Files"
 msgstr ""
 
-#: filechooser.js:78
+#: filechooser.js:79
 msgid "Select Music"
 msgstr ""
 
-#: filechooser.js:81
+#: filechooser.js:82
 msgid "Audio Files"
 msgstr ""
 
-#: filechooser.js:93
+#: filechooser.js:94
 msgid "Select Picture"
 msgstr ""
 
-#: filechooser.js:96
+#: filechooser.js:97
 msgid "Pictures"
 msgstr ""
 
-#: filechooser.js:167
+#: filechooser.js:168
 msgid "Select Subtitles"
 msgstr ""
 
-#: filechooser.js:171
+#: filechooser.js:172
 msgid "Subtitle Files"
 msgstr ""
 
