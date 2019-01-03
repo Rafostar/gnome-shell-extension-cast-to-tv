@@ -40,6 +40,7 @@ void function selectFile()
 		}
 
 		configContents.streamType = ARGV[1];
+		configContents.subsPath = null;
 	}
 	else
 	{
