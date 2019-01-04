@@ -2,7 +2,7 @@ const fs = require('fs');
 const spawn = require('child_process').spawn;
 const ffprobe = require('ffprobe');
 const configbridge = require('./configbridge');
-const webplayerSubsPath = '/tmp/webplayer_subs.vtt';
+const vttSubsPath = '/tmp/webplayer_subs.vtt';
 const escapeChars = [' ', '[', ']', '"', "'"];
 
 var config;
@@ -20,49 +20,62 @@ String.prototype.replaceAt = function(index, replacement)
 exports.refreshConfig = function()
 {
 	config = configbridge.config;
-	ffprobeAnalyzeFile(config.filePath);
+	subtitlesBuiltIn = false;
+
+	if(config.subsPath)
+	{
+		convertSubsToVtt(config.subsPath);
+	}
+	else if(config.filePath)
+	{
+		switch(config.streamType)
+		{
+			case 'MUSIC':
+			case 'PICTURE':
+				removeExistingFile(vttSubsPath);
+				break;
+			default:
+				ffprobeAnalyzeFile(config.filePath);
+				break;
+		}
+	}
+}
+
+function removeExistingFile(fileToRemove)
+{
+	if(fs.existsSync(fileToRemove))
+	{
+		fs.unlinkSync(fileToRemove);
+	}
 }
 
 function ffprobeAnalyzeFile(fileToAnalyze)
 {
-	if(fileToAnalyze)
-	{
-		var ffprobePromise = ffprobe(fileToAnalyze, { path: config.ffprobePath });
-		ffprobePromise.then(value => {
+	var ffprobePromise = ffprobe(fileToAnalyze, {path: config.ffprobePath});
 
-			checkBuiltInSubs(value);			
-		});
-	}
+	ffprobePromise.then(value => {
+
+		checkBuiltInSubs(value);
+	});
 }
 
 function checkBuiltInSubs(ffprobeData)
 {
-	subtitlesBuiltIn = false;
-
-	if(fs.existsSync(webplayerSubsPath))
+	for(var i = 0; i < ffprobeData.streams.length; i++)
 	{
-		fs.unlinkSync(webplayerSubsPath);
-	}
-
-	if(!config.subsPath)
-	{
-		/* Check file for built-in subs */
-		for(var i = 0; i < ffprobeData.streams.length; i++)
+		if(ffprobeData.streams[i].codec_type == 'subtitle')
 		{
-			if(ffprobeData.streams[i].codec_type == 'subtitle')
+			if(config.streamType == 'VIDEO')
 			{
-				if(config.receiverType == 'other')
-				{
-					convertSubsForWeb(config.filePath);
-				}
-				subtitlesBuiltIn = true;
-				break;
+				convertSubsToVtt(config.filePath);
 			}
+			else
+			{
+				subtitlesBuiltIn = true;
+			}
+
+			break;
 		}
-	}
-	else if(config.receiverType == 'other')
-	{
-		convertSubsForWeb(config.subsPath);
 	}
 }
 
@@ -80,9 +93,9 @@ function getSubsPath()
 	}
 }
 
-function convertSubsForWeb(subsFile)
+function convertSubsToVtt(subsFile)
 {
-	spawn(config.ffmpegPath, ['-i', subsFile, webplayerSubsPath, '-y']);
+	spawn(config.ffmpegPath, ['-i', subsFile, vttSubsPath, '-y']);
 }
 
 exports.videoConfig = function()
