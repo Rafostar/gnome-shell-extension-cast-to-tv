@@ -107,6 +107,8 @@ exports.videoConfig = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', config.videoBitrate + 'M',
+	'-maxrate', config.videoBitrate + 'M',
+	'-bufsize', config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-f', 'matroska',
@@ -116,7 +118,7 @@ exports.videoConfig = function()
 	if(subtitlesBuiltIn)
 	{
 		getSubsPath();
-		encodeOpts.splice(encodeOpts.length - 5, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
+		encodeOpts.splice(16, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
 	}
 
 	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
@@ -133,11 +135,12 @@ exports.videoConfig = function()
 exports.videoVaapiConfig = function()
 {
 	var encodeOpts = [
-	'-vaapi_device', '/dev/dri/renderD128',
 	'-i', config.filePath,
 	'-c:v', 'h264_vaapi',
 	'-level:v', '4.1',
 	'-b:v', config.videoBitrate + 'M',
+	'-maxrate', config.videoBitrate + 'M',
+	'-bufsize', config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-f', 'matroska',
@@ -147,11 +150,13 @@ exports.videoVaapiConfig = function()
 	if(subtitlesBuiltIn)
 	{
 		getSubsPath();
-		encodeOpts.splice(4, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write+direct,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+		encodeOpts.splice(0, 0, '-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
+		encodeOpts.splice(8, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
 	}
 	else
 	{
-		encodeOpts.splice(4, 0, '-vf', 'format=nv12,hwupload');
+		encodeOpts.splice(0, 0, '-vaapi_device', '/dev/dri/renderD128');
+		encodeOpts.splice(4, 0, '-vf', 'format=nv12,hwmap');
 	}
 
 	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
@@ -197,6 +202,8 @@ exports.musicVisualizerConfig = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', config.videoBitrate + 'M',
+	'-maxrate', config.videoBitrate + 'M',
+	'-bufsize', config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-f', 'matroska',
