@@ -4,7 +4,7 @@ UUID = cast-to-tv@rafostar.github.com
 TOLOCALIZE = extension.js filechooser.js prefs.js
 MSGSRC = $(wildcard ./po/*.po)
 POTFILE = ./po/cast-to-tv.pot
-ZIPFILES = *.js schemas webplayer locale LICENSE README.md
+ZIPFILES = *.js *.json schemas webplayer locale LICENSE README.md
 INSTALLPATH = ~/.local/share/gnome-shell/extensions
 
 # Compile schemas #
@@ -33,15 +33,13 @@ compilemo:
 
 # Create release zip #
 zip-file: _build
-	zip -qr "$(UUID).zip" $(ZIPFILES)
+	zip -qr $(UUID).zip $(ZIPFILES)
 
 # Build and install #
 install: zip-file
-	mkdir -p "$(INSTALLPATH)"
-	mkdir -p "$(INSTALLPATH)/$(UUID)"
-	unzip -qo "$(UUID).zip" -d "$(INSTALLPATH)/$(UUID)"
-	cd "$(INSTALLPATH)/$(UUID)"
-	npm install
+	mkdir -p $(INSTALLPATH)
+	mkdir -p $(INSTALLPATH)/$(UUID)
+	unzip -qo $(UUID).zip -d $(INSTALLPATH)/$(UUID)
 
 _build: schemas potfile mergepo compilemo
 
