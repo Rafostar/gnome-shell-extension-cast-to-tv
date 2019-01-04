@@ -17,7 +17,7 @@ exports.fileStream = function(req, res)
 		return;
 	}
 
-	/* Return if file does not exist or cannot be read */
+	/* Check if file exist */
 	var exist = fs.existsSync(filePath);
 
 	if(exist)
@@ -89,7 +89,7 @@ exports.encodedStream = function(req, res)
 
 	streamType = configbridge.config.streamType;
 
-	/* Return if file does not exist or cannot be read */
+	/* Check if file exist */
 	var exist = fs.existsSync(filePath);
 
 	if(exist)
@@ -99,6 +99,8 @@ exports.encodedStream = function(req, res)
 		else if(streamType == 'VIDEO_NVENC') encodesettings.videoNvencConfig().stdout.pipe(res);
 		else if(streamType == 'MUSIC') encodesettings.musicVisualizerConfig().stdout.pipe(res);
 		else res.end();
+
+		return;
 	}
 	else
 	{
@@ -111,33 +113,37 @@ exports.subsStream = function(req, res)
 {
 	subsPath = configbridge.config.subsPath;
 
-	res.setHeader('Content-Type', 'text/vtt');
-	res.setHeader('Access-Control-Allow-Origin', '*');
-
-	/* When no subs selected try with extracted subs */
-	if(!subsPath)
+	if(!subsPath || req.url == '/subswebplayer')
 	{
 		subsPath = webplayerSubsPath;
 	}
 
-	/* Return if file does not exist or cannot be read */
+	/* Check if file exist */
 	var exist = fs.existsSync(subsPath);
 
 	if(exist)
 	{
-		res.statusCode = 200;
-		if(req.url == '/subswebplayer') return fs.createReadStream(webplayerSubsPath).pipe(res);
-		else return fs.createReadStream(subsPath).pipe(res);
+		/* Get stat from file */
+		var statSubs = fs.statSync(subsPath);
+		var totalSubs = statSubs.size;
+
+		res.writeHead(200, {
+			'Access-Control-Allow-Origin': '*',
+			'Content-Length': totalSubs,
+			'Content-Type': 'text/vtt'
+		});
+
+		return fs.createReadStream(subsPath).pipe(res);
 	}
 	else
 	{
-		res.statusCode = 302;
 		res.end();
+		return;
 	}
 }
 
 exports.pageWrong = function(req, res)
 {
 	res.statusCode = 400;
-	res.end(`Bad Request!`);
+	res.end("Bad Request!");
 }
