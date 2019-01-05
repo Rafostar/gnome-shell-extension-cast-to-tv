@@ -112,7 +112,6 @@ exports.videoConfig = function()
 	'-level:v', '4.1',
 	'-b:v', config.videoBitrate + 'M',
 	'-maxrate', config.videoBitrate + 'M',
-	'-bufsize', config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-f', 'matroska',
@@ -122,7 +121,7 @@ exports.videoConfig = function()
 	if(subtitlesBuiltIn)
 	{
 		getSubsPath();
-		encodeOpts.splice(16, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
+		encodeOpts.splice(14, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
 	}
 
 	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
@@ -144,7 +143,6 @@ exports.videoVaapiConfig = function()
 	'-level:v', '4.1',
 	'-b:v', config.videoBitrate + 'M',
 	'-maxrate', config.videoBitrate + 'M',
-	'-bufsize', config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-f', 'matroska',
@@ -207,7 +205,6 @@ exports.musicVisualizerConfig = function()
 	'-level:v', '4.1',
 	'-b:v', config.videoBitrate + 'M',
 	'-maxrate', config.videoBitrate + 'M',
-	'-bufsize', config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-f', 'matroska',
