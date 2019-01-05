@@ -72,6 +72,7 @@ function checkBuiltInSubs(ffprobeData)
 			else
 			{
 				subtitlesBuiltIn = true;
+				removeExistingFile(vttSubsPath);
 			}
 
 			/* Return when subtiles found */
