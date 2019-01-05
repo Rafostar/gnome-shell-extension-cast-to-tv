@@ -137,6 +137,8 @@ exports.subsStream = function(req, res)
 	}
 	else
 	{
+		/* Status code must be the same in "subtitlesconfig.js" */
+		res.statusCode = 204;
 		res.end();
 		return;
 	}

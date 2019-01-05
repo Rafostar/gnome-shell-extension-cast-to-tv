@@ -74,9 +74,13 @@ function checkBuiltInSubs(ffprobeData)
 				subtitlesBuiltIn = true;
 			}
 
-			break;
+			/* Return when subtiles found */
+			return;
 		}
 	}
+
+	/* Delete existing file if no new subtiles */
+	removeExistingFile(vttSubsPath);
 }
 
 function getSubsPath()

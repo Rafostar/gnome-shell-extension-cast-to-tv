@@ -7,7 +7,7 @@ httpReq.send();
 
 httpReq.onreadystatechange = function()
 {
-	if(this.readyState == 4 && this.status != 302)
+	if(this.readyState == 4 && this.status != 204)
 	{
 		/* Enable subtitles */
 		subtitlesConfig.kind = "captions";
