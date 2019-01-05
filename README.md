@@ -34,7 +34,7 @@ npm install
 You can use hardware VAAPI encoding (optional). This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
 
 ## Features
-* Cast videos or music
+* Cast videos, music and pictures
 * Supports external and built-in subtitles (along with custom fansubs)
 * Chromecast remote controller (control playback from gnome top bar)
 * Play on other device using integrated web player or other video player (e.g. mpv or vlc)
