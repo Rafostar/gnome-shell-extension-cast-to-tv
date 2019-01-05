@@ -45,7 +45,7 @@ You can use hardware VAAPI encoding (optional). This of course requires working 
 ## How to use
 Detailed instructions related to configuration and using the extension are on [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
 
-## For Translators
+## Info for translators
 Before translating use Makefile to generate updated POT file.
 ```
 make potfile
@@ -59,6 +59,9 @@ This will create `.mo` files. Restart gnome-shell for changes to be applied.
 
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [Plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
+
+### Translations
+[@Rafostar](https://github.com/Rafostar) (pl), [@amivaleo](https://github.com/amivaleo) (it)
 
 ## Donation
 If you like my work please support it by buying me a cup of coffee :grin:
