@@ -12,6 +12,7 @@ const localPath = ARGV[0];
 const configPath = '/tmp/.cast-to-tv.json';
 const statusPath = '/tmp/.chromecast-status.json';
 const remotePath = '/tmp/.chromecast-remote.json';
+const listPath = '/tmp/.chromecast-list.json';
 const subsFormats = ['srt', 'ass', 'vtt'];
 
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
@@ -25,6 +26,8 @@ let buttonSubs;
 let filePathChosen;
 let initType = 'BUFFERED';
 let mimeType;
+
+let fileSelectionChanged;
 
 void function selectFile()
 {
@@ -59,7 +62,12 @@ void function selectFile()
 
 	fileChooser.set_local_only(true);
 	fileChooser.set_show_hidden(false);
-	//fileChooser.set_select_multiple(true); // Not supported yet
+
+	if(configContents.receiverType == 'chromecast')
+	{
+		fileChooser.set_select_multiple(true);
+	}
+
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
 	fileChooser.add_button(_("Cast Selected File"), Gtk.ResponseType.OK);
 
@@ -107,16 +115,26 @@ void function selectFile()
 
 	fileChooser.connect('response', Lang.bind(this, function()
 	{
-		filePathChosen = fileChooser.get_filename();
+		filePathChosen = fileChooser.get_filenames();
+	}));
+
+	fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
+	{
+		let selectedNumber = fileChooser.get_filenames().length;
+
+		if(selectedNumber > 1) buttonSubs.hide();
+		else buttonSubs.show();
 	}));
 
 	let DialogResponse = fileChooser.run();
-	configContents.filePath = filePathChosen;
+	let filesList = filePathChosen.sort();
+	configContents.filePath = filesList[0];
 
 	if(DialogResponse != Gtk.ResponseType.OK)
 	{
 		if(DialogResponse == Gtk.ResponseType.APPLY)
 		{
+			fileChooser.disconnect(fileSelectionChanged);
 			let SubsDialogResponse = selectSubtitles();
 
 			if(SubsDialogResponse != 0)
@@ -157,6 +175,7 @@ void function selectFile()
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
+		GLib.file_set_contents(listPath, JSON.stringify(filesList, null, 1));
 		sendToChromecast();
 	}
 }();
@@ -176,6 +195,7 @@ function selectSubtitles()
 		subsFilter.add_pattern('*.' + extension);
 	});
 
+	fileChooser.set_select_multiple(false);
 	fileChooser.remove_filter(fileFilter);
 	fileChooser.add_filter(subsFilter);
 
