@@ -6,6 +6,7 @@ const spawn = require('child_process').spawn;
 const config = require('/tmp/.cast-to-tv.json');
 const remotePath = '/tmp/.chromecast-remote.json';
 const statusPath = '/tmp/.chromecast-status.json';
+const listPath = '/tmp/.chromecast-list.json';
 const webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
 const schemaDir = path.join(__dirname + '/schemas');
 const searchTimeout = 4000;
@@ -47,8 +48,15 @@ process.on('exit', () => {
 	if(castInterval) clearInterval(castInterval);
 	showGnomeRemote(false);
 
+	/* Remove all temp files */
 	var exist = fs.existsSync(statusPath);
 	if(exist) fs.unlinkSync(statusPath);
+
+	exist = fs.existsSync(listPath);
+	if(exist) fs.unlinkSync(listPath);
+
+	exist = fs.existsSync(remotePath);
+	if(exist) fs.unlinkSync(remotePath);
 });
 
 function setEmptyRemoteFile()
@@ -85,10 +93,6 @@ function launchCast()
 		{
 			connectRetry++;
 			return launchCast();
-		}
-		else if(err && connectRetry == retryNumber)
-		{
-			showGnomeRemote(false);
 		}
 		else if(p)
 		{
@@ -146,12 +150,11 @@ function launchCast()
 							}
 							setEmptyRemoteFile();
 							break;
-						case 'SKIP+':
+						case 'SKIP':
+							clearInterval(castInterval);
 							setEmptyRemoteFile();
-							break;
-						case 'SKIP-':
-							setEmptyRemoteFile();
-							break;
+							p.close();
+							return launchCast();
 						case 'REPLAY':
 							p.seek(0);
 							setEmptyRemoteFile();
