@@ -68,6 +68,7 @@ void function selectFile()
 		fileChooser.set_select_multiple(true);
 	}
 
+	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
 	fileChooser.add_button(_("Cast Selected File"), Gtk.ResponseType.OK);
 
@@ -82,6 +83,15 @@ void function selectFile()
 			fileFilter.set_name(_("Video Files"));
 			mimeType = 'video/*';
 			fileFilter.add_mime_type(mimeType);
+
+			fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
+			{
+				let selectedNumber = fileChooser.get_filenames().length;
+
+				if(selectedNumber > 1) buttonSubs.hide();
+				else buttonSubs.show();
+			}));
+
 			break;
 		case 'MUSIC':
 			fileChooser.set_title(_("Select Music"));
@@ -110,20 +120,11 @@ void function selectFile()
 			return;
 	}
 
-	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 	fileChooser.add_filter(fileFilter);
 
 	fileChooser.connect('response', Lang.bind(this, function()
 	{
 		filePathChosen = fileChooser.get_filenames();
-	}));
-
-	fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
-	{
-		let selectedNumber = fileChooser.get_filenames().length;
-
-		if(selectedNumber > 1) buttonSubs.hide();
-		else buttonSubs.show();
 	}));
 
 	let DialogResponse = fileChooser.run();
