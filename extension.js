@@ -23,6 +23,7 @@ const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const configPath = '/tmp/.cast-to-tv.json';
 const remotePath = '/tmp/.chromecast-remote.json';
+const listPath = '/tmp/.chromecast-list.json';
 const iconName = 'tv-symbolic';
 const remoteName = _("Chromecast Remote");
 
@@ -30,8 +31,9 @@ let castMenu;
 let remoteButton;
 
 let statusIcon;
-let configContents, remoteContents;
+let configContents, remoteContents, listContents;
 let seekTime;
+let trackID = 0;
 
 /* Media buttons */
 let playButton;
@@ -269,25 +271,50 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 		popupBase.actor.add(controlsButtonBox);
 		this.menu.addMenuItem(popupBase);
 
+		/* Buttons to disable on start */
+		skipBackwardButton.reactive = false;
+
+		/* Disable skip forward if list has only one position */
+		if(listLastID == 0)
+		{
+			skipForwardButton.reactive= false;
+		}
+
 		/* Signals connections */
 		skipBackwardButton.connect('clicked', Lang.bind(this, function()
 		{
-			setRemoteFile('SKIP-');
+			trackID--;
+			configContents.filePath = listContents[trackID];
+			writeDataToFile(configPath, configContents);
+
+			if(trackID == 0)
+			{
+				skipBackwardButton.reactive = false;
+			}
+
+			setRemoteFile('SKIP');
+			skipForwardButton.reactive = true;
 		}));
 
 		skipForwardButton.connect('clicked', Lang.bind(this, function()
 		{
-			setRemoteFile('SKIP+');
+			trackID++;
+			configContents.filePath = listContents[trackID];
+			writeDataToFile(configPath, configContents);
+
+			if(trackID == listLastID)
+			{
+				skipForwardButton.reactive = false;
+			}
+
+			setRemoteFile('SKIP');
+			skipBackwardButton.reactive = true;
 		}));
 
 		stopButton.connect('clicked', Lang.bind(this, function()
 		{
 			setRemoteFile('STOP');
 		}));
-
-		/* Disable not fully implemented buttons */
-		skipBackwardButton.reactive = false;
-		skipForwardButton.reactive= false;
 	},
 
 	destroy: function()
@@ -299,7 +326,7 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 function initChromecastRemote()
 {
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
-	readConfigFromFile();
+	getConfigFromFile();
 
 	if(remoteButton)
 	{
@@ -310,6 +337,17 @@ function initChromecastRemote()
 	if(configContents.receiverType != 'chromecast' || !chromecastPlaying)
 	{
 		return;
+	}
+
+	listContents = readDataFromFile(listPath);
+
+	if(listContents)
+	{
+		listLastID = listContents.length - 1;
+	}
+	else
+	{
+		listLastID = 0;
 	}
 
 	/* Choose remote to create */
@@ -367,7 +405,7 @@ function enableSeekButtons(isEnabled)
 
 function changeFFmpegPath()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.ffmpegPath = Settings.get_string('ffmpeg-path');
 
 	if(!configContents.ffmpegPath)
@@ -380,7 +418,7 @@ function changeFFmpegPath()
 
 function changeFFprobePath()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.ffprobePath = Settings.get_string('ffprobe-path');
 
 	if(!configContents.ffprobePath)
@@ -393,7 +431,7 @@ function changeFFprobePath()
 
 function changeReceiverType()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.receiverType = Settings.get_string('receiver-type');
 	writeDataToFile(configPath, configContents);
 	initChromecastRemote();
@@ -401,28 +439,28 @@ function changeReceiverType()
 
 function changeListeningPort()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.listeningPort = Settings.get_int('listening-port');
 	writeDataToFile(configPath, configContents);
 }
 
 function changeVideoBitrate()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.videoBitrate = Settings.get_double('video-bitrate');
 	writeDataToFile(configPath, configContents);
 }
 
 function changeVideoAcceleration()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.videoAcceleration = Settings.get_string('video-acceleration');
 	writeDataToFile(configPath, configContents);
 }
 
 function changeMusicVisualizer()
 {
-	readConfigFromFile();
+	getConfigFromFile();
 	configContents.musicVisualizer = Settings.get_boolean('music-visualizer');
 	writeDataToFile(configPath, configContents);
 }
@@ -473,29 +511,37 @@ function writeDataToFile(path, contents)
 	GLib.file_set_contents(path, JSON.stringify(contents, null, 1));
 }
 
-function readConfigFromFile()
+function readDataFromFile(path)
 {
 	/* Check if file exists (EXISTS = 16) */
-	let configExists = GLib.file_test(configPath, 16);
+	let fileExists = GLib.file_test(path, 16);
 
-	if(configExists)
+	if(fileExists)
 	{
 		/* Read config data from temp file */
-		let [readOk, readFile] = GLib.file_get_contents(configPath);
+		let [readOk, readFile] = GLib.file_get_contents(path);
 
 		if(readOk)
 		{
 			if(readFile instanceof Uint8Array)
 			{
-				configContents = JSON.parse(ByteArray.toString(readFile));
+				return JSON.parse(ByteArray.toString(readFile));
 			}
 			else
 			{
-				configContents = JSON.parse(readFile);
+				return JSON.parse(readFile);
 			}
 		}
 	}
-	else
+
+	return null;
+}
+
+function getConfigFromFile()
+{
+	configContents = readDataFromFile(configPath);
+
+	if(!configContents)
 	{
 		setConfigFile();
 	}
