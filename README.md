@@ -11,13 +11,14 @@ Cast files to your Chromecast or other devices over local network.
 
 ## Installation
 ### Latest release
-[<img src="https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/Gnome-Extensions.png" height="122">](https://extensions.gnome.org/extension/1544/cast-to-tv)
+[<img src="https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/Gnome-Extensions.png" width="30%" height="30%">](https://extensions.gnome.org/extension/1544/cast-to-tv)
 
 After enabling the extension, remember to install [required dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements).
 
 ## Requirements
 Here is a list of required programs that Cast to TV depends on:
-* [nodejs](https://www.npmjs.com/get-npm) (with npm package manager)
+* [npm](https://www.npmjs.com/get-npm) (for dependencies installation)
+* [nodejs](https://nodejs.org)
 * [ffmpeg](https://ffmpeg.org) (with ffprobe)
 
 Please make sure you have all of the above installed.
