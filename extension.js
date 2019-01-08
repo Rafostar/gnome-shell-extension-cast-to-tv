@@ -603,6 +603,7 @@ function enable()
 
 	/* Add Chromecast remote to top bar if already playing,
 	Generates initial temp config file if it does not exist */
+	chromecastWasPlaying = null;
 	initChromecastRemote();
 }
 
