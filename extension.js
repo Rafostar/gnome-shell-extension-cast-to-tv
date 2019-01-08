@@ -34,6 +34,7 @@ let statusIcon;
 let configContents, remoteContents, listContents;
 let seekTime;
 let trackID = 0;
+let chromecastWasPlaying;
 
 /* Media buttons */
 let playButton;
@@ -148,7 +149,7 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 
 		let box = new St.BoxLayout();
 		let icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
-		let toplabel = new St.Label({ text: remoteName, y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+		let toplabel = new St.Label({ text: _(remoteName), y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
 		/* Display app icon, label and dropdown arrow */
 		box.add(icon);
@@ -242,7 +243,7 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 
 		let box = new St.BoxLayout();
 		let icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
-		let toplabel = new St.Label({ text: remoteName, y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+		let toplabel = new St.Label({ text: _(remoteName), y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
 		/* Display app icon, label and dropdown arrow */
 		box.add(icon);
@@ -325,8 +326,15 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 
 function initChromecastRemote()
 {
-	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 	getConfigFromFile();
+	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+
+	if(chromecastWasPlaying == chromecastPlaying)
+	{
+		return;
+	}
+
+	chromecastWasPlaying = chromecastPlaying;
 
 	if(remoteButton)
 	{
