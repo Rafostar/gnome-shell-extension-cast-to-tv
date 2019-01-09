@@ -82,6 +82,14 @@ function startPlayback(p)
 	showGnomeRemote(true);
 }
 
+function closeCast(p)
+{
+	clearInterval(castInterval);
+	setEmptyRemoteFile();
+	p.close();
+	connectRetry = 0;
+}
+
 function launchCast()
 {
 	switch(mimeType)
@@ -173,10 +181,7 @@ function launchCast()
 							setEmptyRemoteFile();
 							break;
 						case 'SKIP':
-							clearInterval(castInterval);
-							setEmptyRemoteFile();
-							p.close();
-							connectRetry = 0;
+							closeCast(p);
 							return launchCast();
 						case 'REPLAY':
 							p.seek(0);
@@ -189,11 +194,8 @@ function launchCast()
 						case 'RELOAD':
 							mimeType = remoteContents.mimeType;
 							initType = remoteContents.initType;
-							clearInterval(castInterval);
-							setEmptyRemoteFile();
+							closeCast(p);
 							showGnomeRemote(false);
-							p.close();
-							connectRetry = 0;
 							return launchCast();
 						default:
 							break;
