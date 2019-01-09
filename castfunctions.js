@@ -19,17 +19,8 @@ var castInterval;
 var videoNewPosition;
 var loopCounter = 0;
 var connectRetry = 0;
-
-switch(mimeType)
-{
-	case 'video/*':
-	case 'audio/*':
-	case 'image/*':
-		break;
-	default:
-		console.log(`Unsupported mimeType: ${mimeType}`);
-		process.exit();
-}
+var mediaTracks;
+var trackIds;
 
 switch(initType)
 {
@@ -93,7 +84,33 @@ function startPlayback(p)
 
 function launchCast()
 {
-	player.launch({path: webUrl, type: mimeType, streamType: initType, autoplay: false, ttl: searchTimeout}, (err, p) => {
+	switch(mimeType)
+	{
+		case 'video/*':
+			trackIds = [1];
+			mediaTracks = {
+				tracks: [{
+					trackId: 1,
+					type: 'TEXT',
+					trackContentId: 'http://' + ip + ':' + config.listeningPort + '/subswebplayer',
+					trackContentType: 'text/vtt',
+					name: 'Subtitles',
+					subtype: 'SUBTITLES'
+				}]
+			};
+			break;
+		case 'audio/*':
+		case 'image/*':
+			trackIds = null;
+			mediaTracks = null;
+			break;
+		default:
+			console.log(`Unsupported mimeType: ${mimeType}`);
+			process.exit();
+	}
+
+
+	player.launch({path: webUrl, type: mimeType, streamType: initType, autoplay: false, ttl: searchTimeout, activeTrackIds: trackIds, media: mediaTracks}, (err, p) => {
 
 		if(err && connectRetry < retryNumber)
 		{
