@@ -109,7 +109,6 @@ function launchCast()
 			process.exit();
 	}
 
-
 	player.launch({path: webUrl, type: mimeType, streamType: initType, autoplay: false, ttl: searchTimeout, activeTrackIds: trackIds, media: mediaTracks}, (err, p) => {
 
 		if(err && connectRetry < retryNumber)
@@ -177,6 +176,7 @@ function launchCast()
 							clearInterval(castInterval);
 							setEmptyRemoteFile();
 							p.close();
+							connectRetry = 0;
 							return launchCast();
 						case 'REPLAY':
 							p.seek(0);
@@ -193,6 +193,7 @@ function launchCast()
 							setEmptyRemoteFile();
 							showGnomeRemote(false);
 							p.close();
+							connectRetry = 0;
 							return launchCast();
 						default:
 							break;
