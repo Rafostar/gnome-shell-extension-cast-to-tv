@@ -34,6 +34,7 @@ let statusIcon;
 let configContents, remoteContents, listContents;
 let seekTime;
 let trackID = 0;
+let listLastID = 0;
 let chromecastWasPlaying;
 
 /* Media buttons */
