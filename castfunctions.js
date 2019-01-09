@@ -85,9 +85,15 @@ function showGnomeRemote(enable)
 	spawn('gsettings', ['--schemadir', schemaDir, 'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
 }
 
+function startPlayback(p)
+{
+	p.play();
+	showGnomeRemote(true);
+}
+
 function launchCast()
 {
-	player.launch({path: webUrl, type: mimeType, streamType: initType, ttl: searchTimeout}, (err, p) => {
+	player.launch({path: webUrl, type: mimeType, streamType: initType, autoplay: false, ttl: searchTimeout}, (err, p) => {
 
 		if(err && connectRetry < retryNumber)
 		{
@@ -96,7 +102,7 @@ function launchCast()
 		}
 		else if(p)
 		{
-			showGnomeRemote(true);
+			setTimeout(startPlayback, 1200, p);
 
 			castInterval = setInterval(() => {
 
