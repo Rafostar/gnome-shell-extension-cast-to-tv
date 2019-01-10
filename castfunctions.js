@@ -22,6 +22,18 @@ var connectRetry = 0;
 var mediaTracks;
 var trackIds;
 
+const subsStyle = {
+	backgroundColor: '#00000000',
+	foregroundColor: '#FFFFFFFF',
+	edgeType: 'OUTLINE',
+	edgeColor: '#000000FF',
+	fontScale: 1.0,
+	fontStyle: 'NORMAL',
+	fontFamily: 'Droid Sans',
+	fontGenericFamily: 'SANS_SERIF',
+	windowType: 'NONE'
+};
+
 switch(initType)
 {
 	case 'LIVE':
@@ -97,6 +109,7 @@ function launchCast()
 		case 'video/*':
 			trackIds = [1];
 			mediaTracks = {
+				textTrackStyle: subsStyle,
 				tracks: [{
 					trackId: 1,
 					type: 'TEXT',
