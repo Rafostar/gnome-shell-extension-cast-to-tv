@@ -60,6 +60,8 @@ process.on('exit', () => {
 
 	exist = fs.existsSync(remotePath);
 	if(exist) fs.unlinkSync(remotePath);
+
+	spawn('pkill', ['-SIGINT', '-f', __dirname + '/castserver']);
 });
 
 function setEmptyRemoteFile()
