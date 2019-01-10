@@ -6,7 +6,6 @@ Extension GitHub: https://github.com/Rafostar/gnome-shell-extension-cast-to-tv
 
 const St = imports.gi.St;
 const GLib = imports.gi.GLib;
-const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 const ByteArray = imports.byteArray;
 const Main = imports.ui.main;
@@ -19,6 +18,7 @@ const Util = imports.misc.util;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const RemoteWidget = Local.imports.remotewidget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const configPath = '/tmp/.cast-to-tv.json';
@@ -29,6 +29,7 @@ const remoteName = _("Chromecast Remote");
 
 let castMenu;
 let remoteButton;
+let remoteIconName = 'folder-videos-symbolic';
 
 let statusIcon;
 let configContents, remoteContents, listContents;
@@ -37,7 +38,8 @@ let trackID = 0;
 let listLastID = 0;
 let chromecastWasPlaying;
 
-/* Media buttons */
+/* Media controls */
+let positionSlider;
 let playButton;
 let pauseButton;
 let seekBackwardButton;
@@ -57,34 +59,6 @@ let remotePositionChanged;
 let seekTimeChanged;
 let musicVisualizerChanged;
 let chromecastPlayingChanged;
-
-const MediaControlButton = GObject.registerClass({
-	GTypeName: 'MediaControlButton'
-}, class MediaControlButton extends St.Button {
-	_init(buttonIconName) {
-		super._init({
-			style: 'padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;',
-			opacity: 130,
-			child: new St.Icon({
-				icon_name: buttonIconName,
-				icon_size: 20
-			})
-		});
-
-		let callback = () => {
-			this.opacity = !this.reactive ? 30 : this.hover ? 255 : 130;
-			
-		};
-
-		let signalIds = [
-			this.connect('notify::hover', callback),
-			this.connect('notify::reactive', callback),
-			this.connect('destroy', () => {
-				signalIds.forEach(signalId => this.disconnect(signalId));
-			})
-		];
-	}
-});
 
 const CastToTvMenu = new Lang.Class
 ({
@@ -160,19 +134,20 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 		this.actor.add_child(box);
 
 		/* Create base for media control buttons */
-		let popupBase = new PopupMenu.PopupBaseMenuItem({hover: false, reactive: true});
+		let popupBase = new RemoteWidget.PopupBase;
 
 		let controlsButtonBox = new St.BoxLayout({
 			x_align: Clutter.ActorAlign.CENTER,
 			x_expand: true
 		});
 
-		playButton = new MediaControlButton('media-playback-start-symbolic');
-		pauseButton = new MediaControlButton('media-playback-pause-symbolic');
-		seekBackwardButton = new MediaControlButton('media-seek-backward-symbolic');
-		seekForwardButton = new MediaControlButton('media-seek-forward-symbolic');
-		repeatButton = new MediaControlButton('media-playlist-repeat-symbolic');
-		let stopButton = new MediaControlButton('media-playback-stop-symbolic');
+		positionSlider = new RemoteWidget.SliderItem(remoteIconName);
+		playButton = new RemoteWidget.MediaControlButton('media-playback-start-symbolic');
+		pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
+		seekBackwardButton = new RemoteWidget.MediaControlButton('media-seek-backward-symbolic');
+		seekForwardButton = new RemoteWidget.MediaControlButton('media-seek-forward-symbolic');
+		repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic');
+		let stopButton = new RemoteWidget.MediaControlButton('media-playback-stop-symbolic');
 
 		/* Add space between stop and the remaining buttons */
 		stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;';
@@ -189,6 +164,8 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 		playButton.hide();
 
 		popupBase.actor.add(controlsButtonBox);
+
+		this.menu.addMenuItem(positionSlider);
 		this.menu.addMenuItem(popupBase);
 
 		/* Signals connections */
@@ -254,16 +231,16 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 		this.actor.add_child(box);
 
 		/* Create base for media control buttons */
-		let popupBase = new PopupMenu.PopupBaseMenuItem({hover: false, reactive: true});
+		let popupBase = new RemoteWidget.PopupBase;
 
 		let controlsButtonBox = new St.BoxLayout({
 			x_align: Clutter.ActorAlign.CENTER,
 			x_expand: true
 		});
 
-		skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
-		skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
-		let stopButton = new MediaControlButton('media-playback-stop-symbolic');
+		skipBackwardButton = new RemoteWidget.MediaControlButton('media-skip-backward-symbolic');
+		skipForwardButton = new RemoteWidget.MediaControlButton('media-skip-forward-symbolic');
+		let stopButton = new RemoteWidget.MediaControlButton('media-playback-stop-symbolic');
 
 		/* Assemble playback controls */
 		controlsButtonBox.add(skipBackwardButton);
@@ -362,22 +339,26 @@ function initChromecastRemote()
 	/* Choose remote to create */
 	if(configContents.streamType != 'PICTURE')
 	{
-		remoteButton = new ChromecastMediaRemoteMenu;
-
 		/* Check if video is transcoded and disable seeking*/
 		switch(configContents.streamType)
 		{
 			case 'VIDEO':
+				remoteIconName = 'folder-videos-symbolic';
 				break;
 			case 'MUSIC':
+				remoteIconName = 'folder-music-symbolic';
 				if(configContents.musicVisualizer) enableSeekButtons(false);
 				break;
 			default:
+				remoteIconName = 'folder-videos-symbolic';
 				enableSeekButtons(false);
 		}
+
+		remoteButton = new ChromecastMediaRemoteMenu;
 	}
 	else
 	{
+		remoteIconName = 'folder-pictures-symbolic';
 		remoteButton = new ChromecastPictureRemoteMenu;
 	}
 
@@ -410,6 +391,9 @@ function enableSeekButtons(isEnabled)
 	repeatButton.reactive = isEnabled;
 	seekBackwardButton.reactive = isEnabled;
 	seekForwardButton.reactive = isEnabled;
+
+	if(isEnabled) positionSlider.show();
+	else positionSlider.hide();
 }
 
 function changeFFmpegPath()
