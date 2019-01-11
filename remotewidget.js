@@ -56,6 +56,11 @@ const SliderItem = new Lang.Class({
 		this.actor.add_style_pseudo_class = function(){return null;};
 	},
 
+	get value()
+	{
+		return this._slider.value;
+	},
+
 	setValue: function(value)
 	{
 		this._slider.setValue(value);
@@ -70,4 +75,9 @@ const SliderItem = new Lang.Class({
 	{
 		this.actor.show();
 	},
+
+	connect: function(signal, callback)
+	{
+		this._slider.connect(signal, callback);
+	}
 });

@@ -172,7 +172,8 @@ function launchCast()
 							setEmptyRemoteFile();
 							break;
 						case 'SEEK':
-							p.seek(remoteContents.value);
+							videoNewPosition = status.media.duration * remoteContents.value;
+							p.seek(videoNewPosition.toFixed(3));
 							setEmptyRemoteFile();
 							break;
 						case 'SEEK+':

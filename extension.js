@@ -15,6 +15,7 @@ const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
 const Lang = imports.lang;
 const Util = imports.misc.util;
+const Mainloop = imports.mainloop;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -24,13 +25,14 @@ const Settings = Convenience.getSettings();
 const configPath = '/tmp/.cast-to-tv.json';
 const remotePath = '/tmp/.chromecast-remote.json';
 const listPath = '/tmp/.chromecast-list.json';
+const statusPath = '/tmp/.chromecast-status.json';
 const iconName = 'tv-symbolic';
 const remoteName = _("Chromecast Remote");
 
 let castMenu;
 let remoteButton;
 let remoteIconName = 'folder-videos-symbolic';
-
+let readStatusInterval;
 let statusIcon;
 let configContents, remoteContents, listContents;
 let seekTime;
@@ -202,6 +204,13 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 		{
 			setRemoteFile('STOP');
 		}));
+
+		positionSlider.connect('value-changed', Lang.bind(this, function()
+		{
+			Mainloop.source_remove(readStatusInterval);
+			setRemoteFile('SEEK', positionSlider.value);
+			readStatusTimer();
+		}));
 	},
 
 	destroy: function()
@@ -344,10 +353,12 @@ function initChromecastRemote()
 		{
 			case 'VIDEO':
 				remoteIconName = 'folder-videos-symbolic';
+				readStatusTimer();
 				break;
 			case 'MUSIC':
 				remoteIconName = 'folder-music-symbolic';
 				if(configContents.musicVisualizer) enableSeekButtons(false);
+				else readStatusTimer();
 				break;
 			default:
 				remoteIconName = 'folder-videos-symbolic';
@@ -461,6 +472,31 @@ function changeMusicVisualizer()
 function changeSeekTime()
 {
 	seekTime = Settings.get_int('seek-time');
+}
+
+function readStatusTimer()
+{
+	let previousTime = 0;
+
+	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
+
+		let statusContents = readDataFromFile(statusPath);
+
+		if(statusContents)
+		{
+			if(statusContents.currentTime != previousTime && statusContents.playerState != 'BUFFERING' && pauseButton.visible)
+			{
+				let sliderValue = (statusContents.currentTime + 1) / statusContents.mediaDuration;
+				positionSlider.setValue(sliderValue);
+				previousTime = statusContents.currentTime;
+			}
+			return true;
+		}
+		else
+		{
+			Mainloop.source_remove(readStatusInterval);
+		}
+	}));
 }
 
 function spawnFileChooser()
