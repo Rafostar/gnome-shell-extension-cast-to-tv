@@ -36,8 +36,8 @@ let readStatusInterval;
 let statusIcon;
 let configContents, remoteContents, listContents;
 let seekTime;
-let trackID = 0;
-let listLastID = 0;
+let trackID;
+let listLastID;
 let chromecastWasPlaying;
 
 /* Media controls */
@@ -316,6 +316,7 @@ function initChromecastRemote()
 	getConfigFromFile();
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 
+	/* Do not recreate remote if state did not change */
 	if(chromecastWasPlaying == chromecastPlaying)
 	{
 		return;
@@ -323,17 +324,20 @@ function initChromecastRemote()
 
 	chromecastWasPlaying = chromecastPlaying;
 
+	/* Destroy old remote before choosing new one */
 	if(remoteButton)
 	{
 		remoteButton.destroy();
 		remoteButton = null;
 	}
 
+	/* Do not create remote if receiver is not set to Chromecast */
 	if(configContents.receiverType != 'chromecast' || !chromecastPlaying)
 	{
 		return;
 	}
 
+	/* Get playlist */
 	listContents = readDataFromFile(listPath);
 
 	if(listContents)
@@ -344,6 +348,9 @@ function initChromecastRemote()
 	{
 		listLastID = 0;
 	}
+
+	/* Start from first track */
+	trackID = 0;
 
 	/* Choose remote to create */
 	if(configContents.streamType != 'PICTURE')

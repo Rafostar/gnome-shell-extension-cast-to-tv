@@ -141,7 +141,14 @@ function launchCast()
 		}
 		else if(p)
 		{
-			setTimeout(startPlayback, 1200, p);
+			if(mimeType == 'video/*' || mimeType == 'audio/*')
+			{
+				setTimeout(startPlayback, 1200, p);
+			}
+			else
+			{
+				showGnomeRemote(true);
+			}
 
 			castInterval = setInterval(() => {
 
