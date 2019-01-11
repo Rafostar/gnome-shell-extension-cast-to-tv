@@ -154,7 +154,7 @@ const ChromecastRemoteMenu = new Lang.Class
 			repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic');
 
 			/* Add space between stop and the remaining buttons */
-			stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;';
+			stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
 
 			/* Assemble playback controls */
 			controlsButtonBox.add(repeatButton);
