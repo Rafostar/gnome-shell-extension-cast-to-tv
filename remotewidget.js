@@ -61,6 +61,11 @@ const SliderItem = new Lang.Class({
 		return this._slider.value;
 	},
 
+	set icon(value)
+	{
+		this._icon.icon_name = value;
+	},
+
 	setValue: function(value)
 	{
 		this._slider.setValue(value);

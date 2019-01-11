@@ -348,6 +348,8 @@ function initChromecastRemote()
 	/* Choose remote to create */
 	if(configContents.streamType != 'PICTURE')
 	{
+		remoteButton = new ChromecastMediaRemoteMenu;
+
 		/* Check if video is transcoded and disable seeking*/
 		switch(configContents.streamType)
 		{
@@ -365,7 +367,7 @@ function initChromecastRemote()
 				enableSeekButtons(false);
 		}
 
-		remoteButton = new ChromecastMediaRemoteMenu;
+		positionSlider.icon = remoteIconName;
 	}
 	else
 	{
