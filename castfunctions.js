@@ -204,6 +204,8 @@ function launchCast()
 							setEmptyRemoteFile();
 							break;
 						case 'SKIP':
+							status.currentTime = 0;
+							setChromecastStatusFile(status);
 							closeCast(p);
 							return launchCast();
 						case 'REPLAY':
