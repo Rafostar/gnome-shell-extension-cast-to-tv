@@ -149,7 +149,7 @@ function launchCast()
 
 				p.getStatus(function(err, status)
 				{
-					if(status && loopCounter % 4 == 0)
+					if(status && loopCounter % 2 == 0)
 					{
 						setChromecastStatusFile(status);
 					}
