@@ -42,12 +42,9 @@ let chromecastWasPlaying;
 
 /* Media controls */
 let positionSlider;
-let playButton;
 let pauseButton;
 let seekBackwardButton;
 let seekForwardButton;
-let skipBackwardButton;
-let skipForwardButton;
 let repeatButton;
 
 /* Signals */
@@ -115,12 +112,12 @@ const CastToTvMenu = new Lang.Class
 	}
 });
 
-const ChromecastMediaRemoteMenu = new Lang.Class
+const ChromecastRemoteMenu = new Lang.Class
 ({
 	Name: 'Chromecast Remote',
 	Extends: PanelMenu.Button,
 
-	_init: function()
+	_init: function(mode)
 	{
 		this.parent(0.5, remoteName, false);
 
@@ -143,118 +140,80 @@ const ChromecastMediaRemoteMenu = new Lang.Class
 			x_expand: true
 		});
 
-		positionSlider = new RemoteWidget.SliderItem(remoteIconName);
-		playButton = new RemoteWidget.MediaControlButton('media-playback-start-symbolic');
-		pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
-		seekBackwardButton = new RemoteWidget.MediaControlButton('media-seek-backward-symbolic');
-		seekForwardButton = new RemoteWidget.MediaControlButton('media-seek-forward-symbolic');
-		repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic');
 		let stopButton = new RemoteWidget.MediaControlButton('media-playback-stop-symbolic');
+		let skipBackwardButton = new RemoteWidget.MediaControlButton('media-skip-backward-symbolic');
+		let skipForwardButton = new RemoteWidget.MediaControlButton('media-skip-forward-symbolic');
 
-		/* Add space between stop and the remaining buttons */
-		stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;';
-
-		/* Assemble playback controls */
-		controlsButtonBox.add(repeatButton);
-		controlsButtonBox.add(stopButton);
-		controlsButtonBox.add(seekBackwardButton);
-		controlsButtonBox.add(playButton);
-		controlsButtonBox.add(pauseButton);
-		controlsButtonBox.add(seekForwardButton);
-
-		/* We do not want to display both play and pause buttons at once */
-		playButton.hide();
-
-		popupBase.actor.add(controlsButtonBox);
-
-		this.menu.addMenuItem(positionSlider);
-		this.menu.addMenuItem(popupBase);
-
-		/* Signals connections */
-		playButton.connect('clicked', Lang.bind(this, function()
+		if(mode == 'media')
 		{
-			setRemoteFile('PLAY');
+			positionSlider = new RemoteWidget.SliderItem(remoteIconName);
+			let playButton = new RemoteWidget.MediaControlButton('media-playback-start-symbolic');
+			pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
+			seekBackwardButton = new RemoteWidget.MediaControlButton('media-seek-backward-symbolic');
+			seekForwardButton = new RemoteWidget.MediaControlButton('media-seek-forward-symbolic');
+			repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic');
+
+			/* Add space between stop and the remaining buttons */
+			stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 40px;';
+
+			/* Assemble playback controls */
+			controlsButtonBox.add(repeatButton);
+			controlsButtonBox.add(stopButton);
+			controlsButtonBox.add(skipBackwardButton);
+			controlsButtonBox.add(seekBackwardButton);
+			controlsButtonBox.add(playButton);
+			controlsButtonBox.add(pauseButton);
+			controlsButtonBox.add(seekForwardButton);
+			controlsButtonBox.add(skipForwardButton);
+
+			/* We do not want to display both play and pause buttons at once */
 			playButton.hide();
-			pauseButton.show();
-		}));
 
-		pauseButton.connect('clicked', Lang.bind(this, function()
+			this.menu.addMenuItem(positionSlider);
+
+			/* Signals connections */
+			positionSlider.connect('value-changed', Lang.bind(this, function()
+			{
+				Mainloop.source_remove(readStatusInterval);
+				setRemoteFile('SEEK', positionSlider.value);
+				readStatusTimer();
+			}));
+
+			playButton.connect('clicked', Lang.bind(this, function()
+			{
+				setRemoteFile('PLAY');
+				playButton.hide();
+				pauseButton.show();
+			}));
+
+			pauseButton.connect('clicked', Lang.bind(this, function()
+			{
+				setRemoteFile('PAUSE');
+				pauseButton.hide();
+				playButton.show();
+			}));
+
+			seekForwardButton.connect('clicked', Lang.bind(this, function()
+			{
+				setRemoteFile('SEEK+', seekTime);
+			}));
+
+			seekBackwardButton.connect('clicked', Lang.bind(this, function()
+			{
+				setRemoteFile('SEEK-', seekTime);
+			}));
+
+			repeatButton.connect('clicked', Lang.bind(this, function()
+			{
+				setRemoteFile('REPLAY');
+			}));
+		}
+		else
 		{
-			setRemoteFile('PAUSE');
-			pauseButton.hide();
-			playButton.show();
-		}));
-
-		seekForwardButton.connect('clicked', Lang.bind(this, function()
-		{
-			setRemoteFile('SEEK+', seekTime);
-		}));
-
-		seekBackwardButton.connect('clicked', Lang.bind(this, function()
-		{
-			setRemoteFile('SEEK-', seekTime);
-		}));
-
-		repeatButton.connect('clicked', Lang.bind(this, function()
-		{
-			setRemoteFile('REPLAY');
-		}));
-
-		stopButton.connect('clicked', Lang.bind(this, function()
-		{
-			setRemoteFile('STOP');
-		}));
-
-		positionSlider.connect('value-changed', Lang.bind(this, function()
-		{
-			Mainloop.source_remove(readStatusInterval);
-			setRemoteFile('SEEK', positionSlider.value);
-			readStatusTimer();
-		}));
-	},
-
-	destroy: function()
-	{
-		this.parent();
-	}
-});
-
-const ChromecastPictureRemoteMenu = new Lang.Class
-({
-	Name: 'Chromecast Picture Remote',
-	Extends: PanelMenu.Button,
-
-	_init: function()
-	{
-		this.parent(0.5, remoteName, false);
-
-		let box = new St.BoxLayout();
-		let icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
-		let toplabel = new St.Label({ text: _(remoteName), y_expand: true, y_align: Clutter.ActorAlign.CENTER });
-
-		/* Display app icon, label and dropdown arrow */
-		box.add(icon);
-		box.add(toplabel);
-		box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
-
-		this.actor.add_child(box);
-
-		/* Create base for media control buttons */
-		let popupBase = new RemoteWidget.PopupBase;
-
-		let controlsButtonBox = new St.BoxLayout({
-			x_align: Clutter.ActorAlign.CENTER,
-			x_expand: true
-		});
-
-		skipBackwardButton = new RemoteWidget.MediaControlButton('media-skip-backward-symbolic');
-		skipForwardButton = new RemoteWidget.MediaControlButton('media-skip-forward-symbolic');
-		let stopButton = new RemoteWidget.MediaControlButton('media-playback-stop-symbolic');
-
-		/* Assemble playback controls */
-		controlsButtonBox.add(skipBackwardButton);
-		controlsButtonBox.add(stopButton);
-		controlsButtonBox.add(skipForwardButton);
+			controlsButtonBox.add(skipBackwardButton);
+			controlsButtonBox.add(stopButton);
+			controlsButtonBox.add(skipForwardButton);
+		}
 
 		popupBase.actor.add(controlsButtonBox);
 		this.menu.addMenuItem(popupBase);
@@ -268,7 +227,11 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 			skipForwardButton.reactive= false;
 		}
 
-		/* Signals connections */
+		stopButton.connect('clicked', Lang.bind(this, function()
+		{
+			setRemoteFile('STOP');
+		}));
+
 		skipBackwardButton.connect('clicked', Lang.bind(this, function()
 		{
 			trackID--;
@@ -297,11 +260,6 @@ const ChromecastPictureRemoteMenu = new Lang.Class
 
 			setRemoteFile('SKIP');
 			skipBackwardButton.reactive = true;
-		}));
-
-		stopButton.connect('clicked', Lang.bind(this, function()
-		{
-			setRemoteFile('STOP');
 		}));
 	},
 
@@ -355,7 +313,8 @@ function initChromecastRemote()
 	/* Choose remote to create */
 	if(configContents.streamType != 'PICTURE')
 	{
-		remoteButton = new ChromecastMediaRemoteMenu;
+		/* Create Chromecast Remote */
+		remoteButton = new ChromecastRemoteMenu('media');
 
 		/* Check if video is transcoded and disable seeking*/
 		switch(configContents.streamType)
@@ -379,7 +338,7 @@ function initChromecastRemote()
 	else
 	{
 		remoteIconName = 'folder-pictures-symbolic';
-		remoteButton = new ChromecastPictureRemoteMenu;
+		remoteButton = new ChromecastRemoteMenu('pictures');
 	}
 
 	let children;
