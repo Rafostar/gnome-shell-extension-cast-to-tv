@@ -42,7 +42,6 @@ let chromecastWasPlaying;
 
 /* Media controls */
 let positionSlider;
-let pauseButton;
 let seekBackwardButton;
 let seekForwardButton;
 let repeatButton;
@@ -148,7 +147,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		{
 			positionSlider = new RemoteWidget.SliderItem(remoteIconName);
 			let playButton = new RemoteWidget.MediaControlButton('media-playback-start-symbolic');
-			pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
+			let pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
 			seekBackwardButton = new RemoteWidget.MediaControlButton('media-seek-backward-symbolic');
 			seekForwardButton = new RemoteWidget.MediaControlButton('media-seek-forward-symbolic');
 			repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic');
@@ -452,9 +451,9 @@ function readStatusTimer()
 
 		if(statusContents)
 		{
-			if(statusContents.currentTime != previousTime && statusContents.playerState != 'BUFFERING' && pauseButton.visible)
+			if(statusContents.currentTime != previousTime && statusContents.playerState != 'BUFFERING')
 			{
-				let sliderValue = (statusContents.currentTime + 1) / statusContents.mediaDuration;
+				let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
 				positionSlider.setValue(sliderValue);
 				previousTime = statusContents.currentTime;
 			}
