@@ -17,7 +17,8 @@ const PopupBase = new Lang.Class({
 const MediaControlButton = GObject.registerClass({
 	GTypeName: 'MediaControlButton'
 }, class MediaControlButton extends St.Button {
-	_init(buttonIconName) {
+	_init(buttonIconName, toggle)
+	{
 		super._init({
 			style: 'padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;',
 			opacity: 130,
@@ -27,18 +28,36 @@ const MediaControlButton = GObject.registerClass({
 			})
 		});
 
+		this._turnedOn = false;
+
 		let callback = () => {
-			this.opacity = !this.reactive ? 30 : this.hover ? 255 : 130;
-			
+			if(!this._turnedOn) this.opacity = !this.reactive ? 30 : this.hover ? 255 : 130;
+			else this.opacity = 255;
+		};
+
+		let changeState = () => {
+			if(toggle)
+			{
+				this._turnedOn = !this._turnedOn;
+				if(this._turnedOn) this.opacity = 255;
+				else this.opacity = 130;
+			}
 		};
 
 		let signalIds = [
 			this.connect('notify::hover', callback),
 			this.connect('notify::reactive', callback),
+			this.connect('clicked', changeState),
 			this.connect('destroy', () => {
 				signalIds.forEach(signalId => this.disconnect(signalId));
+				this._turnedOn = null;
 			})
 		];
+	}
+
+	get turnedOn()
+	{
+		return this._turnedOn;
 	}
 });
 

@@ -150,7 +150,7 @@ const ChromecastRemoteMenu = new Lang.Class
 			let pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
 			seekBackwardButton = new RemoteWidget.MediaControlButton('media-seek-backward-symbolic');
 			seekForwardButton = new RemoteWidget.MediaControlButton('media-seek-forward-symbolic');
-			repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic');
+			repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic', true);
 
 			/* Add space between stop and the remaining buttons */
 			stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
@@ -204,7 +204,7 @@ const ChromecastRemoteMenu = new Lang.Class
 
 			repeatButton.connect('clicked', Lang.bind(this, function()
 			{
-				setRemoteFile('REPLAY');
+				setRemoteFile('REPEAT', repeatButton.turnedOn);
 			}));
 		}
 		else
