@@ -21,6 +21,7 @@ var loopCounter = 0;
 var connectRetry = 0;
 var mediaTracks;
 var trackIds;
+var repeat;
 
 const subsStyle = {
 	backgroundColor: '#00000000',
@@ -99,6 +100,7 @@ function startPlayback(p)
 function closeCast(p)
 {
 	clearInterval(castInterval);
+	castInterval = null;
 	setEmptyRemoteFile();
 	p.close();
 	connectRetry = 0;
@@ -162,10 +164,16 @@ function launchCast()
 					}
 					else if(!status || err)
 					{
-						clearInterval(castInterval);
-						castInterval = null;
-						p.close();
-						process.exit();
+						closeCast(p);
+
+						if(repeat)
+						{
+							launchCast();
+						}
+						else
+						{
+							process.exit();
+						}
 					}
 
 					switch(remoteContents.action)
@@ -208,11 +216,12 @@ function launchCast()
 							setChromecastStatusFile(status);
 							closeCast(p);
 							return launchCast();
-						case 'REPLAY':
-							p.seek(0);
+						case 'REPEAT':
+							repeat = remoteContents.value;
 							setEmptyRemoteFile();
 							break;
 						case 'STOP':
+							repeat = false;
 							p.stop();
 							setEmptyRemoteFile();
 							break;
