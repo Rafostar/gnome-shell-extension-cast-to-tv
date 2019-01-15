@@ -221,14 +221,11 @@ const ChromecastRemoteMenu = new Lang.Class
 		popupBase.actor.add(controlsButtonBox);
 		this.menu.addMenuItem(popupBase);
 
-		/* Buttons to disable on start */
-		skipBackwardButton.reactive = false;
+		/* Disable skip forward if playing first file from list */
+		if(trackID == 0) skipBackwardButton.reactive = false;
 
-		/* Disable skip forward if list has only one position */
-		if(listLastID == 0)
-		{
-			skipForwardButton.reactive= false;
-		}
+		/* Disable skip forward if playing last file from list */
+		if(trackID == listLastID) skipForwardButton.reactive= false;
 
 		stopButton.connect('clicked', Lang.bind(this, function()
 		{
@@ -310,8 +307,8 @@ function initChromecastRemote()
 		listLastID = 0;
 	}
 
-	/* Start from first track */
-	trackID = 0;
+	/* Get current playing track number */
+	trackID = listContents.indexOf(configContents.filePath);
 
 	/* Choose remote to create */
 	if(configContents.streamType != 'PICTURE')
