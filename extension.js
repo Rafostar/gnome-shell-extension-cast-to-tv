@@ -39,6 +39,7 @@ let seekTime;
 let trackID;
 let listLastID;
 let chromecastWasPlaying;
+let isPaused;
 
 /* Media controls */
 let positionSlider;
@@ -166,7 +167,8 @@ const ChromecastRemoteMenu = new Lang.Class
 			controlsButtonBox.add(skipForwardButton);
 
 			/* We do not want to display both play and pause buttons at once */
-			playButton.hide();
+			if(isPaused) pauseButton.hide();
+			else playButton.hide();
 
 			this.menu.addMenuItem(positionSlider);
 
@@ -183,6 +185,7 @@ const ChromecastRemoteMenu = new Lang.Class
 				setRemoteFile('PLAY');
 				playButton.hide();
 				pauseButton.show();
+				isPaused = false;
 			}));
 
 			pauseButton.connect('clicked', Lang.bind(this, function()
@@ -190,6 +193,7 @@ const ChromecastRemoteMenu = new Lang.Class
 				setRemoteFile('PAUSE');
 				pauseButton.hide();
 				playButton.show();
+				isPaused = true;
 			}));
 
 			seekForwardButton.connect('clicked', Lang.bind(this, function()
