@@ -122,7 +122,7 @@ exports.videoConfig = function()
 	if(subtitlesBuiltIn)
 	{
 		getSubsPath();
-		encodeOpts.splice(14, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
 	}
 
 	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
@@ -154,12 +154,12 @@ exports.videoVaapiConfig = function()
 	{
 		getSubsPath();
 		encodeOpts.splice(0, 0, '-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
-		encodeOpts.splice(8, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
 	}
 	else
 	{
 		encodeOpts.splice(0, 0, '-vaapi_device', '/dev/dri/renderD128');
-		encodeOpts.splice(4, 0, '-vf', 'format=nv12,hwmap');
+		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'format=nv12,hwmap');
 	}
 
 	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
