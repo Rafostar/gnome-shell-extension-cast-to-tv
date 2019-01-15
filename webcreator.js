@@ -65,7 +65,6 @@ exports.fileStream = function(req, res)
 exports.encodedStream = function(req, res)
 {
 	filePath = configbridge.config.filePath;
-	videoBitrate = configbridge.config.videoBitrate;
 
 	if(!filePath)
 	{
