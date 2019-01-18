@@ -40,6 +40,7 @@ let trackID;
 let listLastID;
 let chromecastWasPlaying;
 let isPaused;
+let isRepeatActive;
 
 /* Media controls */
 let positionSlider;
@@ -209,7 +210,10 @@ const ChromecastRemoteMenu = new Lang.Class
 			repeatButton.connect('clicked', Lang.bind(this, function()
 			{
 				setRemoteFile('REPEAT', repeatButton.turnedOn);
+				isRepeatActive = repeatButton.turnedOn;
 			}));
+
+			if(isRepeatActive) repeatButton.clicked();
 		}
 		else
 		{
@@ -225,7 +229,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		if(trackID == 0) skipBackwardButton.reactive = false;
 
 		/* Disable skip forward if playing last file from list */
-		if(trackID == listLastID) skipForwardButton.reactive= false;
+		if(trackID == listLastID) skipForwardButton.reactive = false;
 
 		stopButton.connect('clicked', Lang.bind(this, function()
 		{
@@ -325,12 +329,12 @@ function initChromecastRemote()
 				break;
 			case 'MUSIC':
 				remoteIconName = 'folder-music-symbolic';
-				if(configContents.musicVisualizer) enableSeekButtons(false);
+				if(configContents.musicVisualizer) hideSeekButtons();
 				else readStatusTimer();
 				break;
 			default:
 				remoteIconName = 'folder-videos-symbolic';
-				enableSeekButtons(false);
+				hideSeekButtons();
 		}
 
 		positionSlider.icon = remoteIconName;
@@ -365,14 +369,12 @@ function initChromecastRemote()
 	}
 }
 
-function enableSeekButtons(isEnabled)
+function hideSeekButtons()
 {
-	repeatButton.reactive = isEnabled;
-	seekBackwardButton.reactive = isEnabled;
-	seekForwardButton.reactive = isEnabled;
-
-	if(isEnabled) positionSlider.show();
-	else positionSlider.hide();
+	repeatButton.hide();
+	seekBackwardButton.hide();
+	seekForwardButton.hide();
+	positionSlider.hide();
 }
 
 function changeFFmpegPath()
