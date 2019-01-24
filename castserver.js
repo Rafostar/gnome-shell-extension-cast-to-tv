@@ -96,6 +96,11 @@ app.get('/subs(webplayer)?', function(req, res)
 	webcreator.subsStream(req, res);
 });
 
+app.get('/cover', function(req, res)
+{
+	webcreator.coverStream(req, res);
+});
+
 app.get('/config', function(req, res)
 {
 	res.send(config);

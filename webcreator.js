@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const rangeParser = require('range-parser');
 const configbridge = require('./configbridge');
 const encodesettings = require('./encodesettings');
@@ -141,6 +142,26 @@ exports.subsStream = function(req, res)
 		res.end();
 		return;
 	}
+}
+
+exports.coverStream = function(req, res)
+{
+	var coverPath = encodesettings.coverPath;
+
+	res.writeHead(200, {
+		'Access-Control-Allow-Origin': '*',
+		'Content-Type': 'image/*'
+	});
+
+	/* Check if file exist */
+	var exist = fs.existsSync(coverPath);
+
+	if(!exist)
+	{
+		coverPath = path.join(__dirname + '/webplayer/images/cover.png');
+	}
+
+	return fs.createReadStream(coverPath).pipe(res);
 }
 
 exports.pageWrong = function(req, res)
