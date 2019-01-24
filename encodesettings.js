@@ -1,8 +1,11 @@
 const fs = require('fs');
+const path = require('path');
 const spawn = require('child_process').spawn;
-const ffprobe = require('ffprobe');
+const ffprobe = require('./ffprobe');
 const configbridge = require('./configbridge');
 const vttSubsPath = '/tmp/webplayer_subs.vtt';
+const metadataPath = '/tmp/.chromecast-metadata.json';
+const coverDefault = '/tmp/cover';
 const escapeChars = [' ', '[', ']', '"', "'"];
 
 var config;
@@ -11,6 +14,7 @@ var subtitlesBuiltIn;
 var codecAudio = 'copy';
 
 exports.streamProcess = null;
+exports.coverPath = null;
 
 String.prototype.replaceAt = function(index, replacement)
 {
@@ -31,11 +35,12 @@ exports.refreshConfig = function()
 		switch(config.streamType)
 		{
 			case 'MUSIC':
+				findCoverFile();
 			case 'PICTURE':
 				removeExistingFile(vttSubsPath);
 				break;
 			default:
-				ffprobeAnalyzeFile(config.filePath);
+				ffprobeAnalyzeFile();
 				break;
 		}
 	}
@@ -49,13 +54,14 @@ function removeExistingFile(fileToRemove)
 	}
 }
 
-function ffprobeAnalyzeFile(fileToAnalyze)
+function ffprobeAnalyzeFile()
 {
-	var ffprobePromise = ffprobe(fileToAnalyze, {path: config.ffprobePath});
+	var ffprobePromise = ffprobe(config.filePath, {path: config.ffprobePath});
 
 	ffprobePromise.then(value => {
 
-		checkBuiltInSubs(value);
+		if(config.streamType == 'MUSIC') checkMetadata(value);
+		else checkBuiltInSubs(value);
 	});
 }
 
@@ -84,6 +90,76 @@ function checkBuiltInSubs(ffprobeData)
 	removeExistingFile(vttSubsPath);
 }
 
+function findCoverFile()
+{
+	const coverNames = [
+		'cover.jpg',
+		'cover_01.jpg',
+		'cover1.jpg'
+	];
+
+	var coverFile;
+
+	for(var i = 0; i < coverNames.length; i++)
+	{
+		for(var j = 1; j <= 3; j++)
+		{
+			if(j == 1) coverFile = path.dirname(config.filePath) + '/' + coverNames[i];
+			else if(j == 2) coverFile = path.dirname(config.filePath) + '/' + coverNames[i].charAt(0).toUpperCase() + coverNames[i].slice(1);
+			else if(j == 3) coverFile = path.dirname(config.filePath) + '/' + coverNames[i].toUpperCase();
+
+			if(fs.existsSync(coverFile))
+			{
+				exports.coverPath = coverDefault + path.extname(coverNames[i]);
+				fs.createReadStream(coverFile).pipe(fs.createWriteStream(exports.coverPath));
+				return;
+			}
+		}
+	}
+
+	/* When no external image found, analyze file for cover */
+	ffprobeAnalyzeFile();
+}
+
+function checkMetadata(ffprobeData)
+{
+	var metadata = ffprobeData.format.tags;
+	if(metadata.TITLE)
+	{
+		for(var i in metadata)
+		{
+			metadata[i.toLowerCase()] = metadata[i];
+			delete metadata[i];
+		}
+
+		fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 1));
+	}
+	else if(metadata.title)
+	{
+		fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 1));
+	}
+	else
+	{
+		removeExistingFile(metadataPath);
+	}
+
+	for(var i = 0; i < ffprobeData.streams.length; i++)
+	{
+		if(ffprobeData.streams[i].codec_name == 'mjpeg')
+		{
+			exports.coverPath = coverDefault + '.jpg';
+			removeExistingFile(coverDefault + '.png');
+			extractCoverArt();
+			/* Return when cover found */
+			return;
+		}
+	}
+
+	/* Delete existing file if no new images */
+	removeExistingFile(coverDefault + '.jpg');
+	removeExistingFile(coverDefault + '.png');
+}
+
 function getSubsPath()
 {
 	subsPathEscaped = config.filePath;
@@ -101,6 +177,11 @@ function getSubsPath()
 function convertSubsToVtt(subsFile)
 {
 	spawn(config.ffmpegPath, ['-i', subsFile, vttSubsPath, '-y']);
+}
+
+function extractCoverArt()
+{
+	spawn(config.ffmpegPath, ['-i', config.filePath, '-c', 'copy', exports.coverPath, '-y']);
 }
 
 exports.videoConfig = function()
