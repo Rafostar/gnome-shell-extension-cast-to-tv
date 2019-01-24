@@ -3,17 +3,19 @@ const path = require('path');
 const player = require('chromecast-player')();
 const ip = require('internal-ip').v4.sync();
 const spawn = require('child_process').spawn;
-const config = require('/tmp/.cast-to-tv.json');
+const configPath = '/tmp/.cast-to-tv.json';
 const remotePath = '/tmp/.chromecast-remote.json';
 const statusPath = '/tmp/.chromecast-status.json';
 const listPath = '/tmp/.chromecast-list.json';
-const webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
+const metadataPath = '/tmp/.chromecast-metadata.json';
 const schemaDir = path.join(__dirname + '/schemas');
 const searchTimeout = 4000;
 const retryNumber = 2;
 
 var initType = process.argv[2];
 var mimeType = process.argv[3];
+var config = require(configPath);
+var webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
 var remoteContents, statusContents;
 var castInterval;
 var videoNewPosition;
@@ -86,6 +88,23 @@ function setChromecastStatusFile(status)
 	fs.writeFileSync(statusPath, JSON.stringify(statusContents, null, 1));
 }
 
+function reloadConfigFile()
+{
+	delete require.cache[configPath];
+	config = require(configPath);
+}
+
+function setListBegining()
+{
+	var list = require(listPath);
+	var listFirstTrack = list[0];
+	reloadConfigFile();
+	config.filePath = listFirstTrack;
+
+	fs.writeFileSync(configPath, JSON.stringify(config, null, 1));
+	delete require.cache[listPath];
+}
+
 function showGnomeRemote(enable)
 {
 	spawn('gsettings', ['--schemadir', schemaDir, 'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
@@ -104,6 +123,22 @@ function closeCast(p)
 	setEmptyRemoteFile();
 	p.close();
 	connectRetry = 0;
+}
+
+function getSongTitle()
+{
+	var exist = fs.existsSync(metadataPath);
+	if(exists)
+	{
+		var metadataFile = require(metadataPath);
+		mediaTracks.metadata.title = metadataFile.title;
+		delete require.cache[metadataPath];
+	}
+	else
+	{
+		reloadConfigFile();
+		mediaTracks.metadata.title = path.parse(config.filePath).name;
+	}
 }
 
 function launchCast()
@@ -125,6 +160,17 @@ function launchCast()
 			};
 			break;
 		case 'audio/*':
+			mediaTracks = {
+				metadata: {
+					metadataType: 'MUSIC_TRACK',
+					title: null,
+					images: [{
+						url: 'http://' + ip + ':' + config.listeningPort + '/cover'
+					}]
+				}
+			};
+			getSongTitle();
+			break;
 		case 'image/*':
 			trackIds = null;
 			mediaTracks = null;
@@ -134,12 +180,26 @@ function launchCast()
 			process.exit();
 	}
 
-	player.launch({path: webUrl, type: mimeType, streamType: initType, autoplay: false, ttl: searchTimeout, activeTrackIds: trackIds, media: mediaTracks}, (err, p) => {
+	var chromecastOpts = {
+		path: webUrl,
+		type: mimeType,
+		streamType: initType,
+		autoplay: false,
+		ttl: searchTimeout,
+		activeTrackIds: trackIds,
+		media: mediaTracks
+	};
+
+	player.launch(chromecastOpts, (err, p) => {
 
 		if(err && connectRetry < retryNumber)
 		{
 			connectRetry++;
 			return launchCast();
+		}
+		else if(connectRetry == retryNumber)
+		{
+			process.exit();
 		}
 		else if(p)
 		{
@@ -168,7 +228,11 @@ function launchCast()
 
 						if(repeat)
 						{
-							launchCast();
+							setListBegining();
+							/* Refresh Remote Menu */
+							showGnomeRemote(false);
+							showGnomeRemote(true);
+							return launchCast();
 						}
 						else
 						{
