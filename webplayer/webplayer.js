@@ -1,20 +1,26 @@
 const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone/i.test(navigator.userAgent)) ? true : false;
 const player = new Plyr('#player', playerOptions);
-const httpReq = new XMLHttpRequest();
+const subsReq = new XMLHttpRequest();
+const configReq = new XMLHttpRequest();
+const sessionID = makeID();
+
 var enteredFullscreen;
 var playerInit;
-
 var subsKind = 'none';
 var posterPath = '/webplayer/images/play.png';
 
-httpReq.open("HEAD", '/subswebplayer');
-httpReq.send();
+/* Asynchronous XMLHttpRequests */
+subsReq.open('HEAD', '/subswebplayer');
+configReq.open('GET', '/config');
 
-httpReq.onreadystatechange = function()
+subsReq.send();
+configReq.send();
+
+subsReq.onreadystatechange = function()
 {
 	if(this.readyState == 4)
 	{
-		if(this.status != 204)
+		if(this.status == 200)
 		{
 			/* Enable subtitles */
 			subsKind ='captions';
@@ -24,10 +30,23 @@ httpReq.onreadystatechange = function()
 	}
 }
 
+configReq.onreadystatechange = function()
+{
+	if(this.readyState == 4 && this.status == 200)
+	{
+		var config = JSON.parse(this.responseText);
+
+		if(config.streamType == 'MUSIC' && !config.musicVisualizer)
+		{
+			posterPath = '/cover';
+		}
+
+		setPlyrSource();
+	}
+}
+
 function setPlyrSource()
 {
-	var sessionID = makeID();
-
 	player.source = {
 		type: 'video',
 		title: 'Cast to TV',
