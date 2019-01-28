@@ -1,3 +1,7 @@
+body {
+   margin: 0;
+}
+
 .plyr__captions .plyr__caption {
    background: rgba(0,0,0,0);
    text-shadow: -1px -1px 1px #000000, -1px 1px 1px #000000, 1px -1px 1px #000000, 1px 1px 1px #000000;

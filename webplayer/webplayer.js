@@ -45,6 +45,17 @@ configReq.onreadystatechange = function()
 	}
 }
 
+window.onload = function()
+{
+	/* Toggle play on click event listener */
+	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
+	div.addEventListener('click', initializePlayer);
+	div.addEventListener('click', startPlayer);
+
+	var button = document.querySelector('.plyr__controls button[data-plyr="play"]');
+	button.addEventListener('click', initializePlayer);
+}
+
 function setPlyrSource()
 {
 	player.source = {
@@ -78,7 +89,7 @@ function makeID()
 	return text;
 }
 
-function startPlayer(e)
+function initializePlayer()
 {
 	/* Workaround Plyr volume bug */
 	if(!playerInit)
@@ -86,18 +97,18 @@ function startPlayer(e)
 		player.currentTime = 0;
 		playerInit = true;
 	}
+}
 
+function startPlayer()
+{
 	/* When on mobile */ 
-	if(isMobile)
+	if(isMobile && !enteredFullscreen)
 	{
 		/* Enter fullscreen after touch (only once) */
-		if(!enteredFullscreen)
-		{
-			player.fullscreen.enter();
-			enteredFullscreen = true;
-		}
+		player.fullscreen.enter();
+		enteredFullscreen = true;
 	}
 
 	/* Play and pause on click/touch */
-	if(e.pageY < window.innerHeight - 64) player.togglePlay();
+	player.togglePlay();
 }
