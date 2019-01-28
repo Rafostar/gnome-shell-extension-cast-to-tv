@@ -3,6 +3,7 @@ const playerOptions = {
 	"settings": ['speed'],
 	"clickToPlay": true,
 	"invertTime": false,
+	"toggleInvert": true,
 	"keyboard": { focused: true, global: true },
 	"captions": { active: true, language: 'auto', update: false },
 	"iconUrl": '/plyr/dist/plyr.svg',
