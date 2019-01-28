@@ -78,7 +78,7 @@ function makeID()
 	return text;
 }
 
-function startPlayer()
+function startPlayer(e)
 {
 	/* Workaround Plyr volume bug */
 	if(!playerInit)
@@ -96,8 +96,8 @@ function startPlayer()
 			player.fullscreen.enter();
 			enteredFullscreen = true;
 		}
-
-		/* Play and pause on touch */
-		player.togglePlay();
 	}
+
+	/* Play and pause on click/touch */
+	if(e.pageY < window.innerHeight - 64) player.togglePlay();
 }

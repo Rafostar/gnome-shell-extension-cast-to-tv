@@ -32,7 +32,7 @@ exports.fileStream = function(req, res)
 			return fs.createReadStream(filePath).pipe(res);
 		}
 
-		res.setHeader('Content-Type', 'application/octet-stream');
+		res.setHeader('Content-Type', 'video/*');
 
 		/* Calculate file range for chunked streaming */
 		var stat = fs.statSync(filePath);
@@ -82,7 +82,7 @@ exports.encodedStream = function(req, res)
 		return;
 	}
 
-	res.setHeader('Content-Type', 'application/octet-stream');
+	res.setHeader('Content-Type', 'video/*');
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Connection', 'keep-alive');
 	res.statusCode = 200;

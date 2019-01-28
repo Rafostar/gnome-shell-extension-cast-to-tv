@@ -1,7 +1,7 @@
 const playerOptions = {
 	"controls": ['play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'fullscreen'],
 	"settings": ['speed'],
-	"clickToPlay": true,
+	"clickToPlay": false,
 	"invertTime": false,
 	"toggleInvert": true,
 	"keyboard": { focused: true, global: true },
