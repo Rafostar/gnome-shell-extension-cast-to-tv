@@ -32,7 +32,7 @@ exports.fileStream = function(req, res)
 			return fs.createReadStream(filePath).pipe(res);
 		}
 
-		res.setHeader('Content-Type', 'video/*');
+		res.setHeader('Content-Type', 'video/mp4');
 
 		/* Calculate file range for chunked streaming */
 		var stat = fs.statSync(filePath);
@@ -82,7 +82,7 @@ exports.encodedStream = function(req, res)
 		return;
 	}
 
-	res.setHeader('Content-Type', 'video/*');
+	res.setHeader('Content-Type', 'video/x-matroska');
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Connection', 'keep-alive');
 	res.statusCode = 200;
@@ -150,7 +150,7 @@ exports.coverStream = function(req, res)
 
 	res.writeHead(200, {
 		'Access-Control-Allow-Origin': '*',
-		'Content-Type': 'image/*'
+		'Content-Type': 'image/png'
 	});
 
 	/* Check if file exist */
