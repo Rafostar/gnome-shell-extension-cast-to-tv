@@ -42,10 +42,11 @@ configReq.onreadystatechange = function()
 		}
 
 		setPlyrSource();
+		addClickListeners();
 	}
 }
 
-window.onload = function()
+function addClickListeners()
 {
 	/* Toggle play on click event listener */
 	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
