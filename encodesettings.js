@@ -7,10 +7,13 @@ const vttSubsPath = '/tmp/webplayer_subs.vtt';
 const metadataPath = '/tmp/.chromecast-metadata.json';
 const coverDefault = '/tmp/cover';
 const escapeChars = [' ', '[', ']', '"', "'"];
+const coverNames = ['cover', 'cover_01', 'cover 01', 'cover1'];
+const coverExtensions = ['.jpg', '.png'];
 
 var config;
 var subsPathEscaped;
 var subtitlesBuiltIn;
+var coverFound;
 var codecAudio = 'copy';
 
 exports.streamProcess = null;
@@ -35,12 +38,17 @@ exports.refreshConfig = function()
 		switch(config.streamType)
 		{
 			case 'MUSIC':
-				findCoverFile();
+				coverFound = findCoverFile();
+				ffprobeAnalyzeFile();
+				removeExistingFile(vttSubsPath);
+				break;
 			case 'PICTURE':
+				removeCoverFiles();
 				removeExistingFile(metadataPath);
 				removeExistingFile(vttSubsPath);
 				break;
 			default:
+				removeCoverFiles();
 				removeExistingFile(metadataPath);
 				ffprobeAnalyzeFile();
 				break;
@@ -96,9 +104,6 @@ function checkBuiltInSubs(ffprobeData)
 
 function findCoverFile()
 {
-	const coverNames = ['cover', 'cover_01', 'cover 01', 'cover1'];
-	const coverExtensions = ['.jpg', '.png'];
-
 	var coverFile;
 
 	for(var i = 0; i < coverNames.length; i++)
@@ -115,16 +120,20 @@ function findCoverFile()
 
 				if(fs.existsSync(coverFile))
 				{
+					coverExtensions.forEach(function(ext)
+					{
+						if(ext != coverExtensions[j]) removeExistingFile(coverDefault + ext);
+					});
+
 					exports.coverPath = coverDefault + coverExtensions[j];
 					fs.copyFileSync(coverFile, exports.coverPath);
-					return;
+					return true;
 				}
 			}
 		}
 	}
 
-	/* When no external image found, analyze file for cover */
-	ffprobeAnalyzeFile();
+	return false;
 }
 
 function checkMetadata(ffprobeData)
@@ -150,18 +159,33 @@ function checkMetadata(ffprobeData)
 		removeExistingFile(metadataPath);
 	}
 
-	for(var i = 0; i < ffprobeData.streams.length; i++)
+	if(!coverFound)
 	{
-		if(ffprobeData.streams[i].codec_name == 'mjpeg')
+		for(var i = 0; i < ffprobeData.streams.length; i++)
 		{
-			extractCoverArt('.jpg');
-			return;
-		}
-	}
+			if(ffprobeData.streams[i].codec_name == 'mjpeg')
+			{
+				coverExtensions.forEach(function(ext)
+				{
+					if(ext != '.jpg') removeExistingFile(coverDefault + ext);
+				});
 
-	/* Delete existing cover if new cover not found */
-	removeExistingFile(coverDefault + '.jpg');
-	removeExistingFile(coverDefault + '.png');
+				extractCoverArt('.jpg');
+				return;
+			}
+		}
+
+		/* Delete existing cover if new cover not found */
+		removeCoverFiles();
+	}
+}
+
+function removeCoverFiles()
+{
+	coverExtensions.forEach(function(ext)
+	{
+		removeExistingFile(coverDefault + ext);
+	});
 }
 
 function getSubsPath()
