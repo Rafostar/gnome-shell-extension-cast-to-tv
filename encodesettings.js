@@ -32,17 +32,16 @@ exports.refreshConfig = function()
 	}
 	else if(config.filePath)
 	{
-		removeExistingFile(coverDefault + '.jpg');
-		removeExistingFile(coverDefault + '.png');
-
 		switch(config.streamType)
 		{
 			case 'MUSIC':
 				findCoverFile();
 			case 'PICTURE':
+				removeExistingFile(metadataPath);
 				removeExistingFile(vttSubsPath);
 				break;
 			default:
+				removeExistingFile(metadataPath);
 				ffprobeAnalyzeFile();
 				break;
 		}
@@ -53,7 +52,9 @@ function removeExistingFile(fileToRemove)
 {
 	if(fs.existsSync(fileToRemove))
 	{
-		fs.unlinkSync(fileToRemove);
+		fs.unlink(fileToRemove, (err) => {
+			if(err) throw err;
+		});
 	}
 }
 
@@ -151,8 +152,16 @@ function checkMetadata(ffprobeData)
 
 	for(var i = 0; i < ffprobeData.streams.length; i++)
 	{
-		if(ffprobeData.streams[i].codec_name == 'mjpeg') extractCoverArt('.jpg');
+		if(ffprobeData.streams[i].codec_name == 'mjpeg')
+		{
+			extractCoverArt('.jpg');
+			return;
+		}
 	}
+
+	/* Delete existing cover if new cover not found */
+	removeExistingFile(coverDefault + '.jpg');
+	removeExistingFile(coverDefault + '.png');
 }
 
 function getSubsPath()

@@ -55,10 +55,10 @@ process.on('exit', () => {
 	showGnomeRemote(false);
 
 	/* Remove all temp files */
-	if(fs.existsSync(statusPath)) fs.unlinkSync(statusPath);
-	if(fs.existsSync(listPath)) fs.unlinkSync(listPath);
-	if(fs.existsSync(remotePath)) fs.unlinkSync(remotePath);
-	if(fs.existsSync(metadataPath)) fs.unlinkSync(metadataPath);
+	removeExistingFile(statusPath);
+	removeExistingFile(listPath);
+	removeExistingFile(remotePath);
+	removeExistingFile(metadataPath);
 
 	spawn('pkill', ['-SIGINT', '-f', __dirname + '/castserver']);
 });
@@ -88,6 +88,16 @@ function reloadConfigFile()
 {
 	delete require.cache[configPath];
 	config = require(configPath);
+}
+
+function removeExistingFile(fileToRemove)
+{
+	if(fs.existsSync(fileToRemove))
+	{
+		fs.unlink(fileToRemove, (err) => {
+			if(err) throw err;
+		});
+	}
 }
 
 function setListBegining()
