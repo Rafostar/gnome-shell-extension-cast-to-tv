@@ -32,6 +32,9 @@ exports.refreshConfig = function()
 	}
 	else if(config.filePath)
 	{
+		removeExistingFile(coverDefault + '.jpg');
+		removeExistingFile(coverDefault + '.png');
+
 		switch(config.streamType)
 		{
 			case 'MUSIC':
@@ -92,27 +95,29 @@ function checkBuiltInSubs(ffprobeData)
 
 function findCoverFile()
 {
-	const coverNames = [
-		'cover.jpg',
-		'cover_01.jpg',
-		'cover1.jpg'
-	];
+	const coverNames = ['cover', 'cover_01', 'cover 01', 'cover1'];
+	const coverExtensions = ['.jpg', '.png'];
 
 	var coverFile;
 
 	for(var i = 0; i < coverNames.length; i++)
 	{
-		for(var j = 1; j <= 3; j++)
+		for(var j = 0; j < coverExtensions.length; j++)
 		{
-			if(j == 1) coverFile = path.dirname(config.filePath) + '/' + coverNames[i];
-			else if(j == 2) coverFile = path.dirname(config.filePath) + '/' + coverNames[i].charAt(0).toUpperCase() + coverNames[i].slice(1);
-			else if(j == 3) coverFile = path.dirname(config.filePath) + '/' + coverNames[i].toUpperCase();
+			var coverCombined = coverNames[i] + coverExtensions[j];
 
-			if(fs.existsSync(coverFile))
+			for(var k = 1; k <= 3; k++)
 			{
-				exports.coverPath = coverDefault + path.extname(coverNames[i]);
-				fs.createReadStream(coverFile).pipe(fs.createWriteStream(exports.coverPath));
-				return;
+				if(k == 1) coverFile = path.dirname(config.filePath) + '/' + coverCombined;
+				else if(k == 2) coverFile = path.dirname(config.filePath) + '/' + coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
+				else if(k == 3) coverFile = path.dirname(config.filePath) + '/' + coverNames[i].toUpperCase() + coverExtensions[j];
+
+				if(fs.existsSync(coverFile))
+				{
+					exports.coverPath = coverDefault + coverExtensions[j];
+					fs.copyFileSync(coverFile, exports.coverPath);
+					return;
+				}
 			}
 		}
 	}
@@ -124,6 +129,7 @@ function findCoverFile()
 function checkMetadata(ffprobeData)
 {
 	var metadata = ffprobeData.format.tags;
+
 	if(metadata.TITLE)
 	{
 		for(var i in metadata)
@@ -145,19 +151,8 @@ function checkMetadata(ffprobeData)
 
 	for(var i = 0; i < ffprobeData.streams.length; i++)
 	{
-		if(ffprobeData.streams[i].codec_name == 'mjpeg')
-		{
-			exports.coverPath = coverDefault + '.jpg';
-			removeExistingFile(coverDefault + '.png');
-			extractCoverArt();
-			/* Return when cover found */
-			return;
-		}
+		if(ffprobeData.streams[i].codec_name == 'mjpeg') extractCoverArt('.jpg');
 	}
-
-	/* Delete existing file if no new images */
-	removeExistingFile(coverDefault + '.jpg');
-	removeExistingFile(coverDefault + '.png');
 }
 
 function getSubsPath()
@@ -179,8 +174,9 @@ function convertSubsToVtt(subsFile)
 	spawn(config.ffmpegPath, ['-i', subsFile, vttSubsPath, '-y']);
 }
 
-function extractCoverArt()
+function extractCoverArt(extension)
 {
+	exports.coverPath = coverDefault + extension;
 	spawn(config.ffmpegPath, ['-i', config.filePath, '-c', 'copy', exports.coverPath, '-y']);
 }
 
