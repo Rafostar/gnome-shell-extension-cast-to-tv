@@ -4,7 +4,6 @@ const subsReq = new XMLHttpRequest();
 const configReq = new XMLHttpRequest();
 const sessionID = makeID();
 
-var enteredFullscreen;
 var playerInit;
 var subsKind = 'none';
 var posterPath = '/webplayer/images/play.png';
@@ -109,11 +108,16 @@ function initializePlayer(e)
 function startPlayer()
 {
 	/* When on mobile */ 
-	if(isMobile && !enteredFullscreen)
+	if(isMobile)
 	{
-		/* Enter fullscreen after touch (only once) */
-		player.fullscreen.enter();
-		enteredFullscreen = true;
+		if(!player.fullscreen.active)
+		{
+			/* Enter fullscreen after touch (when paused) */
+			player.fullscreen.enter();
+
+			if(!player.playing) player.togglePlay();
+			return;
+		}
 	}
 
 	/* Play and pause on click/touch */
