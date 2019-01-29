@@ -27,6 +27,7 @@ subsReq.onreadystatechange = function()
 		}
 
 		setPlyrSource();
+		addClickListeners();
 	}
 }
 
@@ -55,6 +56,8 @@ function addClickListeners()
 
 	var button = document.querySelector('.plyr__controls button[data-plyr="play"]');
 	button.addEventListener('click', initializePlayer);
+
+	document.body.addEventListener('keydown', initializePlayer);
 }
 
 function setPlyrSource()
@@ -90,13 +93,16 @@ function makeID()
 	return text;
 }
 
-function initializePlayer()
+function initializePlayer(e)
 {
 	/* Workaround Plyr volume bug */
 	if(!playerInit)
 	{
-		player.currentTime = 0;
-		playerInit = true;
+		if(!e.code || e.code == 'Space')
+		{
+			player.currentTime = 0;
+			playerInit = true;
+		}
 	}
 }
 
