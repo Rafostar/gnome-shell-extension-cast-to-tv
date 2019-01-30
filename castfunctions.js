@@ -19,12 +19,23 @@ var mediaTracks;
 var trackIds;
 var repeat;
 
+switch(mimeType)
+{
+	case 'video/*':
+	case 'audio/*':
+	case 'image/*':
+		break;
+	default:
+		if(!mimeType) console.log("No mimeType specified!");
+		else console.log(`Unsupported mimeType: ${mimeType}`);
+}
+
 switch(initType)
 {
 	case 'LIVE':
 	case 'BUFFERED':
 		setEmptyRemoteFile();
-		launchCast();
+		setTimeout(launchCast, shared.chromecast.launchDelay);
 		break;
 	default:
 		if(!initType) console.log("No streamType specified!");
@@ -170,138 +181,128 @@ function setMediaTracks()
 
 function launchCast()
 {
-	setTimeout(() => {
+	reloadConfigFile();
+	setMediaTracks();
 
-		reloadConfigFile();
-		setMediaTracks();
+	var autoplayState = setAutoplay();
 
-		var autoplayState = setAutoplay();
+	var chromecastOpts = {
+		path: webUrl,
+		type: mimeType,
+		streamType: initType,
+		autoplay: autoplayState,
+		ttl: shared.chromecast.searchTimeout,
+		activeTrackIds: trackIds,
+		media: mediaTracks
+	};
 
-		var chromecastOpts = {
-			path: webUrl,
-			type: mimeType,
-			streamType: initType,
-			autoplay: autoplayState,
-			ttl: shared.chromecast.searchTimeout,
-			activeTrackIds: trackIds,
-			media: mediaTracks
-		};
+	player.launch(chromecastOpts, (err, p) => {
 
-		player.launch(chromecastOpts, (err, p) => {
-
-			if(err && connectRetry < shared.chromecast.retryNumber)
+		if(err && connectRetry < shared.chromecast.retryNumber)
+		{
+			connectRetry++;
+			return launchCast();
+		}
+		else if(connectRetry == shared.chromecast.retryNumber)
+		{
+			process.exit();
+		}
+		else if(p)
+		{
+			if(mimeType == 'video/*')
 			{
-				connectRetry++;
-				return launchCast();
+				/* mimeType video + streamType music = music with visualizer */
+				/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
+				if(config.streamType == 'MUSIC') setTimeout(startPlayback, shared.chromecast.visualizerBuffer, p);
+				else setTimeout(startPlayback, shared.chromecast.videoBuffer, p);
 			}
-			else if(connectRetry == shared.chromecast.retryNumber)
-			{
-				process.exit();
-			}
-			else if(p)
-			{
-				if(mimeType == 'video/*')
+			else showGnomeRemote(true);
+
+			castInterval = setInterval(() => {
+
+				remoteContents = require(shared.remotePath);
+
+				p.getStatus(function(err, status)
 				{
-					/* mimeType video + streamType music = music with visualizer */
-					/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
-					if(config.streamType == 'MUSIC') setTimeout(startPlayback, 6500, p);
-					else setTimeout(startPlayback, 1200, p);
-				}
-				else showGnomeRemote(true);
-
-				castInterval = setInterval(() => {
-
-					remoteContents = require(shared.remotePath);
-
-					p.getStatus(function(err, status)
+					if(status && loopCounter % 2 == 0)
 					{
-						if(status && loopCounter % 2 == 0)
+						setChromecastStatusFile(status);
+					}
+					else if(!status || err)
+					{
+						closeCast(p);
+
+						if(repeat)
 						{
+							setListBegining();
+							/* Refresh Remote Menu */
+							showGnomeRemote(false);
+							showGnomeRemote(true);
+							return setTimeout(launchCast, shared.chromecast.launchDelay);
+						}
+						else
+						{
+							process.exit();
+						}
+					}
+
+					switch(remoteContents.action)
+					{
+						case 'PLAY':
+							p.play();
+							setEmptyRemoteFile();
+							break;
+						case 'PAUSE':
+							p.pause();
+							setEmptyRemoteFile();
+							break;
+						case 'SEEK':
+							videoNewPosition = status.media.duration * remoteContents.value;
+							p.seek(videoNewPosition.toFixed(3));
+							setEmptyRemoteFile();
+							break;
+						case 'SEEK+':
+							videoNewPosition = status.currentTime + remoteContents.value;
+							if(videoNewPosition < status.media.duration) p.seek(videoNewPosition);
+							setEmptyRemoteFile();
+							break;
+						case 'SEEK-':
+							videoNewPosition = status.currentTime - remoteContents.value;
+							if(videoNewPosition > 0) p.seek(videoNewPosition);
+							else p.seek(0);
+							setEmptyRemoteFile();
+							break;
+						case 'SKIP':
+							status.currentTime = 0;
 							setChromecastStatusFile(status);
-						}
-						else if(!status || err)
-						{
 							closeCast(p);
+							if(mimeType == 'image/*') return launchCast();
+							return setTimeout(launchCast, shared.chromecast.launchDelay);
+						case 'REPEAT':
+							repeat = remoteContents.value;
+							setEmptyRemoteFile();
+							break;
+						case 'STOP':
+							repeat = false;
+							p.stop();
+							setEmptyRemoteFile();
+							break;
+						case 'RELOAD':
+							mimeType = remoteContents.mimeType;
+							initType = remoteContents.initType;
+							closeCast(p);
+							showGnomeRemote(false);
+							if(mimeType == 'image/*') return launchCast();
+							return setTimeout(launchCast, shared.chromecast.launchDelay);
+						default:
+							break;
+					}
+				});
 
-							if(repeat)
-							{
-								setListBegining();
-								/* Refresh Remote Menu */
-								showGnomeRemote(false);
-								showGnomeRemote(true);
-								return launchCast();
-							}
-							else
-							{
-								process.exit();
-							}
-						}
+				delete require.cache[shared.remotePath];
+				loopCounter++;
 
-						switch(remoteContents.action)
-						{
-							case 'PLAY':
-								p.play();
-								setEmptyRemoteFile();
-								break;
-							case 'PAUSE':
-								p.pause();
-								setEmptyRemoteFile();
-								break;
-							case 'SEEK':
-								videoNewPosition = status.media.duration * remoteContents.value;
-								p.seek(videoNewPosition.toFixed(3));
-								setEmptyRemoteFile();
-								break;
-							case 'SEEK+':
-								videoNewPosition = status.currentTime + remoteContents.value;
-								if(videoNewPosition < status.media.duration)
-								{
-									p.seek(videoNewPosition);
-								}
-								setEmptyRemoteFile();
-								break;
-							case 'SEEK-':
-								videoNewPosition = status.currentTime - remoteContents.value;
-								if(videoNewPosition > 0)
-								{
-									p.seek(videoNewPosition);
-								}
-								else
-								{
-									p.seek(0);
-								}
-								setEmptyRemoteFile();
-								break;
-							case 'SKIP':
-								status.currentTime = 0;
-								setChromecastStatusFile(status);
-								closeCast(p);
-								return launchCast();
-							case 'REPEAT':
-								repeat = remoteContents.value;
-								setEmptyRemoteFile();
-								break;
-							case 'STOP':
-								repeat = false;
-								p.stop();
-								setEmptyRemoteFile();
-								break;
-							case 'RELOAD':
-								mimeType = remoteContents.mimeType;
-								initType = remoteContents.initType;
-								closeCast(p);
-								showGnomeRemote(false);
-								return launchCast();
-							default:
-								break;
-						}
-					});
-
-					delete require.cache[shared.remotePath];
-					loopCounter++;
-
-				}, 250);
-			}
-		});
-	}, 3000);
+			}, 250);
+		}
+	});
 }

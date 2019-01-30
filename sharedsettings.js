@@ -12,8 +12,11 @@ module.exports = {
 	coverNames: ['cover', 'cover_01', 'cover 01', 'cover1'],
 	coverExtensions: ['.jpg', '.png'],
 	chromecast: {
+		launchDelay: 3000,
 		searchTimeout: 4000,
 		retryNumber: 2,
+		videoBuffer: 1200,
+		visualizerBuffer: 6500,
 		subsStyle: {
 			backgroundColor: '#00000000',
 			foregroundColor: '#FFFFFFFF',
