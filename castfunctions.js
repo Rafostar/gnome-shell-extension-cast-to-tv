@@ -3,18 +3,12 @@ const path = require('path');
 const player = require('chromecast-player')();
 const ip = require('internal-ip').v4.sync();
 const spawn = require('child_process').spawn;
-const configPath = '/tmp/.cast-to-tv.json';
-const remotePath = '/tmp/.chromecast-remote.json';
-const statusPath = '/tmp/.chromecast-status.json';
-const listPath = '/tmp/.chromecast-list.json';
-const metadataPath = '/tmp/.chromecast-metadata.json';
 const schemaDir = path.join(__dirname + '/schemas');
-const searchTimeout = 4000;
-const retryNumber = 2;
 
+var shared = require('./sharedsettings');
 var initType = process.argv[2];
 var mimeType = process.argv[3];
-var config = require(configPath);
+var config = require(shared.configPath);
 var webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
 var remoteContents, statusContents;
 var castInterval;
@@ -24,18 +18,6 @@ var connectRetry = 0;
 var mediaTracks;
 var trackIds;
 var repeat;
-
-const subsStyle = {
-	backgroundColor: '#00000000',
-	foregroundColor: '#FFFFFFFF',
-	edgeType: 'OUTLINE',
-	edgeColor: '#000000FF',
-	fontScale: 1.0,
-	fontStyle: 'NORMAL',
-	fontFamily: 'Droid Sans',
-	fontGenericFamily: 'SANS_SERIF',
-	windowType: 'NONE'
-};
 
 switch(initType)
 {
@@ -55,10 +37,11 @@ process.on('exit', () => {
 	showGnomeRemote(false);
 
 	/* Remove all temp files */
-	removeExistingFile(statusPath);
-	removeExistingFile(listPath);
-	removeExistingFile(remotePath);
-	removeExistingFile(metadataPath);
+	removeExistingFile(shared.statusPath);
+	removeExistingFile(shared.listPath);
+	removeExistingFile(shared.remotePath);
+	removeExistingFile(shared.metadataPath);
+	removeCoverFiles();
 
 	spawn('pkill', ['-SIGINT', '-f', __dirname + '/castserver']);
 });
@@ -69,7 +52,7 @@ function setEmptyRemoteFile()
 		action: ''
 	};
 
-	fs.writeFileSync(remotePath, JSON.stringify(remoteContents, null, 1));
+	fs.writeFileSync(shared.remotePath, JSON.stringify(remoteContents, null, 1));
 }
 
 function setChromecastStatusFile(status)
@@ -81,13 +64,13 @@ function setChromecastStatusFile(status)
 		volume: status.volume
 	};
 
-	fs.writeFileSync(statusPath, JSON.stringify(statusContents, null, 1));
+	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
 
 function reloadConfigFile()
 {
-	delete require.cache[configPath];
-	config = require(configPath);
+	delete require.cache[shared.configPath];
+	config = require(shared.configPath);
 }
 
 function removeExistingFile(fileToRemove)
@@ -100,14 +83,22 @@ function removeExistingFile(fileToRemove)
 	}
 }
 
+function removeCoverFiles()
+{
+	shared.coverExtensions.forEach(function(ext)
+	{
+		removeExistingFile(shared.coverDefault + ext);
+	});
+}
+
 function setListBegining()
 {
-	var list = require(listPath);
+	var list = require(shared.listPath);
 	var listFirstTrack = list[0];
 	config.filePath = listFirstTrack;
 
-	fs.writeFileSync(configPath, JSON.stringify(config, null, 1));
-	delete require.cache[listPath];
+	fs.writeFileSync(shared.configPath, JSON.stringify(config, null, 1));
+	delete require.cache[shared.listPath];
 }
 
 function showGnomeRemote(enable)
@@ -128,14 +119,14 @@ function closeCast(p)
 	setEmptyRemoteFile();
 	p.close();
 	connectRetry = 0;
-	delete require.cache[metadataPath];
+	delete require.cache[shared.metadataPath];
 }
 
 function getTitle()
 {
-	if(fs.existsSync(metadataPath))
+	if(fs.existsSync(shared.metadataPath))
 	{
-		var metadataFile = require(metadataPath);
+		var metadataFile = require(shared.metadataPath);
 		return metadataFile.title;
 	}
 
@@ -155,28 +146,17 @@ function setMediaTracks()
 		case 'video/*':
 			trackIds = [1];
 			mediaTracks = {
-				textTrackStyle: subsStyle,
-				tracks: [{
-					trackId: 1,
-					type: 'TEXT',
-					trackContentId: 'http://' + ip + ':' + config.listeningPort + '/subswebplayer',
-					trackContentType: 'text/vtt',
-					name: 'Subtitles',
-					subtype: 'SUBTITLES'
-				}]
+				textTrackStyle: shared.chromecast.subsStyle,
+				tracks: shared.chromecast.tracks
 			};
+			mediaTracks.tracks[0].trackContentId = 'http://' + ip + ':' + config.listeningPort + '/subswebplayer';
 			break;
 		case 'audio/*':
-			var songTitle = getTitle();
 			mediaTracks = {
-				metadata: {
-					metadataType: 'MUSIC_TRACK',
-					title: songTitle,
-					images: [{
-						url: 'http://' + ip + ':' + config.listeningPort + '/cover'
-					}]
-				}
+				metadata: shared.chromecast.metadata
 			};
+			mediaTracks.metadata.title = getTitle();
+			mediaTracks.metadata.images[0].url = 'http://' + ip + ':' + config.listeningPort + '/cover';
 			break;
 		case 'image/*':
 			trackIds = null;
@@ -202,19 +182,19 @@ function launchCast()
 			type: mimeType,
 			streamType: initType,
 			autoplay: autoplayState,
-			ttl: searchTimeout,
+			ttl: shared.chromecast.searchTimeout,
 			activeTrackIds: trackIds,
 			media: mediaTracks
 		};
 
 		player.launch(chromecastOpts, (err, p) => {
 
-			if(err && connectRetry < retryNumber)
+			if(err && connectRetry < shared.chromecast.retryNumber)
 			{
 				connectRetry++;
 				return launchCast();
 			}
-			else if(connectRetry == retryNumber)
+			else if(connectRetry == shared.chromecast.retryNumber)
 			{
 				process.exit();
 			}
@@ -231,7 +211,7 @@ function launchCast()
 
 				castInterval = setInterval(() => {
 
-					remoteContents = require(remotePath);
+					remoteContents = require(shared.remotePath);
 
 					p.getStatus(function(err, status)
 					{
@@ -317,7 +297,7 @@ function launchCast()
 						}
 					});
 
-					delete require.cache[remotePath];
+					delete require.cache[shared.remotePath];
 					loopCounter++;
 
 				}, 250);

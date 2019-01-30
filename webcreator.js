@@ -3,7 +3,7 @@ const path = require('path');
 const rangeParser = require('range-parser');
 const configbridge = require('./configbridge');
 const encodesettings = require('./encodesettings');
-const webplayerSubsPath = '/tmp/webplayer_subs.vtt';
+const shared = require('./sharedsettings');
 var streamType, filePath, subsPath, musicVisualizer;
 
 exports.fileStream = function(req, res)
@@ -115,7 +115,7 @@ exports.subsStream = function(req, res)
 
 	if(!subsPath || req.url == '/subswebplayer')
 	{
-		subsPath = webplayerSubsPath;
+		subsPath = shared.vttSubsPath;
 	}
 
 	/* Check if file exist */

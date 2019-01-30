@@ -1,16 +1,16 @@
 const fs = require('fs');
 const castserver = require('./castserver');
 const encodesettings = require('./encodesettings');
-const configPath = '/tmp/.cast-to-tv.json';
-exports.config = require(configPath);
+const shared = require('./sharedsettings');
+exports.config = require(shared.configPath);
 
 function getConfig()
 {
-	delete require.cache[configPath];
-	return require(configPath);
+	delete require.cache[shared.configPath];
+	return require(shared.configPath);
 }
 
-fs.watchFile(configPath, { interval: 1000 }, (curr, prev) => {
+fs.watchFile(shared.configPath, { interval: 1000 }, (curr, prev) => {
 	exports.config = getConfig();
 
 	castserver.refreshConfig();
