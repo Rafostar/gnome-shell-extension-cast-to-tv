@@ -1,7 +1,7 @@
 {
   "name": "cast-to-tv",
   "description": "Cast files to your Chromecast or other devices over local network.",
-  "main": "castserver.js",
+  "main": "server.js",
   "author": "Rafostar",
   "license": "GPL-2.0",
   "dependencies": {
