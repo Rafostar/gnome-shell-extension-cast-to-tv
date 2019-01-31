@@ -12,24 +12,7 @@ var posterPath = '/webplayer/images/play.png';
 subsReq.open('HEAD', '/subswebplayer');
 configReq.open('GET', '/config');
 
-subsReq.send();
 configReq.send();
-
-subsReq.onreadystatechange = function()
-{
-	if(this.readyState == 4)
-	{
-		if(this.status == 200)
-		{
-			/* Enable subtitles */
-			subsKind ='captions';
-		}
-
-		setPlyrSource();
-		addClickListeners();
-	}
-}
-
 configReq.onreadystatechange = function()
 {
 	if(this.readyState == 4 && this.status == 200)
@@ -39,6 +22,20 @@ configReq.onreadystatechange = function()
 		if(config.streamType == 'MUSIC' && !config.musicVisualizer)
 		{
 			posterPath = '/cover';
+		}
+
+		subsReq.send();
+	}
+}
+
+subsReq.onreadystatechange = function()
+{
+	if(this.readyState == 4)
+	{
+		if(this.status == 200)
+		{
+			/* Enable subtitles */
+			subsKind ='captions';
 		}
 
 		setPlyrSource();
@@ -73,7 +70,7 @@ function setPlyrSource()
 			kind: subsKind,
 			label: 'Subtitles',
 			srclang: 'en',
-			src: '/subswebplayer',
+			src: '/subswebplayer?session=' + sessionID,
 			default: true
 		}]
 	};
