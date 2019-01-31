@@ -22,10 +22,8 @@ const _ = Gettext.gettext;
 const RemoteWidget = Local.imports.remotewidget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
-const configPath = '/tmp/.cast-to-tv.json';
-const remotePath = '/tmp/.chromecast-remote.json';
-const listPath = '/tmp/.chromecast-list.json';
-const statusPath = '/tmp/.chromecast-status.json';
+const shared = Local.imports.sharedsettings.module.exports;
+const tempDir = Local.imports.sharedsettings.tempDir;
 const iconName = 'tv-symbolic';
 const remoteName = _("Chromecast Remote");
 
@@ -240,7 +238,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		{
 			trackID--;
 			configContents.filePath = listContents[trackID];
-			writeDataToFile(configPath, configContents);
+			writeDataToFile(shared.configPath, configContents);
 
 			if(trackID == 0)
 			{
@@ -255,7 +253,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		{
 			trackID++;
 			configContents.filePath = listContents[trackID];
-			writeDataToFile(configPath, configContents);
+			writeDataToFile(shared.configPath, configContents);
 
 			if(trackID == listLastID)
 			{
@@ -300,7 +298,7 @@ function initChromecastRemote()
 	}
 
 	/* Get playlist */
-	listContents = readDataFromFile(listPath);
+	listContents = readDataFromFile(shared.listPath);
 
 	if(listContents)
 	{
@@ -387,7 +385,7 @@ function changeFFmpegPath()
 		configContents.ffmpegPath = '/usr/bin/ffmpeg';
 	}
 
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function changeFFprobePath()
@@ -400,14 +398,14 @@ function changeFFprobePath()
 		configContents.ffprobePath = '/usr/bin/ffprobe';
 	}
 
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function changeReceiverType()
 {
 	getConfigFromFile();
 	configContents.receiverType = Settings.get_string('receiver-type');
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 	initChromecastRemote();
 }
 
@@ -415,28 +413,28 @@ function changeListeningPort()
 {
 	getConfigFromFile();
 	configContents.listeningPort = Settings.get_int('listening-port');
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function changeVideoBitrate()
 {
 	getConfigFromFile();
 	configContents.videoBitrate = Settings.get_double('video-bitrate');
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function changeVideoAcceleration()
 {
 	getConfigFromFile();
 	configContents.videoAcceleration = Settings.get_string('video-acceleration');
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function changeMusicVisualizer()
 {
 	getConfigFromFile();
 	configContents.musicVisualizer = Settings.get_boolean('music-visualizer');
-	writeDataToFile(configPath, configContents);
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function changeSeekTime()
@@ -450,7 +448,7 @@ function readStatusTimer()
 
 	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
 
-		let statusContents = readDataFromFile(statusPath);
+		let statusContents = readDataFromFile(shared.statusPath);
 
 		if(statusContents)
 		{
@@ -501,7 +499,8 @@ function setConfigFile()
 		configContents.ffprobePath = '/usr/bin/ffprobe';
 	}
 
-	writeDataToFile(configPath, configContents);
+	GLib.mkdir_with_parents(tempDir, 448); // 700 in octal
+	writeDataToFile(shared.configPath, configContents);
 }
 
 function writeDataToFile(path, contents)
@@ -538,7 +537,7 @@ function readDataFromFile(path)
 
 function getConfigFromFile()
 {
-	configContents = readDataFromFile(configPath);
+	configContents = readDataFromFile(shared.configPath);
 
 	if(!configContents)
 	{
@@ -553,7 +552,7 @@ function setRemoteFile(castAction, castValue)
 		value: castValue
 	};
 
-	writeDataToFile(remotePath, remoteContents);
+	writeDataToFile(shared.remotePath, remoteContents);
 }
 
 function init()

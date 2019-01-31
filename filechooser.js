@@ -9,14 +9,11 @@ const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
 
 const localPath = ARGV[0];
-const configPath = '/tmp/.cast-to-tv.json';
-const statusPath = '/tmp/.chromecast-status.json';
-const remotePath = '/tmp/.chromecast-remote.json';
-const listPath = '/tmp/.chromecast-list.json';
-const subsFormats = ['srt', 'ass', 'vtt'];
+imports.searchPath.unshift(localPath);
+const shared = imports.sharedsettings.module.exports;
 
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
-let [readOk, configFile] = GLib.file_get_contents(configPath);
+let [readOk, configFile] = GLib.file_get_contents(shared.configPath);
 let configContents;
 
 let fileChooser;
@@ -168,7 +165,7 @@ void function selectFile()
 	}
 
 	/* Save config to file */
-	GLib.file_set_contents(configPath, JSON.stringify(configContents, null, 1));
+	GLib.file_set_contents(shared.configPath, JSON.stringify(configContents, null, 1));
 
 	/* Run server (process exits if already running) */
 	GLib.spawn_async('/usr/bin', ['node', localPath + '/castserver'], null, 0, null);
@@ -176,7 +173,7 @@ void function selectFile()
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
-		GLib.file_set_contents(listPath, JSON.stringify(filesList, null, 1));
+		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
 		sendToChromecast();
 	}
 }();
@@ -191,7 +188,7 @@ function selectSubtitles()
 	/* Add supported subtitles formats to filter */
 	subsFilter.set_name(_("Subtitle Files"));
 
-	subsFormats.forEach(function(extension)
+	shared.subsFormats.forEach(function(extension)
 	{
 		subsFilter.add_pattern('*.' + extension);
 	});
@@ -214,7 +211,7 @@ function selectSubtitles()
 function checkChromecastState()
 {
 	/* Check if file exists (EXISTS = 16) */
-	let configExists = GLib.file_test(statusPath, 16);
+	let configExists = GLib.file_test(shared.statusPath, 16);
 
 	let statusContents = {
 		playerState: null
@@ -223,7 +220,7 @@ function checkChromecastState()
 	if(configExists)
 	{
 		/* Read config data from temp file */
-		let [readOk, readFile] = GLib.file_get_contents(statusPath);
+		let [readOk, readFile] = GLib.file_get_contents(shared.statusPath);
 
 		if(readOk)
 		{
@@ -257,6 +254,6 @@ function sendToChromecast()
 			initType: initType
 		};
 
-		GLib.file_set_contents(remotePath, JSON.stringify(remoteContents, null, 1));
+		GLib.file_set_contents(shared.remotePath, JSON.stringify(remoteContents, null, 1));
 	}
 }

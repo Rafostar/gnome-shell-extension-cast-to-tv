@@ -1,16 +1,24 @@
-const tempDir = '/tmp/';
+if(typeof process === 'undefined')
+{
+	/* When importing to GJS */
+	var exports = {};
+	var module = {exports};
+}
+
+var tempDir = '/tmp/.cast-to-tv/';
 
 module.exports = {
-	configPath: tempDir + '.cast-to-tv.json',
-	remotePath: tempDir + '.chromecast-remote.json',
-	statusPath: tempDir + '.chromecast-status.json',
-	listPath: tempDir + '.chromecast-list.json',
-	metadataPath: tempDir + '.chromecast-metadata.json',
+	configPath: tempDir + 'config.json',
+	metadataPath: tempDir + 'metadata.json',
+	remotePath: tempDir + 'chromecast-remote.json',
+	statusPath: tempDir + 'chromecast-status.json',
+	listPath: tempDir + 'chromecast-list.json',
 	vttSubsPath: tempDir + 'webplayer_subs.vtt',
 	coverDefault: tempDir + 'cover',
 	escapeChars: [' ', '[', ']', '"', "'"],
 	coverNames: ['cover', 'cover_01', 'cover 01', 'cover1'],
 	coverExtensions: ['.jpg', '.png'],
+	subsFormats: ['srt', 'ass', 'vtt'],
 	chromecast: {
 		launchDelay: 3000,
 		searchTimeout: 4000,
