@@ -129,6 +129,7 @@ exports.subsStream = function(req, res)
 
 		res.writeHead(200, {
 			'Access-Control-Allow-Origin': '*',
+			'Accept-Ranges': 'bytes',
 			'Content-Length': totalSubs,
 			'Content-Type': 'text/vtt'
 		});
@@ -137,7 +138,6 @@ exports.subsStream = function(req, res)
 	}
 	else
 	{
-		/* Status code must be the same in "subtitlesconfig.js" */
 		res.statusCode = 204;
 		res.end();
 		return;
