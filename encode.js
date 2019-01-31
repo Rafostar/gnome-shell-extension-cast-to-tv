@@ -2,10 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const spawn = require('child_process').spawn;
 const ffprobe = require('./ffprobe');
-const configbridge = require('./configbridge');
-const shared = require('./sharedsettings');
+const bridge = require('./bridge');
+const shared = require('./shared');
 
-var config;
 var subsPathEscaped;
 var subtitlesBuiltIn;
 var coverFound;
@@ -19,18 +18,17 @@ String.prototype.replaceAt = function(index, replacement)
 	return this.substr(0, index) + replacement + this.substr(index + 1);
 }
 
-exports.refreshConfig = function()
+exports.refreshSelection = function()
 {
-	config = configbridge.config;
 	subtitlesBuiltIn = false;
 
-	if(config.subsPath)
+	if(bridge.selection.subsPath)
 	{
-		convertSubsToVtt(config.subsPath);
+		convertSubsToVtt(bridge.selection.subsPath);
 	}
-	else if(config.filePath)
+	else if(bridge.selection.filePath)
 	{
-		switch(config.streamType)
+		switch(bridge.selection.streamType)
 		{
 			case 'MUSIC':
 				coverFound = findCoverFile();
@@ -63,11 +61,11 @@ function removeExistingFile(fileToRemove)
 
 function ffprobeAnalyzeFile()
 {
-	var ffprobePromise = ffprobe(config.filePath, {path: config.ffprobePath});
+	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
 
 	ffprobePromise.then(value => {
 
-		if(config.streamType == 'MUSIC') checkMetadata(value);
+		if(bridge.selection.streamType == 'MUSIC') checkMetadata(value);
 		else checkBuiltInSubs(value);
 	});
 }
@@ -78,9 +76,9 @@ function checkBuiltInSubs(ffprobeData)
 	{
 		if(ffprobeData.streams[i].codec_type == 'subtitle')
 		{
-			if(config.streamType == 'VIDEO')
+			if(bridge.selection.streamType == 'VIDEO')
 			{
-				convertSubsToVtt(config.filePath);
+				convertSubsToVtt(bridge.selection.filePath);
 			}
 			else
 			{
@@ -109,9 +107,9 @@ function findCoverFile()
 
 			for(var k = 1; k <= 3; k++)
 			{
-				if(k == 1) coverFile = path.dirname(config.filePath) + '/' + coverCombined;
-				else if(k == 2) coverFile = path.dirname(config.filePath) + '/' + coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
-				else if(k == 3) coverFile = path.dirname(config.filePath) + '/' + shared.coverNames[i].toUpperCase() + shared.coverExtensions[j];
+				if(k == 1) coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined;
+				else if(k == 2) coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
+				else if(k == 3) coverFile = path.dirname(bridge.selection.filePath) + '/' + shared.coverNames[i].toUpperCase() + shared.coverExtensions[j];
 
 				if(fs.existsSync(coverFile))
 				{
@@ -185,7 +183,7 @@ function removeCoverFiles()
 
 function getSubsPath()
 {
-	subsPathEscaped = config.filePath;
+	subsPathEscaped = bridge.selection.filePath;
 	var i = subsPathEscaped.length;
 
 	while(i--)
@@ -199,25 +197,25 @@ function getSubsPath()
 
 function convertSubsToVtt(subsFile)
 {
-	spawn(config.ffmpegPath, ['-i', subsFile, shared.vttSubsPath, '-y']);
+	spawn(bridge.config.ffmpegPath, ['-i', subsFile, shared.vttSubsPath, '-y']);
 }
 
 function extractCoverArt(extension)
 {
 	exports.coverPath = shared.coverDefault + extension;
-	spawn(config.ffmpegPath, ['-i', config.filePath, '-c', 'copy', exports.coverPath, '-y']);
+	spawn(bridge.config.ffmpegPath, ['-i', bridge.selection.filePath, '-c', 'copy', exports.coverPath, '-y']);
 }
 
 exports.videoConfig = function()
 {
 	var encodeOpts = [
-	'-i', config.filePath,
+	'-i', bridge.selection.filePath,
 	'-c:v', 'libx264',
 	'-pix_fmt', 'yuv420p',
 	'-preset', 'superfast',
 	'-level:v', '4.1',
-	'-b:v', config.videoBitrate + 'M',
-	'-maxrate', config.videoBitrate + 'M',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-maxrate', bridge.config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-f', 'matroska',
@@ -230,7 +228,7 @@ exports.videoConfig = function()
 		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
 	}
 
-	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
+	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
 
 	exports.streamProcess.on('close', function()
@@ -244,11 +242,11 @@ exports.videoConfig = function()
 exports.videoVaapiConfig = function()
 {
 	var encodeOpts = [
-	'-i', config.filePath,
+	'-i', bridge.selection.filePath,
 	'-c:v', 'h264_vaapi',
 	'-level:v', '4.1',
-	'-b:v', config.videoBitrate + 'M',
-	'-maxrate', config.videoBitrate + 'M',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-maxrate', bridge.config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-f', 'matroska',
@@ -267,7 +265,7 @@ exports.videoVaapiConfig = function()
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'format=nv12,hwmap');
 	}
 
-	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
+	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
 
 	exports.streamProcess.on('close', function()
@@ -281,7 +279,7 @@ exports.videoVaapiConfig = function()
 exports.musicVisualizerConfig = function()
 {
 	var encodeOpts = [
-	'-i', config.filePath,
+	'-i', bridge.selection.filePath,
 	'-filter_complex',
 	`firequalizer=gain='(1.4884e8 * f*f*f / (f*f + 424.36) / (f*f + 1.4884e8) / sqrt(f*f + 25122.25)) / sqrt(2)':
 	scale=linlin:
@@ -309,15 +307,15 @@ exports.musicVisualizerConfig = function()
 	'-pix_fmt', 'yuv420p',
 	'-preset', 'superfast',
 	'-level:v', '4.1',
-	'-b:v', config.videoBitrate + 'M',
-	'-maxrate', config.videoBitrate + 'M',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-maxrate', bridge.config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-f', 'matroska',
 	'pipe:1'
 	];
 
-	exports.streamProcess = spawn(config.ffmpegPath, encodeOpts,
+	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', 'ignore'] });
 
 	exports.streamProcess.on('close', function()

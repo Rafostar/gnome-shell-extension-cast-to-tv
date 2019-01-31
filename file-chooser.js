@@ -10,11 +10,11 @@ const _ = GettextDomain.gettext;
 
 const localPath = ARGV[0];
 imports.searchPath.unshift(localPath);
-const shared = imports.sharedsettings.module.exports;
+const shared = imports.shared.module.exports;
 
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
-let [readOk, configFile] = GLib.file_get_contents(shared.configPath);
 let configContents;
+let selectionContents;
 
 let fileChooser;
 let fileFilter;
@@ -28,24 +28,13 @@ let fileSelectionChanged;
 
 void function selectFile()
 {
-	if(readOk)
-	{
-		if(configFile instanceof Uint8Array)
-		{
-			configContents = JSON.parse(ByteArray.toString(configFile));
-		}
-		else
-		{
-			configContents = JSON.parse(configFile);
-		}
+	let configOk = getConfig();
+	let selectionOk = getSelection();
 
-		configContents.streamType = ARGV[1];
-		configContents.subsPath = null;
-	}
-	else
-	{
-		return;
-	}
+	if(!configOk || !selectionOk) return;
+
+	selectionContents.streamType = ARGV[1];
+	selectionContents.subsPath = '';
 
 	Gtk.init(null);
 
@@ -69,7 +58,7 @@ void function selectFile()
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
 	fileChooser.add_button(_("Cast Selected File"), Gtk.ResponseType.OK);
 
-	switch(configContents.streamType)
+	switch(selectionContents.streamType)
 	{
 		case 'VIDEO':
 			buttonSubs = fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
@@ -126,7 +115,7 @@ void function selectFile()
 
 	let DialogResponse = fileChooser.run();
 	let filesList = filePathChosen.sort();
-	configContents.filePath = filesList[0];
+	selectionContents.filePath = filesList[0];
 
 	if(DialogResponse != Gtk.ResponseType.OK)
 	{
@@ -154,21 +143,21 @@ void function selectFile()
 		switch(configContents.videoAcceleration)
 		{
 			case 'vaapi':
-				configContents.streamType += '_VAAPI';
+				selectionContents.streamType += '_VAAPI';
 				break;
 			case 'nvenc':
-				configContents.streamType += '_NVENC';
+				selectionContents.streamType += '_NVENC';
 				break;
 			default:
-				configContents.streamType += '_ENCODE';
+				selectionContents.streamType += '_ENCODE';
 		}
 	}
 
-	/* Save config to file */
-	GLib.file_set_contents(shared.configPath, JSON.stringify(configContents, null, 1));
+	/* Save selection to file */
+	GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
 
 	/* Run server (process exits if already running) */
-	GLib.spawn_async('/usr/bin', ['node', localPath + '/castserver'], null, 0, null);
+	GLib.spawn_async('/usr/bin', ['node', localPath + '/server'], null, 0, null);
 
 	/* Cast to Chromecast */
 	if(configContents.receiverType == 'chromecast')
@@ -177,6 +166,52 @@ void function selectFile()
 		sendToChromecast();
 	}
 }();
+
+function getConfig()
+{
+	let [readOk, configFile] = GLib.file_get_contents(shared.configPath);
+
+	if(readOk)
+	{
+		if(configFile instanceof Uint8Array)
+		{
+			configContents = JSON.parse(ByteArray.toString(configFile));
+		}
+		else
+		{
+			configContents = JSON.parse(configFile);
+		}
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+function getSelection()
+{
+	let [readOk, selectionFile] = GLib.file_get_contents(shared.selectionPath);
+
+	if(readOk)
+	{
+		if(selectionFile instanceof Uint8Array)
+		{
+			selectionContents = JSON.parse(ByteArray.toString(selectionFile));
+		}
+		else
+		{
+			selectionContents = JSON.parse(selectionFile);
+		}
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 function selectSubtitles()
 {
@@ -203,7 +238,7 @@ function selectSubtitles()
 	}
 	else
 	{
-		configContents.subsPath = filePathChosen;
+		selectionContents.subsPath = filePathChosen[0];
 		return 0;
 	}
 }
@@ -244,7 +279,7 @@ function sendToChromecast()
 
 	if(!isChromecastPlaying)
 	{
-		GLib.spawn_async('/usr/bin', ['node', localPath + '/castfunctions', initType, mimeType], null, 0, null);
+		GLib.spawn_async('/usr/bin', ['node', localPath + '/chromecast', initType, mimeType], null, 0, null);
 	}
 	else
 	{

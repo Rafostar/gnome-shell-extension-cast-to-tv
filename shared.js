@@ -9,6 +9,7 @@ var tempDir = '/tmp/.cast-to-tv/';
 
 module.exports = {
 	configPath: tempDir + 'config.json',
+	selectionPath: tempDir + 'selection.json',
 	metadataPath: tempDir + 'metadata.json',
 	remotePath: tempDir + 'chromecast-remote.json',
 	statusPath: tempDir + 'chromecast-status.json',

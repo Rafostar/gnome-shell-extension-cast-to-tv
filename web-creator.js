@@ -1,15 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const rangeParser = require('range-parser');
-const configbridge = require('./configbridge');
-const encodesettings = require('./encodesettings');
-const shared = require('./sharedsettings');
-var streamType, filePath, subsPath, musicVisualizer;
+const bridge = require('./bridge');
+const encode = require('./encode');
+const shared = require('./shared');
 
 exports.fileStream = function(req, res)
 {
-	streamType = configbridge.config.streamType;
-	filePath = configbridge.config.filePath;
+	var streamType = bridge.selection.streamType;
+	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
 	{
@@ -65,7 +64,7 @@ exports.fileStream = function(req, res)
 
 exports.encodedStream = function(req, res)
 {
-	filePath = configbridge.config.filePath;
+	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
 	{
@@ -75,7 +74,7 @@ exports.encodedStream = function(req, res)
 	}
 
 	/* Prevent spawning more then one ffmpeg encode process */
-	if(encodesettings.streamProcess)
+	if(encode.streamProcess)
 	{
 		res.statusCode = 429;
 		res.end("Streaming is already active!");
@@ -87,17 +86,17 @@ exports.encodedStream = function(req, res)
 	res.setHeader('Connection', 'keep-alive');
 	res.statusCode = 200;
 
-	streamType = configbridge.config.streamType;
+	streamType = bridge.selection.streamType;
 
 	/* Check if file exist */
 	var exist = fs.existsSync(filePath);
 
 	if(exist)
 	{
-		if(streamType == 'VIDEO_ENCODE') encodesettings.videoConfig().stdout.pipe(res);
-		else if(streamType == 'VIDEO_VAAPI') encodesettings.videoVaapiConfig().stdout.pipe(res);
-		else if(streamType == 'VIDEO_NVENC') encodesettings.videoNvencConfig().stdout.pipe(res);
-		else if(streamType == 'MUSIC') encodesettings.musicVisualizerConfig().stdout.pipe(res);
+		if(streamType == 'VIDEO_ENCODE') encode.videoConfig().stdout.pipe(res);
+		else if(streamType == 'VIDEO_VAAPI') encode.videoVaapiConfig().stdout.pipe(res);
+		else if(streamType == 'VIDEO_NVENC') encode.videoNvencConfig().stdout.pipe(res);
+		else if(streamType == 'MUSIC') encode.musicVisualizerConfig().stdout.pipe(res);
 		else res.end();
 
 		return;
@@ -111,7 +110,7 @@ exports.encodedStream = function(req, res)
 
 exports.subsStream = function(req, res)
 {
-	subsPath = configbridge.config.subsPath;
+	var subsPath = bridge.selection.subsPath;
 
 	if(!subsPath || req.url == '/subswebplayer')
 	{
@@ -146,7 +145,7 @@ exports.subsStream = function(req, res)
 
 exports.coverStream = function(req, res)
 {
-	var coverPath = encodesettings.coverPath;
+	var coverPath = encode.coverPath;
 
 	res.writeHead(200, {
 		'Access-Control-Allow-Origin': '*',

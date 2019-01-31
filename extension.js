@@ -19,11 +19,11 @@ const Mainloop = imports.mainloop;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const RemoteWidget = Local.imports.remotewidget;
+const Widget = Local.imports.widget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
-const shared = Local.imports.sharedsettings.module.exports;
-const tempDir = Local.imports.sharedsettings.tempDir;
+const shared = Local.imports.shared.module.exports;
+const tempDir = Local.imports.shared.tempDir;
 const iconName = 'tv-symbolic';
 const remoteName = _("Chromecast Remote");
 
@@ -32,7 +32,7 @@ let remoteButton;
 let remoteIconName = 'folder-videos-symbolic';
 let readStatusInterval;
 let statusIcon;
-let configContents, remoteContents, listContents;
+let configContents, selectionContents, remoteContents, listContents;
 let seekTime;
 let trackID;
 let listLastID;
@@ -83,19 +83,19 @@ const CastToTvMenu = new Lang.Class
 		/* Signals connections */
 		videoMenuItem.connect('activate', Lang.bind(this, function()
 		{
-			configContents.streamType = 'VIDEO';
+			selectionContents.streamType = 'VIDEO';
 			spawnFileChooser();
 		}));
 
 		musicMenuItem.connect('activate', Lang.bind(this, function()
 		{
-			configContents.streamType = 'MUSIC';
+			selectionContents.streamType = 'MUSIC';
 			spawnFileChooser();
 		}));
 
 		pictureMenuItem.connect('activate', Lang.bind(this, function()
 		{
-			configContents.streamType = 'PICTURE';
+			selectionContents.streamType = 'PICTURE';
 			spawnFileChooser();
 		}));
 
@@ -132,25 +132,25 @@ const ChromecastRemoteMenu = new Lang.Class
 		this.actor.add_child(box);
 
 		/* Create base for media control buttons */
-		let popupBase = new RemoteWidget.PopupBase;
+		let popupBase = new Widget.PopupBase;
 
 		let controlsButtonBox = new St.BoxLayout({
 			x_align: Clutter.ActorAlign.CENTER,
 			x_expand: true
 		});
 
-		let stopButton = new RemoteWidget.MediaControlButton('media-playback-stop-symbolic');
-		let skipBackwardButton = new RemoteWidget.MediaControlButton('media-skip-backward-symbolic');
-		let skipForwardButton = new RemoteWidget.MediaControlButton('media-skip-forward-symbolic');
+		let stopButton = new Widget.MediaControlButton('media-playback-stop-symbolic');
+		let skipBackwardButton = new Widget.MediaControlButton('media-skip-backward-symbolic');
+		let skipForwardButton = new Widget.MediaControlButton('media-skip-forward-symbolic');
 
 		if(mode == 'media')
 		{
-			positionSlider = new RemoteWidget.SliderItem(remoteIconName);
-			let playButton = new RemoteWidget.MediaControlButton('media-playback-start-symbolic');
-			let pauseButton = new RemoteWidget.MediaControlButton('media-playback-pause-symbolic');
-			seekBackwardButton = new RemoteWidget.MediaControlButton('media-seek-backward-symbolic');
-			seekForwardButton = new RemoteWidget.MediaControlButton('media-seek-forward-symbolic');
-			repeatButton = new RemoteWidget.MediaControlButton('media-playlist-repeat-symbolic', true);
+			positionSlider = new Widget.SliderItem(remoteIconName);
+			let playButton = new Widget.MediaControlButton('media-playback-start-symbolic');
+			let pauseButton = new Widget.MediaControlButton('media-playback-pause-symbolic');
+			seekBackwardButton = new Widget.MediaControlButton('media-seek-backward-symbolic');
+			seekForwardButton = new Widget.MediaControlButton('media-seek-forward-symbolic');
+			repeatButton = new Widget.MediaControlButton('media-playlist-repeat-symbolic', true);
 
 			/* Add space between stop and the remaining buttons */
 			stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
@@ -237,7 +237,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		skipBackwardButton.connect('clicked', Lang.bind(this, function()
 		{
 			trackID--;
-			configContents.filePath = listContents[trackID];
+			selectionContents.filePath = listContents[trackID];
 			writeDataToFile(shared.configPath, configContents);
 
 			if(trackID == 0)
@@ -252,7 +252,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		skipForwardButton.connect('clicked', Lang.bind(this, function()
 		{
 			trackID++;
-			configContents.filePath = listContents[trackID];
+			selectionContents.filePath = listContents[trackID];
 			writeDataToFile(shared.configPath, configContents);
 
 			if(trackID == listLastID)
@@ -274,6 +274,7 @@ const ChromecastRemoteMenu = new Lang.Class
 function initChromecastRemote()
 {
 	getConfigFromFile();
+	getSelectionFromFile();
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 
 	/* Do not recreate remote if state did not change */
@@ -310,16 +311,16 @@ function initChromecastRemote()
 	}
 
 	/* Get current playing track number */
-	trackID = listContents.indexOf(configContents.filePath);
+	trackID = listContents.indexOf(selectionContents.filePath);
 
 	/* Choose remote to create */
-	if(configContents.streamType != 'PICTURE')
+	if(selectionContents.streamType != 'PICTURE')
 	{
 		/* Create Chromecast Remote */
 		remoteButton = new ChromecastRemoteMenu('media');
 
 		/* Check if video is transcoded and disable seeking*/
-		switch(configContents.streamType)
+		switch(selectionContents.streamType)
 		{
 			case 'VIDEO':
 				remoteIconName = 'folder-videos-symbolic';
@@ -470,7 +471,7 @@ function readStatusTimer()
 function spawnFileChooser()
 {
 	/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
-	Util.spawn(['gjs', Local.path + '/filechooser.js', Local.path, configContents.streamType]);
+	Util.spawn(['gjs', Local.path + '/file-chooser.js', Local.path, selectionContents.streamType]);
 }
 
 function setConfigFile()
@@ -482,10 +483,7 @@ function setConfigFile()
 		listeningPort: Settings.get_int('listening-port'),
 		videoBitrate: Settings.get_double('video-bitrate'),
 		videoAcceleration: Settings.get_string('video-acceleration'),
-		musicVisualizer: Settings.get_boolean('music-visualizer'),
-		streamType: null,
-		filePath: null,
-		subsPath: null
+		musicVisualizer: Settings.get_boolean('music-visualizer')
 	};
 
 	/* Use default paths if custom paths are not defined */
@@ -501,6 +499,17 @@ function setConfigFile()
 
 	GLib.mkdir_with_parents(tempDir, 448); // 700 in octal
 	writeDataToFile(shared.configPath, configContents);
+}
+
+function setSelectionFile()
+{
+	selectionContents = {
+		streamType: '',
+		filePath: '',
+		subsPath: ''
+	};
+
+	writeDataToFile(shared.selectionPath, selectionContents);
 }
 
 function writeDataToFile(path, contents)
@@ -542,6 +551,16 @@ function getConfigFromFile()
 	if(!configContents)
 	{
 		setConfigFile();
+	}
+}
+
+function getSelectionFromFile()
+{
+	selectionContents = readDataFromFile(shared.selectionPath);
+
+	if(!selectionContents)
+	{
+		setSelectionFile();
 	}
 }
 

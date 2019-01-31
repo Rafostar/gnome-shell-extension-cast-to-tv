@@ -1,64 +1,61 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-const webcreator = require('./webcreator');
-const encodesettings = require('./encodesettings');
-const configbridge = require('./configbridge');
+const webcreator = require('./web-creator');
+const encode = require('./encode');
+const bridge = require('./bridge');
 
-var config = configbridge.config;
-var listeningPort = config.listeningPort;
+var listeningPort = bridge.config.listeningPort;
 
 exports.refreshConfig = function()
 {
-	config = configbridge.config;
-
-	if(listeningPort != config.listeningPort)
+	if(listeningPort != bridge.config.listeningPort)
 	{
 		server.close();
-		listeningPort = config.listeningPort;
+		listeningPort = bridge.config.listeningPort;
 		server = app.listen(listeningPort).on('error', function(err) { process.exit() });
 	}
 }
 
 function closeStreamProcess()
 {
-	if(encodesettings.streamProcess)
+	if(encode.streamProcess)
 	{
-		process.kill(encodesettings.streamProcess.pid, 'SIGHUP');
-		encodesettings.streamProcess = null;
+		process.kill(encode.streamProcess.pid, 'SIGHUP');
+		encode.streamProcess = null;
 	}
 }
 
 app.get('/', function(req, res)
 {
-	if(config.receiverType != 'other')
+	if(bridge.config.receiverType != 'other')
 	{
 		res.end('Selected receiver type is \"' +
-		config.receiverType.charAt(0).toUpperCase() + config.receiverType.slice(1) +
+		bridge.config.receiverType.charAt(0).toUpperCase() + bridge.config.receiverType.slice(1) +
 		'\". Web player is only available on \"Other device\".');
 		return;
 	}
 
-	if(!config.filePath)
+	if(!selection.filePath)
 	{
 		res.statusCode = 404;
 		res.end("No media file selected!");
 		return;
 	}
 
-	if(encodesettings.streamProcess)
+	if(encode.streamProcess)
 	{
 		res.end("Streaming process is still active!");
 		return;
 	}
 
-	switch(config.streamType)
+	switch(selection.streamType)
 	{
 		case 'VIDEO':
 			res.sendFile(path.join(__dirname + '/webplayer/direct_player.html'));
 			break;
 		case 'MUSIC':
-			if(config.musicVisualizer) res.sendFile(path.join(__dirname + '/webplayer/encode_player.html'));
+			if(bridge.config.musicVisualizer) res.sendFile(path.join(__dirname + '/webplayer/encode_player.html'));
 			else res.sendFile(path.join(__dirname + '/webplayer/direct_player.html'));
 			break;
 		case 'PICTURE':
@@ -71,10 +68,10 @@ app.get('/', function(req, res)
 
 app.get('/cast', function(req, res)
 {
-	switch(config.streamType)
+	switch(selection.streamType)
 	{
 		case 'MUSIC':
-			if(config.musicVisualizer) webcreator.encodedStream(req, res);
+			if(bridge.config.musicVisualizer) webcreator.encodedStream(req, res);
 			else webcreator.fileStream(req, res);
 			break;
 		case 'VIDEO':
@@ -115,4 +112,4 @@ app.get('/*', function(req, res)
 });
 
 var server = app.listen(listeningPort).on('error', function(err) { process.exit() });
-encodesettings.refreshConfig();
+encode.refreshSelection();

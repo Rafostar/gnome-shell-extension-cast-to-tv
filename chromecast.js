@@ -5,7 +5,7 @@ const ip = require('internal-ip').v4.sync();
 const spawn = require('child_process').spawn;
 const schemaDir = path.join(__dirname + '/schemas');
 
-var shared = require('./sharedsettings');
+var shared = require('./shared');
 var initType = process.argv[2];
 var mimeType = process.argv[3];
 var config = require(shared.configPath);
@@ -54,7 +54,7 @@ process.on('exit', () => {
 	removeExistingFile(shared.metadataPath);
 	removeCoverFiles();
 
-	spawn('pkill', ['-SIGINT', '-f', __dirname + '/castserver']);
+	spawn('pkill', ['-SIGINT', '-f', __dirname + '/server']);
 });
 
 function setEmptyRemoteFile()
