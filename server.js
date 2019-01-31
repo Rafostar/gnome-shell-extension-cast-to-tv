@@ -36,7 +36,7 @@ app.get('/', function(req, res)
 		return;
 	}
 
-	if(!selection.filePath)
+	if(!bridge.selection.filePath)
 	{
 		res.statusCode = 404;
 		res.end("No media file selected!");
@@ -49,7 +49,7 @@ app.get('/', function(req, res)
 		return;
 	}
 
-	switch(selection.streamType)
+	switch(bridge.selection.streamType)
 	{
 		case 'VIDEO':
 			res.sendFile(path.join(__dirname + '/webplayer/direct_player.html'));
@@ -68,7 +68,7 @@ app.get('/', function(req, res)
 
 app.get('/cast', function(req, res)
 {
-	switch(selection.streamType)
+	switch(bridge.selection.streamType)
 	{
 		case 'MUSIC':
 			if(bridge.config.musicVisualizer) webcreator.encodedStream(req, res);
@@ -100,7 +100,7 @@ app.get('/cover', function(req, res)
 
 app.get('/config', function(req, res)
 {
-	res.send(config);
+	res.send(bridge.config);
 });
 
 app.use('/webplayer', express.static(__dirname + '/webplayer'));
