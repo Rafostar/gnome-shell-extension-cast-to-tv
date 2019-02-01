@@ -24,7 +24,7 @@ module.exports = {
 		launchDelay: 3000,
 		searchTimeout: 4000,
 		retryNumber: 2,
-		videoBuffer: 1200,
+		videoBuffer: 2500,
 		visualizerBuffer: 6500,
 		subsStyle: {
 			backgroundColor: '#00000000',
