@@ -1,14 +1,14 @@
 # Basic Makefile
 
 UUID = cast-to-tv@rafostar.github.com
-TOLOCALIZE = extension.js filechooser.js prefs.js
+TOLOCALIZE = extension.js file-chooser.js prefs.js
 MSGSRC = $(wildcard ./po/*.po)
 POTFILE = ./po/cast-to-tv.pot
-ZIPFILES = *.js *.json schemas webplayer locale LICENSE README.md
+ZIPFILES = *.js *.json node_scripts webplayer schemas locale CharEnc LICENSE README.md
 INSTALLPATH = ~/.local/share/gnome-shell/extensions
 
 # Compile schemas #
-schemas:
+glib-schemas:
 	glib-compile-schemas ./schemas/
 
 # Create/update potfile #
@@ -41,5 +41,5 @@ install: zip-file
 	mkdir -p $(INSTALLPATH)/$(UUID)
 	unzip -qo $(UUID).zip -d $(INSTALLPATH)/$(UUID)
 
-_build: schemas potfile mergepo compilemo
+_build: glib-schemas potfile mergepo compilemo
 
