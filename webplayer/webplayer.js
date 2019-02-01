@@ -1,30 +1,54 @@
 const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone/i.test(navigator.userAgent)) ? true : false;
 const player = new Plyr('#player', playerOptions);
+const confReq = new XMLHttpRequest();
+const selReq = new XMLHttpRequest();
 const subsReq = new XMLHttpRequest();
-const configReq = new XMLHttpRequest();
+
 const sessionID = makeID();
 
+var config;
 var playerInit;
 var subsKind = 'none';
+var subsSrc = null;
 var posterPath = '/webplayer/images/play.png';
 
 /* Asynchronous XMLHttpRequests */
 subsReq.open('HEAD', '/subswebplayer');
-configReq.open('GET', '/config');
+confReq.open('GET', '/config');
+selReq.open('GET', '/selection');
 
-configReq.send();
-configReq.onreadystatechange = function()
+confReq.send();
+confReq.onreadystatechange = function()
 {
 	if(this.readyState == 4 && this.status == 200)
 	{
-		var config = JSON.parse(this.responseText);
+		config = JSON.parse(this.responseText);
+		selReq.send();
+	}
+}
 
-		if(config.streamType == 'MUSIC' && !config.musicVisualizer)
+selReq.onreadystatechange = function()
+{
+	if(this.readyState == 4 && this.status == 200)
+	{
+		var selection = JSON.parse(this.responseText);
+
+		/* Show album cover when playing without visualizations */
+		if(selection.streamType == 'MUSIC' && !config.musicVisualizer)
 		{
 			posterPath = '/cover';
 		}
 
-		subsReq.send();
+		/* Do not send subtitles request if content is music */
+		if(selection.streamType == 'MUSIC')
+		{
+			setPlyrSource();
+			addClickListeners();
+		}
+		else
+		{
+			subsReq.send();
+		}
 	}
 }
 
@@ -35,7 +59,8 @@ subsReq.onreadystatechange = function()
 		if(this.status == 200)
 		{
 			/* Enable subtitles */
-			subsKind ='captions';
+			subsKind = 'captions';
+			subsSrc = '/subswebplayer?session=' + sessionID;
 		}
 
 		setPlyrSource();
@@ -70,7 +95,7 @@ function setPlyrSource()
 			kind: subsKind,
 			label: 'Subtitles',
 			srclang: 'en',
-			src: '/subswebplayer?session=' + sessionID,
+			src: subsSrc,
 			default: true
 		}]
 	};
