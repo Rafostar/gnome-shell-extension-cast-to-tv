@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-03 16:24+0100\n"
+"POT-Creation-Date: 2019-02-02 00:32+0100\n"
 "PO-Revision-Date: 2019-01-03 16:25+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
@@ -19,146 +19,156 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: extension.js:27 prefs.js:151
+#: extension.js:28 prefs.js:155
 msgid "Chromecast Remote"
 msgstr "Chromecast pilot"
 
-#: extension.js:92
+#: extension.js:69
 msgid "Cast Media"
 msgstr "Prześlij media"
 
-#: extension.js:96
+#: extension.js:73
 msgid "Video"
 msgstr "Wideo"
 
-#: extension.js:97
+#: extension.js:74
 msgid "Music"
 msgstr "Muzyka"
 
-#: extension.js:98
+#: extension.js:75
 msgid "Picture"
 msgstr "Obraz"
 
-#: extension.js:99
+#: extension.js:76
 msgid "Cast Settings"
 msgstr "Ustawienia przesyłu"
 
-#: filechooser.js:54
+#: file-chooser.js:42
 msgid "Transcode Video"
 msgstr "Transkoduj wideo"
 
-#: filechooser.js:63
+#: file-chooser.js:57
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: filechooser.js:64
+#: file-chooser.js:58
 msgid "Cast Selected File"
 msgstr "Wyślij wybrany plik"
 
-#: filechooser.js:69
+#: file-chooser.js:59
+#, fuzzy
+msgid "Cast Selected Files"
+msgstr "Wyślij wybrany plik"
+
+#: file-chooser.js:66
 msgid "Add Subtitles"
 msgstr "Dodaj napisy"
 
-#: filechooser.js:70
+#: file-chooser.js:67
 msgid "Select Video"
 msgstr "Wybierz wideo"
 
-#: filechooser.js:74
+#: file-chooser.js:71
 msgid "Video Files"
 msgstr "Pliki wideo"
 
-#: filechooser.js:79
+#: file-chooser.js:93
 msgid "Select Music"
 msgstr "Wybierz muzykę"
 
-#: filechooser.js:82
+#: file-chooser.js:96
 msgid "Audio Files"
 msgstr "Pliki audio"
 
-#: filechooser.js:94
+#: file-chooser.js:109
 msgid "Select Picture"
 msgstr "Wybierz obraz"
 
-#: filechooser.js:97
+#: file-chooser.js:112
 msgid "Pictures"
 msgstr "Obrazy"
 
-#: filechooser.js:168
+#: file-chooser.js:224
 msgid "Select Subtitles"
 msgstr "Wybierz napisy"
 
-#: filechooser.js:172
+#: file-chooser.js:228
 msgid "Subtitle Files"
 msgstr "Pliki napisów"
 
-#: prefs.js:35
+#: prefs.js:39
 msgid "General"
 msgstr "Główne"
 
-#: prefs.js:44
+#: prefs.js:48
 msgid "FFmpeg path"
 msgstr "Ścieżka do FFmpeg"
 
-#: prefs.js:57
+#: prefs.js:61
 msgid "FFprobe path"
 msgstr "Ścieżka do FFprobe"
 
-#: prefs.js:70
+#: prefs.js:74
 msgid "Receiver type"
 msgstr "Rodzaj odbiornika"
 
-#: prefs.js:77
+#: prefs.js:81
 msgid "Other device"
 msgstr "Inne urządzenie"
 
-#: prefs.js:85
+#: prefs.js:89
 msgid "Listening port"
 msgstr "Port połączeń przychodzących"
 
-#: prefs.js:105
+#: prefs.js:109
 msgid "Media Encoding"
 msgstr "Kodowanie mediów"
 
-#: prefs.js:115
+#: prefs.js:119
 msgid "Bitrate (Mbps)"
 msgstr "Przepływność (Mbps)"
 
-#: prefs.js:136
+#: prefs.js:140
 msgid "Hardware acceleration"
 msgstr "Akceleracja sprzętowa"
 
-#: prefs.js:142
+#: prefs.js:146
 msgid "None"
 msgstr "Brak"
 
-#: prefs.js:161
+#: prefs.js:165
 msgid "Remote position"
 msgstr "Pozycja pilota"
 
-#: prefs.js:167
+#: prefs.js:171
 msgid "Left"
 msgstr "Lewa strona"
 
-#: prefs.js:168
+#: prefs.js:172
 msgid "Center (left side)"
 msgstr "Środek (po lewej)"
 
-#: prefs.js:169
+#: prefs.js:173
 msgid "Center (right side)"
 msgstr "Środek (po prawej)"
 
-#: prefs.js:170
+#: prefs.js:174
 msgid "Right"
 msgstr "Prawa strona"
 
-#: prefs.js:177
+#: prefs.js:181
 msgid "Seek backward/forward (seconds)"
 msgstr "Przewijanie w tył/przód (sekundy)"
 
-#: prefs.js:197
+#: prefs.js:201
 msgid "Miscellaneous"
 msgstr "Pozostałe"
 
-#: prefs.js:207
+#: prefs.js:211
 msgid "Music visualizer"
 msgstr "Wizualizacje muzyczne"
+
+#: prefs.js:229
+#, fuzzy
+msgid "Subtitles encoding"
+msgstr "Pliki napisów"
