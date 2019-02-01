@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-02-02 00:32+0100\n"
-"PO-Revision-Date: 2019-01-03 16:25+0100\n"
+"PO-Revision-Date: 2019-02-02 00:37+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
 "Language: pl\n"
@@ -56,9 +56,8 @@ msgid "Cast Selected File"
 msgstr "Wyślij wybrany plik"
 
 #: file-chooser.js:59
-#, fuzzy
 msgid "Cast Selected Files"
-msgstr "Wyślij wybrany plik"
+msgstr "Wyślij wybrane pliki"
 
 #: file-chooser.js:66
 msgid "Add Subtitles"
@@ -169,6 +168,5 @@ msgid "Music visualizer"
 msgstr "Wizualizacje muzyczne"
 
 #: prefs.js:229
-#, fuzzy
 msgid "Subtitles encoding"
-msgstr "Pliki napisów"
+msgstr "Kodowanie napisów"
