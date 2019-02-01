@@ -36,6 +36,10 @@
       <default>false</default>
       <summary>FFmpeg music visualizer</summary>
     </key>
+    <key name="subtitles-encoding" type="s">
+      <default>"UTF-8"</default>
+      <summary>Subtitles characters encoding</summary>
+    </key>
     <key name="chromecast-playing" type="b">
       <default>false</default>
       <summary>Chromecast playing state</summary>
