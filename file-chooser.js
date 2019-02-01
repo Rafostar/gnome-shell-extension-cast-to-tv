@@ -18,11 +18,10 @@ let selectionContents;
 
 let fileChooser;
 let fileFilter;
+let buttonCast;
 let buttonSubs;
 
 let filePathChosen;
-let initType = 'BUFFERED';
-let mimeType;
 
 let fileSelectionChanged;
 
@@ -56,7 +55,10 @@ void function selectFile()
 
 	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
-	fileChooser.add_button(_("Cast Selected File"), Gtk.ResponseType.OK);
+	let castLabelSingle = _("Cast Selected File");
+	let castLabelMulti = _("Cast Selected Files");
+	buttonCast = fileChooser.add_button(_(castLabelSingle), Gtk.ResponseType.OK);
+	let mimeType;
 
 	switch(selectionContents.streamType)
 	{
@@ -74,8 +76,16 @@ void function selectFile()
 			{
 				let selectedNumber = fileChooser.get_filenames().length;
 
-				if(selectedNumber > 1) buttonSubs.hide();
-				else buttonSubs.show();
+				if(selectedNumber > 1)
+				{
+					buttonCast.label = _(castLabelMulti);
+					buttonSubs.hide();
+				}
+				else
+				{
+					buttonCast.label = _(castLabelSingle);
+					buttonSubs.show();
+				}
 			}));
 
 			break;
@@ -87,20 +97,28 @@ void function selectFile()
 			mimeType = 'audio/*';
 			fileFilter.add_mime_type(mimeType);
 
-			if(configContents.musicVisualizer)
+			fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
 			{
-				mimeType = 'video/*';
-				initType = 'LIVE';
-			}
+				let selectedNumber = fileChooser.get_filenames().length;
 
+				if(selectedNumber > 1) buttonCast.label = _(castLabelMulti);
+				else buttonCast.label = _(castLabelSingle);
+			}));
 			break;
 		case 'PICTURE':
 			fileChooser.set_title(_("Select Picture"));
 			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
 
 			fileFilter.set_name(_("Pictures"));
-			mimeType = 'image/*';
 			fileFilter.add_pixbuf_formats();
+
+			fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
+			{
+				let selectedNumber = fileChooser.get_filenames().length;
+
+				if(selectedNumber > 1) buttonCast.label = _(castLabelMulti);
+				else buttonCast.label = _(castLabelSingle);
+			}));
 			break;
 		default:
 			return;
@@ -138,8 +156,6 @@ void function selectFile()
 	/* Handle convert button */
 	if(buttonConvert.get_active())
 	{
-		initType = 'LIVE';
-
 		switch(configContents.videoAcceleration)
 		{
 			case 'vaapi':
@@ -150,21 +166,21 @@ void function selectFile()
 				break;
 			default:
 				selectionContents.streamType += '_ENCODE';
+				break;
 		}
+	}
+
+	/* Set playback list for Chromecast */
+	if(configContents.receiverType == 'chromecast')
+	{
+		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
 	}
 
 	/* Save selection to file */
 	GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
 
 	/* Run server (process exits if already running) */
-	GLib.spawn_async('/usr/bin', ['node', localPath + '/server'], null, 0, null);
-
-	/* Cast to Chromecast */
-	if(configContents.receiverType == 'chromecast')
-	{
-		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
-		sendToChromecast();
-	}
+	GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 }();
 
 function getConfig()
@@ -173,14 +189,8 @@ function getConfig()
 
 	if(readOk)
 	{
-		if(configFile instanceof Uint8Array)
-		{
-			configContents = JSON.parse(ByteArray.toString(configFile));
-		}
-		else
-		{
-			configContents = JSON.parse(configFile);
-		}
+		if(configFile instanceof Uint8Array) configContents = JSON.parse(ByteArray.toString(configFile));
+		else configContents = JSON.parse(configFile);
 
 		return true;
 	}
@@ -196,14 +206,8 @@ function getSelection()
 
 	if(readOk)
 	{
-		if(selectionFile instanceof Uint8Array)
-		{
-			selectionContents = JSON.parse(ByteArray.toString(selectionFile));
-		}
-		else
-		{
-			selectionContents = JSON.parse(selectionFile);
-		}
+		if(selectionFile instanceof Uint8Array) selectionContents = JSON.parse(ByteArray.toString(selectionFile));
+		else selectionContents = JSON.parse(selectionFile);
 
 		return true;
 	}
@@ -240,55 +244,5 @@ function selectSubtitles()
 	{
 		selectionContents.subsPath = filePathChosen[0];
 		return 0;
-	}
-}
-
-function checkChromecastState()
-{
-	/* Check if file exists (EXISTS = 16) */
-	let configExists = GLib.file_test(shared.statusPath, 16);
-
-	let statusContents = {
-		playerState: null
-	};
-
-	if(configExists)
-	{
-		/* Read config data from temp file */
-		let [readOk, readFile] = GLib.file_get_contents(shared.statusPath);
-
-		if(readOk)
-		{
-			if(readFile instanceof Uint8Array)
-			{
-				statusContents = JSON.parse(ByteArray.toString(readFile));
-			}
-			else
-			{
-				statusContents = JSON.parse(readFile);
-			}
-		}
-	}
-
-	return statusContents.playerState;
-}
-
-function sendToChromecast()
-{
-	let isChromecastPlaying = checkChromecastState();
-
-	if(!isChromecastPlaying)
-	{
-		GLib.spawn_async('/usr/bin', ['node', localPath + '/chromecast', initType, mimeType], null, 0, null);
-	}
-	else
-	{
-		let remoteContents = {
-			action: 'RELOAD',
-			mimeType: mimeType,
-			initType: initType
-		};
-
-		GLib.file_set_contents(shared.remotePath, JSON.stringify(remoteContents, null, 1));
 	}
 }
