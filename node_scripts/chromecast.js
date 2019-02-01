@@ -1,156 +1,95 @@
-const fs = require('fs');
-const path = require('path');
-const player = require('chromecast-player')();
-const ip = require('internal-ip').v4.sync();
-const spawn = require('child_process').spawn;
-const schemaDir = path.join(__dirname + '/schemas');
+var fs = require('fs');
+var path = require('path');
+var player = require('chromecast-player')();
+var internalIp = require('internal-ip').v4;
+var spawn = require('child_process').spawn;
+var schemaDir = path.join(__dirname + '/../schemas');
+var bridge = require('./bridge');
+var extract = require('./extract');
+var remove = require('./remove');
+var shared = require('../shared');
 
-var shared = require('./shared');
-var initType = process.argv[2];
-var mimeType = process.argv[3];
-var config = require(shared.configPath);
-var webUrl = 'http://' + ip + ':' + config.listeningPort + '/cast';
-var remoteContents, statusContents;
+/* Chromecast Opts */
+var webUrl;
+var mimeType;
+var initType;
+var trackIds;
+var mediaTracks;
+
+/* Remote variables */
+var remoteAction;
+var remoteValue;
+
 var castInterval;
-var videoNewPosition;
 var loopCounter = 0;
 var connectRetry = 0;
-var mediaTracks;
-var trackIds;
 var repeat;
 
-switch(mimeType)
+exports.cast = function()
 {
-	case 'video/*':
-	case 'audio/*':
-	case 'image/*':
-		break;
-	default:
-		if(!mimeType) console.log("No mimeType specified!");
-		else console.log(`Unsupported mimeType: ${mimeType}`);
+	var checkInterval = setInterval(() => {
+
+		/* Cast after extract processes are done */
+		if(!extract.subsProcess && !extract.coverProcess)
+		{
+			clearInterval(checkInterval);
+
+			if(castInterval) remoteAction = 'RELOAD';
+			initChromecast();
+		}
+	}, 100);
 }
 
-switch(initType)
+exports.remote = function(action, value)
 {
-	case 'LIVE':
-	case 'BUFFERED':
-		setEmptyRemoteFile();
-		setTimeout(launchCast, shared.chromecast.launchDelay);
-		break;
-	default:
-		if(!initType) console.log("No streamType specified!");
-		else console.log(`Unsupported streamType: ${initType}`);
+	remoteAction = action;
+	remoteValue = value;
 }
 
-process.on('exit', () => {
-
-	if(castInterval) clearInterval(castInterval);
-	showGnomeRemote(false);
-
-	/* Remove all temp files */
-	removeExistingFile(shared.statusPath);
-	removeExistingFile(shared.listPath);
-	removeExistingFile(shared.remotePath);
-	removeExistingFile(shared.metadataPath);
-	removeCoverFiles();
-
-	spawn('pkill', ['-SIGINT', '-f', __dirname + '/server']);
-});
-
-function setEmptyRemoteFile()
+function initChromecast()
 {
-	remoteContents = {
-		action: ''
-	};
+	var ip = internalIp.sync();
+	var port = bridge.config.listeningPort;
 
-	fs.writeFileSync(shared.remotePath, JSON.stringify(remoteContents, null, 1));
-}
+	webUrl = 'http://' + ip + ':' + port + '/cast';
+	initType = 'BUFFERED';
+	remoteAction = null;
+	remoteValue = null;
 
-function setChromecastStatusFile(status)
-{
-	statusContents = {
-		playerState: status.playerState,
-		currentTime: status.currentTime,
-		mediaDuration: status.media.duration,
-		volume: status.volume
-	};
-
-	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
-}
-
-function reloadConfigFile()
-{
-	delete require.cache[shared.configPath];
-	config = require(shared.configPath);
-}
-
-function removeExistingFile(fileToRemove)
-{
-	if(fs.existsSync(fileToRemove))
+	switch(bridge.selection.streamType)
 	{
-		fs.unlink(fileToRemove, (err) => {
-			if(err) throw err;
-		});
-	}
-}
-
-function removeCoverFiles()
-{
-	shared.coverExtensions.forEach(function(ext)
-	{
-		removeExistingFile(shared.coverDefault + ext);
-	});
-}
-
-function setListBegining()
-{
-	var list = require(shared.listPath);
-	var listFirstTrack = list[0];
-	config.filePath = listFirstTrack;
-
-	fs.writeFileSync(shared.configPath, JSON.stringify(config, null, 1));
-	delete require.cache[shared.listPath];
-}
-
-function showGnomeRemote(enable)
-{
-	spawn('gsettings', ['--schemadir', schemaDir, 'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
-}
-
-function startPlayback(p)
-{
-	p.play();
-	showGnomeRemote(true);
-}
-
-function closeCast(p)
-{
-	clearInterval(castInterval);
-	castInterval = null;
-	setEmptyRemoteFile();
-	p.close();
-	connectRetry = 0;
-	delete require.cache[shared.metadataPath];
-}
-
-function getTitle()
-{
-	if(fs.existsSync(shared.metadataPath))
-	{
-		var metadataFile = require(shared.metadataPath);
-		return metadataFile.title;
+		case 'VIDEO':
+			mimeType = 'video/*';
+			break;
+		case 'MUSIC':
+			checkVisualizer();
+			break;
+		case 'PICTURE':
+			mimeType = 'image/*';
+			break;
+		default:
+			mimeType = 'video/*';
+			initType = 'LIVE';
+			break;
 	}
 
-	return path.parse(config.filePath).name;
+	setMediaTracks(ip, port);
+	launchCast();
 }
 
-function setAutoplay()
+function checkVisualizer()
 {
-	if(config.streamType == 'MUSIC' && !config.musicVisualizer) return true;
-	else return false;
+	if(bridge.config.musicVisualizer)
+	{
+		mimeType = 'video/*';
+		initType = 'LIVE';
+		return;
+	}
+
+	mimeType = 'audio/*';
 }
 
-function setMediaTracks()
+function setMediaTracks(ip, port)
 {
 	switch(mimeType)
 	{
@@ -160,41 +99,49 @@ function setMediaTracks()
 				textTrackStyle: shared.chromecast.subsStyle,
 				tracks: shared.chromecast.tracks
 			};
-			mediaTracks.tracks[0].trackContentId = 'http://' + ip + ':' + config.listeningPort + '/subswebplayer';
+			mediaTracks.tracks[0].trackContentId = 'http://' + ip + ':' + port + '/subswebplayer';
 			break;
 		case 'audio/*':
 			mediaTracks = {
 				metadata: shared.chromecast.metadata
 			};
 			mediaTracks.metadata.title = getTitle();
-			mediaTracks.metadata.images[0].url = 'http://' + ip + ':' + config.listeningPort + '/cover';
+			mediaTracks.metadata.images[0].url = 'http://' + ip + ':' + port + '/cover';
 			break;
 		case 'image/*':
 			trackIds = null;
 			mediaTracks = null;
 			break;
-		default:
-			console.log(`Unsupported mimeType: ${mimeType}`);
-			process.exit();
 	}
+}
+
+function getTitle()
+{
+	if(extract.metadata) return extract.metadata.title;
+	else return path.parse(bridge.selection.filePath).name;
+}
+
+function setStatusFile(status)
+{
+	var statusContents = {
+		playerState: status.playerState,
+		currentTime: status.currentTime,
+		mediaDuration: status.media.duration,
+		volume: status.volume
+	};
+
+	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
+}
+
+function setListBeginning()
+{
+	bridge.selection.filePath = bridge.list[0];
+	fs.writeFileSync(shared.selectionPath, JSON.stringify(bridge.selection, null, 1));
 }
 
 function launchCast()
 {
-	reloadConfigFile();
-	setMediaTracks();
-
-	var autoplayState = setAutoplay();
-
-	var chromecastOpts = {
-		path: webUrl,
-		type: mimeType,
-		streamType: initType,
-		autoplay: autoplayState,
-		ttl: shared.chromecast.searchTimeout,
-		activeTrackIds: trackIds,
-		media: mediaTracks
-	};
+	var chromecastOpts = getChromecastOpts();
 
 	player.launch(chromecastOpts, (err, p) => {
 
@@ -205,7 +152,7 @@ function launchCast()
 		}
 		else if(connectRetry == shared.chromecast.retryNumber)
 		{
-			process.exit();
+			//process.exit();
 		}
 		else if(p)
 		{
@@ -213,96 +160,136 @@ function launchCast()
 			{
 				/* mimeType video + streamType music = music with visualizer */
 				/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
-				if(config.streamType == 'MUSIC') setTimeout(startPlayback, shared.chromecast.visualizerBuffer, p);
+				if(bridge.selection.streamType == 'MUSIC') setTimeout(startPlayback, shared.chromecast.visualizerBuffer, p);
 				else setTimeout(startPlayback, shared.chromecast.videoBuffer, p);
 			}
-			else showGnomeRemote(true);
+			else
+			{
+				showGnomeRemote(true);
+			}
 
-			castInterval = setInterval(() => {
-
-				remoteContents = require(shared.remotePath);
-
-				p.getStatus(function(err, status)
-				{
-					if(status && loopCounter % 2 == 0)
-					{
-						setChromecastStatusFile(status);
-					}
-					else if(!status || err)
-					{
-						closeCast(p);
-
-						if(repeat)
-						{
-							setListBegining();
-							/* Refresh Remote Menu */
-							showGnomeRemote(false);
-							showGnomeRemote(true);
-							return setTimeout(launchCast, shared.chromecast.launchDelay);
-						}
-						else
-						{
-							process.exit();
-						}
-					}
-
-					switch(remoteContents.action)
-					{
-						case 'PLAY':
-							p.play();
-							setEmptyRemoteFile();
-							break;
-						case 'PAUSE':
-							p.pause();
-							setEmptyRemoteFile();
-							break;
-						case 'SEEK':
-							videoNewPosition = status.media.duration * remoteContents.value;
-							p.seek(videoNewPosition.toFixed(3));
-							setEmptyRemoteFile();
-							break;
-						case 'SEEK+':
-							videoNewPosition = status.currentTime + remoteContents.value;
-							if(videoNewPosition < status.media.duration) p.seek(videoNewPosition);
-							setEmptyRemoteFile();
-							break;
-						case 'SEEK-':
-							videoNewPosition = status.currentTime - remoteContents.value;
-							if(videoNewPosition > 0) p.seek(videoNewPosition);
-							else p.seek(0);
-							setEmptyRemoteFile();
-							break;
-						case 'SKIP':
-							status.currentTime = 0;
-							setChromecastStatusFile(status);
-							closeCast(p);
-							if(mimeType == 'image/*') return launchCast();
-							return setTimeout(launchCast, shared.chromecast.launchDelay);
-						case 'REPEAT':
-							repeat = remoteContents.value;
-							setEmptyRemoteFile();
-							break;
-						case 'STOP':
-							repeat = false;
-							p.stop();
-							setEmptyRemoteFile();
-							break;
-						case 'RELOAD':
-							mimeType = remoteContents.mimeType;
-							initType = remoteContents.initType;
-							closeCast(p);
-							showGnomeRemote(false);
-							if(mimeType == 'image/*') return launchCast();
-							return setTimeout(launchCast, shared.chromecast.launchDelay);
-						default:
-							break;
-					}
-				});
-
-				delete require.cache[shared.remotePath];
-				loopCounter++;
-
-			}, 250);
+			castInterval = setInterval(() => { statusInterval(p) }, 500);
 		}
 	});
+}
+
+function showGnomeRemote(enable)
+{
+	spawn('gsettings', ['--schemadir', schemaDir, 'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
+}
+
+function getChromecastOpts()
+{
+	var autoplayState = setAutoplay();
+
+	var opts = {
+		path: webUrl,
+		type: mimeType,
+		streamType: initType,
+		autoplay: autoplayState,
+		ttl: shared.chromecast.searchTimeout,
+		activeTrackIds: trackIds,
+		media: mediaTracks
+	};
+
+	return opts;
+}
+
+function setAutoplay()
+{
+	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) return true;
+	else return false;
+}
+
+function startPlayback(p)
+{
+	p.play();
+	showGnomeRemote(true);
+}
+
+function closeCast(p)
+{
+	if(castInterval) clearInterval(castInterval);
+	castInterval = null;
+	p.close();
+	loopCounter = 0;
+	connectRetry = 0;
+
+	if(repeat)
+	{
+		var trackID = bridge.list.indexOf(bridge.selection.filePath);
+		var listLastID = bridge.list.length - 1;
+
+		if(trackID == listLastID) setListBeginning();
+	}
+	else
+	{
+		showGnomeRemote(false);
+	}
+}
+
+function statusInterval(p)
+{
+	//console.log('INTERVAL');
+	p.getStatus(function(err, status)
+	{
+		if(status) setStatusFile(status);
+		else if(!status || err) return closeCast(p);
+
+		checkRemoteAction(p, status);
+	});
+
+	loopCounter++;
+}
+
+function checkRemoteAction(p, status)
+{
+	if(remoteAction)
+	{
+		var position;
+
+		switch(remoteAction)
+		{
+			case 'PLAY':
+				p.play();
+				break;
+			case 'PAUSE':
+				p.pause();
+				break;
+			case 'SEEK':
+				position = status.media.duration * remoteValue;
+				p.seek(position.toFixed(3));
+				break;
+			case 'SEEK+':
+				position = status.currentTime + remoteValue;
+				if(position < status.media.duration) p.seek(position);
+				break;
+			case 'SEEK-':
+				position = status.currentTime - remoteValue;
+				if(position > 0) p.seek(position);
+				else p.seek(0);
+				break;
+			case 'SKIP':
+				status.currentTime = 0;
+				setStatusFile(status);
+				closeCast(p);
+				break;
+			case 'REPEAT':
+				repeat = remoteValue;
+				break;
+			case 'STOP':
+				repeat = false;
+				showGnomeRemote(false);
+				closeCast(p);
+				break;
+			case 'RELOAD':
+				showGnomeRemote(false);
+				closeCast(p);
+				break;
+			default:
+				break;
+		}
+
+		remoteAction = null;
+	}
 }

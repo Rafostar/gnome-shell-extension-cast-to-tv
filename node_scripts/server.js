@@ -1,9 +1,9 @@
-const express = require('express');
-const app = express();
-const path = require('path');
-const webcreator = require('./web-creator');
-const encode = require('./encode');
-const bridge = require('./bridge');
+var express = require('express');
+var app = express();
+var path = require('path');
+var bridge = require('./bridge');
+var webcreator = require('./web-creator');
+var encode = require('./encode');
 
 var listeningPort = bridge.config.listeningPort;
 
@@ -52,17 +52,17 @@ app.get('/', function(req, res)
 	switch(bridge.selection.streamType)
 	{
 		case 'VIDEO':
-			res.sendFile(path.join(__dirname + '/webplayer/direct_player.html'));
+			res.sendFile(path.join(__dirname + '/../webplayer/direct_player.html'));
 			break;
 		case 'MUSIC':
-			if(bridge.config.musicVisualizer) res.sendFile(path.join(__dirname + '/webplayer/encode_player.html'));
-			else res.sendFile(path.join(__dirname + '/webplayer/direct_player.html'));
+			if(bridge.config.musicVisualizer) res.sendFile(path.join(__dirname + '/../webplayer/encode_player.html'));
+			else res.sendFile(path.join(__dirname + '/../webplayer/direct_player.html'));
 			break;
 		case 'PICTURE':
 			webcreator.fileStream(req, res);
 			break;
 		default:
-			res.sendFile(path.join(__dirname + '/webplayer/encode_player.html'));
+			res.sendFile(path.join(__dirname + '/../webplayer/encode_player.html'));
 	}
 });
 
@@ -103,8 +103,13 @@ app.get('/config', function(req, res)
 	res.send(bridge.config);
 });
 
-app.use('/webplayer', express.static(__dirname + '/webplayer'));
-app.use('/plyr', express.static(__dirname + '/node_modules/plyr'));
+app.get('/selection', function(req, res)
+{
+	res.send(bridge.selection);
+});
+
+app.use('/webplayer', express.static(__dirname + '/../webplayer'));
+app.use('/plyr', express.static(__dirname + '/../node_modules/plyr'));
 
 app.get('/*', function(req, res)
 {

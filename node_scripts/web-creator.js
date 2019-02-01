@@ -1,9 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const rangeParser = require('range-parser');
-const bridge = require('./bridge');
-const encode = require('./encode');
-const shared = require('./shared');
+var fs = require('fs');
+var path = require('path');
+var rangeParser = require('range-parser');
+var bridge = require('./bridge');
+var encode = require('./encode');
+var extract = require('./extract');
+var shared = require('../shared');
 
 exports.fileStream = function(req, res)
 {
@@ -111,8 +112,9 @@ exports.encodedStream = function(req, res)
 exports.subsStream = function(req, res)
 {
 	var subsPath = bridge.selection.subsPath;
+	var parsedUrl = req._parsedUrl.pathname;
 
-	if(!subsPath || req.url == '/subswebplayer')
+	if(!subsPath || parsedUrl == '/subswebplayer')
 	{
 		subsPath = shared.vttSubsPath;
 	}
@@ -145,7 +147,7 @@ exports.subsStream = function(req, res)
 
 exports.coverStream = function(req, res)
 {
-	var coverPath = encode.coverPath;
+	var coverPath = extract.coverPath;
 
 	res.writeHead(200, {
 		'Access-Control-Allow-Origin': '*',
@@ -157,7 +159,7 @@ exports.coverStream = function(req, res)
 
 	if(!exist)
 	{
-		coverPath = path.join(__dirname + '/webplayer/images/cover.png');
+		coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
 	}
 
 	return fs.createReadStream(coverPath).pipe(res);
