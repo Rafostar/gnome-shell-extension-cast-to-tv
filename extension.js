@@ -22,23 +22,23 @@ const _ = Gettext.gettext;
 const Widget = Local.imports.widget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
+const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
-const tempDir = Local.imports.shared.tempDir;
 const iconName = 'tv-symbolic';
 const remoteName = _("Chromecast Remote");
 
 let castMenu;
 let remoteButton;
-let remoteIconName = 'folder-videos-symbolic';
+let remoteIconName  = 'folder-videos-symbolic';
 let readStatusInterval;
 let statusIcon;
-let configContents, selectionContents, remoteContents, listContents;
+let configContents, selectionContents, listContents, statusContents;
 let seekTime;
 let trackID;
 let listLastID;
 let chromecastWasPlaying;
 let isPaused;
-let isRepeatActive;
+//let isRepeatActive;
 
 /* Media controls */
 let positionSlider;
@@ -57,6 +57,7 @@ let remotePositionChanged;
 let seekTimeChanged;
 let musicVisualizerChanged;
 let chromecastPlayingChanged;
+let subtitlesEncodingChanged;
 
 const CastToTvMenu = new Lang.Class
 ({
@@ -175,13 +176,13 @@ const ChromecastRemoteMenu = new Lang.Class
 			positionSlider.connect('value-changed', Lang.bind(this, function()
 			{
 				Mainloop.source_remove(readStatusInterval);
-				setRemoteFile('SEEK', positionSlider.value);
+				Temp.setRemoteAction('SEEK', positionSlider.value);
 				readStatusTimer();
 			}));
 
 			playButton.connect('clicked', Lang.bind(this, function()
 			{
-				setRemoteFile('PLAY');
+				Temp.setRemoteAction('PLAY');
 				playButton.hide();
 				pauseButton.show();
 				isPaused = false;
@@ -189,7 +190,7 @@ const ChromecastRemoteMenu = new Lang.Class
 
 			pauseButton.connect('clicked', Lang.bind(this, function()
 			{
-				setRemoteFile('PAUSE');
+				Temp.setRemoteAction('PAUSE');
 				pauseButton.hide();
 				playButton.show();
 				isPaused = true;
@@ -197,21 +198,21 @@ const ChromecastRemoteMenu = new Lang.Class
 
 			seekForwardButton.connect('clicked', Lang.bind(this, function()
 			{
-				setRemoteFile('SEEK+', seekTime);
+				Temp.setRemoteAction('SEEK+', seekTime);
 			}));
 
 			seekBackwardButton.connect('clicked', Lang.bind(this, function()
 			{
-				setRemoteFile('SEEK-', seekTime);
+				Temp.setRemoteAction('SEEK-', seekTime);
 			}));
 
 			repeatButton.connect('clicked', Lang.bind(this, function()
 			{
-				setRemoteFile('REPEAT', repeatButton.turnedOn);
-				isRepeatActive = repeatButton.turnedOn;
+				Temp.setRemoteAction('REPEAT', repeatButton.turnedOn);
+				//isRepeatActive = repeatButton.turnedOn;
 			}));
 
-			if(isRepeatActive) repeatButton.clicked();
+			//if(isRepeatActive) repeatButton.clicked();
 		}
 		else
 		{
@@ -231,21 +232,21 @@ const ChromecastRemoteMenu = new Lang.Class
 
 		stopButton.connect('clicked', Lang.bind(this, function()
 		{
-			setRemoteFile('STOP');
+			Temp.setRemoteAction('STOP');
 		}));
 
 		skipBackwardButton.connect('clicked', Lang.bind(this, function()
 		{
 			trackID--;
 			selectionContents.filePath = listContents[trackID];
-			writeDataToFile(shared.configPath, configContents);
+			Temp.writeToFile(shared.configPath, configContents);
 
 			if(trackID == 0)
 			{
 				skipBackwardButton.reactive = false;
 			}
 
-			setRemoteFile('SKIP');
+			Temp.setRemoteAction('SKIP');
 			skipForwardButton.reactive = true;
 		}));
 
@@ -253,14 +254,14 @@ const ChromecastRemoteMenu = new Lang.Class
 		{
 			trackID++;
 			selectionContents.filePath = listContents[trackID];
-			writeDataToFile(shared.configPath, configContents);
+			Temp.writeToFile(shared.configPath, configContents);
 
 			if(trackID == listLastID)
 			{
 				skipForwardButton.reactive = false;
 			}
 
-			setRemoteFile('SKIP');
+			Temp.setRemoteAction('SKIP');
 			skipBackwardButton.reactive = true;
 		}));
 	},
@@ -273,8 +274,6 @@ const ChromecastRemoteMenu = new Lang.Class
 
 function initChromecastRemote()
 {
-	getConfigFromFile();
-	getSelectionFromFile();
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 
 	/* Do not recreate remote if state did not change */
@@ -299,7 +298,7 @@ function initChromecastRemote()
 	}
 
 	/* Get playlist */
-	listContents = readDataFromFile(shared.listPath);
+	listContents = Temp.readFromFile(shared.listPath);
 
 	if(listContents)
 	{
@@ -378,7 +377,6 @@ function hideSeekButtons()
 
 function changeFFmpegPath()
 {
-	getConfigFromFile();
 	configContents.ffmpegPath = Settings.get_string('ffmpeg-path');
 
 	if(!configContents.ffmpegPath)
@@ -386,12 +384,11 @@ function changeFFmpegPath()
 		configContents.ffmpegPath = '/usr/bin/ffmpeg';
 	}
 
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
 }
 
 function changeFFprobePath()
 {
-	getConfigFromFile();
 	configContents.ffprobePath = Settings.get_string('ffprobe-path');
 
 	if(!configContents.ffprobePath)
@@ -399,43 +396,44 @@ function changeFFprobePath()
 		configContents.ffprobePath = '/usr/bin/ffprobe';
 	}
 
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
 }
 
 function changeReceiverType()
 {
-	getConfigFromFile();
 	configContents.receiverType = Settings.get_string('receiver-type');
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
 	initChromecastRemote();
 }
 
 function changeListeningPort()
 {
-	getConfigFromFile();
 	configContents.listeningPort = Settings.get_int('listening-port');
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
 }
 
 function changeVideoBitrate()
 {
-	getConfigFromFile();
 	configContents.videoBitrate = Settings.get_double('video-bitrate');
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
 }
 
 function changeVideoAcceleration()
 {
-	getConfigFromFile();
 	configContents.videoAcceleration = Settings.get_string('video-acceleration');
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
 }
 
 function changeMusicVisualizer()
 {
-	getConfigFromFile();
 	configContents.musicVisualizer = Settings.get_boolean('music-visualizer');
-	writeDataToFile(shared.configPath, configContents);
+	Temp.writeToFile(shared.configPath, configContents);
+}
+
+function changeSubtitlesEncoding()
+{
+	configContents.subtitlesEncoding = Settings.get_string('subtitles-encoding');
+	Temp.writeToFile(shared.configPath, configContents);
 }
 
 function changeSeekTime()
@@ -449,7 +447,7 @@ function readStatusTimer()
 
 	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
 
-		let statusContents = readDataFromFile(shared.statusPath);
+		let statusContents = Temp.readFromFile(shared.statusPath);
 
 		if(statusContents)
 		{
@@ -474,104 +472,22 @@ function spawnFileChooser()
 	Util.spawn(['gjs', Local.path + '/file-chooser.js', Local.path, selectionContents.streamType]);
 }
 
-function setConfigFile()
+function getTempFiles()
 {
-	configContents = {
-		ffmpegPath: Settings.get_string('ffmpeg-path'),
-		ffprobePath: Settings.get_string('ffprobe-path'),
-		receiverType: Settings.get_string('receiver-type'),
-		listeningPort: Settings.get_int('listening-port'),
-		videoBitrate: Settings.get_double('video-bitrate'),
-		videoAcceleration: Settings.get_string('video-acceleration'),
-		musicVisualizer: Settings.get_boolean('music-visualizer')
-	};
+	configContents = Temp.readFromFile(shared.configPath);
+	if(!configContents) configContents = Temp.setConfigFile();
 
-	/* Use default paths if custom paths are not defined */
-	if(!configContents.ffmpegPath)
-	{
-		configContents.ffmpegPath = '/usr/bin/ffmpeg';
-	}
+	selectionContents = Temp.readFromFile(shared.selectionPath);
+	if(!selectionContents) selectionContents = Temp.setSelectionFile();
 
-	if(!configContents.ffprobePath)
-	{
-		configContents.ffprobePath = '/usr/bin/ffprobe';
-	}
+	statusContents = Temp.readFromFile(shared.statusPath);
+	if(!statusContents) statusContents = Temp.setStatusFile();
 
-	GLib.mkdir_with_parents(tempDir, 448); // 700 in octal
-	writeDataToFile(shared.configPath, configContents);
-}
+	let listExists = GLib.file_test(shared.listPath, 16);
+	if(!listExists) Temp.setListFile(shared.listPath);
 
-function setSelectionFile()
-{
-	selectionContents = {
-		streamType: '',
-		filePath: '',
-		subsPath: ''
-	};
-
-	writeDataToFile(shared.selectionPath, selectionContents);
-}
-
-function writeDataToFile(path, contents)
-{
-	/* Write config data to temp file */
-	GLib.file_set_contents(path, JSON.stringify(contents, null, 1));
-}
-
-function readDataFromFile(path)
-{
-	/* Check if file exists (EXISTS = 16) */
-	let fileExists = GLib.file_test(path, 16);
-
-	if(fileExists)
-	{
-		/* Read config data from temp file */
-		let [readOk, readFile] = GLib.file_get_contents(path);
-
-		if(readOk)
-		{
-			if(readFile instanceof Uint8Array)
-			{
-				return JSON.parse(ByteArray.toString(readFile));
-			}
-			else
-			{
-				return JSON.parse(readFile);
-			}
-		}
-	}
-
-	return null;
-}
-
-function getConfigFromFile()
-{
-	configContents = readDataFromFile(shared.configPath);
-
-	if(!configContents)
-	{
-		setConfigFile();
-	}
-}
-
-function getSelectionFromFile()
-{
-	selectionContents = readDataFromFile(shared.selectionPath);
-
-	if(!selectionContents)
-	{
-		setSelectionFile();
-	}
-}
-
-function setRemoteFile(castAction, castValue)
-{
-	remoteContents = {
-		action: castAction,
-		value: castValue
-	};
-
-	writeDataToFile(shared.remotePath, remoteContents);
+	let remoteExists = GLib.file_test(shared.remotePath, 16);
+	if(!remoteExists) Temp.setRemoteFile(shared.remotePath);
 }
 
 function init()
@@ -597,6 +513,7 @@ function enable()
 	remotePositionChanged = Settings.connect('changed::remote-position', Lang.bind(this, initChromecastRemote));
 	seekTimeChanged = Settings.connect('changed::seek-time', Lang.bind(this, changeSeekTime));
 	musicVisualizerChanged = Settings.connect('changed::music-visualizer', Lang.bind(this, changeMusicVisualizer));
+	subtitlesEncodingChanged = Settings.connect('changed::subtitles-encoding', Lang.bind(this, changeSubtitlesEncoding));
 
 	/* Connect other signals */
 	chromecastPlayingChanged = Settings.connect('changed::chromecast-playing', Lang.bind(this, initChromecastRemote));
@@ -609,6 +526,9 @@ function enable()
 	statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon'});
 	Indicator.add_child(statusIcon);
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
+
+	/* Read/create temp files */
+	getTempFiles();
 
 	/* Add Chromecast remote to top bar if already playing,
 	Generates initial temp config file if it does not exist */
@@ -635,6 +555,7 @@ function disable()
 	Settings.disconnect(remotePositionChanged);
 	Settings.disconnect(seekTimeChanged);
 	Settings.disconnect(musicVisualizerChanged);
+	Settings.disconnect(subtitlesEncodingChanged);
 
 	/* Disconnect other signals */
 	Settings.disconnect(chromecastPlayingChanged);
