@@ -10,6 +10,7 @@ exports.subsProcess = null;
 exports.coverProcess = null;
 exports.coverPath;
 exports.metadata;
+exports.subtitlesBuiltIn;
 
 var coverFound;
 
@@ -37,6 +38,7 @@ exports.findCoverFile = function()
 
 exports.analyzeFile = function()
 {
+	exports.subtitlesBuiltIn = false;
 	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
 
 	ffprobePromise.then(value => {
@@ -65,7 +67,7 @@ function checkBuiltInSubs(ffprobeData)
 			}
 			else
 			{
-				subtitlesBuiltIn = true;
+				exports.subtitlesBuiltIn = true;
 				remove.file(shared.vttSubsPath);
 				exports.subsProcess = null;
 			}

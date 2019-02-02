@@ -5,7 +5,6 @@ var remove = require('./remove');
 var shared = require('../shared');
 
 var subsPathEscaped;
-var subtitlesBuiltIn;
 var codecAudio = 'copy';
 
 exports.streamProcess = null;
@@ -17,8 +16,6 @@ String.prototype.replaceAt = function(index, replacement)
 
 exports.refreshSelection = function()
 {
-	subtitlesBuiltIn = false;
-
 	if(bridge.selection.subsPath)
 	{
 		extract.coverProcess = null;
@@ -53,7 +50,9 @@ exports.refreshSelection = function()
 
 function getSubsPath()
 {
-	subsPathEscaped = bridge.selection.filePath;
+	if(bridge.selection.subsPath) subsPathEscaped = bridge.selection.subsPath;
+	else subsPathEscaped = bridge.selection.filePath;
+
 	var i = subsPathEscaped.length;
 
 	while(i--)
@@ -81,10 +80,10 @@ exports.videoConfig = function()
 	'pipe:1'
 	];
 
-	if(subtitlesBuiltIn)
+	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
 		getSubsPath();
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped + ':charenc=' + bridge.config.subtitlesEncoding, '-sn');
 	}
 
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
@@ -112,11 +111,11 @@ exports.videoVaapiConfig = function()
 	'pipe:1'
 	];
 
-	if(subtitlesBuiltIn)
+	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
 		getSubsPath();
 		encodeOpts.splice(0, 0, '-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
-		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ':charenc=' + bridge.config.subtitlesEncoding + ',hwmap', '-sn');
 	}
 	else
 	{
