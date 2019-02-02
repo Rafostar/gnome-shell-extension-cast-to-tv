@@ -55,7 +55,9 @@ void function selectFile()
 
 	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
+	/* TRANSLATORS: Button text when selected SINGLE file */
 	let castLabelSingle = _("Cast Selected File");
+	/* TRANSLATORS: Button text when selected MULTIPLE files */
 	let castLabelMulti = _("Cast Selected Files");
 	buttonCast = fileChooser.add_button(_(castLabelSingle), Gtk.ResponseType.OK);
 	let mimeType;

@@ -34,7 +34,7 @@ _init: function(params)
 	let widget = null;
 	let value = null;
 
-	// Label: General
+	/* Label: General */
 	label = new Gtk.Label({
 		label: '<b><big>' + _("General") + '</big></b>',
 		use_markup: true,
@@ -43,7 +43,7 @@ _init: function(params)
 	});
 	this.attach(label, 0, 0, 1, 1);
 
-	// FFmpeg Path
+	/* FFmpeg Path */
 	label = new Gtk.Label({
 		label: _("FFmpeg path"),
 		hexpand: true,
@@ -56,7 +56,7 @@ _init: function(params)
 	this.attach(label, 0, 1, 1, 1);
 	this.attach(widget, 1, 1, 1, 1);
 
-	// FFprobe Path
+	/* FFprobe Path */
 	label = new Gtk.Label({
 		label: _("FFprobe path"),
 		hexpand: true,
@@ -69,7 +69,7 @@ _init: function(params)
 	this.attach(label, 0, 2, 1, 1);
 	this.attach(widget, 1, 2, 1, 1);
 
-	// Receiver Type
+	/* Receiver Type */
 	label = new Gtk.Label({
 		label: _("Receiver type"),
 		hexpand: true,
@@ -84,7 +84,7 @@ _init: function(params)
 	this.attach(widget, 1, 3, 1, 1);
 	widget.grab_focus();
 
-	// Listening Port
+	/* Listening Port */
 	label = new Gtk.Label({
 		label: _("Listening port"),
 		hexpand: true,
@@ -104,7 +104,7 @@ _init: function(params)
 	this.attach(label, 0, 4, 1, 1);
 	this.attach(widget, 1, 4, 1, 1);
 
-	// Label: Media Encoding
+	/* Label: Media Encoding */
 	label = new Gtk.Label({
 		label: '<b><big>' + _("Media Encoding") + '</big></b>',
 		use_markup: true,
@@ -114,7 +114,7 @@ _init: function(params)
 	});
 	this.attach(label, 0, 5, 1, 1);
 
-	// Video Bitrate
+	/* Video Bitrate */
 	label = new Gtk.Label({
 		label: _("Bitrate (Mbps)"),
 		hexpand: true,
@@ -135,7 +135,7 @@ _init: function(params)
 	this.attach(label, 0, 6, 1, 1);
 	this.attach(widget, 1, 6, 1, 1);
 
-	// Hardware Acceleration
+	/* Hardware Acceleration */
 	label = new Gtk.Label({
 		label: _("Hardware acceleration"),
 		hexpand: true,
@@ -144,13 +144,14 @@ _init: function(params)
 	});
 	widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 	widget.append('none', _("None"));
-	widget.append('vaapi', "VAAPI");
-	//widget.append('nvenc', "NVENC");
+	/* TRANSLATORS: Should remain as VAAPI unless you use different alphabet */
+	widget.append('vaapi', _("VAAPI"));
+	//widget.append('nvenc', _("NVENC"));
 	this._settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 	this.attach(label, 0, 7, 1, 1);
 	this.attach(widget, 1, 7, 1, 1);
 
-	// Label: Chromecast Remote
+	/* Label: Chromecast Remote */
 	label = new Gtk.Label({
 		label: '<b><big>' + _("Chromecast Remote") + '</big></b>',
 		use_markup: true,
@@ -160,7 +161,7 @@ _init: function(params)
 	});
 	this.attach(label, 0, 8, 1, 1);
 
-	// Remote Position
+	/* Remote Position */
 	label = new Gtk.Label({
 		label: _("Remote position"),
 		hexpand: true,
@@ -176,7 +177,7 @@ _init: function(params)
 	this.attach(label, 0, 9, 1, 1);
 	this.attach(widget, 1, 9, 1, 1);
 
-	// Seek Backward/Forward
+	/* Seek Backward/Forward */
 	label = new Gtk.Label({
 		label: _("Seek backward/forward (seconds)"),
 		hexpand: true,
@@ -196,8 +197,9 @@ _init: function(params)
 	this.attach(label, 0, 10, 1, 1);
 	this.attach(widget, 1, 10, 1, 1);
 
-	// Label: Miscellaneous
+	/* Label: Miscellaneous */
 	label = new Gtk.Label({
+		/* TRANSLATORS: The rest  of settings (something like "Other" or "Remaining") */
 		label: '<b><big>' + _("Miscellaneous") + '</big></b>',
 		use_markup: true,
 		hexpand: true,
@@ -206,7 +208,7 @@ _init: function(params)
 	});
 	this.attach(label, 0, 11, 1, 1);
 
-	// Music Visualizer
+	/* Music Visualizer */
 	label = new Gtk.Label({
 		label: _("Music visualizer"),
 		hexpand: true,
@@ -224,8 +226,9 @@ _init: function(params)
 	this.attach(label, 0, 12, 1, 1);
 	this.attach(widget, 1, 12, 1, 1);
 
-	// Subtitles Encoding
+	/* Subtitles Encoding */
 	label = new Gtk.Label({
+		/* TRANSLATORS: Option for setting subtitles characters encoding (e.g. UTF-8) */
 		label: _("Subtitles encoding"),
 		hexpand: true,
 		halign: Gtk.Align.START,
