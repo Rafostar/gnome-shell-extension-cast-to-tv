@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-02-02 10:19+0100\n"
-"PO-Revision-Date: 2019-01-04 09:25+0100\n"
-"Last-Translator: Jimmy Scionti <jimmy.scionti@gmail.com>\n"
+"PO-Revision-Date: 2019-02-02 10:38+0100\n"
+"Last-Translator: Rafostar\n"
 "Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.0.9\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: extension.js:28 prefs.js:156
@@ -57,9 +57,8 @@ msgstr "Condividi il file selezionato"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
 #: file-chooser.js:61
-#, fuzzy
 msgid "Cast Selected Files"
-msgstr "Condividi il file selezionato"
+msgstr "Condividi i file selezionati"
 
 #: file-chooser.js:68
 msgid "Add Subtitles"
@@ -140,7 +139,7 @@ msgstr "Nessuna"
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
 #: prefs.js:148
 msgid "VAAPI"
-msgstr ""
+msgstr "VAAPI"
 
 #: prefs.js:166
 msgid "Remote position"
@@ -169,7 +168,7 @@ msgstr "Cerca indietro/avanti (secondi)"
 #. TRANSLATORS: The rest  of settings (something like "Other" or "Remaining")
 #: prefs.js:203
 msgid "Miscellaneous"
-msgstr "Extra"
+msgstr "Altro"
 
 #: prefs.js:213
 msgid "Music visualizer"
@@ -177,6 +176,5 @@ msgstr "Visualizzatore musicale"
 
 #. TRANSLATORS: Option for setting subtitles characters encoding (e.g. UTF-8)
 #: prefs.js:232
-#, fuzzy
 msgid "Subtitles encoding"
-msgstr "File sottotitoli"
+msgstr "Sottotitoli codificati"
