@@ -14,7 +14,7 @@ glib-schemas:
 # Create/update potfile #
 potfile:
 	mkdir -p po
-	xgettext -o $(POTFILE) --package-name "Cast to TV" $(TOLOCALIZE)
+	xgettext -o $(POTFILE) --language=JavaScript --add-comments=TRANSLATORS: --package-name "Cast to TV" $(TOLOCALIZE)
 
 # Update '.po' from 'potfile' #
 mergepo:
