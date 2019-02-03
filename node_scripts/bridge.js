@@ -39,7 +39,7 @@ function setProcesses()
 	extract.coverProcess = true;
 }
 
-fs.watchFile(shared.configPath, { interval: 1000 }, (curr, prev) => {
+fs.watchFile(shared.configPath, { interval: 3000 }, (curr, prev) => {
 
 	exports.config = getConfig();
 
