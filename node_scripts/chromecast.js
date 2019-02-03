@@ -227,7 +227,7 @@ function closeCast(p)
 	{
 		return changeTrack(1);
 	}
-	else if(remainingTime < 1 && remainingTime > 0)
+	else if(remainingTime <= 1 && remainingTime > 0)
 	{
 		if(currentTrackID < listLastID) changeTrack(currentTrackID + 1);
 		else gnome.showRemote(false);
