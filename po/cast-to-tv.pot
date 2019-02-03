@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-02 10:19+0100\n"
+"POT-Creation-Date: 2019-02-03 16:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,77 +21,77 @@ msgstr ""
 msgid "Chromecast Remote"
 msgstr ""
 
-#: extension.js:69
+#: extension.js:71
 msgid "Cast Media"
 msgstr ""
 
-#: extension.js:73
+#: extension.js:75
 msgid "Video"
 msgstr ""
 
-#: extension.js:74
+#: extension.js:76
 msgid "Music"
 msgstr ""
 
-#: extension.js:75
+#: extension.js:77
 msgid "Picture"
 msgstr ""
 
-#: extension.js:76
+#: extension.js:78
 msgid "Cast Settings"
 msgstr ""
 
-#: file-chooser.js:42
+#: file-chooser.js:44
 msgid "Transcode Video"
 msgstr ""
 
-#: file-chooser.js:57
+#: file-chooser.js:59
 msgid "Cancel"
 msgstr ""
 
 #. TRANSLATORS: Button text when selected SINGLE file
-#: file-chooser.js:59
+#: file-chooser.js:61
 msgid "Cast Selected File"
 msgstr ""
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
-#: file-chooser.js:61
+#: file-chooser.js:63
 msgid "Cast Selected Files"
 msgstr ""
 
-#: file-chooser.js:68
+#: file-chooser.js:70
 msgid "Add Subtitles"
 msgstr ""
 
-#: file-chooser.js:69
+#: file-chooser.js:71
 msgid "Select Video"
 msgstr ""
 
-#: file-chooser.js:73
+#: file-chooser.js:75
 msgid "Video Files"
 msgstr ""
 
-#: file-chooser.js:95
+#: file-chooser.js:97
 msgid "Select Music"
 msgstr ""
 
-#: file-chooser.js:98
+#: file-chooser.js:100
 msgid "Audio Files"
 msgstr ""
 
-#: file-chooser.js:111
+#: file-chooser.js:113
 msgid "Select Picture"
 msgstr ""
 
-#: file-chooser.js:114
+#: file-chooser.js:116
 msgid "Pictures"
 msgstr ""
 
-#: file-chooser.js:226
+#: file-chooser.js:236
 msgid "Select Subtitles"
 msgstr ""
 
-#: file-chooser.js:230
+#: file-chooser.js:240
 msgid "Subtitle Files"
 msgstr ""
 
