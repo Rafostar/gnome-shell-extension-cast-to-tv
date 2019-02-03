@@ -59,6 +59,12 @@ const MediaControlButton = GObject.registerClass({
 	{
 		return this._turnedOn;
 	}
+
+	turnOn()
+	{
+		this.opacity = 255;
+		this._turnedOn = true;
+	}
 });
 
 const SliderItem = new Lang.Class({
