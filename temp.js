@@ -23,18 +23,24 @@ function readFromFile(path)
 
 		if(readOk)
 		{
+			let data;
+
 			if(readFile instanceof Uint8Array)
 			{
-				return JSON.parse(ByteArray.toString(readFile));
+				try{ data = JSON.parse(ByteArray.toString(readFile)); }
+				catch(e){ data = false; }
 			}
 			else
 			{
-				return JSON.parse(readFile);
+				try{ data = JSON.parse(readFile); }
+				catch(e){ data = false; }
 			}
+
+			return data;
 		}
 	}
 
-	return null;
+	return false;
 }
 
 function setConfigFile()
@@ -91,7 +97,7 @@ function setRemoteFile()
 
 function setStatusFile()
 {
-	statusContents = {
+	let statusContents = {
 		playerState: 'UNAVAILABLE',
 		currentTime: 0,
 		mediaDuration: 0,
@@ -99,6 +105,9 @@ function setStatusFile()
 	};
 
 	writeToFile(shared.statusPath, statusContents);
+
+	/* No status file means that Chromecast is not playing */
+	Settings.set_boolean('chromecast-playing', false);
 }
 
 function setRemoteAction(castAction, castValue)
