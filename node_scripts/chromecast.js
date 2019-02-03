@@ -2,11 +2,10 @@ var fs = require('fs');
 var path = require('path');
 var player = require('chromecast-player')();
 var internalIp = require('internal-ip').v4;
-var spawn = require('child_process').spawn;
-var schemaDir = path.join(__dirname + '/../schemas');
 var bridge = require('./bridge');
 var extract = require('./extract');
 var remove = require('./remove');
+var gnome = require('./gnome');
 var shared = require('../shared');
 
 /* Chromecast Opts */
@@ -20,9 +19,9 @@ var mediaTracks;
 var remoteAction;
 var remoteValue;
 
+var statusContents;
 var castInterval;
-var loopCounter = 0;
-var connectRetry = 0;
+var connectRetry;
 var repeat;
 
 exports.cast = function()
@@ -33,9 +32,19 @@ exports.cast = function()
 		if(!extract.subsProcess && !extract.coverProcess)
 		{
 			clearInterval(checkInterval);
+			connectRetry = 0;
 
-			if(castInterval) remoteAction = 'RELOAD';
-			initChromecast();
+			if(castInterval)
+			{
+				/* Close previous process */
+				remoteAction = 'REINIT';
+				setTimeout(initChromecast, shared.chromecast.relaunchDelay);
+			}
+			else
+			{
+				remoteAction = null;
+				initChromecast();
+			}
 		}
 	}, 100);
 }
@@ -102,6 +111,7 @@ function setMediaTracks(ip, port)
 			mediaTracks.tracks[0].trackContentId = 'http://' + ip + ':' + port + '/subswebplayer';
 			break;
 		case 'audio/*':
+			trackIds = null;
 			mediaTracks = {
 				metadata: shared.chromecast.metadata
 			};
@@ -123,7 +133,7 @@ function getTitle()
 
 function setStatusFile(status)
 {
-	var statusContents = {
+	statusContents = {
 		playerState: status.playerState,
 		currentTime: status.currentTime,
 		mediaDuration: status.media.duration,
@@ -131,12 +141,6 @@ function setStatusFile(status)
 	};
 
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
-}
-
-function setListBeginning()
-{
-	bridge.selection.filePath = bridge.list[0];
-	fs.writeFileSync(shared.selectionPath, JSON.stringify(bridge.selection, null, 1));
 }
 
 function launchCast()
@@ -152,7 +156,7 @@ function launchCast()
 		}
 		else if(connectRetry == shared.chromecast.retryNumber)
 		{
-			//process.exit();
+			gnome.showRemote(false);
 		}
 		else if(p)
 		{
@@ -165,17 +169,12 @@ function launchCast()
 			}
 			else
 			{
-				showGnomeRemote(true);
+				gnome.showRemote(true);
 			}
 
-			castInterval = setInterval(() => { statusInterval(p) }, 500);
+			castInterval = setInterval(() => { getChromecastStatus(p); }, 500);
 		}
 	});
-}
-
-function showGnomeRemote(enable)
-{
-	spawn('gsettings', ['--schemadir', schemaDir, 'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
 }
 
 function getChromecastOpts()
@@ -204,7 +203,14 @@ function setAutoplay()
 function startPlayback(p)
 {
 	p.play();
-	showGnomeRemote(true);
+	gnome.showRemote(true);
+}
+
+function changeTrack(id)
+{
+	/* Tracks are counted from 1, list indexes from 0 */
+	bridge.selection.filePath = bridge.list[id - 1];
+	fs.writeFileSync(shared.selectionPath, JSON.stringify(bridge.selection, null, 1));
 }
 
 function closeCast(p)
@@ -212,84 +218,82 @@ function closeCast(p)
 	if(castInterval) clearInterval(castInterval);
 	castInterval = null;
 	p.close();
-	loopCounter = 0;
-	connectRetry = 0;
 
-	if(repeat)
-	{
-		var trackID = bridge.list.indexOf(bridge.selection.filePath);
-		var listLastID = bridge.list.length - 1;
+	var remainingTime = statusContents.mediaDuration - statusContents.currentTime;
+	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
+	var listLastID = bridge.list.length;
 
-		if(trackID == listLastID) setListBeginning();
-	}
-	else
+	if(repeat && currentTrackID == listLastID)
 	{
-		showGnomeRemote(false);
+		return changeTrack(1);
 	}
+	else if(remainingTime < 1 && remainingTime > 0)
+	{
+		if(currentTrackID < listLastID) changeTrack(currentTrackID + 1);
+		else gnome.showRemote(false);
+
+		return;
+	}
+
+	if(remoteAction == 'SKIP+') changeTrack(currentTrackID + 1);
+	else if(remoteAction == 'SKIP-') changeTrack(currentTrackID - 1);
 }
 
-function statusInterval(p)
+function getChromecastStatus(p)
 {
-	//console.log('INTERVAL');
 	p.getStatus(function(err, status)
 	{
-		if(status) setStatusFile(status);
-		else if(!status || err) return closeCast(p);
-
-		checkRemoteAction(p, status);
+		if(status && !remoteAction) setStatusFile(status);
+		else if(status && remoteAction) checkRemoteAction(p, status);
+		else if(!status || err) closeCast(p);
 	});
-
-	loopCounter++;
 }
 
 function checkRemoteAction(p, status)
 {
-	if(remoteAction)
+	var position;
+
+	switch(remoteAction)
 	{
-		var position;
-
-		switch(remoteAction)
-		{
-			case 'PLAY':
-				p.play();
-				break;
-			case 'PAUSE':
-				p.pause();
-				break;
-			case 'SEEK':
-				position = status.media.duration * remoteValue;
-				p.seek(position.toFixed(3));
-				break;
-			case 'SEEK+':
-				position = status.currentTime + remoteValue;
-				if(position < status.media.duration) p.seek(position);
-				break;
-			case 'SEEK-':
-				position = status.currentTime - remoteValue;
-				if(position > 0) p.seek(position);
-				else p.seek(0);
-				break;
-			case 'SKIP':
-				status.currentTime = 0;
-				setStatusFile(status);
-				closeCast(p);
-				break;
-			case 'REPEAT':
-				repeat = remoteValue;
-				break;
-			case 'STOP':
-				repeat = false;
-				showGnomeRemote(false);
-				closeCast(p);
-				break;
-			case 'RELOAD':
-				showGnomeRemote(false);
-				closeCast(p);
-				break;
-			default:
-				break;
-		}
-
-		remoteAction = null;
+		case 'PLAY':
+			p.play();
+			break;
+		case 'PAUSE':
+			p.pause();
+			break;
+		case 'SEEK':
+			position = status.media.duration * remoteValue;
+			p.seek(position);
+			break;
+		case 'SEEK+':
+			position = status.currentTime + remoteValue;
+			if(position < status.media.duration) p.seek(position);
+			break;
+		case 'SEEK-':
+			position = status.currentTime - remoteValue;
+			if(position > 0) p.seek(position);
+			else p.seek(0);
+			break;
+		case 'SKIP+':
+		case 'SKIP-':
+			status.currentTime = 0;
+			setStatusFile(status);
+			return closeCast(p);
+		case 'REPEAT':
+			repeat = remoteValue;
+			break;
+		case 'STOP':
+			repeat = false;
+			gnome.showRemote(false);
+			closeCast(p);
+			break;
+		case 'REINIT':
+			repeat = false;
+			closeCast(p);
+			break;
+		default:
+			break;
 	}
+
+	remoteAction = null;
 }
