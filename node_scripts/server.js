@@ -13,7 +13,10 @@ exports.refreshConfig = function()
 	{
 		server.close();
 		listeningPort = bridge.config.listeningPort;
-		server = app.listen(listeningPort).on('error', function(err) { process.exit() });
+		server = app.listen(listeningPort).on('error', function(err)
+		{
+			process.exit()
+		});
 	}
 }
 
@@ -116,5 +119,7 @@ app.get('/*', function(req, res)
 	webcreator.pageWrong(req, res);
 });
 
-var server = app.listen(listeningPort).on('error', function(err) { process.exit() });
-encode.refreshSelection();
+var server = app.listen(listeningPort).on('error', function(err)
+{
+	process.exit()
+});

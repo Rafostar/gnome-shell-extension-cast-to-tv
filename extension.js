@@ -29,7 +29,6 @@ const remoteName = _("Chromecast Remote");
 
 let castMenu;
 let remoteButton;
-let remoteIconName  = 'folder-videos-symbolic';
 let readStatusInterval;
 let statusIcon;
 let configContents, selectionContents, listContents, statusContents;
@@ -37,13 +36,16 @@ let seekTime;
 let trackID;
 let listLastID;
 let chromecastWasPlaying;
+let sliderChanged;
 let isPaused;
-//let isRepeatActive;
+let isRepeatActive;
 
 /* Media controls */
 let positionSlider;
 let seekBackwardButton;
 let seekForwardButton;
+let skipBackwardButton;
+let skipForwardButton;
 let repeatButton;
 
 /* Signals */
@@ -117,7 +119,7 @@ const ChromecastRemoteMenu = new Lang.Class
 	Name: 'Chromecast Remote',
 	Extends: PanelMenu.Button,
 
-	_init: function(mode)
+	_init: function(mode, sliderIcon)
 	{
 		this.parent(0.5, remoteName, false);
 
@@ -141,12 +143,12 @@ const ChromecastRemoteMenu = new Lang.Class
 		});
 
 		let stopButton = new Widget.MediaControlButton('media-playback-stop-symbolic');
-		let skipBackwardButton = new Widget.MediaControlButton('media-skip-backward-symbolic');
-		let skipForwardButton = new Widget.MediaControlButton('media-skip-forward-symbolic');
+		skipBackwardButton = new Widget.MediaControlButton('media-skip-backward-symbolic');
+		skipForwardButton = new Widget.MediaControlButton('media-skip-forward-symbolic');
 
 		if(mode == 'media')
 		{
-			positionSlider = new Widget.SliderItem(remoteIconName);
+			positionSlider = new Widget.SliderItem(sliderIcon);
 			let playButton = new Widget.MediaControlButton('media-playback-start-symbolic');
 			let pauseButton = new Widget.MediaControlButton('media-playback-pause-symbolic');
 			seekBackwardButton = new Widget.MediaControlButton('media-seek-backward-symbolic');
@@ -170,14 +172,15 @@ const ChromecastRemoteMenu = new Lang.Class
 			if(isPaused) pauseButton.hide();
 			else playButton.hide();
 
+			if(isRepeatActive) repeatButton.turnOn();
+
 			this.menu.addMenuItem(positionSlider);
 
 			/* Signals connections */
 			positionSlider.connect('value-changed', Lang.bind(this, function()
 			{
-				Mainloop.source_remove(readStatusInterval);
-				Temp.setRemoteAction('SEEK', positionSlider.value);
-				readStatusTimer();
+				Temp.setRemoteAction('SEEK', positionSlider.value.toFixed(3));
+				sliderChanged = true;
 			}));
 
 			playButton.connect('clicked', Lang.bind(this, function()
@@ -209,10 +212,8 @@ const ChromecastRemoteMenu = new Lang.Class
 			repeatButton.connect('clicked', Lang.bind(this, function()
 			{
 				Temp.setRemoteAction('REPEAT', repeatButton.turnedOn);
-				//isRepeatActive = repeatButton.turnedOn;
+				isRepeatActive = repeatButton.turnedOn;
 			}));
-
-			//if(isRepeatActive) repeatButton.clicked();
 		}
 		else
 		{
@@ -224,44 +225,35 @@ const ChromecastRemoteMenu = new Lang.Class
 		popupBase.actor.add(controlsButtonBox);
 		this.menu.addMenuItem(popupBase);
 
-		/* Disable skip forward if playing first file from list */
-		if(trackID == 0) skipBackwardButton.reactive = false;
+		/* Disable skip backward if playing first file from list */
+		if(trackID == 1) skipBackwardButton.reactive = false;
 
 		/* Disable skip forward if playing last file from list */
 		if(trackID == listLastID) skipForwardButton.reactive = false;
 
 		stopButton.connect('clicked', Lang.bind(this, function()
 		{
+			clearTimer();
 			Temp.setRemoteAction('STOP');
 		}));
 
 		skipBackwardButton.connect('clicked', Lang.bind(this, function()
 		{
+			Temp.setRemoteAction('SKIP-');
+
 			trackID--;
-			selectionContents.filePath = listContents[trackID];
-			Temp.writeToFile(shared.configPath, configContents);
+			if(trackID == 1) skipBackwardButton.reactive = false;
 
-			if(trackID == 0)
-			{
-				skipBackwardButton.reactive = false;
-			}
-
-			Temp.setRemoteAction('SKIP');
 			skipForwardButton.reactive = true;
 		}));
 
 		skipForwardButton.connect('clicked', Lang.bind(this, function()
 		{
+			Temp.setRemoteAction('SKIP+');
+
 			trackID++;
-			selectionContents.filePath = listContents[trackID];
-			Temp.writeToFile(shared.configPath, configContents);
+			if(trackID == listLastID) skipForwardButton.reactive = false;
 
-			if(trackID == listLastID)
-			{
-				skipForwardButton.reactive = false;
-			}
-
-			Temp.setRemoteAction('SKIP');
 			skipBackwardButton.reactive = true;
 		}));
 	},
@@ -275,6 +267,22 @@ const ChromecastRemoteMenu = new Lang.Class
 function initChromecastRemote()
 {
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+
+	/* Update selection and list data (needed for skipping tracks) */
+	if(chromecastPlaying)
+	{
+		selectionContents = Temp.readFromFile(shared.selectionPath);
+		listContents = Temp.readFromFile(shared.listPath);
+
+		trackID = listContents.indexOf(selectionContents.filePath) + 1;
+	}
+	else
+	{
+		/* When casting new file `chromecastPlaying` value is set to "false" */
+		/* and after connection to "true" (timer is then cleared) */
+		clearTimer();
+		isRepeatActive = false;
+	}
 
 	/* Do not recreate remote if state did not change */
 	if(chromecastWasPlaying == chromecastPlaying)
@@ -297,55 +305,34 @@ function initChromecastRemote()
 		return;
 	}
 
-	/* Get playlist */
-	listContents = Temp.readFromFile(shared.listPath);
-
-	if(listContents)
-	{
-		listLastID = listContents.length - 1;
-	}
-	else
-	{
-		listLastID = 0;
-	}
-
-	/* Get current playing track number */
-	trackID = listContents.indexOf(selectionContents.filePath);
+	if(listContents) listLastID = listContents.length;
+	else listLastID = 1;
 
 	/* Choose remote to create */
-	if(selectionContents.streamType != 'PICTURE')
+	switch(selectionContents.streamType)
 	{
-		/* Create Chromecast Remote */
-		remoteButton = new ChromecastRemoteMenu('media');
-
-		/* Check if video is transcoded and disable seeking*/
-		switch(selectionContents.streamType)
-		{
-			case 'VIDEO':
-				remoteIconName = 'folder-videos-symbolic';
-				readStatusTimer();
-				break;
-			case 'MUSIC':
-				remoteIconName = 'folder-music-symbolic';
-				if(configContents.musicVisualizer) hideSeekButtons();
-				else readStatusTimer();
-				break;
-			default:
-				remoteIconName = 'folder-videos-symbolic';
-				hideSeekButtons();
-		}
-
-		positionSlider.icon = remoteIconName;
-	}
-	else
-	{
-		remoteIconName = 'folder-pictures-symbolic';
-		remoteButton = new ChromecastRemoteMenu('pictures');
+		case 'VIDEO':
+			remoteButton = new ChromecastRemoteMenu('media', 'folder-videos-symbolic');
+			readStatusTimer();
+			break;
+		case 'MUSIC':
+			remoteButton = new ChromecastRemoteMenu('media', 'folder-music-symbolic');
+			if(configContents.musicVisualizer) hideSeekButtons();
+			else readStatusTimer();
+			break;
+		case 'PICTURE':
+			remoteButton = new ChromecastRemoteMenu('pictures', 'folder-pictures-symbolic');
+			break;
+		default:
+			remoteButton = new ChromecastRemoteMenu('media', 'folder-videos-symbolic');
+			hideSeekButtons();
+			break;
 	}
 
 	let children;
 	let remotePosition = Settings.get_string('remote-position');
 
+	/* Place remote on top bar */
 	switch(remotePosition)
 	{
 		case 'left':
@@ -443,27 +430,34 @@ function changeSeekTime()
 
 function readStatusTimer()
 {
-	let previousTime = 0;
-
-	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function() {
-
-		let statusContents = Temp.readFromFile(shared.statusPath);
+	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function()
+	{
+		statusContents = Temp.readFromFile(shared.statusPath);
 
 		if(statusContents)
 		{
-			if(statusContents.currentTime != previousTime && statusContents.playerState != 'BUFFERING')
+			if(statusContents.mediaDuration > 0)
 			{
 				let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
-				positionSlider.setValue(sliderValue);
-				previousTime = statusContents.currentTime;
+				if(!sliderChanged) positionSlider.setValue(sliderValue);
 			}
-			return true;
 		}
-		else
-		{
-			Mainloop.source_remove(readStatusInterval);
-		}
+
+		if(trackID > 1) skipBackwardButton.reactive = true;
+		else skipBackwardButton.reactive = false;
+
+		if(trackID < listLastID) skipForwardButton.reactive = true;
+		else skipForwardButton.reactive = false;
+
+		sliderChanged = false;
+		return true;
 	}));
+}
+
+function clearTimer()
+{
+	if(readStatusInterval) Mainloop.source_remove(readStatusInterval);
+	readStatusInterval = null;
 }
 
 function spawnFileChooser()
@@ -559,6 +553,9 @@ function disable()
 
 	/* Disconnect other signals */
 	Settings.disconnect(chromecastPlayingChanged);
+
+	/* Remove timer */
+	clearTimer();
 
 	/* Remove Chromecast Remote */
 	if(remoteButton)
