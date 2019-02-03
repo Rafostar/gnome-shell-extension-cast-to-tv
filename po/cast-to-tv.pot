@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-03 16:21+0100\n"
+"POT-Creation-Date: 2019-02-03 17:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,23 +21,23 @@ msgstr ""
 msgid "Chromecast Remote"
 msgstr ""
 
-#: extension.js:71
+#: extension.js:73
 msgid "Cast Media"
 msgstr ""
 
-#: extension.js:75
+#: extension.js:77
 msgid "Video"
 msgstr ""
 
-#: extension.js:76
+#: extension.js:78
 msgid "Music"
 msgstr ""
 
-#: extension.js:77
+#: extension.js:79
 msgid "Picture"
 msgstr ""
 
-#: extension.js:78
+#: extension.js:80
 msgid "Cast Settings"
 msgstr ""
 
