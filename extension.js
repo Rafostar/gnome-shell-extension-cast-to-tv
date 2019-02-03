@@ -27,11 +27,13 @@ const shared = Local.imports.shared.module.exports;
 const iconName = 'tv-symbolic';
 const remoteName = _("Chromecast Remote");
 
+/* Variables */
 let castMenu;
 let remoteButton;
 let readStatusInterval;
 let statusIcon;
-let configContents, selectionContents, listContents, statusContents;
+let configContents;
+let selectionContents;
 let seekTime;
 let trackID;
 let listLastID;
@@ -267,6 +269,7 @@ const ChromecastRemoteMenu = new Lang.Class
 function initChromecastRemote()
 {
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+	let listContents = null;
 
 	/* Update selection and list data (needed for skipping tracks) */
 	if(chromecastPlaying)
@@ -274,7 +277,8 @@ function initChromecastRemote()
 		selectionContents = Temp.readFromFile(shared.selectionPath);
 		listContents = Temp.readFromFile(shared.listPath);
 
-		trackID = listContents.indexOf(selectionContents.filePath) + 1;
+		if(listContents && selectionContents) trackID = listContents.indexOf(selectionContents.filePath) + 1;
+		else trackID = 1;
 	}
 	else
 	{
@@ -432,7 +436,7 @@ function readStatusTimer()
 {
 	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function()
 	{
-		statusContents = Temp.readFromFile(shared.statusPath);
+		let statusContents = Temp.readFromFile(shared.statusPath);
 
 		if(statusContents)
 		{
@@ -456,8 +460,11 @@ function readStatusTimer()
 
 function clearTimer()
 {
-	if(readStatusInterval) Mainloop.source_remove(readStatusInterval);
-	readStatusInterval = null;
+	if(readStatusInterval)
+	{
+		Mainloop.source_remove(readStatusInterval);
+		readStatusInterval = null;
+	}
 }
 
 function spawnFileChooser()
@@ -468,20 +475,17 @@ function spawnFileChooser()
 
 function getTempFiles()
 {
-	configContents = Temp.readFromFile(shared.configPath);
 	if(!configContents) configContents = Temp.setConfigFile();
-
-	selectionContents = Temp.readFromFile(shared.selectionPath);
 	if(!selectionContents) selectionContents = Temp.setSelectionFile();
 
-	statusContents = Temp.readFromFile(shared.statusPath);
-	if(!statusContents) statusContents = Temp.setStatusFile();
-
 	let listExists = GLib.file_test(shared.listPath, 16);
-	if(!listExists) Temp.setListFile(shared.listPath);
+	if(!listExists) Temp.setListFile();
 
 	let remoteExists = GLib.file_test(shared.remotePath, 16);
-	if(!remoteExists) Temp.setRemoteFile(shared.remotePath);
+	if(!remoteExists) Temp.setRemoteFile();
+
+	let statusExists = GLib.file_test(shared.statusPath, 16);
+	if(!statusExists) Temp.setStatusFile();
 }
 
 function init()
