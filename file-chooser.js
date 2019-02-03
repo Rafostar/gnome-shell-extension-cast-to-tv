@@ -22,7 +22,6 @@ let buttonCast;
 let buttonSubs;
 
 let filePathChosen;
-
 let fileSelectionChanged;
 
 void function selectFile()
@@ -34,6 +33,9 @@ void function selectFile()
 
 	selectionContents.streamType = ARGV[1];
 	selectionContents.subsPath = '';
+
+	/* Run server (process exits if already running) */
+	GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 
 	Gtk.init(null);
 
@@ -175,14 +177,22 @@ void function selectFile()
 	/* Set playback list for Chromecast */
 	if(configContents.receiverType == 'chromecast')
 	{
+		let gsettingsOpts = [
+			'gsettings',
+			'--schemadir',
+			localPath + '/schemas',
+			'set',
+			'org.gnome.shell.extensions.cast-to-tv',
+			'chromecast-playing',
+			'false'
+		];
+
+		GLib.spawn_async('/usr/bin', gsettingsOpts, null, 0, null);
 		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
 	}
 
 	/* Save selection to file */
 	GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
-
-	/* Run server (process exits if already running) */
-	GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 }();
 
 function getConfig()
