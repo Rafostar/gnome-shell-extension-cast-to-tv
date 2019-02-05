@@ -1,5 +1,6 @@
 var io = require('socket.io');
 var bridge = require('./bridge');
+var extract = require('./extract');
 var websocket;
 
 exports.listen = function(server)
@@ -11,6 +12,9 @@ exports.listen = function(server)
 function handleMessages(socket)
 {
 	socket.on('track-ended', () => { checkNextTrack(); });
+	socket.on('processes-ask', () => {
+		if(!extract.subsProcess && !extract.coverProcess) websocket.emit('processes-done');
+	});
 }
 
 exports.emit = function(message)

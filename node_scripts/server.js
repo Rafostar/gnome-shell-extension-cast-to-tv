@@ -5,6 +5,7 @@ var bridge = require('./bridge');
 var webcreator = require('./web-creator');
 var socket = require('./server-socket');
 var encode = require('./encode');
+var extract = require('./extract');
 var listeningPort = bridge.config.listeningPort;
 
 var server = app.listen(listeningPort).on('error', function(err)
@@ -58,6 +59,12 @@ app.get('/', function(req, res)
 	if(encode.streamProcess)
 	{
 		res.end("Streaming process is still active!");
+		return;
+	}
+
+	if(extract.subsProcess || extract.coverProcess)
+	{
+		res.sendFile(path.join(__dirname + '/../webplayer/loading.html'));
 		return;
 	}
 
