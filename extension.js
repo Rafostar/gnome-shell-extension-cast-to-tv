@@ -237,6 +237,7 @@ const ChromecastRemoteMenu = new Lang.Class
 		{
 			clearTimer();
 			Temp.setRemoteAction('STOP');
+			Settings.set_boolean('chromecast-playing', false);
 		}));
 
 		skipBackwardButton.connect('clicked', Lang.bind(this, function()
