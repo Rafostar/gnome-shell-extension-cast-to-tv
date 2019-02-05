@@ -41,11 +41,14 @@ exports.analyzeFile = function()
 	exports.subtitlesBuiltIn = false;
 	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
 
-	ffprobePromise.then(value => {
-
-		if(bridge.selection.streamType == 'MUSIC') checkMetadata(value);
-		else checkBuiltInSubs(value);
-	});
+	ffprobePromise
+		.then(value => {
+			if(bridge.selection.streamType == 'MUSIC') checkMetadata(value);
+			else checkBuiltInSubs(value);
+		})
+		.catch(error => {
+			console.log(error);
+		});
 }
 
 function extractCoverArt(extension)
