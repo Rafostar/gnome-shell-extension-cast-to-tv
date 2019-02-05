@@ -72,13 +72,9 @@ function addClickListeners()
 {
 	/* Toggle play on click event listener */
 	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
-	div.addEventListener('click', initializePlayer);
 	div.addEventListener('click', startPlayer);
 
-	var button = document.querySelector('.plyr__controls button[data-plyr="play"]');
-	button.addEventListener('click', initializePlayer);
-
-	document.body.addEventListener('keydown', initializePlayer);
+	initializePlayer(event);
 }
 
 function setPlyrSource()
@@ -119,11 +115,10 @@ function initializePlayer(e)
 	/* Workaround Plyr volume bug */
 	if(!playerInit)
 	{
-		if(!e.code || e.code == 'Space')
-		{
-			player.currentTime = 0;
-			playerInit = true;
-		}
+		player.currentTime = 0;
+		playerInit = true;
+
+		player.play();
 	}
 }
 
