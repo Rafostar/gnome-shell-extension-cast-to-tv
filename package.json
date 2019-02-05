@@ -12,7 +12,8 @@
     "express": "^4.16.4",
     "internal-ip": "^3.0.1",
     "plyr": "^3.4.7",
-    "range-parser": "^1.2.0"
+    "range-parser": "^1.2.0",
+    "socket.io": "^2.2.0"
   },
   "repository": {
     "type": "git",

@@ -3,9 +3,16 @@ var app = express();
 var path = require('path');
 var bridge = require('./bridge');
 var webcreator = require('./web-creator');
+var socket = require('./server-socket');
 var encode = require('./encode');
-
 var listeningPort = bridge.config.listeningPort;
+
+var server = app.listen(listeningPort).on('error', function(err)
+{
+	process.exit();
+});
+
+socket.listen(server);
 
 exports.refreshConfig = function()
 {
@@ -15,8 +22,10 @@ exports.refreshConfig = function()
 		listeningPort = bridge.config.listeningPort;
 		server = app.listen(listeningPort).on('error', function(err)
 		{
-			process.exit()
+			process.exit();
 		});
+
+		socket.listen(server);
 	}
 }
 
@@ -55,17 +64,17 @@ app.get('/', function(req, res)
 	switch(bridge.selection.streamType)
 	{
 		case 'VIDEO':
-			res.sendFile(path.join(__dirname + '/../webplayer/direct_player.html'));
+			res.sendFile(path.join(__dirname + '/../webplayer/webplayer_direct.html'));
 			break;
 		case 'MUSIC':
-			if(bridge.config.musicVisualizer) res.sendFile(path.join(__dirname + '/../webplayer/encode_player.html'));
-			else res.sendFile(path.join(__dirname + '/../webplayer/direct_player.html'));
+			if(bridge.config.musicVisualizer) res.sendFile(path.join(__dirname + '/../webplayer/webplayer_encode.html'));
+			else res.sendFile(path.join(__dirname + '/../webplayer/webplayer_direct.html'));
 			break;
 		case 'PICTURE':
 			webcreator.fileStream(req, res);
 			break;
 		default:
-			res.sendFile(path.join(__dirname + '/../webplayer/encode_player.html'));
+			res.sendFile(path.join(__dirname + '/../webplayer/webplayer_encode.html'));
 	}
 });
 
@@ -112,14 +121,9 @@ app.get('/selection', function(req, res)
 });
 
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));
-app.use('/plyr', express.static(__dirname + '/../node_modules/plyr'));
+app.use('/plyr', express.static(__dirname + '/../node_modules/plyr/dist'));
 
 app.get('/*', function(req, res)
 {
 	webcreator.pageWrong(req, res);
-});
-
-var server = app.listen(listeningPort).on('error', function(err)
-{
-	process.exit()
 });

@@ -209,13 +209,6 @@ function startPlayback(p)
 	gnome.showRemote(true);
 }
 
-function changeTrack(id)
-{
-	/* Tracks are counted from 1, list indexes from 0 */
-	bridge.selection.filePath = bridge.list[id - 1];
-	fs.writeFileSync(shared.selectionPath, JSON.stringify(bridge.selection, null, 1));
-}
-
 function closeCast(p)
 {
 	if(castInterval) clearInterval(castInterval);
@@ -227,11 +220,11 @@ function closeCast(p)
 	var listLastID = bridge.list.length;
 
 	/* Do not change this order mindlessly */
-	if(repeat && currentTrackID == listLastID) return changeTrack(1);
-	else if(remoteAction == 'SKIP+') return changeTrack(currentTrackID + 1);
-	else if(remoteAction == 'SKIP-') return changeTrack(currentTrackID - 1);
+	if(repeat && currentTrackID == listLastID) return bridge.changeTrack(1);
+	else if(remoteAction == 'SKIP+') return bridge.changeTrack(currentTrackID + 1);
+	else if(remoteAction == 'SKIP-') return bridge.changeTrack(currentTrackID - 1);
 	else if(remoteAction == 'REINIT') return;
-	else if(remoteAction != 'STOP' && currentTrackID < listLastID) return changeTrack(currentTrackID + 1);
+	else if(remoteAction != 'STOP' && currentTrackID < listLastID) return bridge.changeTrack(currentTrackID + 1);
 	else if(remoteAction != 'STOP') gnome.showRemote(false);
 }
 
