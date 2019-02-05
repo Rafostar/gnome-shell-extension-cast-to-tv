@@ -2,14 +2,17 @@
 <html>
 	<head>
 		<title>Cast to TV - Direct Stream</title>
+		<meta name="viewport" content="width=device-width, user-scalable=no"/>
 		<link rel="icon" href="/webplayer/images/icon.ico">
-		<link rel="stylesheet" href="/plyr/dist/plyr.css">
-		<link rel="stylesheet" href="/webplayer/customplayer.css">
+		<link rel="stylesheet" href="/plyr/plyr.css">
+		<link rel="stylesheet" href="/webplayer/webplayer.css">
 	</head>
 	<body>
 		<video id="player" controls></video>
-		<script src="/plyr/dist/plyr.js"></script>
-		<script src="/webplayer/defaultconfig.js"></script>
-		<script src="/webplayer/webplayer.js"></script>
+		<script src="/plyr/plyr.js"></script>
+		<script src="/webplayer/webplayer-defaults.js"></script>
+		<script src="/webplayer/webplayer-init.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/webplayer/websocket.js"></script>
 	</body>
 </html>
