@@ -49,11 +49,7 @@ void function selectFile()
 
 	fileChooser.set_local_only(true);
 	fileChooser.set_show_hidden(false);
-
-	if(configContents.receiverType == 'chromecast')
-	{
-		fileChooser.set_select_multiple(true);
-	}
+	fileChooser.set_select_multiple(true);
 
 	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
@@ -174,22 +170,8 @@ void function selectFile()
 		}
 	}
 
-	/* Set playback list for Chromecast */
-	if(configContents.receiverType == 'chromecast')
-	{
-		let gsettingsOpts = [
-			'gsettings',
-			'--schemadir',
-			localPath + '/schemas',
-			'set',
-			'org.gnome.shell.extensions.cast-to-tv',
-			'chromecast-playing',
-			'false'
-		];
-
-		GLib.spawn_async('/usr/bin', gsettingsOpts, null, 0, null);
-		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
-	}
+	/* Set playback list */
+	GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
 
 	/* Save selection to file */
 	GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
