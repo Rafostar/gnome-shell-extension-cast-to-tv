@@ -172,7 +172,10 @@ function launchCast()
 				gnome.showRemote(true);
 			}
 
-			castInterval = setInterval(() => { getChromecastStatus(p); }, 500);
+			castInterval = setInterval(() => {
+				try{ getChromecastStatus(p); }
+				catch(e){ console.log(e); }
+				}, 500);
 		}
 	});
 }
@@ -223,20 +226,13 @@ function closeCast(p)
 	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
 	var listLastID = bridge.list.length;
 
-	if(repeat && currentTrackID == listLastID)
-	{
-		return changeTrack(1);
-	}
-	else if(remainingTime <= 1 && remainingTime > 0)
-	{
-		if(currentTrackID < listLastID) changeTrack(currentTrackID + 1);
-		else gnome.showRemote(false);
-
-		return;
-	}
-
-	if(remoteAction == 'SKIP+') changeTrack(currentTrackID + 1);
-	else if(remoteAction == 'SKIP-') changeTrack(currentTrackID - 1);
+	/* Do not change this order mindlessly */
+	if(repeat && currentTrackID == listLastID) return changeTrack(1);
+	else if(remoteAction == 'SKIP+') return changeTrack(currentTrackID + 1);
+	else if(remoteAction == 'SKIP-') return changeTrack(currentTrackID - 1);
+	else if(remoteAction == 'REINIT') return;
+	else if(remoteAction != 'STOP' && currentTrackID < listLastID) return changeTrack(currentTrackID + 1);
+	else if(remoteAction != 'STOP') gnome.showRemote(false);
 }
 
 function getChromecastStatus(p)
@@ -284,13 +280,10 @@ function checkRemoteAction(p, status)
 			break;
 		case 'STOP':
 			repeat = false;
-			gnome.showRemote(false);
-			closeCast(p);
-			break;
+			return closeCast(p);
 		case 'REINIT':
 			repeat = false;
-			closeCast(p);
-			break;
+			return closeCast(p);
 		default:
 			break;
 	}
