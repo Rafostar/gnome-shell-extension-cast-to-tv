@@ -62,7 +62,6 @@ fs.watchFile(shared.selectionPath, { interval: 1000 }, (curr, prev) => {
 
 	setProcesses();
 	encode.refreshSelection();
-	gnome.showRemote(false);
 
 	if(exports.config.receiverType == 'chromecast') chromecast.cast();
 	else if(exports.config.receiverType == 'other') socket.emit('reload');
@@ -71,6 +70,8 @@ fs.watchFile(shared.selectionPath, { interval: 1000 }, (curr, prev) => {
 fs.watchFile(shared.listPath, { interval: 1000 }, (curr, prev) => {
 
 	exports.list = getList();
+
+	gnome.showRemote(false);
 });
 
 fs.watchFile(shared.remotePath, { interval: 250 }, (curr, prev) => {
