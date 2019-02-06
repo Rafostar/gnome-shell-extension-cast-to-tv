@@ -1,4 +1,5 @@
 const GLib = imports.gi.GLib;
+const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();

@@ -7,7 +7,6 @@ Extension GitHub: https://github.com/Rafostar/gnome-shell-extension-cast-to-tv
 const St = imports.gi.St;
 const GLib = imports.gi.GLib;
 const Clutter = imports.gi.Clutter;
-const ByteArray = imports.byteArray;
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
