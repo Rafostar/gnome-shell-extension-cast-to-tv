@@ -285,6 +285,9 @@ function initChromecastRemote()
 		/* When casting new file `chromecastPlaying` value is set to "false" */
 		/* and after connection to "true" (timer is then cleared) */
 		clearTimer();
+
+		/* Restore remote defaults */
+		isPaused = false;
 		isRepeatActive = false;
 	}
 
