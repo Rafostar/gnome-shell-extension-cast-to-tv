@@ -179,6 +179,10 @@ function launchCast()
 				gnome.showRemote(true);
 			}
 
+			var initStatus = p.currentSession;
+			var statusOk = checkStatusError(p, initStatus);
+			if(!statusOk) return closeCast(p);
+
 			castInterval = setInterval(() => {
 				try{ getChromecastStatus(p); }
 				catch(e){ console.log(e); }
@@ -225,7 +229,6 @@ function closeCast(p)
 	castInterval = null;
 	p.close();
 
-	var remainingTime = statusContents.mediaDuration - statusContents.currentTime;
 	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
 	var listLastID = bridge.list.length;
 
@@ -253,11 +256,8 @@ function getChromecastStatus(p)
 
 		if(status)
 		{
-			if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
-			{
-				if(transcodigEnabled) gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath);
-				else gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath + '\nTry again with transcoding enabled');
-			}
+			var statusOk = checkStatusError(p, status);
+			if(!statusOk) return closeCast(p);
 
 			if(!remoteAction) setStatusFile(status);
 			else checkRemoteAction(p, status);
@@ -267,6 +267,19 @@ function getChromecastStatus(p)
 			return closeCast(p);
 		}
 	});
+}
+
+function checkStatusError(p, status)
+{
+	if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
+	{
+		if(transcodigEnabled) gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath);
+		else gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath + '\nTry again with transcoding enabled');
+
+		return false;
+	}
+
+	return true;
 }
 
 function checkRemoteAction(p, status)
