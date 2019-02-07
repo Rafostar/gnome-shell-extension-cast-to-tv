@@ -1,0 +1,9 @@
+body {
+  background: black;
+  margin: 0;
+}
+
+img {
+  display: block;
+  height: 100vh;
+}

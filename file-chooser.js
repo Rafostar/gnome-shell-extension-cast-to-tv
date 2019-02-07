@@ -49,7 +49,15 @@ void function selectFile()
 
 	fileChooser.set_local_only(true);
 	fileChooser.set_show_hidden(false);
-	fileChooser.set_select_multiple(true);
+
+	if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
+	{
+		fileChooser.set_select_multiple(false);
+	}
+	else
+	{
+		fileChooser.set_select_multiple(true);
+	}
 
 	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);

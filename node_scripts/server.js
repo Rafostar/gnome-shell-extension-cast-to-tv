@@ -78,7 +78,7 @@ app.get('/', function(req, res)
 			else res.sendFile(path.join(__dirname + '/../webplayer/webplayer_direct.html'));
 			break;
 		case 'PICTURE':
-			webcreator.fileStream(req, res);
+			res.sendFile(path.join(__dirname + '/../webplayer/picture.html'));
 			break;
 		default:
 			res.sendFile(path.join(__dirname + '/../webplayer/webplayer_encode.html'));
