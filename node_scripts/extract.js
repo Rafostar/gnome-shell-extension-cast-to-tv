@@ -4,6 +4,7 @@ var spawn = require('child_process').spawn;
 var bridge = require('./bridge');
 var ffprobe = require('./ffprobe');
 var remove = require('./remove');
+var gnome = require('./gnome');
 var shared = require('../shared');
 
 exports.subsProcess = null;
@@ -47,7 +48,9 @@ exports.analyzeFile = function()
 			else checkBuiltInSubs(value);
 		})
 		.catch(error => {
-			console.log(error);
+			gnome.notify('Cast to TV', 'Error: FFprobe could not process file ' + bridge.selection.filePath + '\nCheck FFprobe path and file permissions');
+			exports.subsProcess = null;
+			exports.coverProcess = null;
 		});
 }
 

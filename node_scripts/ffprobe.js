@@ -20,7 +20,7 @@ function getInfo(filePath, opts, cb)
 		}
 		else
 		{
-			d.reject(new Error("FFprobe error!"));
+			d.reject(new Error("FFprobe error"));
 		}
 	});
 
