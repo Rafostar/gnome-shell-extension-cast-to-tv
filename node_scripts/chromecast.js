@@ -180,7 +180,7 @@ function launchCast()
 			}
 
 			var initStatus = p.currentSession;
-			var statusOk = checkStatusError(p, initStatus);
+			var statusOk = checkStatusError(initStatus);
 			if(!statusOk) return closeCast(p);
 
 			castInterval = setInterval(() => {
@@ -256,7 +256,7 @@ function getChromecastStatus(p)
 
 		if(status)
 		{
-			var statusOk = checkStatusError(p, status);
+			var statusOk = checkStatusError(status);
 			if(!statusOk) return closeCast(p);
 
 			if(!remoteAction) setStatusFile(status);
@@ -269,7 +269,7 @@ function getChromecastStatus(p)
 	});
 }
 
-function checkStatusError(p, status)
+function checkStatusError(status)
 {
 	if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
 	{
