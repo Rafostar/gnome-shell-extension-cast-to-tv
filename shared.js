@@ -10,10 +10,10 @@ var tempDir = '/tmp/.cast-to-tv/';
 module.exports = {
 	configPath: tempDir + 'config.json',
 	selectionPath: tempDir + 'selection.json',
+	listPath: tempDir + 'playlist.json',
 	metadataPath: tempDir + 'metadata.json',
 	remotePath: tempDir + 'chromecast-remote.json',
 	statusPath: tempDir + 'chromecast-status.json',
-	listPath: tempDir + 'chromecast-list.json',
 	vttSubsPath: tempDir + 'webplayer_subs.vtt',
 	coverDefault: tempDir + 'cover',
 	escapeChars: [' ', '[', ']', '"', "'"],
