@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-03 17:56+0100\n"
+"POT-Creation-Date: 2019-02-07 20:07+0100\n"
 "PO-Revision-Date: 2019-02-02 10:20+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
@@ -19,27 +19,27 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: extension.js:28 prefs.js:156
+#: extension.js:27 prefs.js:156
 msgid "Chromecast Remote"
 msgstr "Chromecast pilot"
 
-#: extension.js:73
+#: extension.js:72
 msgid "Cast Media"
 msgstr "Prześlij media"
 
-#: extension.js:77
+#: extension.js:76
 msgid "Video"
 msgstr "Wideo"
 
-#: extension.js:78
+#: extension.js:77
 msgid "Music"
 msgstr "Muzyka"
 
-#: extension.js:79
+#: extension.js:78
 msgid "Picture"
 msgstr "Obraz"
 
-#: extension.js:80
+#: extension.js:79
 msgid "Cast Settings"
 msgstr "Ustawienia przesyłu"
 
@@ -47,53 +47,53 @@ msgstr "Ustawienia przesyłu"
 msgid "Transcode Video"
 msgstr "Transkoduj wideo"
 
-#: file-chooser.js:59
+#: file-chooser.js:63
 msgid "Cancel"
 msgstr "Anuluj"
 
 #. TRANSLATORS: Button text when selected SINGLE file
-#: file-chooser.js:61
+#: file-chooser.js:65
 msgid "Cast Selected File"
 msgstr "Wyślij wybrany plik"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
-#: file-chooser.js:63
+#: file-chooser.js:67
 msgid "Cast Selected Files"
 msgstr "Wyślij wybrane pliki"
 
-#: file-chooser.js:70
+#: file-chooser.js:74
 msgid "Add Subtitles"
 msgstr "Dodaj napisy"
 
-#: file-chooser.js:71
+#: file-chooser.js:75
 msgid "Select Video"
 msgstr "Wybierz wideo"
 
-#: file-chooser.js:75
+#: file-chooser.js:79
 msgid "Video Files"
 msgstr "Pliki wideo"
 
-#: file-chooser.js:97
+#: file-chooser.js:101
 msgid "Select Music"
 msgstr "Wybierz muzykę"
 
-#: file-chooser.js:100
+#: file-chooser.js:104
 msgid "Audio Files"
 msgstr "Pliki audio"
 
-#: file-chooser.js:113
+#: file-chooser.js:117
 msgid "Select Picture"
 msgstr "Wybierz obraz"
 
-#: file-chooser.js:116
+#: file-chooser.js:120
 msgid "Pictures"
 msgstr "Obrazy"
 
-#: file-chooser.js:236
+#: file-chooser.js:226
 msgid "Select Subtitles"
 msgstr "Wybierz napisy"
 
-#: file-chooser.js:240
+#: file-chooser.js:230
 msgid "Subtitle Files"
 msgstr "Pliki napisów"
 
