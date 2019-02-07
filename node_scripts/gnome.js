@@ -6,3 +6,8 @@ exports.showRemote = function(enable)
 {
 	spawn('gsettings', ['--schemadir', schemaDir, 'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
 }
+
+exports.notify = function(summary, body)
+{
+	spawn('notify-send', [summary, body]);
+}

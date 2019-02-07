@@ -23,6 +23,7 @@ var statusContents;
 var castInterval;
 var connectRetry;
 var repeat;
+var transcodigEnabled;
 
 exports.cast = function()
 {
@@ -69,16 +70,19 @@ function initChromecast()
 	{
 		case 'VIDEO':
 			mimeType = 'video/*';
+			transcodigEnabled = false;
 			break;
 		case 'MUSIC':
 			checkVisualizer();
 			break;
 		case 'PICTURE':
 			mimeType = 'image/*';
+			transcodigEnabled = false;
 			break;
 		default:
 			mimeType = 'video/*';
 			initType = 'LIVE';
+			transcodigEnabled = true;
 			break;
 	}
 
@@ -92,10 +96,12 @@ function checkVisualizer()
 	{
 		mimeType = 'video/*';
 		initType = 'LIVE';
+		transcodigEnabled = true;
 		return;
 	}
 
 	mimeType = 'audio/*';
+	transcodigEnabled = false;
 }
 
 function setMediaTracks(ip, port)
@@ -157,6 +163,7 @@ function launchCast()
 		else if(connectRetry == shared.chromecast.retryNumber)
 		{
 			gnome.showRemote(false);
+			gnome.notify('Chromecast', err);
 		}
 		else if(p)
 		{
@@ -205,8 +212,11 @@ function setAutoplay()
 
 function startPlayback(p)
 {
-	p.play();
-	gnome.showRemote(true);
+	if(p.session)
+	{
+		p.play();
+		gnome.showRemote(true);
+	}
 }
 
 function closeCast(p)
@@ -224,17 +234,38 @@ function closeCast(p)
 	else if(remoteAction == 'SKIP+') return bridge.changeTrack(currentTrackID + 1);
 	else if(remoteAction == 'SKIP-') return bridge.changeTrack(currentTrackID - 1);
 	else if(remoteAction == 'REINIT') return;
-	else if(remoteAction != 'STOP' && currentTrackID < listLastID) return bridge.changeTrack(currentTrackID + 1);
-	else if(remoteAction != 'STOP') gnome.showRemote(false);
+	else if(remoteAction != 'STOP')
+	{
+		if(currentTrackID < listLastID) return bridge.changeTrack(currentTrackID + 1);
+		else gnome.showRemote(false);
+	}
 }
 
 function getChromecastStatus(p)
 {
 	p.getStatus(function(err, status)
 	{
-		if(status && !remoteAction) setStatusFile(status);
-		else if(status && remoteAction) checkRemoteAction(p, status);
-		else if(!status || err) closeCast(p);
+		if(err)
+		{
+			gnome.notify('Chromecast', err);
+			return closeCast(p);
+		}
+
+		if(status)
+		{
+			if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
+			{
+				if(transcodigEnabled) gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath);
+				else gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath + '\nTry again with transcoding enabled');
+			}
+
+			if(!remoteAction) setStatusFile(status);
+			else checkRemoteAction(p, status);
+		}
+		else
+		{
+			return closeCast(p);
+		}
 	});
 }
 
