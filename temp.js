@@ -29,19 +29,19 @@ function readFromFile(path)
 			if(readFile instanceof Uint8Array)
 			{
 				try{ data = JSON.parse(ByteArray.toString(readFile)); }
-				catch(e){ data = false; }
+				catch(e){ data = null; }
 			}
 			else
 			{
 				try{ data = JSON.parse(readFile); }
-				catch(e){ data = false; }
+				catch(e){ data = null; }
 			}
 
 			return data;
 		}
 	}
 
-	return false;
+	return null;
 }
 
 function setConfigFile()
@@ -76,8 +76,6 @@ function setSelectionFile()
 	};
 
 	writeToFile(shared.selectionPath, selectionContents);
-
-	return selectionContents;
 }
 
 function setListFile()
@@ -107,7 +105,8 @@ function setStatusFile()
 
 	writeToFile(shared.statusPath, statusContents);
 
-	/* No status file means that Chromecast is not playing */
+	/* No status file means that Chromecast is not playing
+	This also prevents remote from showing after reboot */
 	Settings.set_boolean('chromecast-playing', false);
 }
 

@@ -237,6 +237,7 @@ function closeCast(p)
 	else if(remoteAction == 'SKIP+') return bridge.changeTrack(currentTrackID + 1);
 	else if(remoteAction == 'SKIP-') return bridge.changeTrack(currentTrackID - 1);
 	else if(remoteAction == 'REINIT') return;
+	else if(remoteAction == 'STOP') return gnome.showRemote(false);
 	else if(remoteAction != 'STOP')
 	{
 		if(currentTrackID < listLastID) return bridge.changeTrack(currentTrackID + 1);

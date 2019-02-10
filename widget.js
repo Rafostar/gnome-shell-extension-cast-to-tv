@@ -1,10 +1,273 @@
 const St = imports.gi.St;
 const GObject = imports.gi.GObject;
+const Clutter = imports.gi.Clutter;
+const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Lang = imports.lang;
+const Local = imports.misc.extensionUtils.getCurrentExtension();
+const Spawn = Local.imports.spawn;
+const Temp = Local.imports.temp;
+const iconName = 'tv-symbolic';
 
-const PopupBase = new Lang.Class({
+var sliderChanged;
+var isRepeatActive;
+var seekTime;
+
+var statusIcon = new St.Icon({
+	icon_name: iconName,
+	style_class: 'system-status-icon'
+});
+
+var CastToTvMenu = new Lang.Class
+({
+	Name: 'Cast to TV',
+	Extends: PopupMenu.PopupSubMenuMenuItem,
+
+	_init: function()
+	{
+		this.parent(_("Cast Media"), true);
+		this.icon.icon_name = iconName;
+
+		/* Expandable menu */
+		let videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
+		let musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
+		let pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
+		let settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
+
+		/* Assemble all menu items */
+		this.menu.addMenuItem(videoMenuItem);
+		this.menu.addMenuItem(musicMenuItem);
+		this.menu.addMenuItem(pictureMenuItem);
+		this.menu.addMenuItem(settingsMenuItem);
+
+		/* Signals connections */
+		videoMenuItem.connect('activate', Lang.bind(this, function()
+		{
+			Spawn.fileChooser('VIDEO');
+		}));
+
+		musicMenuItem.connect('activate', Lang.bind(this, function()
+		{
+			Spawn.fileChooser('MUSIC');
+		}));
+
+		pictureMenuItem.connect('activate', Lang.bind(this, function()
+		{
+			Spawn.fileChooser('PICTURE');
+		}));
+
+		settingsMenuItem.connect('activate', Lang.bind(this, function()
+		{
+			Spawn.extensionPrefs();
+		}));
+	},
+
+	destroy: function()
+	{
+		this.parent();
+	}
+});
+
+var CastRemoteMenu = new Lang.Class
+({
+	Name: 'Cast to TV Remote',
+	Extends: PanelMenu.Button,
+
+	_init: function()
+	{
+		this.parent(0.5, _("Chromecast Remote"), false);
+
+		this.box = new St.BoxLayout();
+		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
+		this.toplabel = new St.Label({ text: _("Chromecast Remote"), y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+
+		/* Display app icon, label and dropdown arrow */
+		this.box.add(this.icon);
+		this.box.add(this.toplabel);
+		this.box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
+
+		this.actor.add_child(this.box);
+
+		/* Create base for media control buttons */
+		this.popupBase = new PopupBase;
+
+		this.controlsButtonBox = new St.BoxLayout({
+			x_align: Clutter.ActorAlign.CENTER,
+			x_expand: true
+		});
+
+		this.positionSlider = new SliderItem('folder-videos-symbolic');
+		this.playButton = new MediaControlButton('media-playback-start-symbolic');
+		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
+		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
+		this.seekBackwardButton = new MediaControlButton('media-seek-backward-symbolic');
+		this.seekForwardButton = new MediaControlButton('media-seek-forward-symbolic');
+		this.skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
+		this.skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
+		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
+
+		/* Add space between stop and the remaining buttons */
+		this.stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
+
+		/* Assemble playback controls */
+		this.controlsButtonBox.add(this.repeatButton);
+		this.controlsButtonBox.add(this.stopButton);
+		this.controlsButtonBox.add(this.skipBackwardButton);
+		this.controlsButtonBox.add(this.seekBackwardButton);
+		this.controlsButtonBox.add(this.playButton);
+		this.controlsButtonBox.add(this.pauseButton);
+		this.controlsButtonBox.add(this.seekForwardButton);
+		this.controlsButtonBox.add(this.skipForwardButton);
+
+		this.menu.addMenuItem(this.positionSlider);
+		this.popupBase.actor.add(this.controlsButtonBox);
+		this.menu.addMenuItem(this.popupBase);
+
+		/* We do not want to display both play and pause buttons at once */
+		this.playButton.hide();
+
+		/* Signals connections */
+		this.positionSlider.connect('value-changed', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
+			sliderChanged = true;
+		}));
+
+		this.playButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('PLAY');
+		}));
+
+		this.pauseButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('PAUSE');
+		}));
+
+		this.seekForwardButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('SEEK+', seekTime);
+		}));
+
+		this.seekBackwardButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('SEEK-', seekTime);
+		}));
+
+		this.repeatButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
+			isRepeatActive = this.repeatButton.turnedOn;
+		}));
+
+		this.stopButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('STOP');
+		}));
+
+		this.skipBackwardButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('SKIP-');
+		}));
+
+		this.skipForwardButton.connect('clicked', Lang.bind(this, function()
+		{
+			Temp.setRemoteAction('SKIP+');
+		}));
+	},
+
+	set label(value)
+	{
+		this.toplabel.text = value;
+	},
+
+	set sliderIcon(value)
+	{
+		this.positionSlider.icon = value;
+	},
+
+	set skipBackwardsReactive(value)
+	{
+		this.skipBackwardButton.reactive = value;
+	},
+
+	set skipForwardReactive(value)
+	{
+		this.skipForwardButton.reactive = value;
+	},
+
+	setSliderValue: function(value)
+	{
+		this.positionSlider.setValue(value);
+	},
+
+	setPlaying: function(value)
+	{
+		if(value === true)
+		{
+			this.playButton.hide();
+			this.pauseButton.show();
+		}
+		else if(value === false)
+		{
+			this.pauseButton.hide();
+			this.playButton.show();
+		}
+	},
+
+	enableRepeat: function(value)
+	{
+		this.repeatButton.turnOn(value);
+	},
+
+	setMode: function(value)
+	{
+		switch(value)
+		{
+			case 'DIRECT':
+				this.positionSlider.show();
+				this.repeatButton.show();
+				this.pauseButton.show();
+				this.playButton.hide();
+				this.seekBackwardButton.show();
+				this.seekForwardButton.show();
+				break;
+			case 'ENCODE':
+				this.positionSlider.hide();
+				this.repeatButton.show();
+				this.pauseButton.show();
+				this.playButton.hide();
+				this.seekBackwardButton.hide();
+				this.seekForwardButton.hide();
+				break;
+			case 'PICTURE':
+				this.positionSlider.hide();
+				this.repeatButton.hide();
+				this.pauseButton.hide();
+				this.playButton.hide();
+				this.seekBackwardButton.hide();
+				this.seekForwardButton.hide();
+				break;
+		}
+	},
+
+	hide: function()
+	{
+		this.actor.hide();
+	},
+
+	show: function()
+	{
+		this.actor.show();
+	},
+
+	destroy: function()
+	{
+		this.parent();
+	}
+});
+
+var PopupBase = new Lang.Class({
 	Name: "PopupBase",
 	Extends: PopupMenu.PopupBaseMenuItem,
 
@@ -14,7 +277,7 @@ const PopupBase = new Lang.Class({
 	},
 });
 
-const MediaControlButton = GObject.registerClass({
+var MediaControlButton = GObject.registerClass({
 	GTypeName: 'MediaControlButton'
 }, class MediaControlButton extends St.Button {
 	_init(buttonIconName, toggle)
@@ -60,14 +323,22 @@ const MediaControlButton = GObject.registerClass({
 		return this._turnedOn;
 	}
 
-	turnOn()
+	turnOn(value)
 	{
-		this.opacity = 255;
-		this._turnedOn = true;
+		if(value === true)
+		{
+			this.opacity = 255;
+			this._turnedOn = true;
+		}
+		else if(value === false)
+		{
+			this.opacity = 130;
+			this._turnedOn = false;
+		}
 	}
 });
 
-const SliderItem = new Lang.Class({
+var SliderItem = new Lang.Class({
 	Name: "SliderItem",
 	Extends: PopupMenu.PopupBaseMenuItem,
 
