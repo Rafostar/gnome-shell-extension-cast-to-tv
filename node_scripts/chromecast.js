@@ -185,10 +185,20 @@ function launchCast()
 
 			castInterval = setInterval(() => {
 				try{ getChromecastStatus(p); }
-				catch(e){ console.log(e); }
+				catch(e){ onIntervalError(p); }
 				}, 500);
 		}
 	});
+}
+
+function onIntervalError(p)
+{
+	if(!p.session)
+	{
+		clearInterval(castInterval);
+		castInterval = null;
+		gnome.showRemote(false);
+	}
 }
 
 function getChromecastOpts()
