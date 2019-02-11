@@ -64,7 +64,7 @@ var CastRemoteMenu = new Lang.Class
 		this.parent(0.5, _("Chromecast Remote"), false);
 
 		this.box = new St.BoxLayout();
-		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon'});
+		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
 		this.toplabel = new St.Label({ text: _("Chromecast Remote"), y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
 		/* Display app icon, label and dropdown arrow */
@@ -82,6 +82,7 @@ var CastRemoteMenu = new Lang.Class
 			x_expand: true
 		});
 
+		this.trackTitle = new trackTitleItem();
 		this.positionSlider = new SliderItem('folder-videos-symbolic');
 		this.playButton = new MediaControlButton('media-playback-start-symbolic');
 		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
@@ -105,6 +106,7 @@ var CastRemoteMenu = new Lang.Class
 		this.controlsButtonBox.add(this.seekForwardButton);
 		this.controlsButtonBox.add(this.skipForwardButton);
 
+		this.menu.addMenuItem(this.trackTitle);
 		this.menu.addMenuItem(this.positionSlider);
 		this.popupBase.actor.add(this.controlsButtonBox);
 		this.menu.addMenuItem(this.popupBase);
@@ -139,6 +141,11 @@ var CastRemoteMenu = new Lang.Class
 	set label(value)
 	{
 		this.toplabel.text = value;
+	},
+
+	set title(value)
+	{
+		this.trackTitle.text = value;
 	},
 
 	set sliderIcon(value)
@@ -233,13 +240,8 @@ var PopupBase = new Lang.Class({
 
 	_init: function()
 	{
-		this.parent({hover: false, reactive: true});
-		this.actor.add_style_pseudo_class = function() {return null;};
-	},
-
-	destroy: function()
-	{
-		this.parent();
+		this.parent({ hover: false, reactive: true });
+		this.actor.add_style_pseudo_class = function() { return null; };
 	}
 });
 
@@ -308,14 +310,15 @@ var SliderItem = new Lang.Class({
 	Name: "SliderItem",
 	Extends: PopupMenu.PopupBaseMenuItem,
 
-	_init: function(icon) {
-		this.parent({hover: false, reactive: true});
-		this._icon = new St.Icon({style_class: 'popup-menu-icon', icon_name: icon});
+	_init: function(icon)
+	{
+		this.parent({ hover: false, reactive: true });
+		this._icon = new St.Icon({ style_class: 'popup-menu-icon', icon_name: icon });
 		this._slider = new Slider.Slider(0);
 
 		this.actor.add(this._icon);
-		this.actor.add(this._slider.actor, {expand: true});
-		this.actor.add_style_pseudo_class = function(){return null;};
+		this.actor.add(this._slider.actor, { expand: true });
+		this.actor.add_style_pseudo_class = function(){ return null; };
 	},
 
 	get value()
@@ -347,4 +350,23 @@ var SliderItem = new Lang.Class({
 	{
 		this._slider.connect(signal, callback);
 	}
+});
+
+var trackTitleItem = new Lang.Class({
+	Name: "TrackTitleItem",
+	Extends: PopupMenu.PopupBaseMenuItem,
+
+	_init: function()
+	{
+		this.parent({ hover: false, reactive: true });
+		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
+
+		this.actor.add(this._title);
+		this.actor.add_style_pseudo_class = function(){ return null; };
+	},
+
+	set text(value)
+	{
+		this._title.text = value;
+	},
 });
