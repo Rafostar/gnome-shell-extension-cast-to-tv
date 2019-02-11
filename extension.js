@@ -8,7 +8,6 @@ const GLib = imports.gi.GLib;
 const Main = imports.ui.main;
 const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
-const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
@@ -121,26 +120,27 @@ function setRemotePosition()
 function startTimer()
 {
 	remoteMenu.setSliderValue(0);
+	readStatusInterval = Mainloop.timeout_add_seconds(1, remoteTimer.bind(this));
+}
 
-	readStatusInterval = Mainloop.timeout_add_seconds(1, Lang.bind(this, function()
+function remoteTimer()
+{
+	let statusContents = Temp.readFromFile(shared.statusPath);
+
+	if(statusContents)
 	{
-		let statusContents = Temp.readFromFile(shared.statusPath);
+		if(statusContents.playerState == 'PLAYING') remoteMenu.setPlaying(true);
+		else if(statusContents.playerState == 'PAUSED') remoteMenu.setPlaying(false);
 
-		if(statusContents)
+		if(statusContents.mediaDuration > 0)
 		{
-			if(statusContents.playerState == 'PLAYING') remoteMenu.setPlaying(true);
-			else if(statusContents.playerState == 'PAUSED') remoteMenu.setPlaying(false);
-
-			if(statusContents.mediaDuration > 0)
-			{
-				let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
-				if(!Widget.sliderChanged) remoteMenu.setSliderValue(sliderValue);
-			}
+			let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
+			if(!Widget.sliderChanged) remoteMenu.setSliderValue(sliderValue);
 		}
+	}
 
-		Widget.sliderChanged = false;
-		return true;
-	}));
+	Widget.sliderChanged = false;
+	return true;
 }
 
 function clearTimer()
@@ -261,17 +261,17 @@ function enable()
 	Signals = [];
 
 	/* Connect signals */
-	Signals.push(Settings.connect('changed::ffmpeg-path', Lang.bind(this, changeFFmpegPath)));
-	Signals.push(Settings.connect('changed::ffprobe-path', Lang.bind(this, changeFFprobePath)));
-	Signals.push(Settings.connect('changed::receiver-type', Lang.bind(this, changeReceiverType)));
-	Signals.push(Settings.connect('changed::listening-port', Lang.bind(this, changeListeningPort)));
-	Signals.push(Settings.connect('changed::video-bitrate', Lang.bind(this, changeVideoBitrate)));
-	Signals.push(Settings.connect('changed::video-acceleration', Lang.bind(this, changeVideoAcceleration)));
-	Signals.push(Settings.connect('changed::remote-position', Lang.bind(this, changeRemotePosition)));
-	Signals.push(Settings.connect('changed::seek-time', Lang.bind(this, changeSeekTime)));
-	Signals.push(Settings.connect('changed::music-visualizer', Lang.bind(this, changeMusicVisualizer)));
-	Signals.push(Settings.connect('changed::subtitles-encoding', Lang.bind(this, changeSubtitlesEncoding)));
-	Signals.push(Settings.connect('changed::chromecast-playing', Lang.bind(this, configCastRemote)));
+	Signals.push(Settings.connect('changed::ffmpeg-path', changeFFmpegPath.bind(this)));
+	Signals.push(Settings.connect('changed::ffprobe-path', changeFFprobePath.bind(this)));
+	Signals.push(Settings.connect('changed::receiver-type', changeReceiverType.bind(this)));
+	Signals.push(Settings.connect('changed::listening-port', changeListeningPort.bind(this)));
+	Signals.push(Settings.connect('changed::video-bitrate', changeVideoBitrate.bind(this)));
+	Signals.push(Settings.connect('changed::video-acceleration', changeVideoAcceleration.bind(this)));
+	Signals.push(Settings.connect('changed::remote-position', changeRemotePosition.bind(this)));
+	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
+	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
+	Signals.push(Settings.connect('changed::subtitles-encoding', changeSubtitlesEncoding.bind(this)));
+	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 
 	/* Set insert position after network menu items */
 	let menuItems = AggregateMenu.menu._getMenuItems();

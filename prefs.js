@@ -10,7 +10,9 @@ const Convenience = Local.imports.convenience;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const charPath = Local.path + '/CharEnc';
-let readOk, charEnc;
+
+let readOk;
+let charEnc;
 let charLines;
 
 function init()
@@ -18,7 +20,7 @@ function init()
 	Convenience.initTranslations();
 }
 
-const CastToTvSettings = new GObject.Class({
+var CastToTvSettings = new GObject.Class({
 Name: 'CastToTvSettings',
 Extends: Gtk.Grid,
 

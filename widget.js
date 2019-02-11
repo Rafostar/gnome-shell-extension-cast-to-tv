@@ -30,37 +30,22 @@ var CastToTvMenu = new Lang.Class
 		this.icon.icon_name = iconName;
 
 		/* Expandable menu */
-		let videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
-		let musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
-		let pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
-		let settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
+		this.videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
+		this.musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
+		this.pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
+		this.settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
 
 		/* Assemble all menu items */
-		this.menu.addMenuItem(videoMenuItem);
-		this.menu.addMenuItem(musicMenuItem);
-		this.menu.addMenuItem(pictureMenuItem);
-		this.menu.addMenuItem(settingsMenuItem);
+		this.menu.addMenuItem(this.videoMenuItem);
+		this.menu.addMenuItem(this.musicMenuItem);
+		this.menu.addMenuItem(this.pictureMenuItem);
+		this.menu.addMenuItem(this.settingsMenuItem);
 
 		/* Signals connections */
-		videoMenuItem.connect('activate', Lang.bind(this, function()
-		{
-			Spawn.fileChooser('VIDEO');
-		}));
-
-		musicMenuItem.connect('activate', Lang.bind(this, function()
-		{
-			Spawn.fileChooser('MUSIC');
-		}));
-
-		pictureMenuItem.connect('activate', Lang.bind(this, function()
-		{
-			Spawn.fileChooser('PICTURE');
-		}));
-
-		settingsMenuItem.connect('activate', Lang.bind(this, function()
-		{
-			Spawn.extensionPrefs();
-		}));
+		this.videoMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'VIDEO'));
+		this.musicMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'MUSIC'));
+		this.pictureMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'PICTURE'));
+		this.settingsMenuItem.connect('activate', Spawn.extensionPrefs.bind(this));
 	},
 
 	destroy: function()
@@ -128,52 +113,27 @@ var CastRemoteMenu = new Lang.Class
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
-			sliderChanged = true;
-		}));
+		this.positionSlider.connect('value-changed', this._onSliderChange.bind(this));
+		this.playButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PLAY'));
+		this.pauseButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PAUSE'));
+		this.seekForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SEEK+', seekTime));
+		this.seekBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SEEK-', seekTime));
+		this.repeatButton.connect('clicked', this._onRepeatClick.bind(this));
+		this.stopButton.connect('clicked', Temp.setRemoteAction.bind(this, 'STOP'));
+		this.skipBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP-'));
+		this.skipForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP+'));
+	},
 
-		this.playButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('PLAY');
-		}));
+	_onSliderChange: function()
+	{
+		Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
+		sliderChanged = true;
+	},
 
-		this.pauseButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('PAUSE');
-		}));
-
-		this.seekForwardButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('SEEK+', seekTime);
-		}));
-
-		this.seekBackwardButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('SEEK-', seekTime);
-		}));
-
-		this.repeatButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
-			isRepeatActive = this.repeatButton.turnedOn;
-		}));
-
-		this.stopButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('STOP');
-		}));
-
-		this.skipBackwardButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('SKIP-');
-		}));
-
-		this.skipForwardButton.connect('clicked', Lang.bind(this, function()
-		{
-			Temp.setRemoteAction('SKIP+');
-		}));
+	_onRepeatClick: function()
+	{
+		Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
+		isRepeatActive = this.repeatButton.turnedOn;
 	},
 
 	set label(value)
@@ -271,10 +231,16 @@ var PopupBase = new Lang.Class({
 	Name: "PopupBase",
 	Extends: PopupMenu.PopupBaseMenuItem,
 
-	_init: function() {
+	_init: function()
+	{
 		this.parent({hover: false, reactive: true});
 		this.actor.add_style_pseudo_class = function() {return null;};
 	},
+
+	destroy: function()
+	{
+		this.parent();
+	}
 });
 
 var MediaControlButton = GObject.registerClass({
