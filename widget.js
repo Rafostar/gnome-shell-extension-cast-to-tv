@@ -118,8 +118,8 @@ var CastRemoteMenu = new Lang.Class
 		this.positionSlider.connect('value-changed', this._onSliderChange.bind(this));
 		this.playButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PLAY', ''));
 		this.pauseButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PAUSE', ''));
-		this.seekForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SEEK+', seekTime));
-		this.seekBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SEEK-', seekTime));
+		this.seekForwardButton.connect('clicked', this._onSeekPlus.bind(this));
+		this.seekBackwardButton.connect('clicked', this._onSeekMinus.bind(this));
 		this.repeatButton.connect('clicked', this._onRepeatClick.bind(this));
 		this.stopButton.connect('clicked', Temp.setRemoteAction.bind(this, 'STOP', ''));
 		this.skipBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP-', ''));
@@ -136,6 +136,16 @@ var CastRemoteMenu = new Lang.Class
 	{
 		Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
 		isRepeatActive = this.repeatButton.turnedOn;
+	},
+
+	_onSeekPlus: function()
+	{
+		Temp.setRemoteAction('SEEK+', seekTime);
+	},
+
+	_onSeekMinus: function()
+	{
+		Temp.setRemoteAction('SEEK-', seekTime);
 	},
 
 	set label(value)
