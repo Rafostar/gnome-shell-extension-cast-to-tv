@@ -116,14 +116,14 @@ var CastRemoteMenu = new Lang.Class
 
 		/* Signals connections */
 		this.positionSlider.connect('value-changed', this._onSliderChange.bind(this));
-		this.playButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PLAY'));
-		this.pauseButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PAUSE'));
+		this.playButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PLAY', ''));
+		this.pauseButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PAUSE', ''));
 		this.seekForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SEEK+', seekTime));
 		this.seekBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SEEK-', seekTime));
 		this.repeatButton.connect('clicked', this._onRepeatClick.bind(this));
-		this.stopButton.connect('clicked', Temp.setRemoteAction.bind(this, 'STOP'));
-		this.skipBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP-'));
-		this.skipForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP+'));
+		this.stopButton.connect('clicked', Temp.setRemoteAction.bind(this, 'STOP', ''));
+		this.skipBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP-', ''));
+		this.skipForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP+', ''));
 	},
 
 	_onSliderChange: function()
