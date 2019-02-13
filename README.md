@@ -10,7 +10,8 @@ Cast files to your Chromecast or other devices over local network.
 </p>
 
 ## Installation
-### Latest release
+### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
+
 [<img src="https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/Gnome-Extensions.png" width="30%" height="30%">](https://extensions.gnome.org/extension/1544/cast-to-tv)
 
 After enabling the extension, remember to install [required dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements).
