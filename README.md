@@ -45,6 +45,9 @@ You can use hardware VAAPI encoding (optional). This of course requires working 
 
 ## How to use
 Detailed instructions related to configuration and using the extension are on [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
+<br>You can also find some usage examples there.
+
+Check out [FAQ](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/FAQ), before asking questions.
 
 ## Info for translators
 Before translating use Makefile to generate updated POT file.
