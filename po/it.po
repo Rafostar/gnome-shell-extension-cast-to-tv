@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-07 20:07+0100\n"
+"POT-Creation-Date: 2019-02-13 21:32+0100\n"
 "PO-Revision-Date: 2019-02-02 10:38+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
@@ -18,29 +18,29 @@ msgstr ""
 "X-Generator: Poedit 2.0.9\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: extension.js:27 prefs.js:156
-msgid "Chromecast Remote"
-msgstr "Chromecast remoto"
-
-#: extension.js:72
+#: widget.js:29
 msgid "Cast Media"
 msgstr "Condividi media"
 
-#: extension.js:76
+#: widget.js:33
 msgid "Video"
 msgstr "Video"
 
-#: extension.js:77
+#: widget.js:34
 msgid "Music"
 msgstr "Musica"
 
-#: extension.js:78
+#: widget.js:35
 msgid "Picture"
 msgstr "Immagine"
 
-#: extension.js:79
+#: widget.js:36
 msgid "Cast Settings"
 msgstr "Impostazioni di condivisione"
+
+#: widget.js:64 widget.js:68 prefs.js:158
+msgid "Chromecast Remote"
+msgstr "Chromecast remoto"
 
 #: file-chooser.js:44
 msgid "Transcode Video"
@@ -96,85 +96,85 @@ msgstr "Seleziona sottotitoli"
 msgid "Subtitle Files"
 msgstr "File sottotitoli"
 
-#: prefs.js:39
+#: prefs.js:41
 msgid "General"
 msgstr "Generale"
 
-#: prefs.js:48
+#: prefs.js:50
 msgid "FFmpeg path"
 msgstr "Percorso FFmpeg"
 
-#: prefs.js:61
+#: prefs.js:63
 msgid "FFprobe path"
 msgstr "Percorso FFprobe"
 
-#: prefs.js:74
+#: prefs.js:76
 msgid "Receiver type"
 msgstr "Tipo di ricevitore"
 
-#: prefs.js:81
+#: prefs.js:83
 msgid "Other device"
 msgstr "Altro dispositivo"
 
-#: prefs.js:89
+#: prefs.js:91
 msgid "Listening port"
 msgstr "Porta di ascolto"
 
-#: prefs.js:109
+#: prefs.js:111
 msgid "Media Encoding"
 msgstr "Codifica multimediale"
 
-#: prefs.js:119
+#: prefs.js:121
 msgid "Bitrate (Mbps)"
 msgstr "Bitrate (Mbps)"
 
-#: prefs.js:140
+#: prefs.js:142
 msgid "Hardware acceleration"
 msgstr "Accelerazione hardware"
 
-#: prefs.js:146
+#: prefs.js:148
 msgid "None"
 msgstr "Nessuna"
 
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
-#: prefs.js:148
+#: prefs.js:150
 msgid "VAAPI"
 msgstr "VAAPI"
 
-#: prefs.js:166
+#: prefs.js:168
 msgid "Remote position"
 msgstr "Posizione remota"
 
-#: prefs.js:172
+#: prefs.js:174
 msgid "Left"
 msgstr "Sinistra"
 
-#: prefs.js:173
+#: prefs.js:175
 msgid "Center (left side)"
 msgstr "Centro (lato sinistro)"
 
-#: prefs.js:174
+#: prefs.js:176
 msgid "Center (right side)"
 msgstr "Centro (lato destro)"
 
-#: prefs.js:175
+#: prefs.js:177
 msgid "Right"
 msgstr "Destra"
 
-#: prefs.js:182
+#: prefs.js:184
 msgid "Seek backward/forward (seconds)"
 msgstr "Cerca indietro/avanti (secondi)"
 
 #. TRANSLATORS: The rest  of settings (something like "Other" or "Remaining")
-#: prefs.js:203
+#: prefs.js:205
 msgid "Miscellaneous"
 msgstr "Altro"
 
-#: prefs.js:213
+#: prefs.js:215
 msgid "Music visualizer"
 msgstr "Visualizzatore musicale"
 
 #. TRANSLATORS: Option for setting subtitles characters encoding (e.g. UTF-8)
-#: prefs.js:232
+#: prefs.js:234
 msgid "Subtitles encoding"
 msgstr "Sottotitoli codificati"

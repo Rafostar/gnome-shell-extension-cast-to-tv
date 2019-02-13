@@ -1,7 +1,7 @@
 # Basic Makefile
 
 UUID = cast-to-tv@rafostar.github.com
-TOLOCALIZE = extension.js file-chooser.js prefs.js
+TOLOCALIZE = widget.js file-chooser.js prefs.js
 MSGSRC = $(wildcard ./po/*.po)
 POTFILE = ./po/cast-to-tv.pot
 ZIPFILES = *.js *.json node_scripts webplayer schemas locale CharEnc LICENSE README.md
