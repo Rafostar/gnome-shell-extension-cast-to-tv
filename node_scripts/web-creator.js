@@ -87,7 +87,7 @@ exports.encodedStream = function(req, res)
 	res.setHeader('Connection', 'keep-alive');
 	res.statusCode = 200;
 
-	streamType = bridge.selection.streamType;
+	var streamType = bridge.selection.streamType;
 
 	/* Check if file exist */
 	var exist = fs.existsSync(filePath);
