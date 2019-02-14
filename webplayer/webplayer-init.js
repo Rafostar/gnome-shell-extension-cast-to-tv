@@ -1,80 +1,28 @@
 const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone/i.test(navigator.userAgent)) ? true : false;
 const player = new Plyr('#player', playerOptions);
-const confReq = new XMLHttpRequest();
-const selReq = new XMLHttpRequest();
-const subsReq = new XMLHttpRequest();
-
 const sessionID = makeID();
 
-var config;
 var playerInit;
 var subsKind = 'none';
 var subsSrc = null;
 var posterPath = '/webplayer/images/play.png';
 
-/* Asynchronous XMLHttpRequests */
-subsReq.open('HEAD', '/subswebplayer');
-confReq.open('GET', '/config');
-selReq.open('GET', '/selection');
-
-confReq.send();
-confReq.onreadystatechange = function()
+function preparePlayer(msg)
 {
-	if(this.readyState == 4 && this.status == 200)
+	/* Show album cover when playing without visualizations */
+	if(msg.type == 'MUSIC')
 	{
-		config = JSON.parse(this.responseText);
-		selReq.send();
+		posterPath = '/cover';
 	}
-}
-
-selReq.onreadystatechange = function()
-{
-	if(this.readyState == 4 && this.status == 200)
+	else if(msg.subs)
 	{
-		var selection = JSON.parse(this.responseText);
-
-		/* Show album cover when playing without visualizations */
-		if(selection.streamType == 'MUSIC' && !config.musicVisualizer)
-		{
-			posterPath = '/cover';
-		}
-
-		/* Do not send subtitles request if content is music */
-		if(selection.streamType == 'MUSIC')
-		{
-			setPlyrSource();
-			addClickListeners();
-		}
-		else
-		{
-			subsReq.send();
-		}
+		/* Enable subtitles */
+		subsKind = 'captions';
+		subsSrc = '/subswebplayer?session=' + sessionID;
 	}
-}
 
-subsReq.onreadystatechange = function()
-{
-	if(this.readyState == 4)
-	{
-		if(this.status == 200)
-		{
-			/* Enable subtitles */
-			subsKind = 'captions';
-			subsSrc = '/subswebplayer?session=' + sessionID;
-		}
-
-		setPlyrSource();
-		addClickListeners();
-	}
-}
-
-function addClickListeners()
-{
-	/* Toggle play on click event listener */
-	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
-	div.addEventListener('click', startPlayer);
-
-	initializePlayer(event);
+	setPlyrSource();
+	addClickListeners();
 }
 
 function setPlyrSource()
@@ -97,6 +45,15 @@ function setPlyrSource()
 	};
 }
 
+function addClickListeners()
+{
+	/* Toggle play on click event listener */
+	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
+	div.addEventListener('click', startPlayer);
+
+	finishInit(event);
+}
+
 function makeID()
 {
 	var text = "";
@@ -110,7 +67,7 @@ function makeID()
 	return text;
 }
 
-function initializePlayer(e)
+function finishInit(e)
 {
 	/* Workaround Plyr volume bug */
 	if(!playerInit)

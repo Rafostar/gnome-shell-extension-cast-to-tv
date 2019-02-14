@@ -116,16 +116,6 @@ app.get('/cover', function(req, res)
 	webcreator.coverStream(req, res);
 });
 
-app.get('/config', function(req, res)
-{
-	res.send(bridge.config);
-});
-
-app.get('/selection', function(req, res)
-{
-	res.send(bridge.selection);
-});
-
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));
 app.use('/plyr', express.static(__dirname + '/../node_modules/plyr/dist'));
 

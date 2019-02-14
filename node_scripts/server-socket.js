@@ -1,9 +1,11 @@
 var io = require('socket.io');
+var fs = require('fs');
 var bridge = require('./bridge');
 var encode = require('./encode');
 var extract = require('./extract');
 var gettext = require('./gettext');
 var msg = require('./messages.js');
+var shared = require('../shared');
 var websocket;
 
 exports.listen = function(server)
@@ -14,6 +16,7 @@ exports.listen = function(server)
 
 function handleMessages(socket)
 {
+	socket.on('webplayer-ask', () => { initWebPlayer(); });
 	socket.on('track-ended', () => { checkNextTrack(); });
 	socket.on('processes-ask', () => {
 		if(!extract.subsProcess && !extract.coverProcess) websocket.emit('processes-done');
@@ -32,6 +35,22 @@ function handleMessages(socket)
 exports.emit = function(message)
 {
 	websocket.emit(message);
+}
+
+function initWebPlayer()
+{
+	var initType = 'VIDEO';
+	var isSub = false;
+
+	if(bridge.selection.streamType != 'MUSIC')
+	{
+		if(bridge.selection.subsPath) isSub = true;
+		else isSub = fs.existsSync(shared.vttSubsPath);
+	}
+
+	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) initType = 'MUSIC';
+
+	websocket.emit('webplayer-init', { type: initType, subs: isSub });
 }
 
 function checkNextTrack()
