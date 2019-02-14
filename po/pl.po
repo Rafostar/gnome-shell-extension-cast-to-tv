@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-13 21:32+0100\n"
-"PO-Revision-Date: 2019-02-02 10:20+0100\n"
+"POT-Creation-Date: 2019-02-14 09:46+0100\n"
+"PO-Revision-Date: 2019-02-14 09:49+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
 "Language: pl\n"
@@ -19,27 +19,27 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: widget.js:29
+#: widget.js:31
 msgid "Cast Media"
 msgstr "Prześlij media"
 
-#: widget.js:33
+#: widget.js:35
 msgid "Video"
 msgstr "Wideo"
 
-#: widget.js:34
+#: widget.js:36
 msgid "Music"
 msgstr "Muzyka"
 
-#: widget.js:35
+#: widget.js:37
 msgid "Picture"
 msgstr "Obraz"
 
-#: widget.js:36
+#: widget.js:38
 msgid "Cast Settings"
 msgstr "Ustawienia przesyłu"
 
-#: widget.js:64 widget.js:68 prefs.js:158
+#: widget.js:66 widget.js:70 prefs.js:158
 msgid "Chromecast Remote"
 msgstr "Chromecast pilot"
 
@@ -179,3 +179,7 @@ msgstr "Wizualizacje muzyczne"
 #: prefs.js:234
 msgid "Subtitles encoding"
 msgstr "Kodowanie napisów"
+
+#: node_scripts/messages.js:4
+msgid "LOADING"
+msgstr "ŁADOWANIE"

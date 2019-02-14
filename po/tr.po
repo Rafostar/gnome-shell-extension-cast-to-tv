@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-13 21:32+0100\n"
+"POT-Creation-Date: 2019-02-14 09:46+0100\n"
 "PO-Revision-Date: 2019-02-02 10:31+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
@@ -18,27 +18,27 @@ msgstr ""
 "X-Generator: Poedit 2.0.9\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: widget.js:29
+#: widget.js:31
 msgid "Cast Media"
 msgstr "Media Oynatıcı"
 
-#: widget.js:33
+#: widget.js:35
 msgid "Video"
 msgstr "Video"
 
-#: widget.js:34
+#: widget.js:36
 msgid "Music"
 msgstr "Müzik"
 
-#: widget.js:35
+#: widget.js:37
 msgid "Picture"
 msgstr "Resim"
 
-#: widget.js:36
+#: widget.js:38
 msgid "Cast Settings"
 msgstr "Oynatıcı Ayarları"
 
-#: widget.js:64 widget.js:68 prefs.js:158
+#: widget.js:66 widget.js:70 prefs.js:158
 msgid "Chromecast Remote"
 msgstr "Chromecast Kumandası"
 
@@ -178,3 +178,7 @@ msgstr "Müzik görselleştiricisi"
 #: prefs.js:234
 msgid "Subtitles encoding"
 msgstr "Altyazıları kodlama"
+
+#: node_scripts/messages.js:4
+msgid "LOADING"
+msgstr ""

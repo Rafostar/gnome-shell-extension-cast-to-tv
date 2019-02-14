@@ -6,13 +6,12 @@ var webcreator = require('./web-creator');
 var socket = require('./server-socket');
 var encode = require('./encode');
 var extract = require('./extract');
+var gettext = require('./gettext');
+var msg = require('./messages.js');
 var listeningPort = bridge.config.listeningPort;
+var message;
 
-var server = app.listen(listeningPort).on('error', function(err)
-{
-	process.exit();
-});
-
+var server = app.listen(listeningPort).on('error', () => process.exit());
 socket.listen(server);
 
 exports.refreshConfig = function()
@@ -21,11 +20,7 @@ exports.refreshConfig = function()
 	{
 		server.close();
 		listeningPort = bridge.config.listeningPort;
-		server = app.listen(listeningPort).on('error', function(err)
-		{
-			process.exit();
-		});
-
+		server = app.listen(listeningPort).on('error', () => process.exit());
 		socket.listen(server);
 	}
 }
@@ -41,6 +36,12 @@ function closeStreamProcess()
 
 app.get('/', function(req, res)
 {
+	gettext.initTranslations();
+	var lang = req.acceptsLanguages.apply(req, gettext.locales);
+
+	if(lang) gettext.setLocale(lang);
+	else gettext.setLocale('en');
+
 	if(bridge.config.receiverType != 'other')
 	{
 		res.end('Selected receiver type is \"' +
@@ -64,6 +65,7 @@ app.get('/', function(req, res)
 
 	if(extract.subsProcess || extract.coverProcess)
 	{
+		message = gettext.translate(msg.loading);
 		res.sendFile(path.join(__dirname + '/../webplayer/loading.html'));
 		return;
 	}
@@ -125,6 +127,11 @@ app.get('/config', function(req, res)
 app.get('/selection', function(req, res)
 {
 	res.send(bridge.selection);
+});
+
+app.get('/message', function(req, res)
+{
+	res.send(message);
 });
 
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));

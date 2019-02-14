@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-02-07 20:07+0100\n"
+"POT-Creation-Date: 2019-02-14 11:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,28 +17,28 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: extension.js:27 prefs.js:156
-msgid "Chromecast Remote"
-msgstr ""
-
-#: extension.js:72
+#: widget.js:31
 msgid "Cast Media"
 msgstr ""
 
-#: extension.js:76
+#: widget.js:35
 msgid "Video"
 msgstr ""
 
-#: extension.js:77
+#: widget.js:36
 msgid "Music"
 msgstr ""
 
-#: extension.js:78
+#: widget.js:37
 msgid "Picture"
 msgstr ""
 
-#: extension.js:79
+#: widget.js:38
 msgid "Cast Settings"
+msgstr ""
+
+#: widget.js:66 widget.js:70 prefs.js:158
+msgid "Chromecast Remote"
 msgstr ""
 
 #: file-chooser.js:44
@@ -95,85 +95,89 @@ msgstr ""
 msgid "Subtitle Files"
 msgstr ""
 
-#: prefs.js:39
+#: prefs.js:41
 msgid "General"
 msgstr ""
 
-#: prefs.js:48
+#: prefs.js:50
 msgid "FFmpeg path"
 msgstr ""
 
-#: prefs.js:61
+#: prefs.js:63
 msgid "FFprobe path"
 msgstr ""
 
-#: prefs.js:74
+#: prefs.js:76
 msgid "Receiver type"
 msgstr ""
 
-#: prefs.js:81
+#: prefs.js:83
 msgid "Other device"
 msgstr ""
 
-#: prefs.js:89
+#: prefs.js:91
 msgid "Listening port"
 msgstr ""
 
-#: prefs.js:109
+#: prefs.js:111
 msgid "Media Encoding"
 msgstr ""
 
-#: prefs.js:119
+#: prefs.js:121
 msgid "Bitrate (Mbps)"
 msgstr ""
 
-#: prefs.js:140
+#: prefs.js:142
 msgid "Hardware acceleration"
 msgstr ""
 
-#: prefs.js:146
+#: prefs.js:148
 msgid "None"
 msgstr ""
 
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
-#: prefs.js:148
+#: prefs.js:150
 msgid "VAAPI"
 msgstr ""
 
-#: prefs.js:166
+#: prefs.js:168
 msgid "Remote position"
 msgstr ""
 
-#: prefs.js:172
+#: prefs.js:174
 msgid "Left"
 msgstr ""
 
-#: prefs.js:173
+#: prefs.js:175
 msgid "Center (left side)"
 msgstr ""
 
-#: prefs.js:174
+#: prefs.js:176
 msgid "Center (right side)"
 msgstr ""
 
-#: prefs.js:175
+#: prefs.js:177
 msgid "Right"
 msgstr ""
 
-#: prefs.js:182
+#: prefs.js:184
 msgid "Seek backward/forward (seconds)"
 msgstr ""
 
 #. TRANSLATORS: The rest  of settings (something like "Other" or "Remaining")
-#: prefs.js:203
+#: prefs.js:205
 msgid "Miscellaneous"
 msgstr ""
 
-#: prefs.js:213
+#: prefs.js:215
 msgid "Music visualizer"
 msgstr ""
 
 #. TRANSLATORS: Option for setting subtitles characters encoding (e.g. UTF-8)
-#: prefs.js:232
+#: prefs.js:234
 msgid "Subtitles encoding"
+msgstr ""
+
+#: node_scripts/messages.js:4
+msgid "LOADING"
 msgstr ""
