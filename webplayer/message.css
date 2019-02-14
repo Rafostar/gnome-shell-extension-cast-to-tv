@@ -13,7 +13,7 @@ p {
   user-select: none;
 }
 
-.spin-center {
+.screen-center {
   margin: 0;
   position: absolute;
   top: 50%;
@@ -26,13 +26,22 @@ p {
   transform: translateX(-50%) translateY(-50%);
 }
 
-.text {
+.load-text {
   margin-top: 10px;
   margin-left: 2px;
   position: relative;
   font-family: Courier;
   font-weight: bold;
-  font-size: 56px;
+  font-size: 52px;
+}
+
+.msg-text {
+  margin-top: 10px;
+  margin-left: 2px;
+  position: relative;
+  font-family: Courier;
+  font-weight: bold;
+  font-size: 32px;
 }
 
 .loader {

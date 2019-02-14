@@ -1,11 +1,20 @@
-const msgReq = new XMLHttpRequest();
-msgReq.open('GET', '/message');
-msgReq.send();
+var websocket = io();
+websocket.emit('message-ask');
 
-msgReq.onreadystatechange = function()
+var checkInterval = setInterval(() => { websocket.emit('message-ask'); }, 1000);
+websocket.on('message-refresh', msg => { refreshMessage(msg); });
+websocket.on('message-clear', () => { changePage(); });
+
+function refreshMessage(msg)
 {
-	if(this.readyState == 4 && this.status == 200)
+	if(document.getElementById("msg").innerHTML != msg)
 	{
-		document.getElementById("msg").innerHTML = this.responseText;
+		document.getElementById("msg").innerHTML = msg;
 	}
+}
+
+function changePage()
+{
+	clearInterval(checkInterval);
+	location.reload(true);
 }

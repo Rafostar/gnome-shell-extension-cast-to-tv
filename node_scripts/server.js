@@ -7,9 +7,7 @@ var socket = require('./server-socket');
 var encode = require('./encode');
 var extract = require('./extract');
 var gettext = require('./gettext');
-var msg = require('./messages.js');
 var listeningPort = bridge.config.listeningPort;
-var message;
 
 var server = app.listen(listeningPort).on('error', () => process.exit());
 socket.listen(server);
@@ -34,6 +32,30 @@ function closeStreamProcess()
 	}
 }
 
+function checkMessagePage(req, res)
+{
+	var message;
+
+	if(bridge.config.receiverType != 'other') message = true;
+	else if(!bridge.selection.filePath) message = true;
+	else if(encode.streamProcess) message = true;
+	else message = false;
+
+	if(message)
+	{
+		res.sendFile(path.join(__dirname + '/../webplayer/message.html'));
+		return true;
+	}
+
+	if(extract.subsProcess || extract.coverProcess)
+	{
+		res.sendFile(path.join(__dirname + '/../webplayer/loading.html'));
+		return true;
+	}
+
+	return false;
+}
+
 app.get('/', function(req, res)
 {
 	gettext.initTranslations();
@@ -42,33 +64,8 @@ app.get('/', function(req, res)
 	if(lang) gettext.setLocale(lang);
 	else gettext.setLocale('en');
 
-	if(bridge.config.receiverType != 'other')
-	{
-		res.end('Selected receiver type is \"' +
-		bridge.config.receiverType.charAt(0).toUpperCase() + bridge.config.receiverType.slice(1) +
-		'\". Web player is only available on \"Other device\".');
-		return;
-	}
-
-	if(!bridge.selection.filePath)
-	{
-		res.statusCode = 404;
-		res.end("No media file selected!");
-		return;
-	}
-
-	if(encode.streamProcess)
-	{
-		res.end("Streaming process is still active!");
-		return;
-	}
-
-	if(extract.subsProcess || extract.coverProcess)
-	{
-		message = gettext.translate(msg.loading);
-		res.sendFile(path.join(__dirname + '/../webplayer/loading.html'));
-		return;
-	}
+	var isMessage = checkMessagePage(req, res);
+	if(isMessage) return;
 
 	switch(bridge.selection.streamType)
 	{
@@ -127,11 +124,6 @@ app.get('/config', function(req, res)
 app.get('/selection', function(req, res)
 {
 	res.send(bridge.selection);
-});
-
-app.get('/message', function(req, res)
-{
-	res.send(message);
 });
 
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));
