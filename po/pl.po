@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-02-14 18:01+0100\n"
-"PO-Revision-Date: 2019-02-14 09:49+0100\n"
+"PO-Revision-Date: 2019-02-14 19:41+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
 "Language: pl\n"
@@ -186,12 +186,12 @@ msgstr "ŁADOWANIE"
 
 #: node_scripts/messages.js:5
 msgid "No file selected"
-msgstr ""
+msgstr "Nie wybrano pliku"
 
 #: node_scripts/messages.js:6
 msgid "Receiver type is set to Chromecast"
-msgstr ""
+msgstr "Rodzaj odbiornika ustawiono jako Chromecast"
 
 #: node_scripts/messages.js:7
 msgid "Streaming process is still active"
-msgstr ""
+msgstr "Proces przesyłu jest nadal aktywny"
