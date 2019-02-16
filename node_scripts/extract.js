@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var spawn = require('child_process').spawn;
+var jschardet = require('jschardet');
 var bridge = require('./bridge');
 var ffprobe = require('./ffprobe');
 var remove = require('./remove');
@@ -15,10 +16,12 @@ exports.subtitlesBuiltIn;
 
 var coverFound;
 
-exports.convertSubsToVtt = function(subsFile)
+exports.detectSubsEncoding = function(subsFile)
 {
-	exports.subsProcess = spawn(bridge.config.ffmpegPath, ['-sub_charenc', bridge.config.subtitlesEncoding, '-i', subsFile, shared.vttSubsPath, '-y']);
-	exports.subsProcess.on('close', function(){ exports.subsProcess = null; });
+	var fileBuffer = fs.readFileSync(subsFile);
+	var charDet = jschardet.detect(fileBuffer);
+
+	convertSubsToVtt(subsFile, charDet.encoding);
 }
 
 exports.findCoverFile = function()
@@ -54,6 +57,12 @@ exports.analyzeFile = function()
 		});
 }
 
+function convertSubsToVtt(subsFile, subsEnc)
+{
+	exports.subsProcess = spawn(bridge.config.ffmpegPath, ['-sub_charenc', subsEnc, '-i', subsFile, shared.vttSubsPath, '-y']);
+	exports.subsProcess.on('close', function(){ exports.subsProcess = null; });
+}
+
 function extractCoverArt(extension)
 {
 	exports.coverPath = shared.coverDefault + extension;
@@ -69,7 +78,7 @@ function checkBuiltInSubs(ffprobeData)
 		{
 			if(bridge.selection.streamType == 'VIDEO')
 			{
-				exports.convertSubsToVtt(bridge.selection.filePath);
+				convertSubsToVtt(bridge.selection.filePath, 'UTF-8');
 			}
 			else
 			{

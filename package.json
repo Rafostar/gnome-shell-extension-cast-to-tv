@@ -12,6 +12,7 @@
     "express": "^4.16.4",
     "gettext-parser": "^3.1.0",
     "internal-ip": "^3.0.1",
+    "jschardet": "^2.1.0",
     "node-gettext": "^2.0.0",
     "plyr": "^3.4.7",
     "range-parser": "^1.2.0",
