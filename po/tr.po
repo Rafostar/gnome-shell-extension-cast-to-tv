@@ -8,19 +8,19 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-02-14 18:01+0100\n"
-"PO-Revision-Date: 2019-02-02 10:31+0100\n"
-"Last-Translator: Rafostar\n"
+"PO-Revision-Date: 2019-02-16 03:16+0300\n"
+"Last-Translator: Serdar Sağlam <teknomobil@yandex.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.9\n"
+"X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: widget.js:31
 msgid "Cast Media"
-msgstr "Media Oynatıcı"
+msgstr "Medya Oynatıcı"
 
 #: widget.js:35
 msgid "Video"
@@ -172,25 +172,25 @@ msgstr "Diğer Ayarlar"
 
 #: prefs.js:215
 msgid "Music visualizer"
-msgstr "Müzik görselleştiricisi"
+msgstr "Müzik görselleştirici"
 
 #. TRANSLATORS: Option for setting subtitles characters encoding (e.g. UTF-8)
 #: prefs.js:234
 msgid "Subtitles encoding"
-msgstr "Altyazıları kodlama"
+msgstr "Altyazı kodlaması"
 
 #: node_scripts/messages.js:4
 msgid "LOADING"
-msgstr ""
+msgstr "YÜKLENİYOR"
 
 #: node_scripts/messages.js:5
 msgid "No file selected"
-msgstr ""
+msgstr "Dosya seçilmedi"
 
 #: node_scripts/messages.js:6
 msgid "Receiver type is set to Chromecast"
-msgstr ""
+msgstr "Alıcı tipi Chromecast’e ayarlandı"
 
 #: node_scripts/messages.js:7
 msgid "Streaming process is still active"
-msgstr ""
+msgstr "Akış işlemi hala etkin"
