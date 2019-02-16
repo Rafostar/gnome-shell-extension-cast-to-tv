@@ -1,4 +1,4 @@
-const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Windows Phone/i.test(navigator.userAgent)) ? true : false;
+const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|webOS|IEMobile|Windows Phone/i.test(navigator.userAgent)) ? true : false;
 const player = new Plyr('#player', playerOptions);
 const sessionID = makeID();
 
