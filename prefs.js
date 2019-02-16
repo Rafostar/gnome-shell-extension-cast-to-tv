@@ -3,17 +3,11 @@ const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
-const ByteArray = imports.byteArray;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Local = ExtensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const charPath = Local.path + '/CharEnc';
-
-let readOk;
-let charEnc;
-let charLines;
 
 function init()
 {
@@ -227,40 +221,10 @@ _init: function(params)
 	}));
 	this.attach(label, 0, 12, 1, 1);
 	this.attach(widget, 1, 12, 1, 1);
-
-	/* Subtitles Encoding */
-	label = new Gtk.Label({
-		/* TRANSLATORS: Option for setting subtitles characters encoding (e.g. UTF-8) */
-		label: _("Subtitles encoding"),
-		hexpand: true,
-		halign: Gtk.Align.START,
-		margin_left: 12
-	});
-	widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-	if(readOk)
-	{
-		if(charEnc instanceof Uint8Array) charLines = ByteArray.toString(charEnc).split('\r\n');
-		else charLines = String(charEnc).split('\r\n');
-
-		charLines.forEach(function(line)
-		{
-			if(line) widget.append(line, line);
-		});
-	}
-	else
-	{
-		widget.append('UTF-8', 'UTF-8');
-	}
-	this._settings.bind('subtitles-encoding', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-	this.attach(label, 0, 13, 1, 1);
-	this.attach(widget, 1, 13, 1, 1);
 }});
 
 function buildPrefsWidget()
 {
-	let charExists = GLib.file_test(charPath, 16);
-	if(charExists) [readOk, charEnc] = GLib.file_get_contents(charPath);
-
 	let widget = new CastToTvSettings();
 	widget.show_all();
 

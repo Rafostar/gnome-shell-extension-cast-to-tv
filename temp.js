@@ -53,8 +53,7 @@ function setConfigFile()
 		listeningPort: Settings.get_int('listening-port'),
 		videoBitrate: Settings.get_double('video-bitrate'),
 		videoAcceleration: Settings.get_string('video-acceleration'),
-		musicVisualizer: Settings.get_boolean('music-visualizer'),
-		subtitlesEncoding: Settings.get_string('subtitles-encoding')
+		musicVisualizer: Settings.get_boolean('music-visualizer')
 	};
 
 	/* Use default paths if custom paths are not defined */

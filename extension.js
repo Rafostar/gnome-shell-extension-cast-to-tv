@@ -227,12 +227,6 @@ function changeMusicVisualizer()
 	Temp.writeToFile(shared.configPath, configContents);
 }
 
-function changeSubtitlesEncoding()
-{
-	configContents.subtitlesEncoding = Settings.get_string('subtitles-encoding');
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
 function changeSeekTime()
 {
 	Widget.seekTime = Settings.get_int('seek-time');
@@ -274,7 +268,6 @@ function enable()
 	Signals.push(Settings.connect('changed::remote-position', changeRemotePosition.bind(this)));
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
 	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
-	Signals.push(Settings.connect('changed::subtitles-encoding', changeSubtitlesEncoding.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 
 	/* Set insert position after network menu items */
