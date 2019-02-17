@@ -51,7 +51,7 @@ function setConfigFile()
 		ffprobePath: Settings.get_string('ffprobe-path'),
 		receiverType: Settings.get_string('receiver-type'),
 		listeningPort: Settings.get_int('listening-port'),
-		videoBitrate: Settings.get_double('video-bitrate'),
+		videoBitrate: Settings.get_double('video-bitrate').toFixed(1),
 		videoAcceleration: Settings.get_string('video-acceleration'),
 		musicVisualizer: Settings.get_boolean('music-visualizer')
 	};

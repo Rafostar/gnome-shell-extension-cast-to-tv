@@ -211,7 +211,7 @@ function changeListeningPort()
 
 function changeVideoBitrate()
 {
-	configContents.videoBitrate = Settings.get_double('video-bitrate');
+	configContents.videoBitrate = Settings.get_double('video-bitrate').toFixed(1);
 	Temp.writeToFile(shared.configPath, configContents);
 }
 

@@ -1,250 +1,211 @@
 imports.gi.versions.Gtk = '3.0';
 const Gtk = imports.gi.Gtk;
 const GLib = imports.gi.GLib;
-const Lang = imports.lang;
 const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';
 const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
-
 const localPath = ARGV[0];
 imports.searchPath.unshift(localPath);
 const shared = imports.shared.module.exports;
-
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
-let configContents;
-let selectionContents;
 
-let fileChooser;
-let fileFilter;
-let buttonCast;
-let buttonSubs;
+Gtk.init(null);
 
-let filePathChosen;
-let fileSelectionChanged;
-
-void function selectFile()
+class fileChoser
 {
-	let configOk = getConfig();
-	let selectionOk = getSelection();
-
-	if(!configOk || !selectionOk) return;
-
-	selectionContents.streamType = ARGV[1];
-	selectionContents.subsPath = '';
-
-	/* Run server (process exits if already running) */
-	GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
-
-	Gtk.init(null);
-
-	fileChooser = new Gtk.FileChooserDialog();
-	fileFilter = new Gtk.FileFilter();
-	let buttonConvert = new Gtk.CheckButton({label: _("Transcode Video")});
-	let box = new Gtk.Box({spacing: 10});
-
-	box.pack_start(buttonConvert, true, true, 0);
-	box.show_all();
-
-	fileChooser.set_local_only(true);
-	fileChooser.set_show_hidden(false);
-
-	if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
+	constructor()
 	{
-		fileChooser.set_select_multiple(false);
-	}
-	else
-	{
-		fileChooser.set_select_multiple(true);
-	}
+		let configContents = this._getConfig();
+		let selectionContents = {};
+		selectionContents.streamType = ARGV[1];
+		selectionContents.subsPath = '';
 
-	fileChooser.set_action(Gtk.FileChooserAction.OPEN);
-	fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
-	/* TRANSLATORS: Button text when selected SINGLE file */
-	let castLabelSingle = _("Cast Selected File");
-	/* TRANSLATORS: Button text when selected MULTIPLE files */
-	let castLabelMulti = _("Cast Selected Files");
-	buttonCast = fileChooser.add_button(_(castLabelSingle), Gtk.ResponseType.OK);
-	let mimeType;
+		if(!configContents || !selectionContents.streamType) return;
 
-	switch(selectionContents.streamType)
-	{
-		case 'VIDEO':
-			buttonSubs = fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
-			fileChooser.set_title(_("Select Video"));
-			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
-			fileChooser.set_extra_widget(box);
+		/* Run server (process exits if already running) */
+		GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 
-			fileFilter.set_name(_("Video Files"));
-			mimeType = 'video/*';
-			fileFilter.add_mime_type(mimeType);
+		this.fileChooser = new Gtk.FileChooserDialog();
+		this.fileFilter = new Gtk.FileFilter();
+		let buttonConvert = new Gtk.CheckButton({label: _("Transcode Video")});
+		let box = new Gtk.Box({spacing: 10});
 
-			fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
-			{
-				let selectedNumber = fileChooser.get_filenames().length;
+		box.pack_start(buttonConvert, true, true, 0);
+		box.show_all();
 
-				if(selectedNumber > 1)
-				{
-					buttonCast.label = _(castLabelMulti);
-					buttonSubs.hide();
-				}
-				else
-				{
-					buttonCast.label = _(castLabelSingle);
-					buttonSubs.show();
-				}
-			}));
+		this.fileChooser.set_local_only(true);
+		this.fileChooser.set_show_hidden(false);
 
-			break;
-		case 'MUSIC':
-			fileChooser.set_title(_("Select Music"));
-			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
-
-			fileFilter.set_name(_("Audio Files"));
-			mimeType = 'audio/*';
-			fileFilter.add_mime_type(mimeType);
-
-			fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
-			{
-				let selectedNumber = fileChooser.get_filenames().length;
-
-				if(selectedNumber > 1) buttonCast.label = _(castLabelMulti);
-				else buttonCast.label = _(castLabelSingle);
-			}));
-			break;
-		case 'PICTURE':
-			fileChooser.set_title(_("Select Picture"));
-			fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
-
-			fileFilter.set_name(_("Pictures"));
-			fileFilter.add_pixbuf_formats();
-
-			fileSelectionChanged = fileChooser.connect('selection-changed', Lang.bind(this, function()
-			{
-				let selectedNumber = fileChooser.get_filenames().length;
-
-				if(selectedNumber > 1) buttonCast.label = _(castLabelMulti);
-				else buttonCast.label = _(castLabelSingle);
-			}));
-			break;
-		default:
-			return;
-	}
-
-	fileChooser.add_filter(fileFilter);
-
-	fileChooser.connect('response', Lang.bind(this, function()
-	{
-		filePathChosen = fileChooser.get_filenames();
-	}));
-
-	let DialogResponse = fileChooser.run();
-	let filesList = filePathChosen.sort();
-	selectionContents.filePath = filesList[0];
-
-	if(DialogResponse != Gtk.ResponseType.OK)
-	{
-		if(DialogResponse == Gtk.ResponseType.APPLY)
+		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
 		{
-			fileChooser.disconnect(fileSelectionChanged);
-			let SubsDialogResponse = selectSubtitles();
+			this.fileChooser.set_select_multiple(false);
+		}
+		else
+		{
+			this.fileChooser.set_select_multiple(true);
+		}
 
-			if(SubsDialogResponse != 0)
+		/* TRANSLATORS: Button text when selected SINGLE file */
+		this.castLabelSingle = _("Cast Selected File");
+		/* TRANSLATORS: Button text when selected MULTIPLE files */
+		this.castLabelMulti = _("Cast Selected Files");
+
+		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
+		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
+		this.buttonCast = this.fileChooser.add_button(_(this.castLabelSingle), Gtk.ResponseType.OK);
+		let mimeType;
+
+		switch(selectionContents.streamType)
+		{
+			case 'VIDEO':
+				this.buttonSubs = this.fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
+				this.fileChooser.set_title(_("Select Video"));
+				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
+				this.fileChooser.set_extra_widget(box);
+
+				this.fileFilter.set_name(_("Video Files"));
+				mimeType = 'video/*';
+				this.fileFilter.add_mime_type(mimeType);
+
+				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', this._onVideoSel.bind(this));
+				break;
+			case 'MUSIC':
+				this.fileChooser.set_title(_("Select Music"));
+				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
+
+				this.fileFilter.set_name(_("Audio Files"));
+				mimeType = 'audio/*';
+				this.fileFilter.add_mime_type(mimeType);
+
+				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', this._onMusicAndPicSel.bind(this));
+				break;
+			case 'PICTURE':
+				this.fileChooser.set_title(_("Select Picture"));
+				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
+
+				this.fileFilter.set_name(_("Pictures"));
+				this.fileFilter.add_pixbuf_formats();
+
+				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', this._onMusicAndPicSel.bind(this));
+				break;
+			default:
+				return;
+		}
+
+		this.fileChooser.add_filter(this.fileFilter);
+		this.fileChooser.connect('response', this._onResponse.bind(this));
+
+		let DialogResponse = this.fileChooser.run();
+		let filesList = this.filePathChosen.sort();
+		selectionContents.filePath = filesList[0];
+
+		if(DialogResponse != Gtk.ResponseType.OK)
+		{
+			if(DialogResponse == Gtk.ResponseType.APPLY)
+			{
+				this.fileChooser.disconnect(this.fileSelectionChanged);
+				selectionContents.subsPath = this._selectSubtitles();
+
+				if(!selectionContents.subsPath) return;
+			}
+			else
 			{
 				return;
 			}
 		}
+
+		/* Handle convert button */
+		if(buttonConvert.get_active())
+		{
+			switch(configContents.videoAcceleration)
+			{
+				case 'vaapi':
+					selectionContents.streamType += '_VAAPI';
+					break;
+				case 'nvenc':
+					selectionContents.streamType += '_NVENC';
+					break;
+				default:
+					selectionContents.streamType += '_ENCODE';
+					break;
+			}
+		}
+
+		/* Set playback list */
+		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
+
+		/* Save selection to file */
+		GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
+	}
+
+	_getConfig()
+	{
+		let [readOk, configFile] = GLib.file_get_contents(shared.configPath);
+
+		if(readOk)
+		{
+			if(configFile instanceof Uint8Array) return JSON.parse(ByteArray.toString(configFile));
+			else return JSON.parse(configFile);
+		}
 		else
 		{
-			return;
+			return null;
 		}
 	}
 
-	/* Handle convert button */
-	if(buttonConvert.get_active())
+	_selectSubtitles()
 	{
-		switch(configContents.videoAcceleration)
+		let subsFilter = new Gtk.FileFilter();
+
+		this.fileChooser.set_title(_("Select Subtitles"));
+		this.buttonSubs.hide();
+
+		/* Add supported subtitles formats to filter */
+		subsFilter.set_name(_("Subtitle Files"));
+
+		shared.subsFormats.forEach(function(extension)
 		{
-			case 'vaapi':
-				selectionContents.streamType += '_VAAPI';
-				break;
-			case 'nvenc':
-				selectionContents.streamType += '_NVENC';
-				break;
-			default:
-				selectionContents.streamType += '_ENCODE';
-				break;
+			subsFilter.add_pattern('*.' + extension);
+		});
+
+		this.fileChooser.set_select_multiple(false);
+		this.fileChooser.remove_filter(this.fileFilter);
+		this.fileChooser.add_filter(subsFilter);
+
+		if(this.fileChooser.run() == Gtk.ResponseType.OK) return this.filePathChosen[0];
+		else return null;
+	}
+
+	_onVideoSel()
+	{
+		let selectedNumber = this.fileChooser.get_filenames().length;
+
+		if(selectedNumber > 1)
+		{
+			this.buttonCast.label = _(this.castLabelMulti);
+			this.buttonSubs.hide();
+		}
+		else
+		{
+			this.buttonCast.label = _(this.castLabelSingle);
+			this.buttonSubs.show();
 		}
 	}
 
-	/* Set playback list */
-	GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
-
-	/* Save selection to file */
-	GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
-}();
-
-function getConfig()
-{
-	let [readOk, configFile] = GLib.file_get_contents(shared.configPath);
-
-	if(readOk)
+	_onMusicAndPicSel()
 	{
-		if(configFile instanceof Uint8Array) configContents = JSON.parse(ByteArray.toString(configFile));
-		else configContents = JSON.parse(configFile);
+		let selectedNumber = this.fileChooser.get_filenames().length;
 
-		return true;
+		if(selectedNumber > 1) this.buttonCast.label = _(this.castLabelMulti);
+		else this.buttonCast.label = _(this.castLabelSingle);
 	}
-	else
+
+	_onResponse()
 	{
-		return false;
+		this.filePathChosen = this.fileChooser.get_filenames();
 	}
 }
 
-function getSelection()
-{
-	let [readOk, selectionFile] = GLib.file_get_contents(shared.selectionPath);
-
-	if(readOk)
-	{
-		if(selectionFile instanceof Uint8Array) selectionContents = JSON.parse(ByteArray.toString(selectionFile));
-		else selectionContents = JSON.parse(selectionFile);
-
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-function selectSubtitles()
-{
-	let subsFilter = new Gtk.FileFilter();
-
-	fileChooser.set_title(_("Select Subtitles"));
-	buttonSubs.hide();
-
-	/* Add supported subtitles formats to filter */
-	subsFilter.set_name(_("Subtitle Files"));
-
-	shared.subsFormats.forEach(function(extension)
-	{
-		subsFilter.add_pattern('*.' + extension);
-	});
-
-	fileChooser.set_select_multiple(false);
-	fileChooser.remove_filter(fileFilter);
-	fileChooser.add_filter(subsFilter);
-
-	if(fileChooser.run() != Gtk.ResponseType.OK)
-	{
-		return 1;
-	}
-	else
-	{
-		selectionContents.subsPath = filePathChosen[0];
-		return 0;
-	}
-}
+let dialog = new fileChoser();

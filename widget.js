@@ -1,10 +1,7 @@
-const St = imports.gi.St;
-const GObject = imports.gi.GObject;
-const Clutter = imports.gi.Clutter;
+const { St, GObject, Clutter } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
-const Lang = imports.lang;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -16,19 +13,13 @@ var sliderChanged;
 var isRepeatActive;
 var seekTime;
 
-var statusIcon = new St.Icon({
-	icon_name: iconName,
-	style_class: 'system-status-icon'
-});
+var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
 
-var CastToTvMenu = new Lang.Class
-({
-	Name: 'Cast to TV',
-	Extends: PopupMenu.PopupSubMenuMenuItem,
-
-	_init: function()
+class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
+{
+	constructor()
 	{
-		this.parent(_("Cast Media"), true);
+		super(_("Cast Media"), true);
 		this.icon.icon_name = iconName;
 
 		/* Expandable menu */
@@ -48,22 +39,19 @@ var CastToTvMenu = new Lang.Class
 		this.musicMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'MUSIC'));
 		this.pictureMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'PICTURE'));
 		this.settingsMenuItem.connect('activate', Spawn.extensionPrefs.bind(this));
-	},
-
-	destroy: function()
-	{
-		this.parent();
 	}
-});
 
-var CastRemoteMenu = new Lang.Class
-({
-	Name: 'Cast to TV Remote',
-	Extends: PanelMenu.Button,
-
-	_init: function()
+	destroy()
 	{
-		this.parent(0.5, _("Chromecast Remote"), false);
+		super.destroy();
+	}
+}
+
+class CastRemoteMenu extends PanelMenu.Button
+{
+	constructor()
+	{
+		super(0.5, _("Chromecast Remote"), false);
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -126,61 +114,61 @@ var CastRemoteMenu = new Lang.Class
 		this.stopButton.connect('clicked', Temp.setRemoteAction.bind(this, 'STOP', ''));
 		this.skipBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP-', ''));
 		this.skipForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP+', ''));
-	},
+	}
 
-	_onSliderChange: function()
+	_onSliderChange()
 	{
 		Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
 		sliderChanged = true;
-	},
+	}
 
-	_onRepeatClick: function()
+	_onRepeatClick()
 	{
 		Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
 		isRepeatActive = this.repeatButton.turnedOn;
-	},
+	}
 
-	_onSeekPlus: function()
+	_onSeekPlus()
 	{
 		Temp.setRemoteAction('SEEK+', seekTime);
-	},
+	}
 
-	_onSeekMinus: function()
+	_onSeekMinus()
 	{
 		Temp.setRemoteAction('SEEK-', seekTime);
-	},
+	}
 
 	set label(value)
 	{
 		this.toplabel.text = value;
-	},
+	}
 
 	set title(value)
 	{
 		this.trackTitle.text = value;
-	},
+	}
 
 	set sliderIcon(value)
 	{
 		this.positionSlider.icon = value;
-	},
+	}
 
 	set skipBackwardsReactive(value)
 	{
 		this.skipBackwardButton.reactive = value;
-	},
+	}
 
 	set skipForwardReactive(value)
 	{
 		this.skipForwardButton.reactive = value;
-	},
+	}
 
-	setSliderValue: function(value)
+	setSliderValue(value)
 	{
 		this.positionSlider.setValue(value);
-	},
+	}
 
-	setPlaying: function(value)
+	setPlaying(value)
 	{
 		if(value === true)
 		{
@@ -192,14 +180,14 @@ var CastRemoteMenu = new Lang.Class
 			this.pauseButton.hide();
 			this.playButton.show();
 		}
-	},
+	}
 
-	enableRepeat: function(value)
+	enableRepeat(value)
 	{
 		this.repeatButton.turnOn(value);
-	},
+	}
 
-	setMode: function(value)
+	setMode(value)
 	{
 		switch(value)
 		{
@@ -228,34 +216,32 @@ var CastRemoteMenu = new Lang.Class
 				this.seekForwardButton.hide();
 				break;
 		}
-	},
+	}
 
-	hide: function()
+	hide()
 	{
 		this.actor.hide();
-	},
+	}
 
-	show: function()
+	show()
 	{
 		this.actor.show();
-	},
-
-	destroy: function()
-	{
-		this.parent();
 	}
-});
 
-var PopupBase = new Lang.Class({
-	Name: "PopupBase",
-	Extends: PopupMenu.PopupBaseMenuItem,
-
-	_init: function()
+	destroy()
 	{
-		this.parent({ hover: false, reactive: true });
-		this.actor.add_style_pseudo_class = function() { return null; };
+		super.destroy();
 	}
-});
+}
+
+class PopupBase extends PopupMenu.PopupBaseMenuItem
+{
+	constructor()
+	{
+		super({ hover: false, reactive: true });
+		this.actor.add_style_pseudo_class = () => { return null; };
+	}
+}
 
 var MediaControlButton = GObject.registerClass({
 	GTypeName: 'MediaControlButton'
@@ -318,67 +304,63 @@ var MediaControlButton = GObject.registerClass({
 	}
 });
 
-var SliderItem = new Lang.Class({
-	Name: "SliderItem",
-	Extends: PopupMenu.PopupBaseMenuItem,
-
-	_init: function(icon)
+class SliderItem extends PopupMenu.PopupBaseMenuItem
+{
+	constructor(icon)
 	{
-		this.parent({ hover: false, reactive: true });
+		super({ hover: false, reactive: true });
 		this._icon = new St.Icon({ style_class: 'popup-menu-icon', icon_name: icon });
 		this._slider = new Slider.Slider(0);
 
 		this.actor.add(this._icon);
 		this.actor.add(this._slider.actor, { expand: true });
 		this.actor.add_style_pseudo_class = function(){ return null; };
-	},
+	}
 
 	get value()
 	{
 		return this._slider.value;
-	},
+	}
 
 	set icon(value)
 	{
 		this._icon.icon_name = value;
-	},
+	}
 
-	setValue: function(value)
+	setValue(value)
 	{
 		this._slider.setValue(value);
-	},
+	}
 
-	hide: function()
+	hide()
 	{
 		this.actor.hide();
-	},
+	}
 
-	show: function()
+	show()
 	{
 		this.actor.show();
-	},
+	}
 
-	connect: function(signal, callback)
+	connect(signal, callback)
 	{
 		this._slider.connect(signal, callback);
 	}
-});
+}
 
-var trackTitleItem = new Lang.Class({
-	Name: "TrackTitleItem",
-	Extends: PopupMenu.PopupBaseMenuItem,
-
-	_init: function()
+class trackTitleItem extends PopupMenu.PopupBaseMenuItem
+{
+	constructor()
 	{
-		this.parent({ hover: false, reactive: true });
+		super({ hover: false, reactive: true });
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
 
 		this.actor.add(this._title);
 		this.actor.add_style_pseudo_class = function(){ return null; };
-	},
+	}
 
 	set text(value)
 	{
 		this._title.text = value;
-	},
-});
+	}
+}
