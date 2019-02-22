@@ -148,11 +148,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.trackTitle.text = value;
 	}
 
-	set sliderIcon(value)
-	{
-		this.positionSlider.icon = value;
-	}
-
 	set skipBackwardsReactive(value)
 	{
 		this.skipBackwardButton.reactive = value;
@@ -187,7 +182,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.repeatButton.turnOn(value);
 	}
 
-	setMode(value)
+	setMode(value, icon)
 	{
 		switch(value)
 		{
@@ -216,6 +211,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.seekForwardButton.hide();
 				break;
 		}
+
+		if(icon) this.positionSlider.icon = icon;
 	}
 
 	hide()

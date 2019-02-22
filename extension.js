@@ -66,20 +66,17 @@ function configCastRemote()
 		switch(selectionContents.streamType)
 		{
 			case 'VIDEO':
-				remoteMenu.setMode('DIRECT');
-				remoteMenu.sliderIcon = 'folder-videos-symbolic';
+				remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
 				break;
 			case 'MUSIC':
-				if(!configContents.musicVisualizer) remoteMenu.setMode('DIRECT');
-				else remoteMenu.setMode('ENCODE');
-				remoteMenu.sliderIcon = 'folder-music-symbolic';
+				if(!configContents.musicVisualizer) remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
+				else remoteMenu.setMode('ENCODE', 'folder-music-symbolic');
 				break;
 			case 'PICTURE':
 				remoteMenu.setMode('PICTURE');
 				break;
 			default:
-				remoteMenu.sliderIcon = 'folder-videos-symbolic';
-				remoteMenu.setMode('ENCODE');
+				remoteMenu.setMode('ENCODE', 'folder-videos-symbolic');
 				break;
 		}
 
@@ -249,8 +246,8 @@ function init()
 function enable()
 {
 	/* Create new objects from classes */
-	castMenu = new Widget.CastToTvMenu;
-	remoteMenu = new Widget.CastRemoteMenu;
+	castMenu = new Widget.castMenu;
+	remoteMenu = new Widget.remoteMenu;
 
 	/* Get remaining necessary settings */
 	Widget.seekTime = Settings.get_int('seek-time');
