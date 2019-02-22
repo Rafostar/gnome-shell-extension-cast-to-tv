@@ -9,6 +9,8 @@ var posterPath = '/webplayer/images/play.png';
 
 function preparePlayer(msg)
 {
+	player.config.i18n = msg.i18n;
+
 	/* Show album cover when playing without visualizations */
 	if(msg.type == 'MUSIC')
 	{

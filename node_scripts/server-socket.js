@@ -50,7 +50,16 @@ function initWebPlayer()
 
 	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) initType = 'MUSIC';
 
-	websocket.emit('webplayer-init', { type: initType, subs: isSub });
+	var webData = {
+		type: initType,
+		subs: isSub,
+		i18n: {
+			speed: gettext.translate(msg.plyr.speed),
+			normal: gettext.translate(msg.plyr.normal)
+		}
+	}
+
+	websocket.emit('webplayer-init', webData);
 }
 
 function checkNextTrack()
