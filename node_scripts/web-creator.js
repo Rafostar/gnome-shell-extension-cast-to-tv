@@ -14,7 +14,7 @@ exports.fileStream = function(req, res)
 	if(!filePath)
 	{
 		res.statusCode = 404;
-		res.end("No media file selected!");
+		res.end();
 		return;
 	}
 
@@ -50,8 +50,8 @@ exports.fileStream = function(req, res)
 		var chunksize = (part.end - part.start) + 1;
 		var file = fs.createReadStream(filePath, {start: part.start, end: part.end});
 
-		res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
 		res.setHeader('Accept-Ranges', 'bytes');
+		res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
 		res.setHeader('Content-Length', chunksize);
 		res.statusCode = 206;
 		return file.pipe(res);
@@ -59,7 +59,7 @@ exports.fileStream = function(req, res)
 	else
 	{
 		res.statusCode = 404;
-		res.end(`File ${filePath} not found!`);
+		res.end();
 	}
 }
 
@@ -70,7 +70,7 @@ exports.encodedStream = function(req, res)
 	if(!filePath)
 	{
 		res.statusCode = 404;
-		res.end("No media file selected!");
+		res.end();
 		return;
 	}
 
@@ -78,7 +78,7 @@ exports.encodedStream = function(req, res)
 	if(encode.streamProcess)
 	{
 		res.statusCode = 429;
-		res.end("Streaming is already active!");
+		res.end();
 		return;
 	}
 
@@ -105,7 +105,7 @@ exports.encodedStream = function(req, res)
 	else
 	{
 		res.statusCode = 404;
-		res.end(`File ${filePath} not found!`);
+		res.end();
 	}
 }
 
@@ -124,14 +124,8 @@ exports.subsStream = function(req, res)
 
 	if(exist)
 	{
-		/* Get stat from file */
-		var statSubs = fs.statSync(subsPath);
-		var totalSubs = statSubs.size;
-
 		res.writeHead(200, {
 			'Access-Control-Allow-Origin': '*',
-			'Accept-Ranges': 'bytes',
-			'Content-Length': totalSubs,
 			'Content-Type': 'text/vtt'
 		});
 
@@ -141,7 +135,6 @@ exports.subsStream = function(req, res)
 	{
 		res.statusCode = 204;
 		res.end();
-		return;
 	}
 }
 
@@ -167,6 +160,6 @@ exports.coverStream = function(req, res)
 
 exports.pageWrong = function(req, res)
 {
-	res.statusCode = 400;
-	res.end("Bad Request!");
+	res.writeHead(302, { 'Location': '/' });
+	res.end();
 }
