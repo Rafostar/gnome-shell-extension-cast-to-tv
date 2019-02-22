@@ -7,28 +7,22 @@ const translationsDir = path.join(__dirname + '/../locale');
 const domain = 'cast-to-tv';
 
 var gt = new Gettext();
-var init = false;
 exports.locales = [];
 
 exports.initTranslations = function()
 {
-	if(!init)
-	{
-		gt.setTextDomain(domain);
+	gt.setTextDomain(domain);
 
-		exports.locales = fs.readdirSync(translationsDir);
+	exports.locales = fs.readdirSync(translationsDir);
 
-		exports.locales.forEach((locale) => {
-			var fileName = domain + '.mo';
-			var translationsFilePath = path.join(translationsDir, locale, 'LC_MESSAGES', fileName);
-			var translationsContent = fs.readFileSync(translationsFilePath);
+	exports.locales.forEach((locale) => {
+		var fileName = domain + '.mo';
+		var translationsFilePath = path.join(translationsDir, locale, 'LC_MESSAGES', fileName);
+		var translationsContent = fs.readFileSync(translationsFilePath);
 
-			var parsedTranslations = moParser.parse(translationsContent);
-			gt.addTranslations(locale, domain, parsedTranslations);
-		});
-
-		init = true;
-	}
+		var parsedTranslations = moParser.parse(translationsContent);
+		gt.addTranslations(locale, domain, parsedTranslations);
+	});
 }
 
 exports.setLocale = function(locale)
