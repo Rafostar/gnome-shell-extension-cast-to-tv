@@ -7,25 +7,28 @@ const MetadataDomain = 'cast-to-tv';
 const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
 const localPath = ARGV[0];
+const streamType = ARGV[1];
 imports.searchPath.unshift(localPath);
 const shared = imports.shared.module.exports;
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 
 Gtk.init(null);
 
-class fileChoser
+class fileChooser
 {
 	constructor()
 	{
 		let configContents = this._getConfig();
 		let selectionContents = {};
-		selectionContents.streamType = ARGV[1];
+		selectionContents.streamType = streamType;
 		selectionContents.subsPath = '';
 
 		if(!configContents || !selectionContents.streamType) return;
 
-		/* Run server (process exits if already running) */
-		GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
+		const isServer = checkServerRunning();
+
+		/* Start server if it is not running already */
+		if(!isServer) GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 
 		this.fileChooser = new Gtk.FileChooserDialog();
 		this.fileFilter = new Gtk.FileFilter();
@@ -208,4 +211,13 @@ class fileChoser
 	}
 }
 
-let dialog = new fileChoser();
+function checkServerRunning()
+{
+	const [res, out_fd] = GLib.spawn_command_line_sync('pgrep -a node');
+	const outStr = out_fd.toString();
+
+	if(res && outStr.indexOf('cast-to-tv') >= 0) return true;
+	else return false;
+}
+
+let dialog = new fileChooser();
