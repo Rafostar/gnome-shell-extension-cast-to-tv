@@ -15,7 +15,7 @@ var seekTime;
 
 var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
 
-class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
+var castMenu = class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
 {
 	constructor()
 	{
@@ -47,7 +47,7 @@ class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
 	}
 }
 
-class CastRemoteMenu extends PanelMenu.Button
+var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
 	constructor()
 	{
@@ -243,9 +243,9 @@ class PopupBase extends PopupMenu.PopupBaseMenuItem
 	}
 }
 
-var MediaControlButton = GObject.registerClass({
-	GTypeName: 'MediaControlButton'
-}, class MediaControlButton extends St.Button {
+var MediaControlButton = GObject.registerClass(
+class MediaControlButton extends St.Button
+{
 	_init(buttonIconName, toggle)
 	{
 		super._init({
