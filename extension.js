@@ -233,7 +233,7 @@ function changeRemotePosition()
 {
 	/* Remove previous indicator */
 	remoteMenu.destroy();
-	remoteMenu = new Widget.CastRemoteMenu;
+	remoteMenu = new Widget.remoteMenu;
 
 	setRemotePosition();
 }
