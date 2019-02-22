@@ -1,7 +1,6 @@
 var spawn = require('child_process').spawn;
 var bridge = require('./bridge');
 var extract = require('./extract');
-var remove = require('./remove');
 var gnome = require('./gnome');
 var msg = require('./messages.js');
 var shared = require('../shared');
@@ -14,38 +13,6 @@ exports.streamProcess = null;
 String.prototype.replaceAt = function(index, replacement)
 {
 	return this.substr(0, index) + replacement + this.substr(index + 1);
-}
-
-exports.refreshSelection = function()
-{
-	if(bridge.selection.subsPath)
-	{
-		extract.coverProcess = null;
-		extract.detectSubsEncoding(bridge.selection.subsPath);
-	}
-	else if(bridge.selection.filePath)
-	{
-		switch(bridge.selection.streamType)
-		{
-			case 'MUSIC':
-				extract.subsProcess = null;
-				extract.findCoverFile();
-				extract.analyzeFile();
-				remove.file(shared.vttSubsPath);
-				break;
-			case 'PICTURE':
-				extract.coverProcess = null;
-				extract.subsProcess = null;
-				remove.covers();
-				remove.file(shared.vttSubsPath);
-				break;
-			default:
-				extract.coverProcess = null;
-				remove.covers();
-				extract.analyzeFile();
-				break;
-		}
-	}
 }
 
 function getSubsPath()

@@ -2,6 +2,7 @@ var fs = require('fs');
 var server = require('./server');
 var encode = require('./encode');
 var extract = require('./extract');
+var remove = require('./remove');
 var chromecast = require('./chromecast');
 var gnome = require('./gnome');
 var socket = require('./server-socket');
@@ -45,8 +46,25 @@ function getRemote()
 
 function setProcesses()
 {
-	extract.subsProcess = true;
-	extract.coverProcess = true;
+	switch(exports.selection.streamType)
+	{
+		case 'MUSIC':
+			extract.coverProcess = true;
+			extract.findCoverFile();
+			extract.analyzeFile();
+			remove.file(shared.vttSubsPath);
+			break;
+		case 'PICTURE':
+			remove.covers();
+			remove.file(shared.vttSubsPath);
+			break;
+		default:
+			extract.subsProcess = true;
+			if(exports.selection.subsPath) extract.detectSubsEncoding(exports.selection.subsPath);
+			else extract.analyzeFile();
+			remove.covers();
+			break;
+	}
 }
 
 fs.watchFile(shared.configPath, { interval: 3000 }, (curr, prev) => {
@@ -60,11 +78,13 @@ fs.watchFile(shared.selectionPath, { interval: 1000 }, (curr, prev) => {
 
 	exports.selection = getSelection();
 
-	setProcesses();
-	encode.refreshSelection();
+	if(exports.selection.filePath)
+	{
+		setProcesses();
 
-	if(exports.config.receiverType == 'chromecast') chromecast.cast();
-	else if(exports.config.receiverType == 'other') socket.emit('reload');
+		if(exports.config.receiverType == 'chromecast') chromecast.cast();
+		else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
+	}
 });
 
 fs.watchFile(shared.listPath, { interval: 1000 }, (curr, prev) => {
