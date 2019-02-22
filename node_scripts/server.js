@@ -11,6 +11,7 @@ var listeningPort = bridge.config.listeningPort;
 
 var server = app.listen(listeningPort).on('error', () => process.exit());
 socket.listen(server);
+gettext.initTranslations();
 
 exports.refreshConfig = function()
 {
@@ -58,7 +59,6 @@ function checkMessagePage(req, res)
 
 app.get('/', function(req, res)
 {
-	gettext.initTranslations();
 	var lang = req.acceptsLanguages.apply(req, gettext.locales);
 
 	if(lang) gettext.setLocale(lang);
