@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-02-22 15:40+0100\n"
-"PO-Revision-Date: 2019-02-16 03:16+0300\n"
+"PO-Revision-Date: 2019-02-22 23:01+0300\n"
 "Last-Translator: Serdar Sağlam <teknomobil@yandex.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -193,48 +193,46 @@ msgstr "Akış işlemi hala etkin"
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:9
 msgid "FFmpeg could not transcode file:"
-msgstr ""
+msgstr "FFmpeg dosya kodunu dönüştüremedi:"
 
 #: node_scripts/messages.js:10
-#, fuzzy
 msgid "FFmpeg path is incorrect"
-msgstr "FFmpeg yolu"
+msgstr "FFmpeg yolu yanlış"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:12
 msgid "FFprobe could not process file:"
-msgstr ""
+msgstr "FFprobe dosyayı işleyemedi:"
 
 #: node_scripts/messages.js:13
-#, fuzzy
 msgid "FFprobe path is incorrect"
-msgstr "FFprobe yolu"
+msgstr "FFprobe yolu yanlış"
 
 #: node_scripts/messages.js:15
 msgid "Speed"
-msgstr ""
+msgstr "Hız"
 
 #. TRANSLATORS: One of "Speed" setting value
 #: node_scripts/messages.js:17
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: node_scripts/messages.js:20
 msgid "Device not found"
-msgstr ""
+msgstr "Aygıt bulunamadı"
 
 #: node_scripts/messages.js:21
 msgid "Failed to load media"
-msgstr ""
+msgstr "Medya yüklenemedi"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:23
 msgid "Could not play file:"
-msgstr ""
+msgstr "Dosya oynatılamadı:"
 
 #: node_scripts/messages.js:24
 msgid "Try again with transcoding enabled"
-msgstr ""
+msgstr "Kod dönüştürme etkinken tekrar deneyin"
 
 #~ msgid "Subtitles encoding"
 #~ msgstr "Altyazı kodlaması"
