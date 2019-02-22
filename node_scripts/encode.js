@@ -37,13 +37,11 @@ exports.refreshSelection = function()
 				extract.coverProcess = null;
 				extract.subsProcess = null;
 				remove.covers();
-				remove.file(shared.metadataPath);
 				remove.file(shared.vttSubsPath);
 				break;
 			default:
 				extract.coverProcess = null;
 				remove.covers();
-				remove.file(shared.metadataPath);
 				extract.analyzeFile();
 				break;
 		}

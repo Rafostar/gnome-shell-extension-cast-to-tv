@@ -11,7 +11,6 @@ module.exports = {
 	configPath: tempDir + 'config.json',
 	selectionPath: tempDir + 'selection.json',
 	listPath: tempDir + 'playlist.json',
-	metadataPath: tempDir + 'metadata.json',
 	remotePath: tempDir + 'chromecast-remote.json',
 	statusPath: tempDir + 'chromecast-status.json',
 	vttSubsPath: tempDir + 'webplayer_subs.vtt',
