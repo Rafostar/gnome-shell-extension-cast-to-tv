@@ -14,14 +14,13 @@ function getInfo(filePath, opts, cb)
 
 	ffprobe.once('close', function(code)
 	{
-		if(!code)
-		{
-			d.resolve(info);
-		}
-		else
-		{
-			d.reject(new Error("FFprobe error"));
-		}
+		if(!code) d.resolve(info);
+		else d.reject(new Error("FFprobe process error"));
+	});
+
+	ffprobe.once('error', function(error)
+	{
+		d.reject(new Error("FFprobe exec error"));
 	});
 
 	ffprobe.stdout

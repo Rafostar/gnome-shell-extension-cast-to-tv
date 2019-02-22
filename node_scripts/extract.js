@@ -6,6 +6,7 @@ var bridge = require('./bridge');
 var ffprobe = require('./ffprobe');
 var remove = require('./remove');
 var gnome = require('./gnome');
+var msg = require('./messages.js');
 var shared = require('../shared');
 
 exports.subsProcess = null;
@@ -50,8 +51,9 @@ exports.analyzeFile = function()
 			if(bridge.selection.streamType == 'MUSIC') checkMetadata(value);
 			else checkBuiltInSubs(value);
 		})
-		.catch(error => {
-			gnome.notify('Cast to TV', 'Error: FFprobe could not process file ' + bridge.selection.filePath + '\nCheck FFprobe path and file permissions');
+		.catch(err => {
+			if(err == 'Error: FFprobe process error') gnome.notify('Cast to TV', msg.ffprobeError + " " + bridge.selection.filePath);
+			else if(err == 'Error: FFprobe exec error') gnome.notify('Cast to TV', msg.ffprobePath);
 			exports.subsProcess = null;
 			exports.coverProcess = null;
 		});

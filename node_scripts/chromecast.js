@@ -6,6 +6,8 @@ var bridge = require('./bridge');
 var extract = require('./extract');
 var remove = require('./remove');
 var gnome = require('./gnome');
+var gettext = require('./gettext');
+var msg = require('./messages.js');
 var shared = require('../shared');
 
 /* Chromecast Opts */
@@ -163,7 +165,7 @@ function launchCast()
 		else if(connectRetry == shared.chromecast.retryNumber)
 		{
 			gnome.showRemote(false);
-			gnome.notify('Chromecast', err);
+			if(err) showTranslatedError(err);
 		}
 		else if(p)
 		{
@@ -261,7 +263,7 @@ function getChromecastStatus(p)
 	{
 		if(err)
 		{
-			gnome.notify('Chromecast', err);
+			showTranslatedError(err);
 			return closeCast(p);
 		}
 
@@ -284,13 +286,19 @@ function checkStatusError(status)
 {
 	if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
 	{
-		if(transcodigEnabled) gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath);
-		else gnome.notify('Chromecast', 'Error: could not play file ' + bridge.selection.filePath + '\nTry again with transcoding enabled');
+		if(transcodigEnabled) gnome.notify('Chromecast', msg.chromecast.playError + " " + bridge.selection.filePath);
+		else gnome.notify('Chromecast', msg.chromecast.playError + " " + bridge.selection.filePath + '\n' + msg.chromecast.tryAgain);
 
 		return false;
 	}
 
 	return true;
+}
+
+function showTranslatedError(err)
+{
+	if(err == 'Error: device not found') gnome.notify('Chromecast', msg.chromecast.notFound);
+	else if(err == 'Error: load failed') gnome.notify('Chromecast', msg.chromecast.loadFailed);
 }
 
 function checkRemoteAction(p, status)
