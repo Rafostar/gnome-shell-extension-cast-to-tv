@@ -20,28 +20,10 @@ exports.changeTrack = function(id)
 	fs.writeFileSync(shared.selectionPath, JSON.stringify(exports.selection, null, 1));
 }
 
-function getConfig()
+function getContents(path)
 {
-	delete require.cache[shared.configPath];
-	return require(shared.configPath);
-}
-
-function getSelection()
-{
-	delete require.cache[shared.selectionPath];
-	return require(shared.selectionPath);
-}
-
-function getList()
-{
-	delete require.cache[shared.listPath];
-	return require(shared.listPath);
-}
-
-function getRemote()
-{
-	delete require.cache[shared.remotePath];
-	return require(shared.remotePath);
+	delete require.cache[path];
+	return require(path);
 }
 
 function setProcesses()
@@ -69,14 +51,14 @@ function setProcesses()
 
 fs.watchFile(shared.configPath, { interval: 3000 }, (curr, prev) => {
 
-	exports.config = getConfig();
+	exports.config = getContents(shared.configPath);
 
 	server.refreshConfig();
 });
 
 fs.watchFile(shared.selectionPath, { interval: 1000 }, (curr, prev) => {
 
-	exports.selection = getSelection();
+	exports.selection = getContents(shared.selectionPath);
 
 	if(exports.selection.filePath)
 	{
@@ -89,13 +71,14 @@ fs.watchFile(shared.selectionPath, { interval: 1000 }, (curr, prev) => {
 
 fs.watchFile(shared.listPath, { interval: 1000 }, (curr, prev) => {
 
-	exports.list = getList();
+	exports.list = getContents(shared.listPath);
 
 	gnome.showRemote(false);
 });
 
 fs.watchFile(shared.remotePath, { interval: 250 }, (curr, prev) => {
 
-	exports.remote = getRemote();
+	exports.remote = getContents(shared.remotePath);
+
 	chromecast.remote(exports.remote.action, exports.remote.value);
 });
