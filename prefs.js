@@ -2,6 +2,7 @@ const { Gtk, Gio, GLib, GObject } = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Local = ExtensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
+const Temp = Local.imports.temp;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -22,6 +23,8 @@ class CastToTvSettings extends Gtk.Grid
 
 		let label = null;
 		let widget = null;
+		let box = null;
+		let button = null;
 		let value = null;
 
 		/* Label: General */
@@ -40,7 +43,7 @@ class CastToTvSettings extends Gtk.Grid
 			halign: Gtk.Align.START,
 			margin_left: 12
 		});
-		widget = new Gtk.Entry({hexpand: true, halign:Gtk.Align.FILL});
+		widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffmpeg");
 		this._settings.bind('ffmpeg-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 1, 1, 1);
@@ -53,7 +56,7 @@ class CastToTvSettings extends Gtk.Grid
 			halign: Gtk.Align.START,
 			margin_left: 12
 		});
-		widget = new Gtk.Entry({hexpand: true, halign:Gtk.Align.FILL});
+		widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffprobe");
 		this._settings.bind('ffprobe-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 2, 1, 1);
@@ -198,6 +201,47 @@ class CastToTvSettings extends Gtk.Grid
 		this._settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 12, 1, 1);
 		this.attach(widget, 1, 12, 1, 1);
+
+		/* Chromecast device name */
+		label = new Gtk.Label({
+			label: _("Chromecast selection"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		box = new Gtk.Box({halign:Gtk.Align.END});
+		widget = new Gtk.ComboBoxText();
+		button = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
+		box.pack_end(button, false, false, 0);
+		box.pack_end(widget, false, false, 8);
+		setDevices(widget);
+		button.connect('clicked', scanDevices.bind(this, widget));
+		this._settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 13, 1, 1);
+		this.attach(box, 1, 13, 1, 1);
+	}
+}
+
+function scanDevices(widget)
+{
+	widget.remove_all();
+
+	GLib.spawn_command_line_sync('node' + ' ' + Local.path + '/node_scripts/scanner');
+
+	setDevices(widget);
+	widget.set_active(0);
+}
+
+function setDevices(widget)
+{
+	widget.append('', 'Automatic');
+	let devices = Temp.readFromFile(Local.path + '/devices.json');
+
+	if(devices)
+	{
+		devices.forEach(device => {
+			widget.append(device.name, device.friendlyName);
+		});
 	}
 }
 

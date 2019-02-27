@@ -224,6 +224,12 @@ function changeMusicVisualizer()
 	Temp.writeToFile(shared.configPath, configContents);
 }
 
+function changeChromecastName()
+{
+	configContents.chromecastName = Settings.get_string('chromecast-name');
+	Temp.writeToFile(shared.configPath, configContents);
+}
+
 function changeSeekTime()
 {
 	Widget.seekTime = Settings.get_int('seek-time');
@@ -265,6 +271,7 @@ function enable()
 	Signals.push(Settings.connect('changed::remote-position', changeRemotePosition.bind(this)));
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
 	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
+	Signals.push(Settings.connect('changed::chromecast-name', changeChromecastName.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 
 	/* Set insert position after network menu items */

@@ -53,7 +53,8 @@ function setConfigFile()
 		listeningPort: Settings.get_int('listening-port'),
 		videoBitrate: Settings.get_double('video-bitrate').toFixed(1),
 		videoAcceleration: Settings.get_string('video-acceleration'),
-		musicVisualizer: Settings.get_boolean('music-visualizer')
+		musicVisualizer: Settings.get_boolean('music-visualizer'),
+		chromecastName: Settings.get_string('chromecast-name')
 	};
 
 	/* Use default paths if custom paths are not defined */

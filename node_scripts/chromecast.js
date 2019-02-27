@@ -206,15 +206,17 @@ function onIntervalError(p)
 function getChromecastOpts()
 {
 	var autoplayState = setAutoplay();
+	var chromecastName = getChromecastName();
 
 	var opts = {
 		path: webUrl,
 		type: mimeType,
 		streamType: initType,
 		autoplay: autoplayState,
-		ttl: shared.chromecast.searchTimeout,
 		activeTrackIds: trackIds,
-		media: mediaTracks
+		media: mediaTracks,
+		device: chromecastName,
+		ttl: shared.chromecast.searchTimeout
 	};
 
 	return opts;
@@ -224,6 +226,14 @@ function setAutoplay()
 {
 	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) return true;
 	else return false;
+}
+
+function getChromecastName()
+{
+	var name = bridge.config.chromecastName;
+	if(!name) name = null;
+
+	return name;
 }
 
 function startPlayback(p)
