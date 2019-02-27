@@ -37,7 +37,7 @@
       <summary>FFmpeg music visualizer</summary>
     </key>
     <key name="chromecast-name" type="s">
-      <default>"Automatic"</default>
+      <default>""</default>
       <summary>Chromecast device name</summary>
     </key>
     <key name="chromecast-playing" type="b">
