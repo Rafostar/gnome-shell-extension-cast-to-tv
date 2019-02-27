@@ -165,7 +165,7 @@ function launchCast()
 		else if(connectRetry == shared.chromecast.retryNumber)
 		{
 			gnome.showRemote(false);
-			if(err) showTranslatedError(err);
+			if(err) showTranslatedError(err.message);
 		}
 		else if(p)
 		{
@@ -273,7 +273,7 @@ function getChromecastStatus(p)
 	{
 		if(err)
 		{
-			showTranslatedError(err);
+			showTranslatedError(err.message);
 			return closeCast(p);
 		}
 
@@ -305,10 +305,10 @@ function checkStatusError(status)
 	return true;
 }
 
-function showTranslatedError(err)
+function showTranslatedError(message)
 {
-	if(err == 'Error: device not found') gnome.notify('Chromecast', msg.chromecast.notFound);
-	else if(err == 'Error: load failed') gnome.notify('Chromecast', msg.chromecast.loadFailed);
+	if(message == 'device not found') gnome.notify('Chromecast', msg.chromecast.notFound);
+	else if(message == 'load failed') gnome.notify('Chromecast', msg.chromecast.loadFailed);
 }
 
 function checkRemoteAction(p, status)

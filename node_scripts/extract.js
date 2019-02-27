@@ -52,8 +52,8 @@ exports.analyzeFile = function()
 			else checkBuiltInSubs(value);
 		})
 		.catch(err => {
-			if(err == 'Error: FFprobe process error') gnome.notify('Cast to TV', msg.ffprobeError + " " + bridge.selection.filePath);
-			else if(err == 'Error: FFprobe exec error') gnome.notify('Cast to TV', msg.ffprobePath);
+			if(err.message == 'FFprobe process error') gnome.notify('Cast to TV', msg.ffprobeError + " " + bridge.selection.filePath);
+			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', msg.ffprobePath);
 			exports.subsProcess = null;
 			exports.coverProcess = null;
 		});

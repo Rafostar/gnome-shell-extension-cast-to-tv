@@ -66,7 +66,7 @@ exports.videoConfig = function()
 
 	exports.streamProcess.once('error', function(error)
 	{
-		if(error == 'Error: spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
 			gnome.notify('Cast to TV', msg.ffmpegPath);
 			notifyError = true;
@@ -115,7 +115,7 @@ exports.videoVaapiConfig = function()
 
 	exports.streamProcess.once('error', function(error)
 	{
-		if(error == 'Error: spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
 			gnome.notify('Cast to TV', msg.ffmpegPath);
 			notifyError = true;
@@ -177,7 +177,7 @@ exports.musicVisualizerConfig = function()
 
 	exports.streamProcess.once('error', function(error)
 	{
-		if(error == 'Error: spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
 			gnome.notify('Cast to TV', msg.ffmpegPath);
 			notifyError = true;
