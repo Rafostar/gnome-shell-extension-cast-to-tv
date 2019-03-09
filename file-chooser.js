@@ -213,10 +213,13 @@ class fileChooser
 
 function checkServerRunning()
 {
-	const [res, out_fd] = GLib.spawn_command_line_sync('pgrep -a node');
-	const outStr = out_fd.toString();
+	let [res, out_fd] = GLib.spawn_command_line_sync('pgrep -a node');
+	let outStr;
 
-	if(res && outStr.indexOf('cast-to-tv') >= 0) return true;
+	if(out_fd instanceof Uint8Array) outStr = ByteArray.toString(out_fd);
+	else outStr = out_fd.toString();
+
+	if(res && outStr.includes('cast-to-tv')) return true;
 	else return false;
 }
 
