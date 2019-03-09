@@ -53,7 +53,7 @@ function addClickListeners()
 	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
 	div.addEventListener('click', startPlayer);
 
-	finishInit(event);
+	finishInit();
 }
 
 function makeID()
@@ -69,7 +69,7 @@ function makeID()
 	return text;
 }
 
-function finishInit(e)
+function finishInit()
 {
 	/* Workaround Plyr volume bug */
 	if(!playerInit)
