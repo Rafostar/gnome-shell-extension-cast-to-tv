@@ -239,7 +239,7 @@ function changeRemotePosition()
 {
 	/* Remove previous indicator */
 	remoteMenu.destroy();
-	remoteMenu = new Widget.remoteMenu;
+	remoteMenu = new Widget.remoteMenu();
 
 	setRemotePosition();
 }
@@ -252,8 +252,8 @@ function init()
 function enable()
 {
 	/* Create new objects from classes */
-	castMenu = new Widget.castMenu;
-	remoteMenu = new Widget.remoteMenu;
+	castMenu = new Widget.castMenu();
+	remoteMenu = new Widget.remoteMenu();
 
 	/* Get remaining necessary settings */
 	Widget.seekTime = Settings.get_int('seek-time');
