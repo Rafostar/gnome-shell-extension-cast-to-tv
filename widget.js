@@ -105,15 +105,15 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', this._onSliderChange.bind(this));
-		this.playButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PLAY', ''));
-		this.pauseButton.connect('clicked', Temp.setRemoteAction.bind(this, 'PAUSE', ''));
-		this.seekForwardButton.connect('clicked', this._onSeekPlus.bind(this));
-		this.seekBackwardButton.connect('clicked', this._onSeekMinus.bind(this));
-		this.repeatButton.connect('clicked', this._onRepeatClick.bind(this));
-		this.stopButton.connect('clicked', Temp.setRemoteAction.bind(this, 'STOP', ''));
-		this.skipBackwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP-', ''));
-		this.skipForwardButton.connect('clicked', Temp.setRemoteAction.bind(this, 'SKIP+', ''));
+		this.positionSlider.connect('value-changed', () => this._onSliderChange());
+		this.playButton.connect('clicked', () => Temp.setRemoteAction('PLAY'));
+		this.pauseButton.connect('clicked', () => Temp.setRemoteAction('PAUSE'));
+		this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime));
+		this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime));
+		this.repeatButton.connect('clicked', () => this._onRepeatClick());
+		this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'));
+		this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'));
+		this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'));
 	}
 
 	_onSliderChange()
@@ -126,16 +126,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	{
 		Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
 		isRepeatActive = this.repeatButton.turnedOn;
-	}
-
-	_onSeekPlus()
-	{
-		Temp.setRemoteAction('SEEK+', seekTime);
-	}
-
-	_onSeekMinus()
-	{
-		Temp.setRemoteAction('SEEK-', seekTime);
 	}
 
 	set label(value)

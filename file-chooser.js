@@ -72,7 +72,7 @@ class fileChooser
 				mimeType = 'video/*';
 				this.fileFilter.add_mime_type(mimeType);
 
-				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', this._onVideoSel.bind(this));
+				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onVideoSel());
 				break;
 			case 'MUSIC':
 				this.fileChooser.set_title(_("Select Music"));
@@ -82,7 +82,7 @@ class fileChooser
 				mimeType = 'audio/*';
 				this.fileFilter.add_mime_type(mimeType);
 
-				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', this._onMusicAndPicSel.bind(this));
+				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onMusicAndPicSel());
 				break;
 			case 'PICTURE':
 				this.fileChooser.set_title(_("Select Picture"));
@@ -91,14 +91,14 @@ class fileChooser
 				this.fileFilter.set_name(_("Pictures"));
 				this.fileFilter.add_pixbuf_formats();
 
-				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', this._onMusicAndPicSel.bind(this));
+				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onMusicAndPicSel());
 				break;
 			default:
 				return;
 		}
 
 		this.fileChooser.add_filter(this.fileFilter);
-		this.fileChooser.connect('response', this._onResponse.bind(this));
+		this.fileChooser.connect('response', () => this._onResponse());
 
 		let DialogResponse = this.fileChooser.run();
 		let filesList = this.filePathChosen.sort();
