@@ -239,9 +239,7 @@ function setDevices(widget)
 
 	if(devices)
 	{
-		devices.forEach(device => {
-			widget.append(device.name, device.friendlyName);
-		});
+		devices.forEach(device => widget.append(device.name, device.friendlyName));
 	}
 }
 
