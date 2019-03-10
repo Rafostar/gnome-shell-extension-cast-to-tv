@@ -39,11 +39,12 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
 		this.musicMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'MUSIC'));
 		this.pictureMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'PICTURE'));
 		this.settingsMenuItem.connect('activate', Spawn.extensionPrefs.bind(this));
-	}
 
-	destroy()
-	{
-		super.destroy();
+		/* Functions */
+		this.destroy = () =>
+		{
+			super.destroy();
+		}
 	}
 }
 
@@ -114,6 +115,79 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'));
 		this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'));
 		this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'));
+
+		/* Functions */
+		this.setSliderValue = (value) =>
+		{
+			this.positionSlider.setValue(value);
+		}
+
+		this.setPlaying = (value) =>
+		{
+			if(value === true)
+			{
+				this.playButton.hide();
+				this.pauseButton.show();
+			}
+			else if(value === false)
+			{
+				this.pauseButton.hide();
+				this.playButton.show();
+			}
+		}
+
+		this.enableRepeat = (value) =>
+		{
+			this.repeatButton.turnOn(value);
+		}
+
+		this.setMode = (value, icon) =>
+		{
+			switch(value)
+			{
+				case 'DIRECT':
+					this.positionSlider.show();
+					this.repeatButton.show();
+					this.pauseButton.show();
+					this.playButton.hide();
+					this.seekBackwardButton.show();
+					this.seekForwardButton.show();
+					break;
+				case 'ENCODE':
+					this.positionSlider.hide();
+					this.repeatButton.show();
+					this.pauseButton.show();
+					this.playButton.hide();
+					this.seekBackwardButton.hide();
+					this.seekForwardButton.hide();
+					break;
+				case 'PICTURE':
+					this.positionSlider.hide();
+					this.repeatButton.hide();
+					this.pauseButton.hide();
+					this.playButton.hide();
+					this.seekBackwardButton.hide();
+					this.seekForwardButton.hide();
+					break;
+			}
+
+			if(icon) this.positionSlider.icon = icon;
+		}
+
+		this.hide = () =>
+		{
+			this.actor.hide();
+		}
+
+		this.show = () =>
+		{
+			this.actor.show();
+		}
+
+		this.destroy = () =>
+		{
+			super.destroy();
+		}
 	}
 
 	_onSliderChange()
@@ -147,78 +221,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	{
 		this.skipForwardButton.reactive = value;
 	}
-
-	setSliderValue(value)
-	{
-		this.positionSlider.setValue(value);
-	}
-
-	setPlaying(value)
-	{
-		if(value === true)
-		{
-			this.playButton.hide();
-			this.pauseButton.show();
-		}
-		else if(value === false)
-		{
-			this.pauseButton.hide();
-			this.playButton.show();
-		}
-	}
-
-	enableRepeat(value)
-	{
-		this.repeatButton.turnOn(value);
-	}
-
-	setMode(value, icon)
-	{
-		switch(value)
-		{
-			case 'DIRECT':
-				this.positionSlider.show();
-				this.repeatButton.show();
-				this.pauseButton.show();
-				this.playButton.hide();
-				this.seekBackwardButton.show();
-				this.seekForwardButton.show();
-				break;
-			case 'ENCODE':
-				this.positionSlider.hide();
-				this.repeatButton.show();
-				this.pauseButton.show();
-				this.playButton.hide();
-				this.seekBackwardButton.hide();
-				this.seekForwardButton.hide();
-				break;
-			case 'PICTURE':
-				this.positionSlider.hide();
-				this.repeatButton.hide();
-				this.pauseButton.hide();
-				this.playButton.hide();
-				this.seekBackwardButton.hide();
-				this.seekForwardButton.hide();
-				break;
-		}
-
-		if(icon) this.positionSlider.icon = icon;
-	}
-
-	hide()
-	{
-		this.actor.hide();
-	}
-
-	show()
-	{
-		this.actor.show();
-	}
-
-	destroy()
-	{
-		super.destroy();
-	}
 }
 
 class PopupBase extends PopupMenu.PopupBaseMenuItem
@@ -230,12 +232,11 @@ class PopupBase extends PopupMenu.PopupBaseMenuItem
 	}
 }
 
-var MediaControlButton = GObject.registerClass(
 class MediaControlButton extends St.Button
 {
-	_init(buttonIconName, toggle)
+	constructor(buttonIconName, toggle)
 	{
-		super._init({
+		super({
 			style: 'padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;',
 			opacity: 130,
 			child: new St.Icon({
@@ -244,21 +245,23 @@ class MediaControlButton extends St.Button
 			})
 		});
 
-		this._turnedOn = false;
+		this.turnedOn = false;
 
-		let callback = () => {
-			if(!this._turnedOn) this.opacity = !this.reactive ? 30 : this.hover ? 255 : 130;
+		let callback = () =>
+		{
+			if(!this.turnedOn) this.opacity = !this.reactive ? 30 : this.hover ? 255 : 130;
 			else this.opacity = 255;
-		};
+		}
 
-		let changeState = () => {
+		let changeState = () =>
+		{
 			if(toggle)
 			{
-				this._turnedOn = !this._turnedOn;
-				if(this._turnedOn) this.opacity = 255;
+				this.turnedOn = !this.turnedOn;
+				if(this.turnedOn) this.opacity = 255;
 				else this.opacity = 130;
 			}
-		};
+		}
 
 		let signalIds = [
 			this.connect('notify::hover', callback),
@@ -266,30 +269,26 @@ class MediaControlButton extends St.Button
 			this.connect('clicked', changeState),
 			this.connect('destroy', () => {
 				signalIds.forEach(signalId => this.disconnect(signalId));
-				this._turnedOn = null;
+				this.turnedOn = null;
 			})
 		];
-	}
 
-	get turnedOn()
-	{
-		return this._turnedOn;
-	}
-
-	turnOn(value)
-	{
-		if(value === true)
+		/* Functions */
+		this.turnOn = (value) =>
 		{
-			this.opacity = 255;
-			this._turnedOn = true;
-		}
-		else if(value === false)
-		{
-			this.opacity = 130;
-			this._turnedOn = false;
+			if(value === true)
+			{
+				this.opacity = 255;
+				this.turnedOn = true;
+			}
+			else if(value === false)
+			{
+				this.opacity = 130;
+				this.turnedOn = false;
+			}
 		}
 	}
-});
+}
 
 class SliderItem extends PopupMenu.PopupBaseMenuItem
 {
@@ -301,7 +300,28 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 
 		this.actor.add(this._icon);
 		this.actor.add(this._slider.actor, { expand: true });
-		this.actor.add_style_pseudo_class = function(){ return null; };
+		this.actor.add_style_pseudo_class = () => { return null };
+
+		/* Functions */
+		this.setValue = (value) =>
+		{
+			this._slider.setValue(value);
+		}
+
+		this.hide = () =>
+		{
+			this.actor.hide();
+		}
+
+		this.show = () =>
+		{
+			this.actor.show();
+		}
+
+		this.connect = (signal, callback) =>
+		{
+			this._slider.connect(signal, callback);
+		}
 	}
 
 	get value()
@@ -313,26 +333,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 	{
 		this._icon.icon_name = value;
 	}
-
-	setValue(value)
-	{
-		this._slider.setValue(value);
-	}
-
-	hide()
-	{
-		this.actor.hide();
-	}
-
-	show()
-	{
-		this.actor.show();
-	}
-
-	connect(signal, callback)
-	{
-		this._slider.connect(signal, callback);
-	}
 }
 
 class trackTitleItem extends PopupMenu.PopupBaseMenuItem
@@ -343,7 +343,7 @@ class trackTitleItem extends PopupMenu.PopupBaseMenuItem
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
 
 		this.actor.add(this._title);
-		this.actor.add_style_pseudo_class = function(){ return null; };
+		this.actor.add_style_pseudo_class = () => { return null };
 	}
 
 	set text(value)
