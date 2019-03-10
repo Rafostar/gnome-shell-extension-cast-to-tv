@@ -1,4 +1,4 @@
-const { Gtk, Gio, GLib, GObject } = imports.gi;
+const { Gtk, Gio, GLib } = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Local = ExtensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;

@@ -1,6 +1,5 @@
 imports.gi.versions.Gtk = '3.0';
-const Gtk = imports.gi.Gtk;
-const GLib = imports.gi.GLib;
+const { Gtk, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';

@@ -1,4 +1,4 @@
-const { St, GObject, Clutter } = imports.gi;
+const { St, Clutter } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
