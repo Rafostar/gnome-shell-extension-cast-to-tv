@@ -57,10 +57,8 @@ function configCastRemote()
 		if(selectionContents.streamType != 'PICTURE') startTimer();
 
 		/* Update track title */
-		let filenameArray = selectionContents.filePath.split('/').pop().split('.');
-		let index = filenameArray.length - 2;
-		if(index < 0) index = 0;
-		remoteMenu.title = filenameArray[index];
+		let filename = selectionContents.filePath;
+		remoteMenu.title = filename.substring(filename.lastIndexOf('/') + 1, filename.lastIndexOf('.'));
 
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
