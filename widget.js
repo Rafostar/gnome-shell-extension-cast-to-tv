@@ -175,26 +175,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		}
 	}
 
-	set label(value)
-	{
-		this.toplabel.text = value;
-	}
-
-	set title(value)
-	{
-		this.trackTitle.text = value;
-	}
-
-	set skipBackwardsReactive(value)
-	{
-		this.skipBackwardButton.reactive = value;
-	}
-
-	set skipForwardReactive(value)
-	{
-		this.skipForwardButton.reactive = value;
-	}
-
 	hide()
 	{
 		this.actor.hide();

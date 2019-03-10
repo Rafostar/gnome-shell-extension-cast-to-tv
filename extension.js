@@ -46,19 +46,19 @@ function configCastRemote()
 		else remoteMenu.enableRepeat(false);
 
 		/* Disable skip backward if playing first file from list */
-		if(trackID > 1) remoteMenu.skipBackwardsReactive = true;
-		else remoteMenu.skipBackwardsReactive = false;
+		if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
+		else remoteMenu.skipBackwardButton.reactive = false;
 
 		/* Disable skip forward if playing last file from list */
-		if(trackID < listLastID) remoteMenu.skipForwardReactive = true;
-		else remoteMenu.skipForwardReactive = false;
+		if(trackID < listLastID) remoteMenu.skipForwardButton.reactive = true;
+		else remoteMenu.skipForwardButton.reactive = false;
 
 		/* Start remote status timer if not streaming pictures */
 		if(selectionContents.streamType != 'PICTURE') startTimer();
 
 		/* Update track title */
 		let filename = selectionContents.filePath;
-		remoteMenu.title = filename.substring(filename.lastIndexOf('/') + 1, filename.lastIndexOf('.'));
+		remoteMenu.trackTitle.text = filename.substring(filename.lastIndexOf('/') + 1, filename.lastIndexOf('.'));
 
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
