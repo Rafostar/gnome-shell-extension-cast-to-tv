@@ -234,7 +234,7 @@ function scanDevices(widget)
 
 function setDevices(widget)
 {
-	widget.append('', 'Automatic');
+	widget.append('', _("Automatic"));
 	let devices = Temp.readFromFile(Local.path + '/devices.json');
 
 	if(devices)
