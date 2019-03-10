@@ -202,15 +202,12 @@ class PopupBase extends PopupMenu.PopupBaseMenuItem
 
 class MediaControlButton extends St.Button
 {
-	constructor(buttonIconName, toggle)
+	constructor(icon, toggle)
 	{
 		super({
 			style: 'padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;',
 			opacity: 130,
-			child: new St.Icon({
-				icon_name: buttonIconName,
-				icon_size: 20
-			})
+			child: new St.Icon({ style_class: 'popup-menu-icon', icon_size: 20, icon_name: icon })
 		});
 
 		this.turnedOn = false;
@@ -263,7 +260,7 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 	constructor(icon)
 	{
 		super({ hover: false, reactive: true });
-		this._icon = new St.Icon({ style_class: 'popup-menu-icon', icon_name: icon });
+		this._icon = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
 		this._slider = new Slider.Slider(0);
 
 		this.actor.add(this._icon);
