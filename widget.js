@@ -39,12 +39,11 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
 		this.musicMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'MUSIC'));
 		this.pictureMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'PICTURE'));
 		this.settingsMenuItem.connect('activate', Spawn.extensionPrefs.bind(this));
+	}
 
-		/* Functions */
-		this.destroy = () =>
-		{
-			super.destroy();
-		}
+	destroy()
+	{
+		super.destroy();
 	}
 }
 
@@ -106,21 +105,27 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', () => this._onSliderChange());
+		this.positionSlider.connect('value-changed', () => {
+			Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
+			sliderChanged = true;
+		});
+
+		this.repeatButton.connect('clicked', () => {
+			Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
+			isRepeatActive = this.repeatButton.turnedOn;
+		});
+
 		this.playButton.connect('clicked', () => Temp.setRemoteAction('PLAY'));
 		this.pauseButton.connect('clicked', () => Temp.setRemoteAction('PAUSE'));
 		this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime));
 		this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime));
-		this.repeatButton.connect('clicked', () => this._onRepeatClick());
 		this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'));
 		this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'));
 		this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'));
 
 		/* Functions */
-		this.setSliderValue = (value) =>
-		{
-			this.positionSlider.setValue(value);
-		}
+		this.setSliderValue = (value) => this.positionSlider.setValue(value);
+		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
 
 		this.setPlaying = (value) =>
 		{
@@ -134,11 +139,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.pauseButton.hide();
 				this.playButton.show();
 			}
-		}
-
-		this.enableRepeat = (value) =>
-		{
-			this.repeatButton.turnOn(value);
 		}
 
 		this.setMode = (value, icon) =>
@@ -173,33 +173,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(icon) this.positionSlider.icon = icon;
 		}
-
-		this.hide = () =>
-		{
-			this.actor.hide();
-		}
-
-		this.show = () =>
-		{
-			this.actor.show();
-		}
-
-		this.destroy = () =>
-		{
-			super.destroy();
-		}
-	}
-
-	_onSliderChange()
-	{
-		Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
-		sliderChanged = true;
-	}
-
-	_onRepeatClick()
-	{
-		Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
-		isRepeatActive = this.repeatButton.turnedOn;
 	}
 
 	set label(value)
@@ -220,6 +193,21 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	set skipForwardReactive(value)
 	{
 		this.skipForwardButton.reactive = value;
+	}
+
+	hide()
+	{
+		this.actor.hide();
+	}
+
+	show()
+	{
+		this.actor.show();
+	}
+
+	destroy()
+	{
+		super.destroy();
 	}
 }
 
@@ -303,25 +291,10 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.actor.add_style_pseudo_class = () => { return null };
 
 		/* Functions */
-		this.setValue = (value) =>
-		{
-			this._slider.setValue(value);
-		}
-
-		this.hide = () =>
-		{
-			this.actor.hide();
-		}
-
-		this.show = () =>
-		{
-			this.actor.show();
-		}
-
-		this.connect = (signal, callback) =>
-		{
-			this._slider.connect(signal, callback);
-		}
+		this.setValue = (value) => this._slider.setValue(value);
+		this.hide = () => this.actor.hide();
+		this.show = () => this.actor.show();
+		this.connect = (signal, callback) => this._slider.connect(signal, callback);
 	}
 
 	get value()
