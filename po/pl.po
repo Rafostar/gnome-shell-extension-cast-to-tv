@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-03-10 18:14+0100\n"
-"PO-Revision-Date: 2019-02-20 12:21+0100\n"
+"PO-Revision-Date: 2019-03-11 22:16+0100\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
 "Language: pl\n"
@@ -176,13 +176,12 @@ msgid "Music visualizer"
 msgstr "Wizualizacje muzyczne"
 
 #: prefs.js:207
-#, fuzzy
 msgid "Chromecast selection"
-msgstr "Chromecast pilot"
+msgstr "Wybór Chromecasta"
 
 #: prefs.js:237
 msgid "Automatic"
-msgstr ""
+msgstr "Automatyczny"
 
 #: node_scripts/messages.js:4
 msgid "LOADING"
