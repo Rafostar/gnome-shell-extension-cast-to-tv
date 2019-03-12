@@ -1,5 +1,4 @@
-imports.gi.versions.Gtk = '3.0';
-const { Gtk, GLib } = imports.gi;
+const { Gio, Gtk, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';
@@ -11,11 +10,31 @@ imports.searchPath.unshift(localPath);
 const shared = imports.shared.module.exports;
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 
-Gtk.init(null);
-
 class fileChooser
 {
 	constructor()
+	{
+		GLib.set_prgname('Cast to TV');
+		this.application = new Gtk.Application();
+		this.application.connect('activate', () => this._openDialog());
+		this.application.connect('startup', () => this._buildUI());
+		this.application.run([]);
+	}
+
+	_buildUI()
+	{
+		this.window = new Gtk.ApplicationWindow();
+		this.fileChooser = new Gtk.FileChooserDialog({ transient_for: this.window, window_position: Gtk.WindowPosition.CENTER });
+
+		let iconTheme = Gtk.IconTheme.get_default();
+		if(iconTheme.has_icon('cast-to-tv')) this.fileChooser.set_icon_name('cast-to-tv');
+		else {
+			try { this.fileChooser.set_icon_from_file(localPath + '/appIcon/cast-to-tv.svg'); }
+			catch(err) { this.fileChooser.set_icon_name('application-x-executable'); }
+		}
+	}
+
+	_openDialog()
 	{
 		let configContents = this._getConfig();
 		let selectionContents = {};
@@ -29,7 +48,6 @@ class fileChooser
 		/* Start server if it is not running already */
 		if(!isServer) GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 
-		this.fileChooser = new Gtk.FileChooserDialog();
 		this.fileFilter = new Gtk.FileFilter();
 		let buttonConvert = new Gtk.CheckButton({label: _("Transcode Video")});
 		let box = new Gtk.Box({spacing: 10});
