@@ -15,12 +15,13 @@ var seekTime;
 
 var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
 
-var castMenu = class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
+var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 {
 	constructor()
 	{
-		super(_("Cast Media"), true);
-		this.icon.icon_name = iconName;
+		super();
+		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
+		this.castSubMenu.icon.icon_name = iconName;
 
 		/* Expandable menu */
 		this.videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
@@ -29,16 +30,18 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupSubMenuMenuItem
 		this.settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
 
 		/* Assemble all menu items */
-		this.menu.addMenuItem(this.videoMenuItem);
-		this.menu.addMenuItem(this.musicMenuItem);
-		this.menu.addMenuItem(this.pictureMenuItem);
-		this.menu.addMenuItem(this.settingsMenuItem);
+		this.castSubMenu.menu.addMenuItem(this.videoMenuItem);
+		this.castSubMenu.menu.addMenuItem(this.musicMenuItem);
+		this.castSubMenu.menu.addMenuItem(this.pictureMenuItem);
+		this.castSubMenu.menu.addMenuItem(this.settingsMenuItem);
 
 		/* Signals connections */
 		this.videoMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'VIDEO'));
 		this.musicMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'MUSIC'));
 		this.pictureMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'PICTURE'));
 		this.settingsMenuItem.connect('activate', Spawn.extensionPrefs.bind(this));
+
+		this.addMenuItem(this.castSubMenu);
 	}
 
 	destroy()
