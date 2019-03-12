@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-10 18:14+0100\n"
-"PO-Revision-Date: 2019-02-02 10:38+0100\n"
-"Last-Translator: Rafostar\n"
+"POT-Creation-Date: 2019-03-10 18:18+0100\n"
+"PO-Revision-Date: 2019-03-12 09:47+0100\n"
 "Language-Team: \n"
-"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.9\n"
+"X-Generator: Poedit 2.0.6\n"
+"Last-Translator: Jimmy Scionti <jimmy.scionti@gmail.com>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: it_IT\n"
 
 #: widget.js:22
 msgid "Cast Media"
@@ -32,11 +32,11 @@ msgstr "Musica"
 
 #: widget.js:28
 msgid "Picture"
-msgstr "Immagine"
+msgstr "Immagini"
 
 #: widget.js:29
 msgid "Cast Settings"
-msgstr "Impostazioni di condivisione"
+msgstr "Condiviti impostazioni"
 
 #: widget.js:54 widget.js:58 prefs.js:140
 msgid "Chromecast Remote"
@@ -168,82 +168,76 @@ msgstr "Cerca indietro/avanti (secondi)"
 #. TRANSLATORS: The rest  of settings (something like "Other" or "Remaining")
 #: prefs.js:183
 msgid "Miscellaneous"
-msgstr "Altro"
+msgstr "Extra"
 
 #: prefs.js:193
 msgid "Music visualizer"
 msgstr "Visualizzatore musicale"
 
 #: prefs.js:207
-#, fuzzy
 msgid "Chromecast selection"
-msgstr "Chromecast remoto"
+msgstr "Seleziona Chromecast"
 
 #: prefs.js:237
 msgid "Automatic"
-msgstr ""
+msgstr "Automatico"
 
 #: node_scripts/messages.js:4
 msgid "LOADING"
-msgstr ""
+msgstr "CARICAMENTO"
 
 #: node_scripts/messages.js:5
 msgid "No file selected"
-msgstr ""
+msgstr "Nessun file selezionato"
 
 #: node_scripts/messages.js:6
 msgid "Receiver type is set to Chromecast"
-msgstr ""
+msgstr "Il tipo di ricevitore è impostato su Chromecast"
 
 #: node_scripts/messages.js:7
 msgid "Streaming process is still active"
-msgstr ""
+msgstr "Il processo di streaming è ancora attivo"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:9
 msgid "FFmpeg could not transcode file:"
-msgstr ""
+msgstr "FFmpeg non può transcodificare il file:"
 
 #: node_scripts/messages.js:10
-#, fuzzy
 msgid "FFmpeg path is incorrect"
-msgstr "Percorso FFmpeg"
+msgstr "Il percorso per FFmpeg non è corretto"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:12
 msgid "FFprobe could not process file:"
-msgstr ""
+msgstr "FFmpeg non può processare il file:"
 
 #: node_scripts/messages.js:13
-#, fuzzy
 msgid "FFprobe path is incorrect"
-msgstr "Percorso FFprobe"
+msgstr "Il percorso per FFprobe non è corretto"
 
 #: node_scripts/messages.js:15
 msgid "Speed"
-msgstr ""
+msgstr "Velocità"
 
 #. TRANSLATORS: One of "Speed" setting value
 #: node_scripts/messages.js:17
 msgid "Normal"
-msgstr ""
+msgstr "Normale"
 
 #: node_scripts/messages.js:20
 msgid "Device not found"
-msgstr ""
+msgstr "Dispositivo non trovato"
 
 #: node_scripts/messages.js:21
 msgid "Failed to load media"
-msgstr ""
+msgstr "Fallito caricamento del media"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:23
 msgid "Could not play file:"
-msgstr ""
+msgstr "Impossibile riprodurre il file:"
 
 #: node_scripts/messages.js:24
 msgid "Try again with transcoding enabled"
-msgstr ""
-
-#~ msgid "Subtitles encoding"
-#~ msgstr "Sottotitoli codificati"
+msgstr "Riprova con la transcodifica abilitata"
