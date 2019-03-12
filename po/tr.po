@@ -1,4 +1,4 @@
-# SOME DESCRIPTIVE TITLE.
+# Cast to TV Türkçe Çeviri.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the Cast to TV package.
 # Serdar Sağlam <teknomobil@yandex.com>, 2019.
@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-03-10 18:14+0100\n"
-"PO-Revision-Date: 2019-02-22 23:01+0300\n"
+"PO-Revision-Date: 2019-03-12 03:11+0300\n"
 "Last-Translator: Serdar Sağlam <teknomobil@yandex.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -175,13 +175,12 @@ msgid "Music visualizer"
 msgstr "Müzik görselleştirici"
 
 #: prefs.js:207
-#, fuzzy
 msgid "Chromecast selection"
-msgstr "Chromecast Kumandası"
+msgstr "Chromecast seçimi"
 
 #: prefs.js:237
 msgid "Automatic"
-msgstr ""
+msgstr "Otomatik"
 
 #: node_scripts/messages.js:4
 msgid "LOADING"
