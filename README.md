@@ -3,16 +3,30 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
 [![Donate](https://img.shields.io/badge/Donate-PayPal.Me-lightgrey.svg)](https://www.paypal.me/Rafostar)
 
-Cast files to your Chromecast or other devices over local network.
+Cast files to Chromecast, web browser or media player app over local network.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png" width="80%" height="80%">
 </p>
 
+## Features
+* Cast videos, music and pictures to:
+  * Chromecast devices
+  * Any device with web browser (other pc or smartphone)
+  * Media player app (eg. MPV, VLC)
+* Supports external and built-in subtitles (along with custom fansubs)
+* Chromecast remote controller (control playback from gnome top bar)
+* Play on other device using integrated web player
+* Transcode videos to supported format on the fly
+* Optional VAAPI video encoding for low cpu usage
+* Play audio with music visualizations (requires fast cpu)
+
 ## Installation
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
 
 [<img src="https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/Gnome-Extensions.png" width="30%" height="30%">](https://extensions.gnome.org/extension/1544/cast-to-tv)
+
+Installation from source code is described in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
 
 After enabling the extension, remember to install [required dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements).
 
@@ -35,17 +49,8 @@ npm install
 ```
 You can use hardware VAAPI encoding (optional). This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
 
-## Features
-* Cast videos, music and pictures
-* Supports external and built-in subtitles (along with custom fansubs)
-* Chromecast remote controller (control playback from gnome top bar)
-* Play on other device using integrated web player or other video player (e.g. mpv or vlc)
-* Convert videos to supported format on the fly
-* Optional VAAPI video encoding for low cpu usage
-* Play audio with music visualizations (requires fast cpu)
-
 ## How to use
-Detailed instructions related to configuration and using the extension are on [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
+Detailed instructions related to configuration and using the extension are in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
 <br>You can also find some usage examples there.
 
 Check out [FAQ](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/FAQ), before asking questions.
