@@ -1,5 +1,5 @@
 {
-  "description": "Cast files to your Chromecast or other devices over local network.\n\nThis extension requires some additional dependencies.\nVisit this extension homepage for more info on how to install and use.\n\nPlease use GitHub to report issues.", 
+  "description": "Cast files to Chromecast, web browser or media player app over local network.\n\nThis extension requires some additional dependencies.\nVisit this extension homepage for more info on how to install and use.\n\nPlease use GitHub to report issues.", 
   "extension-id": "cast-to-tv", 
   "gettext-domain": "cast-to-tv", 
   "name": "Cast to TV", 
