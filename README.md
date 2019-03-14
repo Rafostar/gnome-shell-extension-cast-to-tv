@@ -12,7 +12,7 @@ Cast files to Chromecast, web browser or media player app over local network.
 ## Features
 * Cast videos, music and pictures to:
   * Chromecast devices
-  * Any device with web browser (other pc or smartphone)
+  * Any device with web browser (other PC or smartphone)
   * Media player app (eg. MPV, VLC)
 * Supports external and built-in subtitles (along with custom fansubs)
 * Chromecast remote controller (control playback from gnome top bar)
