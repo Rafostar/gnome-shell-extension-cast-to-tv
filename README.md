@@ -19,7 +19,7 @@ Cast files to Chromecast, web browser or media player app over local network.
 * Play on other device using integrated web player
 * Transcode videos to supported format on the fly
 * Optional VAAPI video encoding for low cpu usage
-* Play audio with music visualizations (requires fast cpu)
+* Stream music with visualizations (requires fast cpu)
 
 ## Installation
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
