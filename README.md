@@ -16,7 +16,7 @@ Cast files to Chromecast, web browser or media player app over local network.
   * Media player app (eg. MPV, VLC)
 * Supports external and built-in subtitles (along with custom fansubs)
 * Chromecast remote controller (control playback from gnome top bar)
-* Play on other device using integrated web player
+* Play on other device using integrated web player and change content without refreshing web page
 * Transcode videos to supported format on the fly
 * Optional VAAPI video encoding for low cpu usage
 * Stream music with visualizations (requires fast cpu)
