@@ -17,7 +17,6 @@ class CastToTvSettings extends Gtk.Grid
 	{
 		super();
 		this.margin = 20;
-		this.spacing = 30;
 		this.row_spacing = 6;
 		this._settings = Convenience.getSettings();
 
@@ -209,38 +208,49 @@ class CastToTvSettings extends Gtk.Grid
 			halign: Gtk.Align.START,
 			margin_left: 12
 		});
-		box = new Gtk.Box({halign:Gtk.Align.END});
+		box = new Gtk.HBox({halign:Gtk.Align.END});
 		widget = new Gtk.ComboBoxText();
 		button = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
 		box.pack_end(button, false, false, 0);
 		box.pack_end(widget, false, false, 8);
 		setDevices(widget);
-		button.connect('clicked', scanDevices.bind(this, widget));
+		button.connect('clicked', scanDevices.bind(this, widget, button));
 		this._settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 13, 1, 1);
 		this.attach(box, 1, 13, 1, 1);
 	}
 }
 
-function scanDevices(widget)
+function scanDevices(widget, button)
 {
+	button.set_sensitive(false);
+
 	widget.remove_all();
-
-	GLib.spawn_command_line_sync('node' + ' ' + Local.path + '/node_scripts/scanner');
-
-	setDevices(widget);
+	/* TRANSLATORS: Shown when scan for Chromecast devices is running */
+	widget.append('', _("Scanning..."));
+	/* Show Scanning label */
 	widget.set_active(0);
+
+	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
+		'/usr/bin', ['node', Local.path + '/node_scripts/scanner'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
+
+	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
+	{
+		setDevices(widget, button);
+		/* Set Automatic as active */
+		widget.set_active(0);
+	});
 }
 
-function setDevices(widget)
+function setDevices(widget, button)
 {
+	widget.remove_all();
 	widget.append('', _("Automatic"));
+
 	let devices = Temp.readFromFile(Local.path + '/devices.json');
 
-	if(devices)
-	{
-		devices.forEach(device => widget.append(device.name, device.friendlyName));
-	}
+	if(devices) devices.forEach(device => widget.append(device.name, device.friendlyName));
+	if(button) button.set_sensitive(true);
 }
 
 function buildPrefsWidget()
