@@ -24,7 +24,11 @@ class fileChooser
 	_buildUI()
 	{
 		this.window = new Gtk.ApplicationWindow();
-		this.fileChooser = new Gtk.FileChooserDialog({ transient_for: this.window, window_position: Gtk.WindowPosition.CENTER });
+
+		this.fileChooser = new Gtk.FileChooserDialog({
+			transient_for: this.window,
+			window_position: Gtk.WindowPosition.CENTER
+		});
 
 		let iconTheme = Gtk.IconTheme.get_default();
 		if(iconTheme.has_icon('cast-to-tv')) this.fileChooser.set_icon_name('cast-to-tv');
@@ -49,14 +53,11 @@ class fileChooser
 		if(!isServer) GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
 
 		this.fileFilter = new Gtk.FileFilter();
-		let buttonConvert = new Gtk.CheckButton({label: _("Transcode Video")});
-		let box = new Gtk.Box({spacing: 10});
+		let buttonConvert = new Gtk.CheckButton({ label: _("Transcode Video") });
+		let box = new Gtk.Box({ spacing: 10 });
 
 		box.pack_start(buttonConvert, true, true, 0);
 		box.show_all();
-
-		this.fileChooser.set_local_only(true);
-		this.fileChooser.set_show_hidden(false);
 
 		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
 		{
@@ -152,6 +153,8 @@ class fileChooser
 					break;
 			}
 		}
+
+		this.fileChooser.destroy();
 
 		/* Set playback list */
 		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
