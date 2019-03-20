@@ -236,21 +236,20 @@ function scanDevices(widget, button)
 
 	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
 	{
-		setDevices(widget, button);
+		setDevices(widget);
 		/* Set Automatic as active */
 		widget.set_active(0);
+		button.set_sensitive(true);
 	});
 }
 
-function setDevices(widget, button)
+function setDevices(widget)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
 
 	let devices = Temp.readFromFile(Local.path + '/devices.json');
-
 	if(devices) devices.forEach(device => widget.append(device.name, device.friendlyName));
-	if(button) button.set_sensitive(true);
 }
 
 function buildPrefsWidget()
