@@ -36,7 +36,7 @@ msgstr "Immagini"
 
 #: widget.js:29
 msgid "Cast Settings"
-msgstr "Condiviti impostazioni"
+msgstr "Impostazioni"
 
 #: widget.js:54 widget.js:58 prefs.js:140
 msgid "Chromecast Remote"
@@ -231,7 +231,7 @@ msgstr "Dispositivo non trovato"
 
 #: node_scripts/messages.js:21
 msgid "Failed to load media"
-msgstr "Fallito caricamento del media"
+msgstr "Caricamento del media fallito"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:23
