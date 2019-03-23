@@ -5,8 +5,8 @@ if(typeof player !== 'undefined')
 {
 	websocket.emit('webplayer-ask');
 
-	websocket.on('webplayer-init', msg => { preparePlayer(msg); });
-	player.on('ended', () => { websocket.emit('track-ended'); });
+	websocket.on('webplayer-init', msg => preparePlayer(msg));
+	player.on('ended', () => websocket.emit('track-ended'));
 }
 
-websocket.on('reload', () => { location.reload(true); });
+websocket.on('reload', () => location.reload(true));

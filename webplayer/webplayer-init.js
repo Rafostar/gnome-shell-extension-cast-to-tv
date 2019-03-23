@@ -2,7 +2,6 @@ const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|webOS|IEMobile|Windows Ph
 const player = new Plyr('#player', playerOptions);
 const sessionID = makeID();
 
-var playerInit;
 var subsKind = 'none';
 var subsSrc = null;
 var posterPath = '/webplayer/images/play.png';
@@ -25,6 +24,11 @@ function preparePlayer(msg)
 
 	setPlyrSource();
 	addClickListeners();
+
+	/* Workaround Plyr volume bug */
+	player.on('loadeddata', () => { player.currentTime = 0; });
+
+	player.play();
 }
 
 function setPlyrSource()
@@ -52,8 +56,6 @@ function addClickListeners()
 	/* Toggle play on click event listener */
 	var div = document.getElementsByClassName('plyr__video-wrapper')[0];
 	div.addEventListener('click', startPlayer);
-
-	finishInit();
 }
 
 function makeID()
@@ -67,18 +69,6 @@ function makeID()
 	}
 
 	return text;
-}
-
-function finishInit()
-{
-	/* Workaround Plyr volume bug */
-	if(!playerInit)
-	{
-		player.currentTime = 0;
-		playerInit = true;
-
-		player.play();
-	}
 }
 
 function startPlayer()
