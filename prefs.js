@@ -232,7 +232,7 @@ function scanDevices(widget, button)
 	widget.set_active(0);
 
 	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
-		'/usr/bin', ['node', Local.path + '/node_scripts/scanner'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
+		'/usr/bin', ['node', Local.path + '/node_scripts/utils/scanner'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
 	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
 	{
