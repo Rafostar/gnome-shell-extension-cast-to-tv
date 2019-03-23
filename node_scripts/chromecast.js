@@ -1,6 +1,6 @@
 var fs = require('fs');
 var path = require('path');
-var player = require('chromecast-player')();
+var castPlayer = require('chromecast-player')();
 var internalIp = require('internal-ip').v4;
 var bridge = require('./bridge');
 var extract = require('./extract');
@@ -9,6 +9,10 @@ var gnome = require('./gnome');
 var gettext = require('./gettext');
 var msg = require('./messages.js');
 var shared = require('../shared');
+
+/* Objects */
+var player;
+var playerStatus;
 
 /* Chromecast Opts */
 var webUrl;
@@ -29,8 +33,8 @@ var transcodigEnabled;
 
 exports.cast = function()
 {
-	var checkInterval = setInterval(() => {
-
+	var checkInterval = setInterval(() =>
+	{
 		/* Cast after extract processes are done */
 		if(!extract.subsProcess && !extract.coverProcess)
 		{
@@ -41,13 +45,11 @@ exports.cast = function()
 			{
 				/* Close previous process */
 				remoteAction = 'REINIT';
-				setTimeout(initChromecast, shared.chromecast.relaunchDelay);
+				repeat = false;
+				closeCast();
 			}
-			else
-			{
-				remoteAction = null;
-				initChromecast();
-			}
+
+			initChromecast();
 		}
 	}, 100);
 }
@@ -56,6 +58,8 @@ exports.remote = function(action, value)
 {
 	remoteAction = action;
 	remoteValue = value;
+
+	if(player) checkRemoteAction(playerStatus);
 }
 
 function initChromecast()
@@ -155,7 +159,7 @@ function launchCast()
 {
 	var chromecastOpts = getChromecastOpts();
 
-	player.launch(chromecastOpts, (err, p) => {
+	castPlayer.launch(chromecastOpts, (err, p) => {
 
 		if(err && connectRetry < shared.chromecast.retryNumber)
 		{
@@ -169,12 +173,14 @@ function launchCast()
 		}
 		else if(p)
 		{
+			player = p;
+
 			if(mimeType == 'video/*')
 			{
 				/* mimeType video + streamType music = music with visualizer */
 				/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
-				if(bridge.selection.streamType == 'MUSIC') setTimeout(startPlayback, shared.chromecast.visualizerBuffer, p);
-				else setTimeout(startPlayback, shared.chromecast.videoBuffer, p);
+				if(bridge.selection.streamType == 'MUSIC') setTimeout(startPlayback, shared.chromecast.visualizerBuffer);
+				else setTimeout(startPlayback, shared.chromecast.videoBuffer);
 			}
 			else
 			{
@@ -183,19 +189,19 @@ function launchCast()
 
 			var initStatus = p.currentSession;
 			var statusOk = checkStatusError(initStatus);
-			if(!statusOk) return closeCast(p);
+			if(!statusOk) return closeCast();
 
 			castInterval = setInterval(() => {
-				try{ getChromecastStatus(p); }
-				catch(e){ onIntervalError(p); }
+				try{ getChromecastStatus(); }
+				catch(e){ onIntervalError(); }
 				}, 500);
 		}
 	});
 }
 
-function onIntervalError(p)
+function onIntervalError()
 {
-	if(!p.session)
+	if(!player.session)
 	{
 		clearInterval(castInterval);
 		castInterval = null;
@@ -236,20 +242,22 @@ function getChromecastName()
 	return name;
 }
 
-function startPlayback(p)
+function startPlayback()
 {
-	if(p.session)
+	if(player.session)
 	{
-		p.play();
+		player.play();
 		gnome.showRemote(true);
 	}
 }
 
-function closeCast(p)
+function closeCast()
 {
 	if(castInterval) clearInterval(castInterval);
 	castInterval = null;
-	p.close();
+
+	if(player) player.close();
+	player = null;
 
 	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
 	var listLastID = bridge.list.length;
@@ -267,27 +275,28 @@ function closeCast(p)
 	}
 }
 
-function getChromecastStatus(p)
+function getChromecastStatus()
 {
-	p.getStatus(function(err, status)
+	player.getStatus(function(err, status)
 	{
 		if(err)
 		{
 			showTranslatedError(err.message);
-			return closeCast(p);
+			return closeCast();
 		}
 
 		if(status)
 		{
+			playerStatus = status;
+
 			var statusOk = checkStatusError(status);
-			if(!statusOk) return closeCast(p);
+			if(!statusOk) return closeCast();
 
 			if(!remoteAction) setStatusFile(status);
-			else checkRemoteAction(p, status);
 		}
 		else
 		{
-			return closeCast(p);
+			return closeCast();
 		}
 	});
 }
@@ -311,45 +320,42 @@ function showTranslatedError(message)
 	else if(message == 'load failed') gnome.notify('Chromecast', msg.chromecast.loadFailed);
 }
 
-function checkRemoteAction(p, status)
+function checkRemoteAction(status)
 {
 	var position;
 
 	switch(remoteAction)
 	{
 		case 'PLAY':
-			p.play();
+			player.play();
 			break;
 		case 'PAUSE':
-			p.pause();
+			player.pause();
 			break;
 		case 'SEEK':
 			position = status.media.duration * remoteValue;
-			p.seek(position);
+			player.seek(position);
 			break;
 		case 'SEEK+':
 			position = status.currentTime + remoteValue;
-			if(position < status.media.duration) p.seek(position);
+			if(position < status.media.duration) player.seek(position);
 			break;
 		case 'SEEK-':
 			position = status.currentTime - remoteValue;
-			if(position > 0) p.seek(position);
-			else p.seek(0);
+			if(position > 0) player.seek(position);
+			else player.seek(0);
 			break;
 		case 'SKIP+':
 		case 'SKIP-':
 			status.currentTime = 0;
 			setStatusFile(status);
-			return closeCast(p);
+			return closeCast();
 		case 'REPEAT':
 			repeat = remoteValue;
 			break;
 		case 'STOP':
 			repeat = false;
-			return closeCast(p);
-		case 'REINIT':
-			repeat = false;
-			return closeCast(p);
+			return closeCast();
 		default:
 			break;
 	}

@@ -19,15 +19,12 @@ const shared = Local.imports.shared.module.exports;
 
 let castMenu;
 let remoteMenu;
-let readStatusInterval;
 let configContents;
 let Signals;
 
 function configCastRemote()
 {
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
-
-	clearTimer();
 
 	if(chromecastPlaying)
 	{
@@ -53,12 +50,12 @@ function configCastRemote()
 		if(trackID < listLastID) remoteMenu.skipForwardButton.reactive = true;
 		else remoteMenu.skipForwardButton.reactive = false;
 
-		/* Start remote status timer if not streaming pictures */
-		if(selectionContents.streamType != 'PICTURE') startTimer();
-
 		/* Update track title */
 		let filename = selectionContents.filePath;
 		remoteMenu.trackTitle.text = filename.substring(filename.lastIndexOf('/') + 1, filename.lastIndexOf('.'));
+
+		/* Set progress slider to beginning */
+		remoteMenu.positionSlider.setValue(0);
 
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
@@ -114,41 +111,6 @@ function setRemotePosition()
 	}
 
 	configCastRemote();
-}
-
-function startTimer()
-{
-	remoteMenu.setSliderValue(0);
-	readStatusInterval = Mainloop.timeout_add_seconds(1, remoteTimer.bind(this));
-}
-
-function remoteTimer()
-{
-	let statusContents = Temp.readFromFile(shared.statusPath);
-
-	if(statusContents)
-	{
-		if(statusContents.playerState == 'PLAYING') remoteMenu.setPlaying(true);
-		else if(statusContents.playerState == 'PAUSED') remoteMenu.setPlaying(false);
-
-		if(statusContents.mediaDuration > 0)
-		{
-			let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
-			if(!Widget.sliderChanged) remoteMenu.setSliderValue(sliderValue);
-		}
-	}
-
-	Widget.sliderChanged = false;
-	return true;
-}
-
-function clearTimer()
-{
-	if(readStatusInterval)
-	{
-		Mainloop.source_remove(readStatusInterval);
-		readStatusInterval = null;
-	}
 }
 
 function getTempFiles()
@@ -249,6 +211,9 @@ function init()
 
 function enable()
 {
+	/* Read/create temp files */
+	getTempFiles();
+
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
 	remoteMenu = new Widget.remoteMenu();
@@ -280,9 +245,6 @@ function enable()
 	Indicator.add_child(Widget.statusIcon);
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
 
-	/* Read/create temp files */
-	getTempFiles();
-
 	/* Add remote to top bar */
 	setRemotePosition();
 }
@@ -298,9 +260,6 @@ function disable()
 
 	/* Disconnect signals from settings */
 	Signals.forEach(signal => Settings.disconnect(signal));
-
-	/* Remove timer */
-	clearTimer();
 
 	/* Remove Chromecast Remote */
 	remoteMenu.destroy();

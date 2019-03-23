@@ -1,4 +1,4 @@
-const { St, Clutter } = imports.gi;
+const { St, Clutter, Gio } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
@@ -7,9 +7,9 @@ const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Spawn = Local.imports.spawn;
 const Temp = Local.imports.temp;
+const shared = Local.imports.shared.module.exports;
 const iconName = 'tv-symbolic';
 
-var sliderChanged;
 var isRepeatActive;
 var seekTime;
 
@@ -109,8 +109,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		/* Signals connections */
 		this.positionSlider.connect('value-changed', () => {
+			this.sliderChanged = 0;
 			Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
-			sliderChanged = true;
 		});
 
 		this.repeatButton.connect('clicked', () => {
@@ -126,8 +126,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'));
 		this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'));
 
+		this.statusFile = Gio.file_new_for_path(shared.statusPath);
+		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
+		this.statusMonitor.connect('changed', () => this.setProgress());
+
 		/* Functions */
-		this.setSliderValue = (value) => this.positionSlider.setValue(value);
 		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
 
 		this.setPlaying = (value) =>
@@ -141,6 +144,25 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			{
 				this.pauseButton.hide();
 				this.playButton.show();
+			}
+		}
+
+		this.setProgress = () =>
+		{
+			let statusContents = Temp.readFromFile(shared.statusPath);
+
+			if(statusContents)
+			{
+				if(statusContents.playerState == 'PLAYING') this.setPlaying(true);
+				else if(statusContents.playerState == 'PAUSED') this.setPlaying(false);
+
+				if(statusContents.mediaDuration > 0)
+				{
+					let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
+
+					if(this.sliderChanged < 3) this.sliderChanged++;
+					else this.positionSlider.setValue(sliderValue);
+				}
 			}
 		}
 
