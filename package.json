@@ -19,6 +19,9 @@
     "range-parser": "^1.2.0",
     "socket.io": "^2.2.0"
   },
+  "scripts": {
+    "install": "node node_scripts/utils/install"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Rafostar/gnome-shell-extension-cast-to-tv.git"
