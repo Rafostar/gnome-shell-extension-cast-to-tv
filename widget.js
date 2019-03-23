@@ -55,6 +55,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	constructor()
 	{
 		super(0.5, _("Chromecast Remote"), false);
+		this.sliderChanged = 0;
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
