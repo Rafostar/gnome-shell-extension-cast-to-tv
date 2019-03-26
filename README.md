@@ -1,5 +1,4 @@
 # Cast to TV Gnome Shell Extension
-[![HitCount](http://hits.dwyl.io/Rafostar/gnome-shell-extension-cast-to-tv.svg)](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
 [![Donate](https://img.shields.io/badge/Donate-PayPal.Me-lightgrey.svg)](https://www.paypal.me/Rafostar)
 
@@ -67,11 +66,17 @@ make compilemo
 ```
 This will create `.mo` files. Restart gnome-shell for changes to be applied.
 
+If you want to update existing translation:
+```
+make mergepo
+```
+This will update all `.po` files with changes from `.pot` template file.
+
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [Plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
 
 ### Translations
-[@Rafostar](https://github.com/Rafostar) (pl), [@amivaleo](https://github.com/amivaleo) (it), [@TeknoMobil](https://github.com/TeknoMobil) (tr)
+[@Rafostar](https://github.com/Rafostar) (pl), [@amivaleo](https://github.com/amivaleo) (it), [@TeknoMobil](https://github.com/TeknoMobil) (tr), [@Hergeirs](https://github.com/Hergeirs) (fo)
 
 ## Donation
 If you like my work please support it by buying me a cup of coffee :grin:
