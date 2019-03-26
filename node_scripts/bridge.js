@@ -1,24 +1,90 @@
 var fs = require('fs');
+var watch = require('node-watch');
 var server = require('./server');
 var encode = require('./encode');
 var extract = require('./extract');
 var remove = require('./remove');
 var chromecast = require('./chromecast');
 var gnome = require('./gnome');
+var controller = require('./remote-controller');
 var socket = require('./server-socket');
 var shared = require('../shared');
+var remote = require(shared.remotePath);
 
 exports.config = require(shared.configPath);
 exports.selection = require(shared.selectionPath);
 exports.list = require(shared.listPath);
-exports.remote = require(shared.remotePath);
+exports.addon = null;
 
-exports.changeTrack = function(id)
+exports.setStatusFile = function(status)
 {
-	/* Tracks are counted from 1, list indexes from 0 */
-	exports.selection.filePath = exports.list[id - 1];
-	fs.writeFileSync(shared.selectionPath, JSON.stringify(exports.selection, null, 1));
+	var statusContents = {
+		playerState: status.playerState,
+		currentTime: status.currentTime,
+		mediaDuration: status.media.duration,
+		volume: status.volume
+	};
+
+	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
+
+/* This should not be as aggressive as other watchers */
+fs.watchFile(shared.configPath, { interval: 3000 }, (curr, prev) =>
+{
+	exports.config = getContents(shared.configPath);
+	server.refreshConfig();
+});
+
+watch(shared.selectionPath, { delay: 0 }, (eventType, filename) =>
+{
+	if(eventType == 'update')
+	{
+		exports.selection = getContents(shared.selectionPath);
+
+		if(exports.selection.addon)
+		{
+			//exports.addon = addons(exports.selection.addon.toLowerCase());
+			//if(exports.addon) exports.addon.handleSelection(exports.selection);
+		}
+		else if(exports.selection.filePath)
+		{
+			setProcesses();
+
+			if(exports.config.receiverType == 'chromecast') chromecast.cast();
+			else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
+		}
+	}
+});
+
+watch(shared.listPath, { delay: 0 }, (eventType, filename) =>
+{
+	if(eventType == 'update')
+	{
+		exports.list = getContents(shared.listPath);
+		gnome.showRemote(false);
+	}
+});
+
+watch(shared.remotePath, { delay: 0 }, (eventType, filename) =>
+{
+	if(eventType == 'update')
+	{
+		remote = getContents(shared.remotePath);
+
+		var action = remote.action;
+		var value = remote.value;
+
+		switch(exports.config.receiverType)
+		{
+			case 'other':
+				controller.webControl(action, value);
+				break;
+			default:
+				chromecast.remote(action, value);
+				break;
+		}
+	}
+});
 
 function getContents(path)
 {
@@ -48,37 +114,3 @@ function setProcesses()
 			break;
 	}
 }
-
-fs.watchFile(shared.configPath, { interval: 3000 }, (curr, prev) => {
-
-	exports.config = getContents(shared.configPath);
-
-	server.refreshConfig();
-});
-
-fs.watchFile(shared.selectionPath, { interval: 1000 }, (curr, prev) => {
-
-	exports.selection = getContents(shared.selectionPath);
-
-	if(exports.selection.filePath)
-	{
-		setProcesses();
-
-		if(exports.config.receiverType == 'chromecast') chromecast.cast();
-		else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
-	}
-});
-
-fs.watchFile(shared.listPath, { interval: 1000 }, (curr, prev) => {
-
-	exports.list = getContents(shared.listPath);
-
-	gnome.showRemote(false);
-});
-
-fs.watchFile(shared.remotePath, { interval: 250 }, (curr, prev) => {
-
-	exports.remote = getContents(shared.remotePath);
-
-	chromecast.remote(exports.remote.action, exports.remote.value);
-});

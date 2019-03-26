@@ -4,37 +4,63 @@ var bridge = require('./bridge');
 var encode = require('./encode');
 var extract = require('./extract');
 var gettext = require('./gettext');
-var msg = require('./messages.js');
+var messages = require('./messages');
+var gnome = require('./gnome');
+var controller = require('./remote-controller');
 var shared = require('../shared');
+
+var clientTimeout;
+var clientConnected;
 var websocket;
 
 exports.listen = function(server)
 {
 	websocket = io.listen(server);
-	websocket.on('connection', socket => { handleMessages(socket); });
+	websocket.on('connection', handleMessages);
+}
+
+exports.emit = function(message, opts)
+{
+	websocket.emit(message, opts);
 }
 
 function handleMessages(socket)
 {
-	socket.on('webplayer-ask', () => { initWebPlayer(); });
-	socket.on('track-ended', () => { checkNextTrack(); });
-	socket.on('processes-ask', () => {
-		if(!extract.subsProcess && !extract.coverProcess) websocket.emit('processes-done');
-	});
-	socket.on('loading-ask', () => {
-		websocket.emit('loading-text', gettext.translate(msg.loading));
-	});
-	socket.on('message-ask', () => {
-		if(bridge.config.receiverType != 'other') websocket.emit('message-refresh', gettext.translate(msg.wrongReceiver));
-		else if(!bridge.selection.filePath) websocket.emit('message-refresh', gettext.translate(msg.noMedia));
-		else if(encode.streamProcess) websocket.emit('message-refresh', gettext.translate(msg.streamActive));
-		else websocket.emit('message-clear');
-	});
-}
+	clientConnected = true;
 
-exports.emit = function(message)
-{
-	websocket.emit(message);
+	if(clientTimeout)
+	{
+		clearTimeout(clientTimeout);
+		clientTimeout = null;
+	}
+
+	socket.on('webplayer', msg =>
+	{
+		switch(msg)
+		{
+			case 'webplayer-ask':
+				initWebPlayer();
+				gnome.showRemote(true);
+				break;
+			case 'track-ended':
+				controller.checkNextTrack();
+				break;
+			case 'processes-ask':
+				if(!extract.subsProcess && !extract.coverProcess) websocket.emit('processes-done');
+				break;
+			case 'loading-ask':
+				websocket.emit('loading-text', gettext.translate(messages.loading));
+				break;
+			case 'message-ask':
+				sendMessage();
+				break;
+			default:
+				break;
+		}
+	});
+
+	socket.on('status-update', msg => bridge.setStatusFile(msg));
+	socket.on('disconnect', checkClients);
 }
 
 function initWebPlayer()
@@ -54,18 +80,24 @@ function initWebPlayer()
 		type: initType,
 		subs: isSub,
 		i18n: {
-			speed: gettext.translate(msg.plyr.speed),
-			normal: gettext.translate(msg.plyr.normal)
+			speed: gettext.translate(messages.plyr.speed),
+			normal: gettext.translate(messages.plyr.normal)
 		}
 	}
 
 	websocket.emit('webplayer-init', webData);
 }
 
-function checkNextTrack()
+function checkClients()
 {
-	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
-	var listLastID = bridge.list.length;
+	clientConnected = false;
+	clientTimeout = setTimeout(() => { if(!clientConnected) gnome.showRemote(false); }, 2500);
+}
 
-	if(currentTrackID < listLastID) bridge.changeTrack(currentTrackID + 1);
+function sendMessage()
+{
+	if(bridge.config.receiverType != 'other') websocket.emit('message-refresh', gettext.translate(messages.wrongReceiver));
+	else if(!bridge.selection.filePath) websocket.emit('message-refresh', gettext.translate(messages.noMedia));
+	else if(encode.streamProcess) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
+	else websocket.emit('message-clear');
 }

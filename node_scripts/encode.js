@@ -2,7 +2,7 @@ var spawn = require('child_process').spawn;
 var bridge = require('./bridge');
 var extract = require('./extract');
 var gnome = require('./gnome');
-var msg = require('./messages.js');
+var messages = require('./messages.js');
 var shared = require('../shared');
 
 var subsPathEscaped;
@@ -60,7 +60,7 @@ exports.videoConfig = function()
 
 	exports.streamProcess.once('close', function(code)
 	{
-		if(code && !notifyError) gnome.notify('Cast to TV', msg.ffmpegError + " " + bridge.selection.filePath);
+		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
 		exports.streamProcess = null;
 	});
 
@@ -68,7 +68,7 @@ exports.videoConfig = function()
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
-			gnome.notify('Cast to TV', msg.ffmpegPath);
+			gnome.notify('Cast to TV', messages.ffmpegPath);
 			notifyError = true;
 		}
 	});
@@ -109,7 +109,7 @@ exports.videoVaapiConfig = function()
 
 	exports.streamProcess.once('close', function(code)
 	{
-		if(code && !notifyError) gnome.notify('Cast to TV', msg.ffmpegError + " " + bridge.selection.filePath);
+		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
 		exports.streamProcess = null;
 	});
 
@@ -117,7 +117,7 @@ exports.videoVaapiConfig = function()
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
-			gnome.notify('Cast to TV', msg.ffmpegPath);
+			gnome.notify('Cast to TV', messages.ffmpegPath);
 			notifyError = true;
 		}
 	});
@@ -171,7 +171,7 @@ exports.musicVisualizerConfig = function()
 
 	exports.streamProcess.once('close', function(code)
 	{
-		if(code && !notifyError) gnome.notify('Cast to TV', msg.ffmpegError + " " + bridge.selection.filePath);
+		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
 		exports.streamProcess = null;
 	});
 
@@ -179,7 +179,7 @@ exports.musicVisualizerConfig = function()
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
-			gnome.notify('Cast to TV', msg.ffmpegPath);
+			gnome.notify('Cast to TV', messages.ffmpegPath);
 			notifyError = true;
 		}
 	});

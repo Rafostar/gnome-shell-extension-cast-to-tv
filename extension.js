@@ -24,6 +24,17 @@ let Signals;
 
 function configCastRemote()
 {
+	/* Change remote label */
+	switch(configContents.receiverType)
+	{
+		case 'other':
+			remoteMenu.toplabel.text = _("Web Player Remote");
+			break;
+		default:
+			remoteMenu.toplabel.text = _("Chromecast Remote");
+			break;
+	}
+
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 
 	if(chromecastPlaying)

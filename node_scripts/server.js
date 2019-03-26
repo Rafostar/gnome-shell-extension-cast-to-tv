@@ -10,6 +10,7 @@ var gettext = require('./gettext');
 var listeningPort = bridge.config.listeningPort;
 
 var server = app.listen(listeningPort).on('error', () => process.exit());
+
 socket.listen(server);
 gettext.initTranslations();
 
@@ -35,14 +36,14 @@ function closeStreamProcess()
 
 function checkMessagePage(req, res)
 {
-	var message;
+	var showMessage;
 
-	if(bridge.config.receiverType != 'other') message = true;
-	else if(!bridge.selection.filePath) message = true;
-	else if(encode.streamProcess) message = true;
-	else message = false;
+	if(bridge.config.receiverType != 'other') showMessage = true;
+	else if(!bridge.selection.filePath) showMessage = true;
+	else if(encode.streamProcess) showMessage = true;
+	else showMessage = false;
 
-	if(message)
+	if(showMessage)
 	{
 		res.sendFile(path.join(__dirname + '/../webplayer/message.html'));
 		return true;
@@ -86,6 +87,11 @@ app.get('/', function(req, res)
 
 app.get('/cast', function(req, res)
 {
+	if(bridge.selection.addon)
+	{
+		//return bridge.addon.createStream(req, res);
+	}
+
 	switch(bridge.selection.streamType)
 	{
 		case 'MUSIC':

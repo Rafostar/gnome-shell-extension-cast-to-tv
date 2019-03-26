@@ -59,7 +59,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
-		this.toplabel = new St.Label({ text: _("Chromecast Remote"), y_expand: true, y_align: Clutter.ActorAlign.CENTER });
+		this.toplabel = new St.Label({ y_expand: true, y_align: Clutter.ActorAlign.CENTER });
 
 		/* Display app icon, label and dropdown arrow */
 		this.box.add(this.icon);

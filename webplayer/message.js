@@ -1,9 +1,9 @@
 var websocket = io();
-websocket.emit('message-ask');
+websocket.emit('webplayer', 'message-ask');
 
-var checkInterval = setInterval(() => { websocket.emit('message-ask'); }, 1000);
-websocket.on('message-refresh', msg => { refreshMessage(msg); });
-websocket.on('message-clear', () => { changePage(); });
+var checkInterval = setInterval(() => { websocket.emit('webplayer', 'message-ask'); }, 1000);
+websocket.on('message-refresh', msg => refreshMessage(msg));
+websocket.on('message-clear', () => changePage());
 
 function refreshMessage(msg)
 {

@@ -39,7 +39,7 @@ exports.fileStream = function(req, res)
 		var total = stat.size;
 		var range = req.headers.range;
 
-		if (!range)
+		if(!range)
 		{
 			res.setHeader('Content-Length', total);
 			res.statusCode = 200;
@@ -160,6 +160,6 @@ exports.coverStream = function(req, res)
 
 exports.pageWrong = function(req, res)
 {
-	res.writeHead(302, { 'Location': '/' });
+	res.writeHead(302, { Location: '/' });
 	res.end();
 }

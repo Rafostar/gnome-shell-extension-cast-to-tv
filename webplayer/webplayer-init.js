@@ -24,11 +24,6 @@ function preparePlayer(msg)
 
 	setPlyrSource();
 	addClickListeners();
-
-	/* Workaround Plyr volume bug */
-	player.on('loadeddata', () => { player.currentTime = 0; });
-
-	player.play();
 }
 
 function setPlyrSource()

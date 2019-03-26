@@ -6,7 +6,7 @@ var bridge = require('./bridge');
 var ffprobe = require('./ffprobe');
 var remove = require('./remove');
 var gnome = require('./gnome');
-var msg = require('./messages.js');
+var messages = require('./messages.js');
 var shared = require('../shared');
 
 exports.subsProcess = null;
@@ -52,8 +52,8 @@ exports.analyzeFile = function()
 			else checkBuiltInSubs(value);
 		})
 		.catch(err => {
-			if(err.message == 'FFprobe process error') gnome.notify('Cast to TV', msg.ffprobeError + " " + bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', msg.ffprobePath);
+			if(err.message == 'FFprobe process error') gnome.notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
+			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', messages.ffprobePath);
 			exports.subsProcess = null;
 			exports.coverProcess = null;
 		});

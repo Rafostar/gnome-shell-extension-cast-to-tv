@@ -6,8 +6,9 @@ var bridge = require('./bridge');
 var extract = require('./extract');
 var remove = require('./remove');
 var gnome = require('./gnome');
+var controller = require('./remote-controller');
 var gettext = require('./gettext');
-var msg = require('./messages.js');
+var messages = require('./messages.js');
 var shared = require('../shared');
 
 /* Objects */
@@ -25,10 +26,8 @@ var mediaTracks;
 var remoteAction;
 var remoteValue;
 
-var statusContents;
 var castInterval;
 var connectRetry;
-var repeat;
 var transcodigEnabled;
 
 exports.cast = function()
@@ -45,7 +44,7 @@ exports.cast = function()
 			{
 				/* Close previous process */
 				remoteAction = 'REINIT';
-				repeat = false;
+				controller.repeat = false;
 				closeCast();
 			}
 
@@ -141,18 +140,6 @@ function getTitle()
 {
 	if(extract.metadata) return extract.metadata.title;
 	else return path.parse(bridge.selection.filePath).name;
-}
-
-function setStatusFile(status)
-{
-	statusContents = {
-		playerState: status.playerState,
-		currentTime: status.currentTime,
-		mediaDuration: status.media.duration,
-		volume: status.volume
-	};
-
-	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
 
 function launchCast()
@@ -263,14 +250,14 @@ function closeCast()
 	var listLastID = bridge.list.length;
 
 	/* Do not change this order mindlessly */
-	if(repeat && currentTrackID == listLastID) return bridge.changeTrack(1);
-	else if(remoteAction == 'SKIP+') return bridge.changeTrack(currentTrackID + 1);
-	else if(remoteAction == 'SKIP-') return bridge.changeTrack(currentTrackID - 1);
+	if(controller.repeat && currentTrackID == listLastID) return controller.changeTrack(1);
+	else if(remoteAction == 'SKIP+') return controller.changeTrack(currentTrackID + 1);
+	else if(remoteAction == 'SKIP-') return controller.changeTrack(currentTrackID - 1);
 	else if(remoteAction == 'REINIT') return;
 	else if(remoteAction == 'STOP') return gnome.showRemote(false);
 	else if(remoteAction != 'STOP')
 	{
-		if(currentTrackID < listLastID) return bridge.changeTrack(currentTrackID + 1);
+		if(currentTrackID < listLastID) return controller.changeTrack(currentTrackID + 1);
 		else gnome.showRemote(false);
 	}
 }
@@ -292,7 +279,7 @@ function getChromecastStatus()
 			var statusOk = checkStatusError(status);
 			if(!statusOk) return closeCast();
 
-			if(!remoteAction) setStatusFile(status);
+			if(!remoteAction) bridge.setStatusFile(status);
 		}
 		else
 		{
@@ -305,8 +292,8 @@ function checkStatusError(status)
 {
 	if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
 	{
-		if(transcodigEnabled) gnome.notify('Chromecast', msg.chromecast.playError + " " + bridge.selection.filePath);
-		else gnome.notify('Chromecast', msg.chromecast.playError + " " + bridge.selection.filePath + '\n' + msg.chromecast.tryAgain);
+		if(transcodigEnabled) gnome.notify('Chromecast', messages.chromecast.playError + " " + bridge.selection.filePath);
+		else gnome.notify('Chromecast', messages.chromecast.playError + " " + bridge.selection.filePath + '\n' + messages.chromecast.tryAgain);
 
 		return false;
 	}
@@ -316,8 +303,8 @@ function checkStatusError(status)
 
 function showTranslatedError(message)
 {
-	if(message == 'device not found') gnome.notify('Chromecast', msg.chromecast.notFound);
-	else if(message == 'load failed') gnome.notify('Chromecast', msg.chromecast.loadFailed);
+	if(message == 'device not found') gnome.notify('Chromecast', messages.chromecast.notFound);
+	else if(message == 'load failed') gnome.notify('Chromecast', messages.chromecast.loadFailed);
 }
 
 function checkRemoteAction(status)
@@ -348,13 +335,13 @@ function checkRemoteAction(status)
 		case 'SKIP+':
 		case 'SKIP-':
 			status.currentTime = 0;
-			setStatusFile(status);
+			bridge.setStatusFile(status);
 			return closeCast();
 		case 'REPEAT':
-			repeat = remoteValue;
+			controller.repeat = remoteValue;
 			break;
 		case 'STOP':
-			repeat = false;
+			controller.repeat = false;
 			return closeCast();
 		default:
 			break;
