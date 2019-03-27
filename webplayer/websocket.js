@@ -77,4 +77,8 @@ if(typeof player !== 'undefined')
 	});
 }
 
-websocket.on('reload', () => location.reload(true));
+websocket.on('reload', () =>
+{
+	websocket.disconnect();
+	location.reload(true);
+});

@@ -16,5 +16,6 @@ function refreshMessage(msg)
 function changePage()
 {
 	clearInterval(checkInterval);
+	websocket.disconnect();
 	location.reload(true);
 }

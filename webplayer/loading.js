@@ -10,5 +10,6 @@ websocket.on('processes-done', () => changePage());
 function changePage()
 {
 	clearInterval(checkInterval);
+	websocket.disconnect();
 	location.reload(true);
 }
