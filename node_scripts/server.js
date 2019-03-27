@@ -38,10 +38,15 @@ function checkMessagePage(req, res)
 {
 	var showMessage;
 
-	if(bridge.config.receiverType != 'other') showMessage = true;
-	else if(!bridge.selection.filePath) showMessage = true;
-	else if(encode.streamProcess) showMessage = true;
-	else showMessage = false;
+	if(	bridge.config.receiverType != 'other'
+		|| !bridge.selection.filePath
+		|| socket.clientsConnected > 0
+	) {
+		showMessage = true;
+	}
+	else {
+		showMessage = false;
+	}
 
 	if(showMessage)
 	{

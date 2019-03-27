@@ -10,8 +10,9 @@ var controller = require('./remote-controller');
 var shared = require('../shared');
 
 var clientTimeout;
-var clientConnected;
 var websocket;
+
+exports.clientsConnected = 0;
 
 exports.listen = function(server)
 {
@@ -26,7 +27,7 @@ exports.emit = function(message, opts)
 
 function handleMessages(socket)
 {
-	clientConnected = true;
+	exports.clientsConnected++;
 
 	if(clientTimeout)
 	{
@@ -90,14 +91,19 @@ function initWebPlayer()
 
 function checkClients()
 {
-	clientConnected = false;
-	clientTimeout = setTimeout(() => { if(!clientConnected) gnome.showRemote(false); }, 2500);
+	if(exports.clientsConnected > 0) exports.clientsConnected--;
+
+	clientTimeout = setTimeout(() =>
+	{
+		if(exports.clientsConnected == 0) gnome.showRemote(false);
+	}, 2500);
 }
 
 function sendMessage()
 {
 	if(bridge.config.receiverType != 'other') websocket.emit('message-refresh', gettext.translate(messages.wrongReceiver));
 	else if(!bridge.selection.filePath) websocket.emit('message-refresh', gettext.translate(messages.noMedia));
-	else if(encode.streamProcess) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
+	else if(exports.clientsConnected > 1) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
+	else if(exports.clientsConnected == 1) exports.clientsConnected--;
 	else websocket.emit('message-clear');
 }
