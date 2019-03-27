@@ -12,6 +12,35 @@ function init()
 	Convenience.initTranslations();
 }
 
+class StreamingNotification extends Gtk.VBox
+{
+	constructor()
+	{
+		super();
+		this.spacing = 10;
+		this.margin = 25;
+		let label = null;
+
+		label = new Gtk.Label({
+			label: '<span font="16"><b>' + _("Streaming is in progress") + '</b></span>',
+			use_markup: true,
+			vexpand: true,
+			valign: Gtk.Align.END
+		});
+
+		this.pack_start(label, true, true, 0);
+
+		label = new Gtk.Label({
+			label: '<span font="13">' + _("Stop media transfer before accessing extension settings") + '</span>',
+			use_markup: true,
+			vexpand: true,
+			valign: Gtk.Align.START
+		});
+
+		this.pack_start(label, true, true, 0);
+	}
+}
+
 class MainSettings extends Gtk.Grid
 {
 	constructor()
@@ -376,6 +405,7 @@ class UpdateSettings extends Gtk.VBox
 		let installModules = () =>
 		{
 			TermWidget.reset(true, true);
+			GLib.spawn_command_line_sync('pkill -SIGINT -f ' + Local.path);
 			TermWidget.spawn_sync(Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, 0, null, null);
 		}
 
@@ -489,8 +519,12 @@ function getHostIp(client)
 
 function buildPrefsWidget()
 {
-	let widget = new CastToTvSettings();
-	widget.show_all();
+	let widget;
+	let isStreaming = Settings.get_boolean('chromecast-playing');
 
+	if(isStreaming) widget = new StreamingNotification();
+	else widget = new CastToTvSettings();
+
+	widget.show_all();
 	return widget;
 }
