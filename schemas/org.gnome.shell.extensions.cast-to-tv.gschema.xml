@@ -1,5 +1,10 @@
 <schemalist gettext-domain="cast-to-tv">
   <schema id="org.gnome.shell.extensions.cast-to-tv" path="/org/gnome/shell/extensions/cast-to-tv/">
+    <!-- Main -->
+    <key name="receiver-type" type="s">
+      <default>"chromecast"</default>
+      <summary>Device receiving media</summary>
+    </key>
     <key name="ffmpeg-path" type="s">
       <default>""</default>
       <summary>Custom path to FFmpeg</summary>
@@ -8,22 +13,24 @@
       <default>""</default>
       <summary>Custom path to FFprobe</summary>
     </key>
-    <key name="receiver-type" type="s">
-      <default>"chromecast"</default>
-      <summary>Device receiving media</summary>
-    </key>
     <key name="listening-port" type="i">
       <default>4000</default>
       <summary>Port used for incoming connections</summary>
+    </key>
+    <key name="music-visualizer" type="b">
+      <default>false</default>
+      <summary>FFmpeg music visualizer</summary>
+    </key>
+    <!-- Encoding -->
+    <key name="video-acceleration" type="s">
+      <default>"none"</default>
+      <summary>Video streaming hardware acceleration</summary>
     </key>
     <key name="video-bitrate" type="d">
       <default>5.0</default>
       <summary>Media encoding video bitrate</summary>
     </key>
-    <key name="video-acceleration" type="s">
-      <default>"none"</default>
-      <summary>Video streaming hardware acceleration</summary>
-    </key>
+    <!-- Remote -->
     <key name="remote-position" type="s">
       <default>"right"</default>
       <summary>Position of chromecast remote menu button</summary>
@@ -32,14 +39,16 @@
       <default>10</default>
       <summary>Time amount to skip when seeking</summary>
     </key>
-    <key name="music-visualizer" type="b">
-      <default>false</default>
-      <summary>FFmpeg music visualizer</summary>
+    <key name="remote-label" type="b">
+      <default>true</default>
+      <summary>Show label next to remote controller</summary>
     </key>
+    <!-- Chromecast -->
     <key name="chromecast-name" type="s">
       <default>""</default>
       <summary>Chromecast device name</summary>
     </key>
+    <!-- Other -->
     <key name="chromecast-playing" type="b">
       <default>false</default>
       <summary>Chromecast playing state</summary>

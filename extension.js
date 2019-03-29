@@ -215,6 +215,14 @@ function changeRemotePosition()
 	setRemotePosition();
 }
 
+function changeLabelVisibility()
+{
+	let showLabel = Settings.get_boolean('remote-label');
+
+	if(showLabel) remoteMenu.toplabel.show();
+	else remoteMenu.toplabel.hide();
+}
+
 function init()
 {
 	Convenience.initTranslations();
@@ -231,6 +239,7 @@ function enable()
 
 	/* Get remaining necessary settings */
 	Widget.seekTime = Settings.get_int('seek-time');
+	changeLabelVisibility();
 
 	/* Clear signals array */
 	Signals = [];
@@ -246,6 +255,7 @@ function enable()
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
 	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-name', changeChromecastName.bind(this)));
+	Signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 
 	/* Set insert position after network menu items */
