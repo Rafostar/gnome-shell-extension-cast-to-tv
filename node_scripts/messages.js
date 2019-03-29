@@ -5,7 +5,7 @@ module.exports = {
 	noMedia: _("No file selected"),
 	wrongReceiver: _("Receiver type is set to Chromecast"),
 	/* TRANSLATORS: Do not remove HTML tags */
-	streamActive: _("Too many connections!<p>Close all other tabs that access this page in all browsers</p>"),
+	streamActive: _("Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"),
 	/* TRANSLATORS: This sentence will contain file path after end */
 	ffmpegError: _("FFmpeg could not transcode file:"),
 	ffmpegPath: _("FFmpeg path is incorrect"),
