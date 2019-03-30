@@ -103,7 +103,8 @@ function sendMessage()
 {
 	if(bridge.config.receiverType != 'other') websocket.emit('message-refresh', gettext.translate(messages.wrongReceiver));
 	else if(!bridge.selection.filePath) websocket.emit('message-refresh', gettext.translate(messages.noMedia));
-	else if(exports.clientsConnected > 1) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
+	else if(encode.streamProcess) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
+	else if(exports.clientsConnected > 1) websocket.emit('message-refresh', gettext.translate(messages.connectLimit));
 	else if(exports.clientsConnected == 1) exports.clientsConnected--;
 	else websocket.emit('message-clear');
 }
