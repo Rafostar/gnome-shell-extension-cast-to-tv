@@ -20,7 +20,7 @@ class StreamingNotification extends Gtk.VBox
 		let label = null;
 
 		label = new Gtk.Label({
-			label: '<span font="16"><b>' + _("Streaming is in progress") + '</b></span>',
+			label: '<span font="16"><b>' + _("Streaming in progress") + '</b></span>',
 			use_markup: true,
 			vexpand: true,
 			valign: Gtk.Align.END
