@@ -22,6 +22,10 @@ if(typeof player !== 'undefined')
 		player.currentTime = 0;
 
 		statusContents.media.duration = player.duration;
+	});
+
+	player.on('canplay', () =>
+	{
 		player.play();
 	});
 
