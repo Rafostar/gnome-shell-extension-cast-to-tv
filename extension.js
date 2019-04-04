@@ -20,6 +20,7 @@ const shared = Local.imports.shared.module.exports;
 let castMenu;
 let remoteMenu;
 let configContents;
+let serverStarted;
 let Signals;
 
 function configCastRemote()
@@ -270,14 +271,24 @@ function enable()
 	setRemotePosition();
 
 	/* Start media server service */
-	let isServer = Service.checkServerRunning();
-	if(!isServer) Service.startServer(Local.path);
+	if(!serverStarted)
+	{
+		let isServer = Service.checkServerRunning();
+		if(!isServer) Service.startServer(Local.path);
+
+		serverStarted = true;
+	}
 }
 
 function disable()
 {
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
-	if(!lockingScreen) Service.closeServer(Local.path);
+
+	if(!lockingScreen)
+	{
+		Service.closeServer(Local.path);
+		serverStarted = false;
+	}
 
 	/* Disconnect signals from settings */
 	Signals.forEach(signal => Settings.disconnect(signal));
