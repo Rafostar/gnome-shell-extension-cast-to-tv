@@ -8,6 +8,7 @@ var chromecast = require('./chromecast');
 var gnome = require('./gnome');
 var controller = require('./remote-controller');
 var socket = require('./server-socket');
+var addons = require('./addons-importer');
 var shared = require('../shared');
 var remote = require(shared.remotePath);
 
@@ -28,8 +29,7 @@ exports.setStatusFile = function(status)
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
 
-/* This should not be as aggressive as other watchers */
-fs.watchFile(shared.configPath, { interval: 3000 }, (curr, prev) =>
+watch(shared.configPath, { delay: 0 }, (eventType, filename) =>
 {
 	exports.config = getContents(shared.configPath);
 	server.refreshConfig();
@@ -41,10 +41,13 @@ watch(shared.selectionPath, { delay: 0 }, (eventType, filename) =>
 	{
 		exports.selection = getContents(shared.selectionPath);
 
+		/* Close addon before selecting a new one */
+		closeAddon();
+
 		if(exports.selection.addon)
 		{
-			//exports.addon = addons(exports.selection.addon.toLowerCase());
-			//if(exports.addon) exports.addon.handleSelection(exports.selection);
+			exports.addon = addons(exports.selection.addon.toLowerCase());
+			if(exports.addon) exports.addon.handleSelection(exports.selection);
 		}
 		else if(exports.selection.filePath)
 		{
@@ -112,5 +115,14 @@ function setProcesses()
 			else extract.analyzeFile();
 			remove.covers();
 			break;
+	}
+}
+
+function closeAddon()
+{
+	if(exports.addon)
+	{
+		exports.addon.closeStream();
+		exports.addon = null;
 	}
 }

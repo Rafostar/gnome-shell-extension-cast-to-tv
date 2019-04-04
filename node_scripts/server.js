@@ -95,7 +95,7 @@ app.get('/cast', function(req, res)
 {
 	if(bridge.selection.addon)
 	{
-		//return bridge.addon.createStream(req, res);
+		return bridge.addon.createStream(req, res);
 	}
 
 	switch(bridge.selection.streamType)
