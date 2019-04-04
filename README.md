@@ -46,11 +46,22 @@ Try installing them with your package manager or follow the links for more info.
 cd ~/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com
 npm install
 ```
+---
+On some linux distros `node` executable might end up installed as `nodejs` (we do not want that).<br>
+You can verify it by running:
+```
+node --version
+```
+Node version 8+ is recommended. If you do not get the output but `nodejs --version` works, the easiest way to solve this is to create a symlink:
+```
+sudo ln -s `which nodejs` /usr/bin/node
+```
+---
 You can use hardware VAAPI encoding (optional). This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
 
 ## How to use
-Detailed instructions related to configuration and using the extension are in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
-<br>You can also find some usage examples there.
+Detailed instructions related to configuration and using the extension are in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).<br>
+You can also find some usage examples there.
 
 Check out [FAQ](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/FAQ), before asking questions.
 
