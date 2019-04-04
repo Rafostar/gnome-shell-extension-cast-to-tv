@@ -30,7 +30,7 @@ module.exports = {
 			foregroundColor: '#FFFFFFFF',
 			edgeType: 'OUTLINE',
 			edgeColor: '#000000FF',
-			fontScale: 1.0,
+			fontScale: '1.0',
 			fontStyle: 'NORMAL',
 			fontGenericFamily: 'SANS_SERIF',
 			windowType: 'NONE'
