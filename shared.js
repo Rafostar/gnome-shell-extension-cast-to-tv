@@ -32,24 +32,15 @@ module.exports = {
 			edgeColor: '#000000FF',
 			fontScale: 1.0,
 			fontStyle: 'NORMAL',
-			fontFamily: 'Droid Sans',
 			fontGenericFamily: 'SANS_SERIF',
 			windowType: 'NONE'
 		},
 		tracks: [{
 			trackId: 1,
 			type: 'TEXT',
-			trackContentId: '',
 			trackContentType: 'text/vtt',
 			name: 'Subtitles',
 			subtype: 'SUBTITLES'
-		}],
-		metadata: {
-			metadataType: 'MUSIC_TRACK',
-			title: '',
-			images: [{
-				url: ''
-			}]
-		}
+		}]
 	}
 };

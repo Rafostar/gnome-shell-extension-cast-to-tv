@@ -4,6 +4,7 @@ const Local = ExtensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const Temp = Local.imports.temp;
+const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
@@ -175,6 +176,7 @@ class MainSettings extends Gtk.VBox
 	destroy()
 	{
 		super.destroy();
+
 		this.portWidget.disconnect(this.linkSignal);
 	}
 }
@@ -315,8 +317,17 @@ class ChromecastSettings extends Gtk.Grid
 		let widget = null;
 		let box = null;
 		let button = null;
+		let rgba = new Gdk.RGBA();
 
-		/* Label: General */
+		let subsConfig = Temp.readFromFile(Local.path + '/config/subtitles.json');
+		if(!subsConfig)
+		{
+			subsConfig = shared.chromecast.subsStyle;
+			GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		}
+
+		/* Label: Chromecast Options */
 		label = new Gtk.Label({
 			label: '<span font="12.5"><b>' + _("Chromecast Options") + '</b></span>',
 			use_markup: true,
@@ -342,12 +353,168 @@ class ChromecastSettings extends Gtk.Grid
 		Settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 1, 1, 1);
 		this.attach(box, 1, 1, 1, 1);
+
+		/* Label: Subtitles */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Subtitles") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 2, 1, 1);
+
+		/* Font Family */
+		label = new Gtk.Label({
+			label: _("Font family"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		this.fontFamily = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+		this.fontFamily.append('SANS_SERIF', "Sans Serif");
+		this.fontFamily.append('MONOSPACED_SANS_SERIF', "Monospaced Sans Serif");
+		this.fontFamily.append('SERIF', "Serif");
+		this.fontFamily.append('MONOSPACED_SERIF', "Monospaced Serif");
+		this.fontFamily.append('CASUAL', "Casual");
+		this.fontFamily.append('CURSIVE', "Cursive");
+		this.fontFamily.append('SMALL_CAPITALS', "SMALL CAPITALS");
+		this.fontFamily.active_id = subsConfig.fontGenericFamily;
+		this.familySignal = this.fontFamily.connect('changed', () =>
+		{
+			subsConfig.fontGenericFamily = this.fontFamily.active_id;
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+		this.attach(label, 0, 3, 1, 1);
+		this.attach(this.fontFamily, 1, 3, 1, 1);
+
+		/* Font Style */
+		label = new Gtk.Label({
+			label: _("Font style"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		this.fontStyle = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+		this.fontStyle.append('NORMAL', _("Normal"));
+		this.fontStyle.append('BOLD', _("Bold"));
+		this.fontStyle.append('ITALIC', _("Italic"));
+		this.fontStyle.append('BOLD_ITALIC', _("Bold Italic"));
+		this.fontStyle.active_id = subsConfig.fontStyle;
+		this.styleSignal = this.fontStyle.connect('changed', () =>
+		{
+			subsConfig.fontStyle = this.fontStyle.active_id;
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(this.fontStyle, 1, 4, 1, 1);
+
+		/* Subtitles Scale */
+		label = new Gtk.Label({
+			label: _("Scale factor"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		this.scaleButton = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
+		this.scaleButton.set_sensitive(true);
+		this.scaleButton.set_range(0.1, 5.0);
+		this.scaleButton.set_value(subsConfig.fontScale);
+		this.scaleButton.set_increments(0.1, 0.2);
+		this.scaleSignal = this.scaleButton.connect('value-changed', () =>
+		{
+			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(this.scaleButton, 1, 5, 1, 1);
+
+		/* Font Color */
+		label = new Gtk.Label({
+			label: _("Font color"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		rgba.parse(hashToColor(subsConfig.foregroundColor));
+		this.fontColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
+		this.fontColor.set_sensitive(true);
+		this.fontColorSignal = this.fontColor.connect('color-set', () =>
+		{
+			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(this.fontColor, 1, 6, 1, 1);
+
+		/* Font Outline */
+		label = new Gtk.Label({
+			label: _("Font outline"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		box = new Gtk.HBox({halign:Gtk.Align.END});
+		this.outlineSwitch = new Gtk.Switch({halign:Gtk.Align.END, valign:Gtk.Align.CENTER});
+		this.outlineSwitch.set_sensitive(true);
+		this.checkActive = () =>
+		{
+			if(subsConfig.edgeType == "OUTLINE") return true;
+			else return false;
+		}
+		this.outlineSwitch.set_active(this.checkActive());
+		this.outlineSignal = this.outlineSwitch.connect('notify::active', () =>
+		{
+			if(this.outlineSwitch.active) subsConfig.edgeType = "OUTLINE";
+			else subsConfig.edgeType = "NONE";
+
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+
+		rgba.parse(hashToColor(subsConfig.edgeColor));
+		this.edgeColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
+		this.edgeColor.set_sensitive(true);
+		this.edgeSignal = this.edgeColor.connect('color-set', () =>
+		{
+			subsConfig.edgeColor = colorToHash(this.edgeColor.rgba.to_string());
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+		box.pack_end(this.edgeColor, false, false, 0);
+		box.pack_end(this.outlineSwitch, false, false, 8);
+		this.attach(label, 0, 7, 1, 1);
+		this.attach(box, 1, 7, 1, 1);
+
+		/* Background color */
+		label = new Gtk.Label({
+			label: _("Background color"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		rgba.parse(hashToColor(subsConfig.backgroundColor));
+		this.bgColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true, use_alpha: true});
+		this.bgColor.set_sensitive(true);
+		this.bgSignal = this.bgColor.connect('color-set', () =>
+		{
+			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
+			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+		});
+		this.attach(label, 0, 8, 1, 1);
+		this.attach(this.bgColor, 1, 8, 1, 1);
 	}
 
 	destroy()
 	{
 		super.destroy();
+
 		this.scanButton.disconnect(this.scanSignal);
+		this.fontFamily.disconnect(this.familySignal);
+		this.fontStyle.disconnect(this.styleSignal);
+		this.scaleButton.disconnect(this.scaleSignal);
+		this.fontColor.disconnect(this.fontColorSignal);
+		this.outlineSignal.disconnect(this.outlineSignal);
+		this.edgeColor.disconnect(this.edgeSignal);
+		this.bgColor.disconnect(this.bgSignal);
 	}
 }
 
@@ -421,9 +588,10 @@ class ModulesSettings extends Gtk.VBox
 		TermWidget.set_sensitive(false);
 
 		this.pack_start(TermWidget, true, true, 0);
+		let installLabel = _("Install required npm modules");
 
 		this.installButton = new Gtk.Button({
-			label: _("Install required npm modules"),
+			label: _(installLabel),
 			expand: false,
 			halign: Gtk.Align.CENTER
 		});
@@ -433,7 +601,27 @@ class ModulesSettings extends Gtk.VBox
 		{
 			TermWidget.reset(true, true);
 			GLib.spawn_command_line_sync('pkill -SIGINT -f ' + Local.path);
-			TermWidget.spawn_sync(Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, 0, null, null);
+			this.installButton.set_sensitive(false);
+			this.installButton.label = _("Installing...");
+
+			try {
+				TermWidget.spawn_async(
+					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, 0, null, null, null, 120000, null, () =>
+				{
+					this.installButton.label = _(installLabel);
+					this.installButton.set_sensitive(true);
+				});
+			}
+			catch(e) {
+				let [res, pid] = TermWidget.spawn_sync(
+					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
+
+				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
+				{
+					this.installButton.label = _(installLabel);
+					this.installButton.set_sensitive(true);
+				});
+			}
 		}
 
 		this.installSignal = this.installButton.connect('clicked', installModules.bind(this));
@@ -442,6 +630,7 @@ class ModulesSettings extends Gtk.VBox
 	destroy()
 	{
 		super.destroy();
+
 		this.installButton.disconnect(this.installSignal);
 	}
 }
@@ -606,6 +795,8 @@ function scanDevices(widget, button)
 	/* Show Scanning label */
 	widget.set_active(0);
 
+	GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
+
 	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
 		'/usr/bin', ['node', Local.path + '/node_scripts/utils/scanner'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
@@ -623,7 +814,7 @@ function setDevices(widget)
 	widget.remove_all();
 	widget.append('', _("Automatic"));
 
-	let devices = Temp.readFromFile(Local.path + '/devices.json');
+	let devices = Temp.readFromFile(Local.path + '/config/devices.json');
 	if(devices) devices.forEach(device => widget.append(device.name, device.friendlyName));
 }
 
@@ -649,6 +840,39 @@ function getHostIp()
 	catch(e) {
 		return null;
 	}
+}
+
+function hashToColor(colorHash)
+{
+	let colorValue = colorHash.split('#')[1];
+	let colorInt = parseInt(colorValue, 16);
+
+	let array = new Uint8Array(4);
+	array[3] = colorInt;
+	array[2] = colorInt >> 8;
+	array[1] = colorInt >> 16;
+	array[0] = colorInt >> 24;
+
+	return `rgba(${array[0]},${array[1]},${array[2]},${array[3] / 255})`
+}
+
+function colorToHash(colorString)
+{
+	let values = colorString.substring(colorString.indexOf('(') + 1, colorString.indexOf(')')).split(',');
+	let integer = null;
+	let hash = "#";
+
+	if(values[3]) values[3] *= 255;
+
+	values.forEach(value =>
+	{
+		integer = parseInt(value, 10);
+		hash += integer.toString(16).toUpperCase().padStart(2, 0);
+	});
+
+	while(hash.length < 9) hash += 'F';
+
+	return hash;
 }
 
 function buildPrefsWidget()

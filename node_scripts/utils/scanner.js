@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var scanner = require('multicast-scanner');
-var devicesPath = path.join(__dirname + '/../../devices.json');
+var devicesPath = path.join(__dirname + '/../../config/devices.json');
 
 scanner((err, devices) => {
 

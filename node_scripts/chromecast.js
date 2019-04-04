@@ -116,7 +116,7 @@ function setMediaTracks(ip, port)
 		case 'video/*':
 			trackIds = [1];
 			mediaTracks = {
-				textTrackStyle: shared.chromecast.subsStyle,
+				textTrackStyle: getTextTrackStyle(),
 				tracks: shared.chromecast.tracks
 			};
 			mediaTracks.tracks[0].trackContentId = 'http://' + ip + ':' + port + '/subswebplayer';
@@ -124,16 +124,27 @@ function setMediaTracks(ip, port)
 		case 'audio/*':
 			trackIds = null;
 			mediaTracks = {
-				metadata: shared.chromecast.metadata
+				metadata: {
+					metadataType: 'MUSIC_TRACK',
+					title: getTitle(),
+					images: [{url: 'http://' + ip + ':' + port + '/cover'}]
+				}
 			};
-			mediaTracks.metadata.title = getTitle();
-			mediaTracks.metadata.images[0].url = 'http://' + ip + ':' + port + '/cover';
 			break;
 		case 'image/*':
 			trackIds = null;
 			mediaTracks = null;
 			break;
 	}
+}
+
+function getTextTrackStyle()
+{
+	const subsConfigPath = '../config/subtitles.json';
+	var exist = fs.existsSync(subsConfigPath);
+
+	if(exist) return JSON.parse(fs.readFileSync(subsConfigPath));
+	else return shared.chromecast.subsStyle;
 }
 
 function getTitle()
@@ -174,7 +185,7 @@ function launchCast()
 				gnome.showRemote(true);
 			}
 
-			var initStatus = p.currentSession;
+			var initStatus = player.currentSession;
 			var statusOk = checkStatusError(initStatus);
 			if(!statusOk) return closeCast();
 
@@ -188,9 +199,9 @@ function launchCast()
 
 function onIntervalError()
 {
-	if(!player.session)
+	if(player && !player.session)
 	{
-		clearInterval(castInterval);
+		if(castInterval) clearInterval(castInterval);
 		castInterval = null;
 		gnome.showRemote(false);
 	}
