@@ -666,7 +666,7 @@ class AboutPage extends Gtk.VBox
 
 		/* Developer name */
 		label = new Gtk.Label({
-			label: '<span font="12">' + _("Developed by:") + " " + "Rafostar" + '</span>',
+			label: '<span font="12">' + _("Developed by") + " " + "Rafostar" + '</span>',
 			use_markup: true,
 			margin: 20
 		});
