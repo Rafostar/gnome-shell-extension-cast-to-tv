@@ -3,6 +3,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Local = ExtensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
+const Service = Local.imports.service;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
@@ -600,7 +601,7 @@ class ModulesSettings extends Gtk.VBox
 		let installModules = () =>
 		{
 			TermWidget.reset(true, true);
-			GLib.spawn_command_line_sync('pkill -SIGINT -f ' + Local.path);
+			Service.closeServer(Local.path);
 			this.installButton.set_sensitive(false);
 			this.installButton.label = _("Installing...");
 
@@ -608,6 +609,9 @@ class ModulesSettings extends Gtk.VBox
 				TermWidget.spawn_async(
 					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, 0, null, null, null, 120000, null, () =>
 				{
+					let isServer = Service.checkServerRunning();
+					if(!isServer) Service.startServer(Local.path);
+
 					this.installButton.label = _(installLabel);
 					this.installButton.set_sensitive(true);
 				});
@@ -618,6 +622,9 @@ class ModulesSettings extends Gtk.VBox
 
 				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
 				{
+					let isServer = Service.checkServerRunning();
+					if(!isServer) Service.startServer(Local.path);
+
 					this.installButton.label = _(installLabel);
 					this.installButton.set_sensitive(true);
 				});

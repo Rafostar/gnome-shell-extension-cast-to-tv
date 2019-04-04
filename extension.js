@@ -13,7 +13,7 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Widget = Local.imports.widget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
-const Spawn = Local.imports.spawn;
+const Service = Local.imports.service;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 
@@ -268,16 +268,16 @@ function enable()
 
 	/* Add remote to top bar */
 	setRemotePosition();
+
+	/* Start media server service */
+	let isServer = Service.checkServerRunning();
+	if(!isServer) Service.startServer(Local.path);
 }
 
 function disable()
 {
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
-
-	if(!lockingScreen)
-	{
-		Spawn.closeServer();
-	}
+	if(!lockingScreen) Service.closeServer(Local.path);
 
 	/* Disconnect signals from settings */
 	Signals.forEach(signal => Settings.disconnect(signal));

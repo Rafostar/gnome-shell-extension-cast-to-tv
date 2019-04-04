@@ -7,6 +7,7 @@ const _ = GettextDomain.gettext;
 const localPath = ARGV[0];
 const streamType = ARGV[1];
 imports.searchPath.unshift(localPath);
+const Service = imports.service;
 const shared = imports.shared.module.exports;
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 
@@ -47,10 +48,8 @@ class fileChooser
 
 		if(!configContents || !selectionContents.streamType) return;
 
-		const isServer = checkServerRunning();
-
-		/* Start server if it is not running already */
-		if(!isServer) GLib.spawn_async('/usr/bin', ['node', localPath + '/node_scripts/server'], null, 0, null);
+		const isServer = Service.checkServerRunning();
+		if(!isServer) Service.startServer(localPath);
 
 		this.fileFilter = new Gtk.FileFilter();
 		let buttonConvert = new Gtk.CheckButton({ label: _("Transcode Video") });
@@ -229,18 +228,6 @@ class fileChooser
 	{
 		this.filePathChosen = this.fileChooser.get_filenames();
 	}
-}
-
-function checkServerRunning()
-{
-	let [res, out_fd] = GLib.spawn_command_line_sync('pgrep -a node');
-	let outStr;
-
-	if(out_fd instanceof Uint8Array) outStr = ByteArray.toString(out_fd);
-	else outStr = out_fd.toString();
-
-	if(res && outStr.includes('cast-to-tv')) return true;
-	else return false;
 }
 
 let dialog = new fileChooser();

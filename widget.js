@@ -3,9 +3,9 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
+const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const Spawn = Local.imports.spawn;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const iconName = 'tv-symbolic';
@@ -36,10 +36,22 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		this.castSubMenu.menu.addMenuItem(this.settingsMenuItem);
 
 		/* Signals connections */
-		this.videoMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'VIDEO'));
-		this.musicMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'MUSIC'));
-		this.pictureMenuItem.connect('activate', Spawn.fileChooser.bind(this, 'PICTURE'));
-		this.settingsMenuItem.connect('activate', Spawn.extensionPrefs.bind(this));
+		this.videoMenuItem.connect('activate', () => this.spawnFileChooser('VIDEO'));
+		this.musicMenuItem.connect('activate', () => this.spawnFileChooser('MUSIC'));
+		this.pictureMenuItem.connect('activate', () => this.spawnFileChooser('PICTURE'));
+		this.settingsMenuItem.connect('activate', () => this.spawnExtensionPrefs());
+
+		/* Functions */
+		this.spawnFileChooser = (streamType) =>
+		{
+			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
+			Util.spawn(['gjs', Local.path + '/file-chooser.js', Local.path, streamType]);
+		}
+
+		this.spawnExtensionPrefs = () =>
+		{
+			Util.spawn(['gnome-shell-extension-prefs', 'cast-to-tv@rafostar.github.com']);
+		}
 
 		this.addMenuItem(this.castSubMenu);
 	}
