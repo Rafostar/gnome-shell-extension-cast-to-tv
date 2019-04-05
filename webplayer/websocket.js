@@ -56,6 +56,13 @@ if(typeof player !== 'undefined')
 		}
 	});
 
+	player.on('seeked', () =>
+	{
+		progress = 0;
+		statusContents.currentTime = player.currentTime;
+		websocket.emit('status-update', statusContents);
+	});
+
 	websocket.on('remote-signal', msg =>
 	{
 		switch(msg.action)
