@@ -12,7 +12,8 @@ function findCastToTv()
 		index++;
 	}
 
-	return menuItems[index];
+	if(menuItems[index]) return menuItems[index];
+	else return null;
 }
 
 function setLastMenuItem(extMenu, item, endOffset)
