@@ -1,8 +1,9 @@
 var websocket = io();
 var progress = 0;
+var playbackStarted = false;
 
 var statusContents = {
-	playerState: 'PLAYING',
+	playerState: 'PAUSED',
 	currentTime: 0,
 	media: { duration: 0 },
 	volume: 1
@@ -26,11 +27,12 @@ if(typeof player !== 'undefined')
 
 	player.on('canplay', () =>
 	{
-		player.play();
+		if(!playbackStarted) player.play();
 	});
 
 	player.on('playing', () =>
 	{
+		playbackStarted = true;
 		statusContents.playerState = 'PLAYING';
 		websocket.emit('status-update', statusContents);
 	});
