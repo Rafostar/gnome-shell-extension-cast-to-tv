@@ -525,13 +525,12 @@ class AddonsSettings extends Gtk.Notebook
 	{
 		super();
 		let label = null;
-		let addonPrefs = null;
 
 		let extPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
 		let extDir = Gio.File.new_for_path(extPath);
 		let dirEnum = extDir.enumerate_children('standard::name,standard::type', 0, null);
 		let addons = [];
-		let addonWidgets = [];
+		let addonPrefs = [];
 
 		let info;
 		while((info = dirEnum.next_file(null)))
@@ -552,12 +551,16 @@ class AddonsSettings extends Gtk.Notebook
 			if(isPrefs)
 			{
 				imports.searchPath.unshift(addonPath);
-				addonPrefs = imports.addon_prefs;
-				addonWidgets.push(addonPrefs.buildPrefsWidget());
+				addonPrefs.push(imports.addon_prefs);
 			}
 		});
 
-		addonWidgets.forEach(widget => this.append_page(widget, widget.title));
+		addonPrefs.forEach(prefs =>
+		{
+			prefs.init();
+			let widget = prefs.buildPrefsWidget();
+			this.append_page(widget, widget.title);
+		});
 	}
 
 	destroy()
