@@ -1,10 +1,12 @@
 # Basic Makefile
 
 UUID = cast-to-tv@rafostar.github.com
+GETTEXT = cast-to-tv
+PACKAGE = "Cast to TV"
 TOLOCALIZE = widget.js file-chooser.js prefs.js node_scripts/messages.js
 MSGSRC = $(wildcard ./po/*.po)
 POTFILE = ./po/cast-to-tv.pot
-ZIPFILES = *.js metadata.json package.json package-lock.json node_scripts webplayer schemas locale appIcon LICENSE README.md
+ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon LICENSE README.md
 INSTALLPATH = ~/.local/share/gnome-shell/extensions
 
 # Compile schemas #
@@ -14,7 +16,7 @@ glib-schemas:
 # Create/update potfile #
 potfile:
 	mkdir -p po
-	xgettext -o $(POTFILE) --language=JavaScript --add-comments=TRANSLATORS: --package-name "Cast to TV" $(TOLOCALIZE)
+	xgettext -o $(POTFILE) --language=JavaScript --add-comments=TRANSLATORS: --package-name $(PACKAGE) $(TOLOCALIZE)
 
 # Update '.po' from 'potfile' #
 mergepo:
@@ -28,7 +30,7 @@ compilemo:
 	for i in $(MSGSRC); do \
 		mkdir -p ./locale/`basename $$i .po`; \
 		mkdir -p ./locale/`basename $$i .po`/LC_MESSAGES; \
-		msgfmt -c -o ./locale/`basename $$i .po`/LC_MESSAGES/cast-to-tv.mo $$i; \
+		msgfmt -c -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
 	done;
 
 # Create release zip #
