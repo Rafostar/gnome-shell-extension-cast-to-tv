@@ -63,8 +63,15 @@ function configCastRemote()
 		else remoteMenu.skipForwardButton.reactive = false;
 
 		/* Update track title */
-		let filename = selectionContents.filePath;
-		remoteMenu.trackTitle.text = filename.substring(filename.lastIndexOf('/') + 1, filename.lastIndexOf('.'));
+		if(selectionContents.title) remoteMenu.trackTitle.text = selectionContents.title;
+		else
+		{
+			let filename = selectionContents.filePath;
+			let title = filename.substring(filename.lastIndexOf('/') + 1, filename.lastIndexOf('.'));
+
+			if(title) remoteMenu.trackTitle.text = title;
+			else remoteMenu.trackTitle.text = "";
+		}
 
 		/* Set progress slider to beginning */
 		remoteMenu.positionSlider.setValue(0);
