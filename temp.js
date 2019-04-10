@@ -4,7 +4,6 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const shared = Local.imports.shared.module.exports;
-const tempDir = Local.imports.shared.tempDir;
 
 function writeToFile(path, contents)
 {
@@ -61,7 +60,7 @@ function setConfigFile()
 	if(!configContents.ffmpegPath) configContents.ffmpegPath = '/usr/bin/ffmpeg';
 	if(!configContents.ffprobePath) configContents.ffprobePath = '/usr/bin/ffprobe';
 
-	GLib.mkdir_with_parents(tempDir, 448); // 700 in octal
+	GLib.mkdir_with_parents(shared.tempDir, 448); // 700 in octal
 	writeToFile(shared.configPath, configContents);
 
 	return configContents;

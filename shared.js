@@ -5,16 +5,17 @@ if(typeof process === 'undefined')
 	var module = {exports};
 }
 
-var tempDir = '/tmp/.cast-to-tv/';
+var tempDir = '/tmp/.cast-to-tv';
 
 module.exports = {
-	configPath: tempDir + 'config.json',
-	selectionPath: tempDir + 'selection.json',
-	listPath: tempDir + 'playlist.json',
-	remotePath: tempDir + 'chromecast-remote.json',
-	statusPath: tempDir + 'chromecast-status.json',
-	vttSubsPath: tempDir + 'webplayer_subs.vtt',
-	coverDefault: tempDir + 'cover',
+	tempDir: tempDir,
+	configPath: tempDir + '/config.json',
+	selectionPath: tempDir + '/selection.json',
+	listPath: tempDir + '/playlist.json',
+	remotePath: tempDir + '/remote-controller.json',
+	statusPath: tempDir + '/chromecast-status.json',
+	vttSubsPath: tempDir + '/webplayer_subs.vtt',
+	coverDefault: tempDir + '/cover',
 	escapeChars: [' ', '[', ']', '"', "'"],
 	coverNames: ['cover', 'cover_01', 'cover 01', 'cover1'],
 	coverExtensions: ['.jpg', '.png'],
