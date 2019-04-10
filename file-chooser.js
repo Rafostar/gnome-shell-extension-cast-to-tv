@@ -48,6 +48,7 @@ class fileChooser
 
 		if(!configContents || !selectionContents.streamType) return;
 
+		/* Start server if it is not running already */
 		const isServer = Service.checkServerRunning();
 		if(!isServer) Service.startServer(localPath);
 

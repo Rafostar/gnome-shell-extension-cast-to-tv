@@ -14,7 +14,7 @@ exports.file = function(fileToRemove)
 
 exports.covers = function()
 {
-	shared.coverExtensions.forEach(function(ext)
+	shared.coverExtensions.forEach(ext =>
 	{
 		exports.file(shared.coverDefault + ext);
 	});
