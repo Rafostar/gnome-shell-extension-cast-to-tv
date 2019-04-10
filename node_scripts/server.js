@@ -95,37 +95,41 @@ app.get('/cast', function(req, res)
 {
 	if(bridge.selection.addon)
 	{
-		return bridge.addon.createStream(req, res);
+		bridge.addon.fileStream(req, res);
 	}
-
-	switch(bridge.selection.streamType)
+	else
 	{
-		case 'MUSIC':
-			if(bridge.config.musicVisualizer) webcreator.encodedStream(req, res);
-			else webcreator.fileStream(req, res);
-			break;
-		case 'VIDEO':
-		case 'PICTURE':
-			webcreator.fileStream(req, res);
-			break;
-		default:
-			webcreator.encodedStream(req, res);
+		switch(bridge.selection.streamType)
+		{
+			case 'MUSIC':
+				if(bridge.config.musicVisualizer) webcreator.encodedStream(req, res);
+				else webcreator.fileStream(req, res);
+				break;
+			case 'VIDEO':
+			case 'PICTURE':
+				webcreator.fileStream(req, res);
+				break;
+			default:
+				webcreator.encodedStream(req, res);
+		}
+
+		req.on('close', function()
+		{
+			closeStreamProcess();
+		});
 	}
-
-	req.on('close', function()
-	{
-		closeStreamProcess();
-	});
 });
 
 app.get('/subs(webplayer)?', function(req, res)
 {
-	webcreator.subsStream(req, res);
+	if(bridge.selection.addon && bridge.selection.subsSrc) bridge.addon.subsStream(req, res);
+	else webcreator.subsStream(req, res);
 });
 
 app.get('/cover', function(req, res)
 {
-	webcreator.coverStream(req, res);
+	if(bridge.selection.addon && bridge.selection.coverSrc) bridge.addon.coverStream(req, res);
+	else webcreator.coverStream(req, res);
 });
 
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));

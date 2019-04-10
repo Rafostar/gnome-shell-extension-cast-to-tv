@@ -71,7 +71,7 @@ function initWebPlayer()
 
 	if(bridge.selection.streamType != 'MUSIC')
 	{
-		if(bridge.selection.subsPath) isSub = true;
+		if(bridge.selection.subsPath || bridge.selection.subsSrc) isSub = true;
 		else isSub = fs.existsSync(shared.vttSubsPath);
 	}
 

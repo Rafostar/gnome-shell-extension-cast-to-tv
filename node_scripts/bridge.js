@@ -47,15 +47,18 @@ watch(shared.selectionPath, { delay: 0 }, (eventType, filename) =>
 		if(exports.selection.addon)
 		{
 			exports.addon = addons(exports.selection.addon.toLowerCase());
-			if(exports.addon) exports.addon.handleSelection(exports.selection);
+			if(exports.addon) exports.addon.handleSelection(exports.selection, exports.config);
+
+			remove.covers();
+			remove.file(shared.vttSubsPath);
 		}
 		else if(exports.selection.filePath)
 		{
 			setProcesses();
-
-			if(exports.config.receiverType == 'chromecast') chromecast.cast();
-			else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
 		}
+
+		if(exports.config.receiverType == 'chromecast') chromecast.cast();
+		else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
 	}
 });
 
