@@ -1,6 +1,5 @@
 const { Gtk, Gio, GLib, Gdk, Vte } = imports.gi;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Local = ExtensionUtils.getCurrentExtension();
+const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const Service = Local.imports.service;
@@ -400,7 +399,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontStyle.append('NORMAL', _("Normal"));
 		this.fontStyle.append('BOLD', _("Bold"));
 		this.fontStyle.append('ITALIC', _("Italic"));
-		this.fontStyle.append('BOLD_ITALIC', _("Bold Italic"));
+		this.fontStyle.append('BOLD_ITALIC', _("Bold italic"));
 		this.fontStyle.active_id = subsConfig.fontStyle;
 		this.styleSignal = this.fontStyle.connect('changed', () =>
 		{
@@ -687,6 +686,13 @@ class AboutPage extends Gtk.VBox
 
 		linkButton.uri = Local.metadata['url'];
 		linkButton.label = _("Extension Homepage");
+		this.pack_start(linkButton, false, false, 0);
+
+		/* Donation link */
+		linkButton = new Gtk.LinkButton();
+
+		linkButton.uri = 'https://www.paypal.me/Rafostar';
+		linkButton.label = _("Donate");
 		this.pack_start(linkButton, false, false, 0);
 	}
 
