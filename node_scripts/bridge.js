@@ -57,8 +57,11 @@ watch(shared.selectionPath, { delay: 0 }, (eventType, filename) =>
 			setProcesses();
 		}
 
-		if(exports.config.receiverType == 'chromecast') chromecast.cast();
-		else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
+		if(exports.selection.filePath)
+		{
+			if(exports.config.receiverType == 'chromecast') chromecast.cast();
+			else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
+		}
 	}
 });
 
