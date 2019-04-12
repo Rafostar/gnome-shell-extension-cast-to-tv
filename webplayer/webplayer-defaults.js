@@ -7,5 +7,6 @@ var playerOptions = {
 	keyboard: { focused: true, global: true },
 	captions: { active: true, language: 'en', update: false },
 	iconUrl: '/plyr/plyr.svg',
-	blankVideo: '/plyr/blank.mp4'
+	blankVideo: '/plyr/blank.mp4',
+	storage: { enabled: false }
 };
