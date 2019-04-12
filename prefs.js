@@ -1,4 +1,5 @@
 const { Gtk, Gio, GLib, Gdk, Vte } = imports.gi;
+const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
@@ -145,7 +146,7 @@ class MainSettings extends Gtk.VBox
 
 		this.updateLink = () =>
 		{
-			let link = this.hostIp + ':' + this.portWidget.value;
+			let link = 'http://' + this.hostIp + ':' + this.portWidget.value;
 			this.linkButton.uri = link;
 			this.linkButton.label = link;
 		}
@@ -618,7 +619,7 @@ class ModulesSettings extends Gtk.VBox
 					this.installButton.set_sensitive(true);
 				});
 			}
-			catch(e) {
+			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
 					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
 
@@ -837,23 +838,17 @@ function setDevices(widget)
 function getHostIp()
 {
 	try {
-		/* NM might not be installed */
-		let NMClient = imports.gi.NMClient;
-		let client = new NMClient.Client;
+		let ip4;
+		let [res, stdout] = GLib.spawn_sync(
+			'/usr/bin', ['node', Local.path + '/node_scripts/utils/local-ip'], null, 0, null);
 
-		let priConn = client.get_primary_connection();
-		let ip4Config = priConn.get_ip4_config();
-		let ip4Adress = ip4Config.get_addresses()[0].get_address();
+		if(stdout instanceof Uint8Array) ip4 = ByteArray.toString(stdout);
+		else ip4 = stdout.toString();
 
-		let array = new Uint8Array(4);
-		array[0] = ip4Adress;
-		array[1] = ip4Adress >> 8;
-		array[2] = ip4Adress >> 16;
-		array[3] = ip4Adress >> 24;
-
-		return 'http://' + array[0] + '.' + array[1] + '.' + array[2] + '.' + array[3];
+		if(res) return ip4.replace(/\n/, '');
+		else return null;
 	}
-	catch(e) {
+	catch(err) {
 		return null;
 	}
 }
