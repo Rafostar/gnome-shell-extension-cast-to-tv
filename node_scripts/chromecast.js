@@ -14,6 +14,7 @@ var shared = require('../shared');
 /* Objects */
 var player;
 var playerStatus;
+var playerVolume = 1;
 
 /* Chromecast Opts */
 var webUrl;
@@ -172,6 +173,7 @@ function launchCast()
 		else if(p)
 		{
 			player = p;
+			player.setVolume(parseFloat(playerVolume));
 
 			if(mimeType == 'video/*')
 			{
@@ -191,7 +193,7 @@ function launchCast()
 
 			castInterval = setInterval(() => {
 				try{ getChromecastStatus(); }
-				catch(e){ onIntervalError(); }
+				catch(err){ onIntervalError(); }
 				}, 500);
 		}
 	});
@@ -286,11 +288,12 @@ function getChromecastStatus()
 		if(status)
 		{
 			playerStatus = status;
+			playerStatus.volume = playerVolume;
 
 			var statusOk = checkStatusError(status);
 			if(!statusOk) return closeCast();
 
-			if(!remoteAction) bridge.setStatusFile(status);
+			if(!remoteAction) bridge.setStatusFile(playerStatus);
 		}
 		else
 		{
@@ -354,6 +357,12 @@ function checkRemoteAction(status)
 		case 'STOP':
 			controller.repeat = false;
 			return closeCast();
+		case 'VOLUME':
+			player.setVolume(parseFloat(remoteValue), (err, volume) =>
+			{
+				if(!err) playerVolume = volume.level;
+			});
+			break;
 		default:
 			break;
 	}

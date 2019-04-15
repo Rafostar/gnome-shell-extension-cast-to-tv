@@ -73,9 +73,6 @@ function configCastRemote()
 			else remoteMenu.trackTitle.text = "";
 		}
 
-		/* Set progress slider to beginning */
-		remoteMenu.positionSlider.setValue(0);
-
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
 		{
@@ -92,6 +89,17 @@ function configCastRemote()
 			default:
 				remoteMenu.setMode('ENCODE', 'folder-videos-symbolic');
 				break;
+		}
+
+		/* Set slider startup values */
+		if(remoteMenu.positionSlider.isVolume)
+		{
+			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.volumeIcon;
+		}
+		else
+		{
+			remoteMenu.positionSlider.setValue(0);
+			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.defaultIcon;
 		}
 
 		remoteMenu.show();

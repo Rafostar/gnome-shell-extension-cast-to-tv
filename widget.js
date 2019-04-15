@@ -12,6 +12,7 @@ const iconName = 'tv-symbolic';
 
 var isRepeatActive;
 var seekTime;
+var sliderDelay = 5;
 
 var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
 
@@ -64,10 +65,11 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor()
+	constructor(toggle)
 	{
 		super(0.5, _("Chromecast Remote"), false);
-		this.sliderChanged = 0;
+		this.isToggleSilder = true;
+		this.mode = 'DIRECT';
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -89,7 +91,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic');
+		this.positionSlider = new SliderItem('folder-videos-symbolic', this.isToggleSilder);
+		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false);
 		this.playButton = new MediaControlButton('media-playback-start-symbolic');
 		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
@@ -114,6 +117,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.menu.addMenuItem(this.trackTitle);
 		this.menu.addMenuItem(this.positionSlider);
+		this.menu.addMenuItem(this.volumeSlider);
 		this.popupBase.actor.add(this.controlsButtonBox);
 		this.menu.addMenuItem(this.popupBase);
 
@@ -121,12 +125,47 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', () => {
-			this.sliderChanged = 0;
-			Temp.setRemoteAction('SEEK', this.positionSlider.value.toFixed(3));
+		this.positionSlider.connect('value-changed', () =>
+		{
+			this.positionSlider.delay = sliderDelay;
+			let action;
+
+			if(this.positionSlider.isVolume) action = 'VOLUME';
+			else action = 'SEEK';
+
+			Temp.setRemoteAction(action, this.positionSlider.value.toFixed(3));
 		});
 
-		this.repeatButton.connect('clicked', () => {
+		if(this.isToggleSilder)
+		{
+			this.positionSlider.button.connect('clicked', () =>
+			{
+				this.positionSlider.delay = 0;
+				this.positionSlider.isVolume ^= true;
+
+				let statusContents = Temp.readFromFile(shared.statusPath);
+
+				if(this.positionSlider.isVolume)
+				{
+					this.positionSlider.icon = this.positionSlider.volumeIcon;
+					if(statusContents) this.setVolume(statusContents);
+				}
+				else
+				{
+					this.positionSlider.icon = this.positionSlider.defaultIcon;
+					if(statusContents) this.setProgress(statusContents);
+				}
+			});
+		}
+
+		this.volumeSlider.connect('value-changed', () =>
+		{
+			this.volumeSlider.delay = sliderDelay;
+			Temp.setRemoteAction('VOLUME', this.volumeSlider.value.toFixed(3));
+		});
+
+		this.repeatButton.connect('clicked', () =>
+		{
 			Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
 			isRepeatActive = this.repeatButton.turnedOn;
 		});
@@ -141,7 +180,25 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
-		this.statusMonitor.connect('changed', () => this.setProgress());
+		this.statusMonitor.connect('changed', () =>
+		{
+			if(this.mode == 'PICTURE') return;
+
+			if(this.positionSlider.delay > 0) return this.positionSlider.delay--;
+			if(this.volumeSlider.delay > 0) return this.volumeSlider.delay--;
+
+			let statusContents = Temp.readFromFile(shared.statusPath);
+			if(statusContents)
+			{
+				this.checkPlaying(statusContents);
+				this.setVolume(statusContents);
+
+				if(this.positionSlider.visible && !this.positionSlider.isVolume)
+				{
+					this.setProgress(statusContents);
+				}
+			}
+		});
 
 		/* Functions */
 		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
@@ -160,28 +217,35 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
-		this.setProgress = () =>
+		this.checkPlaying = (statusContents) =>
 		{
-			let statusContents = Temp.readFromFile(shared.statusPath);
+			if(statusContents.playerState == 'PLAYING') this.setPlaying(true);
+			else if(statusContents.playerState == 'PAUSED') this.setPlaying(false);
+		}
 
-			if(statusContents)
+		this.setProgress = (statusContents) =>
+		{
+			if(statusContents.mediaDuration > 0)
 			{
-				if(statusContents.playerState == 'PLAYING') this.setPlaying(true);
-				else if(statusContents.playerState == 'PAUSED') this.setPlaying(false);
+				let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
+				this.positionSlider.setValue(sliderValue);
+			}
+		}
 
-				if(statusContents.mediaDuration > 0)
-				{
-					let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
-
-					if(this.sliderChanged < 3) this.sliderChanged++;
-					else this.positionSlider.setValue(sliderValue);
-				}
+		this.setVolume = (statusContents) =>
+		{
+			if(statusContents.volume >= 0 && statusContents.volume <= 1)
+			{
+				if(this.volumeSlider.visible) this.volumeSlider.setValue(statusContents.volume);
+				else if(this.positionSlider.isVolume) this.positionSlider.setValue(statusContents.volume);
 			}
 		}
 
 		this.setMode = (value, icon) =>
 		{
-			switch(value)
+			this.mode = value;
+
+			switch(this.mode)
 			{
 				case 'DIRECT':
 					this.positionSlider.show();
@@ -190,9 +254,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					this.playButton.hide();
 					this.seekBackwardButton.show();
 					this.seekForwardButton.show();
+					if(this.isToggleSilder) this.volumeSlider.hide();
+					else this.volumeSlider.show();
 					break;
 				case 'ENCODE':
 					this.positionSlider.hide();
+					this.volumeSlider.show();
 					this.repeatButton.show();
 					this.pauseButton.show();
 					this.playButton.hide();
@@ -201,6 +268,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					break;
 				case 'PICTURE':
 					this.positionSlider.hide();
+					this.volumeSlider.hide();
 					this.repeatButton.hide();
 					this.pauseButton.hide();
 					this.playButton.hide();
@@ -209,7 +277,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					break;
 			}
 
-			if(icon) this.positionSlider.icon = icon;
+			if(icon) this.positionSlider.defaultIcon = icon;
 		}
 	}
 
@@ -240,12 +308,14 @@ class PopupBase extends PopupMenu.PopupBaseMenuItem
 
 class MediaControlButton extends St.Button
 {
-	constructor(icon, toggle)
+	constructor(icon, toggle, size)
 	{
+		if(!size) size = 20;
+
 		super({
 			style: 'padding: 4px, 6px, 4px, 6px; margin-left: 2px; margin-right: 2px;',
 			opacity: 130,
-			child: new St.Icon({ style_class: 'popup-menu-icon', icon_size: 20, icon_name: icon })
+			child: new St.Icon({ style_class: 'popup-menu-icon', icon_size: size, icon_name: icon })
 		});
 
 		this.turnedOn = false;
@@ -295,15 +365,24 @@ class MediaControlButton extends St.Button
 
 class SliderItem extends PopupMenu.PopupBaseMenuItem
 {
-	constructor(icon)
+	constructor(icon, toggle)
 	{
 		super({ hover: false, reactive: true });
-		this._icon = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
+		this.defaultIcon = icon;
+		this.volumeIcon = 'audio-volume-high-symbolic';
+		this._toggle = toggle;
 		this._slider = new Slider.Slider(0);
 
-		this.actor.add(this._icon);
+		if(this._toggle) this.button = new MediaControlButton(this.defaultIcon, false, 16);
+		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
+
+		this.delay = 0;
+		this.isVolume = false;
+
+		this.actor.add(this.button);
 		this.actor.add(this._slider.actor, { expand: true });
 		this.actor.add_style_pseudo_class = () => { return null };
+		this.button.style = 'margin-right: 2px;';
 
 		/* Functions */
 		this.setValue = (value) => this._slider.setValue(value);
@@ -317,9 +396,15 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		return this._slider.value;
 	}
 
+	get visible()
+	{
+		return this.actor.visible;
+	}
+
 	set icon(value)
 	{
-		this._icon.icon_name = value;
+		if(this._toggle) this.button.child.icon_name = value;
+		else this.button.icon_name = value;
 	}
 }
 

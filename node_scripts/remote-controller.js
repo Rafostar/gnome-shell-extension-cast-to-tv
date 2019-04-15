@@ -25,7 +25,7 @@ exports.webControl = function(action, value)
 			exports.repeat = value;
 			break;
 		default:
-			socket.emit('remote-signal', {action, value});
+			socket.emit('remote-signal', { action, value });
 			break;
 	}
 }

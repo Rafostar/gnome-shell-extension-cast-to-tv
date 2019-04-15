@@ -6,7 +6,7 @@ var statusContents = {
 	playerState: 'PAUSED',
 	currentTime: 0,
 	media: { duration: 0 },
-	volume: 1
+	volume: player.volume
 };
 
 /* Web player related websocket functions */
@@ -48,7 +48,7 @@ if(typeof player !== 'undefined')
 		progress++;
 
 		/* Reduce event frequency */
-		if(progress % 2 == 0)
+		if(progress % 5 == 0)
 		{
 			progress = 0;
 			statusContents.currentTime = player.currentTime;
@@ -60,6 +60,14 @@ if(typeof player !== 'undefined')
 	{
 		progress = 0;
 		statusContents.currentTime = player.currentTime;
+		websocket.emit('status-update', statusContents);
+	});
+
+	player.on('volumechange', () =>
+	{
+		if(player.muted) statusContents.volume = 0;
+		else statusContents.volume = player.volume;
+
 		websocket.emit('status-update', statusContents);
 	});
 
@@ -82,8 +90,12 @@ if(typeof player !== 'undefined')
 			case 'SEEK-':
 				player.rewind(msg.value);
 				break;
+			case 'VOLUME':
+				player.volume = msg.value;
+				break;
 			case 'STOP':
 				player.stop();
+				break;
 			default:
 				break;
 		}
