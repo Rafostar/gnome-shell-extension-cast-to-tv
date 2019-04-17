@@ -184,13 +184,14 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		{
 			if(this.mode == 'PICTURE') return;
 
-			if(this.positionSlider.delay > 0) return this.positionSlider.delay--;
-			if(this.volumeSlider.delay > 0) return this.volumeSlider.delay--;
-
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
 				this.checkPlaying(statusContents);
+
+				if(this.positionSlider.delay > 0) return this.positionSlider.delay--;
+				if(this.volumeSlider.delay > 0) return this.volumeSlider.delay--;
+
 				this.setVolume(statusContents);
 
 				if(this.positionSlider.visible && !this.positionSlider.isVolume)
