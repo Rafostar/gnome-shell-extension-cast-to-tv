@@ -31,7 +31,7 @@ function getSubsPath()
 	}
 }
 
-exports.videoConfig = function()
+exports.video = function()
 {
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
@@ -58,13 +58,13 @@ exports.videoConfig = function()
 
 	var notifyError = false;
 
-	exports.streamProcess.once('close', function(code)
+	exports.streamProcess.once('close', (code) =>
 	{
 		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
 		exports.streamProcess = null;
 	});
 
-	exports.streamProcess.once('error', function(error)
+	exports.streamProcess.once('error', (error) =>
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
@@ -73,10 +73,10 @@ exports.videoConfig = function()
 		}
 	});
 
-	return exports.streamProcess;
+	return exports.streamProcess.stdout;
 }
 
-exports.videoVaapiConfig = function()
+exports.videoVaapi = function()
 {
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
@@ -94,7 +94,8 @@ exports.videoVaapiConfig = function()
 	{
 		getSubsPath();
 		encodeOpts.splice(0, 0, '-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
-		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
+			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
 	}
 	else
 	{
@@ -107,13 +108,13 @@ exports.videoVaapiConfig = function()
 
 	var notifyError = false;
 
-	exports.streamProcess.once('close', function(code)
+	exports.streamProcess.once('close', (code) =>
 	{
 		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
 		exports.streamProcess = null;
 	});
 
-	exports.streamProcess.once('error', function(error)
+	exports.streamProcess.once('error', (error) =>
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
@@ -122,10 +123,10 @@ exports.videoVaapiConfig = function()
 		}
 	});
 
-	return exports.streamProcess;
+	return exports.streamProcess.stdout;
 }
 
-exports.musicVisualizerConfig = function()
+exports.musicVisualizer = function()
 {
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
@@ -169,13 +170,13 @@ exports.musicVisualizerConfig = function()
 
 	var notifyError = false;
 
-	exports.streamProcess.once('close', function(code)
+	exports.streamProcess.once('close', (code) =>
 	{
 		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
 		exports.streamProcess = null;
 	});
 
-	exports.streamProcess.once('error', function(error)
+	exports.streamProcess.once('error', (error) =>
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
@@ -184,5 +185,14 @@ exports.musicVisualizerConfig = function()
 		}
 	});
 
-	return exports.streamProcess;
+	return exports.streamProcess.stdout;
+}
+
+exports.closeStreamProcess = function()
+{
+	if(exports.streamProcess)
+	{
+		try { process.kill(exports.streamProcess.pid, 'SIGHUP'); }
+		catch(err) {}
+	}
 }

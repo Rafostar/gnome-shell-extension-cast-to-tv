@@ -94,10 +94,10 @@ exports.encodedStream = function(req, res)
 
 	if(exist)
 	{
-		if(streamType == 'VIDEO_ENCODE') encode.videoConfig().stdout.pipe(res);
-		else if(streamType == 'VIDEO_VAAPI') encode.videoVaapiConfig().stdout.pipe(res);
-		else if(streamType == 'VIDEO_NVENC') encode.videoNvencConfig().stdout.pipe(res);
-		else if(streamType == 'MUSIC') encode.musicVisualizerConfig().stdout.pipe(res);
+		if(streamType == 'VIDEO_ENCODE') encode.video().pipe(res);
+		else if(streamType == 'VIDEO_VAAPI') encode.videoVaapi().pipe(res);
+		else if(streamType == 'VIDEO_NVENC') encode.videoNvenc().pipe(res);
+		else if(streamType == 'MUSIC') encode.musicVisualizer().pipe(res);
 		else res.end();
 
 		return;

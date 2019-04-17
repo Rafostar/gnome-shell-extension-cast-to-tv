@@ -25,15 +25,6 @@ exports.refreshConfig = function()
 	}
 }
 
-function closeStreamProcess()
-{
-	if(encode.streamProcess)
-	{
-		process.kill(encode.streamProcess.pid, 'SIGHUP');
-		encode.streamProcess = null;
-	}
-}
-
 function checkMessagePage(req, res)
 {
 	var showMessage;
@@ -115,7 +106,7 @@ app.get('/cast', function(req, res)
 
 		req.on('close', function()
 		{
-			closeStreamProcess();
+			encode.closeStreamProcess();
 		});
 	}
 });
