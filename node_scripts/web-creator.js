@@ -166,11 +166,11 @@ exports.webConfig = function(req, res)
 	var size = bridge.config.webplayerSubs;
 
 	var webConfig = `@media {
-	.plyr__captions{font-size:${size}vw}
-	.plyr:-webkit-full-screen .plyr__captions{font-size:${size}vw}
-	.plyr:-moz-full-screen .plyr__captions{font-size:${size}vw}
-	.plyr:-ms-fullscreen .plyr__captions{font-size:${size}vw}
-	.plyr:fullscreen .plyr__captions{font-size:${size}vw}\n}`
+	.plyr__captions{font-size:${2*size}vmin}
+	.plyr:-webkit-full-screen .plyr__captions{font-size:${2*size}vmin}
+	.plyr:-moz-full-screen .plyr__captions{font-size:${2*size}vmin}
+	.plyr:-ms-fullscreen .plyr__captions{font-size:${2*size}vmin}
+	.plyr:fullscreen .plyr__captions{font-size:${2*size}vmin}\n}`
 
 	res.send(webConfig);
 }
