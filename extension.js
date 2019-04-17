@@ -228,13 +228,10 @@ function changeSeekTime()
 	Widget.seekTime = Settings.get_int('seek-time');
 }
 
-function changeRemotePosition()
+function changeUnifiedSlider()
 {
-	/* Remove previous indicator */
-	remoteMenu.destroy();
-	remoteMenu = new Widget.remoteMenu();
-
-	setRemotePosition();
+	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
+	recreateRemote();
 }
 
 function changeLabelVisibility()
@@ -243,6 +240,16 @@ function changeLabelVisibility()
 
 	if(showLabel) remoteMenu.toplabel.show();
 	else remoteMenu.toplabel.hide();
+}
+
+function recreateRemote()
+{
+	/* Remove previous indicator */
+	remoteMenu.destroy();
+	remoteMenu = new Widget.remoteMenu();
+
+	changeLabelVisibility();
+	setRemotePosition();
 }
 
 function init()
@@ -255,12 +262,15 @@ function enable()
 	/* Read/create temp files */
 	getTempFiles();
 
+	/* Get remaining necessary settings */
+	Widget.seekTime = Settings.get_int('seek-time');
+	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
+
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
 	remoteMenu = new Widget.remoteMenu();
 
-	/* Get remaining necessary settings */
-	Widget.seekTime = Settings.get_int('seek-time');
+	/* Set initial remote label visibility */
 	changeLabelVisibility();
 
 	/* Clear signals array */
@@ -274,7 +284,8 @@ function enable()
 	Signals.push(Settings.connect('changed::webplayer-subs', changeWebplayerSubs.bind(this)));
 	Signals.push(Settings.connect('changed::video-bitrate', changeVideoBitrate.bind(this)));
 	Signals.push(Settings.connect('changed::video-acceleration', changeVideoAcceleration.bind(this)));
-	Signals.push(Settings.connect('changed::remote-position', changeRemotePosition.bind(this)));
+	Signals.push(Settings.connect('changed::remote-position', recreateRemote.bind(this)));
+	Signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
 	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-name', changeChromecastName.bind(this)));

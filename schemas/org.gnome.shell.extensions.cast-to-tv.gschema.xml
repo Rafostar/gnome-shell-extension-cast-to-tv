@@ -17,23 +17,6 @@
       <default>4000</default>
       <summary>Port used for incoming connections</summary>
     </key>
-    <key name="webplayer-subs" type="d">
-      <default>2.5</default>
-      <summary>Web player subtitles size</summary>
-    </key>
-    <key name="music-visualizer" type="b">
-      <default>false</default>
-      <summary>FFmpeg music visualizer</summary>
-    </key>
-    <!-- Encoding -->
-    <key name="video-acceleration" type="s">
-      <default>"none"</default>
-      <summary>Video streaming hardware acceleration</summary>
-    </key>
-    <key name="video-bitrate" type="d">
-      <default>5.0</default>
-      <summary>Media encoding video bitrate</summary>
-    </key>
     <!-- Remote -->
     <key name="remote-position" type="s">
       <default>"right"</default>
@@ -42,6 +25,10 @@
     <key name="seek-time" type="i">
       <default>10</default>
       <summary>Time amount to skip when seeking</summary>
+    </key>
+    <key name="unified-slider" type="b">
+      <default>true</default>
+      <summary>Unify volume and progress sliders</summary>
     </key>
     <key name="remote-label" type="b">
       <default>true</default>
@@ -53,6 +40,23 @@
       <summary>Chromecast device name</summary>
     </key>
     <!-- Other -->
+    <key name="music-visualizer" type="b">
+      <default>false</default>
+      <summary>FFmpeg music visualizer</summary>
+    </key>
+    <key name="webplayer-subs" type="d">
+      <default>1.0</default>
+      <summary>Web player subtitles size</summary>
+    </key>
+    <key name="video-acceleration" type="s">
+      <default>"none"</default>
+      <summary>Video streaming hardware acceleration</summary>
+    </key>
+    <key name="video-bitrate" type="d">
+      <default>5.0</default>
+      <summary>Media encoding video bitrate</summary>
+    </key>
+    <!-- Status -->
     <key name="chromecast-playing" type="b">
       <default>false</default>
       <summary>Chromecast playing state</summary>

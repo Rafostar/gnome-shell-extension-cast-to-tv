@@ -10,8 +10,9 @@ const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const iconName = 'tv-symbolic';
 
-var isRepeatActive;
-var seekTime;
+var isRepeatActive = false;
+var isUnifiedSlider = true;
+var seekTime = 10;
 var sliderDelay = 5;
 
 var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
@@ -65,10 +66,9 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor(toggle)
+	constructor()
 	{
 		super(0.5, _("Chromecast Remote"), false);
-		this.isToggleSilder = true;
 		this.mode = 'DIRECT';
 
 		this.box = new St.BoxLayout();
@@ -83,7 +83,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.actor.add_child(this.box);
 
 		/* Create base for media control buttons */
-		this.popupBase = new PopupBase;
+		this.popupBase = new PopupBase();
 
 		this.controlsButtonBox = new St.BoxLayout({
 			x_align: Clutter.ActorAlign.CENTER,
@@ -91,7 +91,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic', this.isToggleSilder);
+		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider);
 		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false);
 		this.playButton = new MediaControlButton('media-playback-start-symbolic');
 		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
@@ -136,7 +136,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			Temp.setRemoteAction(action, this.positionSlider.value.toFixed(3));
 		});
 
-		if(this.isToggleSilder)
+		if(isUnifiedSlider)
 		{
 			this.positionSlider.button.connect('clicked', () =>
 			{
@@ -254,7 +254,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					this.playButton.hide();
 					this.seekBackwardButton.show();
 					this.seekForwardButton.show();
-					if(this.isToggleSilder) this.volumeSlider.hide();
+					if(isUnifiedSlider) this.volumeSlider.hide();
 					else this.volumeSlider.show();
 					break;
 				case 'ENCODE':
@@ -382,6 +382,8 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.actor.add(this.button);
 		this.actor.add(this._slider.actor, { expand: true });
 		this.actor.add_style_pseudo_class = () => { return null };
+		this.actor.visible = true;
+
 		this.button.style = 'margin-right: 2px;';
 
 		/* Functions */

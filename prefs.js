@@ -122,20 +122,6 @@ class MainSettings extends Gtk.VBox
 		grid.attach(label, 0, 4, 1, 1);
 		grid.attach(this.portWidget, 1, 4, 1, 1);
 
-		/* Music Visualizer */
-		label = new Gtk.Label({
-			label: _("Music visualizer"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('music-visualizer'));
-		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		grid.attach(label, 0, 5, 1, 1);
-		grid.attach(widget, 1, 5, 1, 1);
-
 		/* Web player link */
 		this.linkButton = new Gtk.LinkButton({
 			expand: false,
@@ -182,7 +168,7 @@ class MainSettings extends Gtk.VBox
 	}
 }
 
-class EncodeSettings extends Gtk.Grid
+class OtherSettings extends Gtk.Grid
 {
 	constructor()
 	{
@@ -190,14 +176,64 @@ class EncodeSettings extends Gtk.Grid
 		let label = null;
 		let widget = null;
 
-		/* Label: Media Encoding */
+		/* Label: Miscellaneous */
 		label = new Gtk.Label({
-			label: '<span font="12.5"><b>' + _("Media Encoding") + '</b></span>',
+			label: '<span font="12.5"><b>' + _("Miscellaneous") + '</b></span>',
 			use_markup: true,
 			hexpand: true,
 			halign: Gtk.Align.START
 		});
 		this.attach(label, 0, 0, 1, 1);
+
+		/* Music Visualizer */
+		label = new Gtk.Label({
+			label: _("Music visualizer"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('music-visualizer'));
+		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 1, 1, 1);
+		this.attach(widget, 1, 1, 1, 1);
+
+		/* Label: Web Player */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Web Player") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 2, 1, 1);
+
+		/* Subtitles Scale */
+		label = new Gtk.Label({
+			label: _("Subtitles scale factor"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
+		widget.set_sensitive(true);
+		widget.set_range(0.1, 5.0);
+		widget.set_value(Settings.get_double('webplayer-subs'));
+		widget.set_increments(0.1, 0.2);
+		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 3, 1, 1);
+		this.attach(widget, 1, 3, 1, 1);
+
+		/* Label: Media Encoding */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Media Encoding") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 4, 1, 1);
 
 		/* Hardware Acceleration */
 		label = new Gtk.Label({
@@ -213,8 +249,8 @@ class EncodeSettings extends Gtk.Grid
 		/* TRANSLATORS: Should remain as NVENC unless you use different alphabet */
 		//widget.append('nvenc', _("NVENC"));
 		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 1, 1, 1);
-		this.attach(widget, 1, 1, 1, 1);
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(widget, 1, 5, 1, 1);
 
 		/* Video Bitrate */
 		label = new Gtk.Label({
@@ -229,8 +265,8 @@ class EncodeSettings extends Gtk.Grid
 		widget.set_value(Settings.get_double('video-bitrate'));
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 2, 1, 1);
-		this.attach(widget, 1, 2, 1, 1);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(widget, 1, 6, 1, 1);
 	}
 
 	destroy()
@@ -288,6 +324,20 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(label, 0, 2, 1, 1);
 		this.attach(widget, 1, 2, 1, 1);
 
+		/* Volume Slider */
+		label = new Gtk.Label({
+			label: _("Unify sliders"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('unified-slider'));
+		Settings.bind('unified-slider', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 3, 1, 1);
+		this.attach(widget, 1, 3, 1, 1);
+
 		/* Remote Label */
 		label = new Gtk.Label({
 			label: _("Show remote label"),
@@ -299,8 +349,8 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('remote-label'));
 		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(widget, 1, 3, 1, 1);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(widget, 1, 4, 1, 1);
 	}
 
 	destroy()
@@ -610,7 +660,8 @@ class ModulesSettings extends Gtk.VBox
 
 			try {
 				TermWidget.spawn_async(
-					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, 0, null, null, null, 120000, null, () =>
+					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'],
+					null, 0, null, null, null, 120000, null, () =>
 				{
 					let isServer = Service.checkServerRunning();
 					if(!isServer) Service.startServer(Local.path);
@@ -621,7 +672,8 @@ class ModulesSettings extends Gtk.VBox
 			}
 			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
-					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
+					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'],
+					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
 
 				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
 				{
@@ -714,10 +766,6 @@ class CastNotebook extends Gtk.Notebook
 		label = new Gtk.Label({ label: _("Main") });
 		this.append_page(this.mainWidget, label);
 
-		this.encodeWidget = new EncodeSettings();
-		label = new Gtk.Label({ label: _("Encoding") });
-		this.append_page(this.encodeWidget, label);
-
 		this.remoteWidget = new RemoteSettings();
 		label = new Gtk.Label({ label: _("Remote") });
 		this.append_page(this.remoteWidget, label);
@@ -725,6 +773,10 @@ class CastNotebook extends Gtk.Notebook
 		this.chromecastWidget = new ChromecastSettings();
 		label = new Gtk.Label({ label: _("Chromecast") });
 		this.append_page(this.chromecastWidget, label);
+
+		this.otherWidget = new OtherSettings();
+		label = new Gtk.Label({ label: _("Other") });
+		this.append_page(this.otherWidget, label);
 
 		this.addonsWidget = new AddonsSettings();
 		let addonsNumber = this.addonsWidget.get_n_pages();
@@ -752,7 +804,7 @@ class CastNotebook extends Gtk.Notebook
 		super.destroy();
 
 		this.mainWidget.destroy();
-		this.encodeWidget.destroy();
+		this.otherWidget.destroy();
 		this.remoteWidget.destroy();
 		this.chromecastWidget.destroy();
 		this.modulesWidget.destroy();
@@ -815,7 +867,8 @@ function scanDevices(widget, button)
 	GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
 
 	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
-		'/usr/bin', ['node', Local.path + '/node_scripts/utils/scanner'], null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
+		'/usr/bin', ['node', Local.path + '/node_scripts/utils/scanner'],
+		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
 	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
 	{
@@ -840,7 +893,8 @@ function getHostIp()
 	try {
 		let ip4;
 		let [res, stdout] = GLib.spawn_sync(
-			'/usr/bin', ['node', Local.path + '/node_scripts/utils/local-ip'], null, 0, null);
+			'/usr/bin', ['node', Local.path + '/node_scripts/utils/local-ip'],
+			null, 0, null);
 
 		if(stdout instanceof Uint8Array) ip4 = ByteArray.toString(stdout);
 		else ip4 = stdout.toString();
