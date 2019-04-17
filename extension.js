@@ -193,6 +193,12 @@ function changeListeningPort()
 	Temp.writeToFile(shared.configPath, configContents);
 }
 
+function changeWebplayerSubs()
+{
+	configContents.webplayerSubs = Settings.get_double('webplayer-subs').toFixed(1);
+	Temp.writeToFile(shared.configPath, configContents);
+}
+
 function changeVideoBitrate()
 {
 	configContents.videoBitrate = Settings.get_double('video-bitrate').toFixed(1);
@@ -265,6 +271,7 @@ function enable()
 	Signals.push(Settings.connect('changed::ffprobe-path', changeFFprobePath.bind(this)));
 	Signals.push(Settings.connect('changed::receiver-type', changeReceiverType.bind(this)));
 	Signals.push(Settings.connect('changed::listening-port', changeListeningPort.bind(this)));
+	Signals.push(Settings.connect('changed::webplayer-subs', changeWebplayerSubs.bind(this)));
 	Signals.push(Settings.connect('changed::video-bitrate', changeVideoBitrate.bind(this)));
 	Signals.push(Settings.connect('changed::video-acceleration', changeVideoAcceleration.bind(this)));
 	Signals.push(Settings.connect('changed::remote-position', changeRemotePosition.bind(this)));

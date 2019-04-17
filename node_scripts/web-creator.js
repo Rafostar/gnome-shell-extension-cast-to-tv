@@ -158,6 +158,23 @@ exports.coverStream = function(req, res)
 	return fs.createReadStream(coverPath).pipe(res);
 }
 
+exports.webConfig = function(req, res)
+{
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Content-Type', 'text/css');
+
+	var size = bridge.config.webplayerSubs;
+
+	var webConfig = `@media {
+	.plyr__captions{font-size:${size}vw}
+	.plyr:-webkit-full-screen .plyr__captions{font-size:${size}vw}
+	.plyr:-moz-full-screen .plyr__captions{font-size:${size}vw}
+	.plyr:-ms-fullscreen .plyr__captions{font-size:${size}vw}
+	.plyr:fullscreen .plyr__captions{font-size:${size}vw}\n}`
+
+	res.send(webConfig);
+}
+
 exports.pageWrong = function(req, res)
 {
 	res.writeHead(302, { Location: '/' });

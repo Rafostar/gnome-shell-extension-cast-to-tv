@@ -123,6 +123,11 @@ app.get('/cover', function(req, res)
 	else webcreator.coverStream(req, res);
 });
 
+app.get('/webplayer/webconfig.css', function(req, res)
+{
+	webcreator.webConfig(req, res);
+});
+
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));
 app.use('/plyr', express.static(__dirname + '/../node_modules/plyr/dist'));
 

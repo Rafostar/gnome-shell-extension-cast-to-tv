@@ -27,13 +27,13 @@ function readFromFile(path)
 
 			if(readFile instanceof Uint8Array)
 			{
-				try{ data = JSON.parse(ByteArray.toString(readFile)); }
-				catch(e){ data = null; }
+				try { data = JSON.parse(ByteArray.toString(readFile)); }
+				catch(err) { data = null; }
 			}
 			else
 			{
-				try{ data = JSON.parse(readFile); }
-				catch(e){ data = null; }
+				try { data = JSON.parse(readFile); }
+				catch(err) { data = null; }
 			}
 
 			return data;
@@ -50,6 +50,7 @@ function setConfigFile()
 		ffprobePath: Settings.get_string('ffprobe-path'),
 		receiverType: Settings.get_string('receiver-type'),
 		listeningPort: Settings.get_int('listening-port'),
+		webplayerSubs: Settings.get_double('webplayer-subs').toFixed(1),
 		videoBitrate: Settings.get_double('video-bitrate').toFixed(1),
 		videoAcceleration: Settings.get_string('video-acceleration'),
 		musicVisualizer: Settings.get_boolean('music-visualizer'),
