@@ -1,2 +1,2 @@
-playerOptions.controls = ['play', 'current-time', 'mute', 'volume', 'pip', 'fullscreen'];
+playerOptions.controls = ['play', 'current-time', 'mute', 'volume', 'captions', 'pip', 'fullscreen'];
 playerOptions.toggleInvert = false;
