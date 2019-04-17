@@ -8,5 +8,5 @@ var playerOptions = {
 	captions: { active: true, language: 'en', update: false },
 	iconUrl: '/plyr/plyr.svg',
 	blankVideo: '/plyr/blank.mp4',
-	storage: { enabled: false }
+	storage: { enabled: true, key: 'cast-to-tv' }
 };
