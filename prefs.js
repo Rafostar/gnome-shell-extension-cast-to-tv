@@ -176,64 +176,14 @@ class OtherSettings extends Gtk.Grid
 		let label = null;
 		let widget = null;
 
-		/* Label: Miscellaneous */
-		label = new Gtk.Label({
-			label: '<span font="12.5"><b>' + _("Miscellaneous") + '</b></span>',
-			use_markup: true,
-			hexpand: true,
-			halign: Gtk.Align.START
-		});
-		this.attach(label, 0, 0, 1, 1);
-
-		/* Music Visualizer */
-		label = new Gtk.Label({
-			label: _("Music visualizer"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('music-visualizer'));
-		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 1, 1, 1);
-		this.attach(widget, 1, 1, 1, 1);
-
-		/* Label: Web Player */
-		label = new Gtk.Label({
-			label: '<span font="12.5"><b>' + _("Web Player") + '</b></span>',
-			use_markup: true,
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_top: 20
-		});
-		this.attach(label, 0, 2, 1, 1);
-
-		/* Subtitles Scale */
-		label = new Gtk.Label({
-			label: _("Subtitles scale factor"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
-		widget.set_sensitive(true);
-		widget.set_range(0.1, 5.0);
-		widget.set_value(Settings.get_double('webplayer-subs'));
-		widget.set_increments(0.1, 0.2);
-		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(widget, 1, 3, 1, 1);
-
 		/* Label: Media Encoding */
 		label = new Gtk.Label({
 			label: '<span font="12.5"><b>' + _("Media Encoding") + '</b></span>',
 			use_markup: true,
 			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_top: 20
+			halign: Gtk.Align.START
 		});
-		this.attach(label, 0, 4, 1, 1);
+		this.attach(label, 0, 0, 1, 1);
 
 		/* Hardware Acceleration */
 		label = new Gtk.Label({
@@ -249,8 +199,8 @@ class OtherSettings extends Gtk.Grid
 		/* TRANSLATORS: Should remain as NVENC unless you use different alphabet */
 		//widget.append('nvenc', _("NVENC"));
 		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 5, 1, 1);
-		this.attach(widget, 1, 5, 1, 1);
+		this.attach(label, 0, 1, 1, 1);
+		this.attach(widget, 1, 1, 1, 1);
 
 		/* Video Bitrate */
 		label = new Gtk.Label({
@@ -265,6 +215,56 @@ class OtherSettings extends Gtk.Grid
 		widget.set_value(Settings.get_double('video-bitrate'));
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 2, 1, 1);
+		this.attach(widget, 1, 2, 1, 1);
+
+		/* Label: Web Player */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Web Player") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 3, 1, 1);
+
+		/* Subtitles Scale */
+		label = new Gtk.Label({
+			label: _("Subtitles scale factor"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
+		widget.set_sensitive(true);
+		widget.set_range(0.1, 5.0);
+		widget.set_value(Settings.get_double('webplayer-subs'));
+		widget.set_increments(0.1, 0.2);
+		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(widget, 1, 4, 1, 1);
+
+		/* Label: Miscellaneous */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Miscellaneous") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 5, 1, 1);
+
+		/* Music Visualizer */
+		label = new Gtk.Label({
+			label: _("Music visualizer"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('music-visualizer'));
+		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(widget, 1, 6, 1, 1);
 	}
