@@ -72,7 +72,7 @@ function initWebPlayer()
 	if(bridge.selection.streamType != 'MUSIC')
 	{
 		if(bridge.selection.subsPath || bridge.selection.subsSrc) isSub = true;
-		else isSub = fs.existsSync(shared.vttSubsPath);
+		else if(bridge.selection.streamType == 'VIDEO') isSub = fs.existsSync(shared.vttSubsPath);
 	}
 
 	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) initType = 'MUSIC';
