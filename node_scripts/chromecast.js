@@ -176,7 +176,11 @@ function launchCast()
 		else if(p)
 		{
 			player = p;
-			player.setVolume(parseFloat(playerVolume));
+			player.getVolume((err, volume) =>
+			{
+				if(!err) playerVolume = volume.level;
+				else playerVolume = 1;
+			});
 
 			if(mimeType == 'video/*')
 			{
