@@ -642,7 +642,7 @@ class ModulesSettings extends Gtk.VBox
 		TermWidget.set_sensitive(false);
 
 		this.pack_start(TermWidget, true, true, 0);
-		let installLabel = _("Install required npm modules");
+		let installLabel = _("Install npm modules");
 
 		this.installButton = new Gtk.Button({
 			label: _(installLabel),

@@ -26,6 +26,7 @@ var mediaTracks;
 /* Remote variables */
 var remoteAction;
 var remoteValue;
+var remoteBusy;
 
 var castInterval;
 var connectRetry;
@@ -56,6 +57,8 @@ exports.cast = function()
 
 exports.remote = function(action, value)
 {
+	if(remoteBusy) return;
+
 	remoteAction = action;
 	remoteValue = value;
 
@@ -328,23 +331,31 @@ function checkRemoteAction(status)
 	switch(remoteAction)
 	{
 		case 'PLAY':
-			player.play();
+			remoteBusy = true;
+			player.play(() => remoteBusy = false);
 			break;
 		case 'PAUSE':
-			player.pause();
+			remoteBusy = true;
+			player.pause(() => remoteBusy = false);
 			break;
 		case 'SEEK':
+			remoteBusy = true;
 			position = status.media.duration * remoteValue;
-			player.seek(position);
+			player.seek(position, () => remoteBusy = false);
 			break;
 		case 'SEEK+':
+			remoteBusy = true;
 			position = status.currentTime + remoteValue;
-			if(position < status.media.duration) player.seek(position);
+			if(position < status.media.duration)
+			{
+				player.seek(position, () => remoteBusy = false);
+			}
 			break;
 		case 'SEEK-':
+			remoteBusy = true;
 			position = status.currentTime - remoteValue;
-			if(position > 0) player.seek(position);
-			else player.seek(0);
+			if(position > 0) player.seek(position, () => remoteBusy = false);
+			else player.seek(0, () => remoteBusy = false);
 			break;
 		case 'SKIP+':
 		case 'SKIP-':
@@ -358,9 +369,11 @@ function checkRemoteAction(status)
 			controller.repeat = false;
 			return closeCast();
 		case 'VOLUME':
+			remoteBusy = true;
 			player.setVolume(parseFloat(remoteValue), (err, volume) =>
 			{
 				if(!err) playerVolume = volume.level;
+				remoteBusy = false;
 			});
 			break;
 		default:
