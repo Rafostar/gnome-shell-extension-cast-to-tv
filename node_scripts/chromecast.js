@@ -1,55 +1,54 @@
 var fs = require('fs');
 var path = require('path');
+var debug = require('debug')('chromecast');
 var castPlayer = require('chromecast-player')();
 var internalIp = require('internal-ip').v4;
 var bridge = require('./bridge');
 var extract = require('./extract');
-var remove = require('./remove');
 var gnome = require('./gnome');
 var controller = require('./remote-controller');
 var gettext = require('./gettext');
-var messages = require('./messages.js');
+var messages = require('./messages');
 var shared = require('../shared');
 
 /* Objects */
 var player;
 var playerStatus;
-var playerVolume = 1;
 
 /* Chromecast Opts */
-var webUrl;
 var mimeType;
 var initType;
 var trackIds;
 var mediaTracks;
 
-/* Remote variables */
-var remoteAction;
-var remoteValue;
+/* Variables */
+var playerVolume;
 var remoteBusy;
-
 var castInterval;
 var connectRetry;
-var transcodigEnabled;
+var statusTry;
 
 exports.cast = function()
 {
+	stopCastInterval();
+
+	debug('NEW SELECTION');
+
+	connectRetry = 0;
+	statusTry = 0;
+
+	if(!extract.subsProcess && !extract.coverProcess) return initChromecast();
+
+	debug('Waiting for extract processes to finish...');
+
 	var checkInterval = setInterval(() =>
 	{
 		/* Cast after extract processes are done */
 		if(!extract.subsProcess && !extract.coverProcess)
 		{
+			debug('Processes finished extracting');
+
 			clearInterval(checkInterval);
-			connectRetry = 0;
-
-			if(castInterval)
-			{
-				/* Close previous process */
-				remoteAction = 'REINIT';
-				controller.repeat = false;
-				closeCast();
-			}
-
 			initChromecast();
 		}
 	}, 100);
@@ -57,73 +56,80 @@ exports.cast = function()
 
 exports.remote = function(action, value)
 {
-	if(remoteBusy) return;
+	if((!remoteBusy && player && player.session) || action == 'STOP')
+	{
+		checkRemoteAction(action, value);
+	}
+}
 
-	remoteAction = action;
-	remoteValue = value;
+function makeID()
+{
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-	if(player) checkRemoteAction(playerStatus);
+	for(var i = 0; i < 10; i++)
+	{
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+
+	debug(`Generated new session id: ${text}`);
+
+	return text;
 }
 
 function initChromecast()
 {
+	initType = 'BUFFERED';
+	mimeType = 'video/*';
+
 	var ip = internalIp.sync();
 	var port = bridge.config.listeningPort;
-
-	webUrl = 'http://' + ip + ':' + port + '/cast';
-	initType = 'BUFFERED';
-	remoteAction = null;
-	remoteValue = null;
+	var sessionID = makeID();
 
 	switch(bridge.selection.streamType)
 	{
 		case 'VIDEO':
-			mimeType = 'video/*';
-			transcodigEnabled = false;
 			break;
 		case 'MUSIC':
-			checkVisualizer();
+			if(bridge.config.musicVisualizer) initType = 'LIVE';
+			else mimeType = 'audio/*';
 			break;
 		case 'PICTURE':
 			mimeType = 'image/*';
-			transcodigEnabled = false;
 			break;
 		default:
-			mimeType = 'video/*';
 			initType = 'LIVE';
-			transcodigEnabled = true;
 			break;
 	}
 
-	setMediaTracks(ip, port);
-	launchCast();
-}
-
-function checkVisualizer()
-{
-	if(bridge.config.musicVisualizer)
+	var getTextTrackStyle = () =>
 	{
-		mimeType = 'video/*';
-		initType = 'LIVE';
-		transcodigEnabled = true;
-		return;
+		const subsConfigPath = '../config/subtitles.json';
+		var exist = fs.existsSync(subsConfigPath);
+
+		if(exist) return JSON.parse(fs.readFileSync(subsConfigPath));
+		else return shared.chromecast.subsStyle;
 	}
 
-	mimeType = 'audio/*';
-	transcodigEnabled = false;
-}
+	var getTitle = () =>
+	{
+		if(mimeType == 'audio/*' && extract.metadata) return extract.metadata.title;
+		else return path.parse(bridge.selection.filePath).name;
+	}
 
-function setMediaTracks(ip, port)
-{
 	switch(mimeType)
 	{
 		case 'video/*':
 			trackIds = [1];
 			mediaTracks = {
 				textTrackStyle: getTextTrackStyle(),
-				tracks: shared.chromecast.tracks
+				tracks: shared.chromecast.tracks,
+				metadata: {
+					metadataType: 'GENERIC',
+					title: getTitle()
+				}
 			};
-			mediaTracks.tracks[0].trackContentId = 'http://' + ip + ':' + port + '/subswebplayer';
+			mediaTracks.tracks[0].trackContentId = `http://${ip}:${port}/subswebplayer?session=${sessionID}`;
 			break;
 		case 'audio/*':
 			trackIds = null;
@@ -131,163 +137,214 @@ function setMediaTracks(ip, port)
 				metadata: {
 					metadataType: 'MUSIC_TRACK',
 					title: getTitle(),
-					images: [{url: 'http://' + ip + ':' + port + '/cover'}]
+					images: [{url: `http://${ip}:${port}/cover?session=${sessionID}`}]
 				}
 			};
 			break;
 		case 'image/*':
 			trackIds = null;
-			mediaTracks = null;
+			mediaTracks = {
+				metadata: {
+					metadataType: 'PHOTO',
+					title: getTitle()
+				}
+			};
 			break;
 	}
+
+	debug(`Media title: ${mediaTracks.metadata.title}`);
+
+	var getAutoplayState = () =>
+	{
+		if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) return true;
+		else return false;
+	}
+
+	var getChromecastName = () =>
+	{
+		var name = bridge.config.chromecastName;
+		if(!name) name = null;
+
+		return name;
+	}
+
+	var castOpts = {
+		path: `http://${ip}:${port}/cast?session=${sessionID}`,
+		type: mimeType,
+		streamType: initType,
+		autoplay: getAutoplayState(),
+		activeTrackIds: trackIds,
+		media: mediaTracks,
+		device: getChromecastName(),
+		ttl: shared.chromecast.searchTimeout
+	};
+
+	debug(`Setting opts: ${JSON.stringify(castOpts)}`);
+
+	if(player && player.session) loadCast(castOpts);
+	else launchCast(castOpts);
 }
 
-function getTextTrackStyle()
+function launchCast(castOpts)
 {
-	const subsConfigPath = '../config/subtitles.json';
-	var exist = fs.existsSync(subsConfigPath);
+	debug('Launching new cast session...');
 
-	if(exist) return JSON.parse(fs.readFileSync(subsConfigPath));
-	else return shared.chromecast.subsStyle;
-}
-
-function getTitle()
-{
-	if(extract.metadata) return extract.metadata.title;
-	else return path.parse(bridge.selection.filePath).name;
-}
-
-function launchCast()
-{
-	var chromecastOpts = getChromecastOpts();
-
-	castPlayer.launch(chromecastOpts, (err, p) => {
-
+	castPlayer.launch(castOpts, (err, p) =>
+	{
 		if(err && connectRetry < shared.chromecast.retryNumber)
 		{
 			connectRetry++;
-			return launchCast();
+			debug(`Connection timed out. Retries: ${connectRetry}`);
+			return launchCast(castOpts);
 		}
-		else if(connectRetry == shared.chromecast.retryNumber)
+		else if(!p && connectRetry == shared.chromecast.retryNumber)
 		{
+			debug('Connection timed out. Retries limit reached');
 			gnome.showRemote(false);
 			if(err) showTranslatedError(err.message);
 		}
 		else if(p)
 		{
+			debug('Launched new session');
 			player = p;
-			player.getVolume((err, volume) =>
-			{
-				if(!err) playerVolume = volume.level;
-				else playerVolume = 1;
-			});
 
-			if(mimeType == 'video/*')
+			if(player.currentSession)
 			{
-				/* mimeType video + streamType music = music with visualizer */
-				/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
-				if(bridge.selection.streamType == 'MUSIC') setTimeout(startPlayback, shared.chromecast.visualizerBuffer);
-				else setTimeout(startPlayback, shared.chromecast.videoBuffer);
-			}
-			else
-			{
-				gnome.showRemote(true);
+				debug('Performing new session status check...');
+
+				var statusOk = checkStatusError(player.currentSession);
+				if(!statusOk) return closeCast();
+
+				debug('New session OK');
 			}
 
-			var initStatus = player.currentSession;
-			var statusOk = checkStatusError(initStatus);
-			if(!statusOk) return closeCast();
-
-			castInterval = setInterval(() => {
-				try{ getChromecastStatus(); }
-				catch(err){ onIntervalError(); }
-				}, 500);
+			startCastInterval();
+			startPlayback();
 		}
 	});
 }
 
-function onIntervalError()
+function loadCast(castOpts)
 {
-	if(player && !player.session)
+	debug('Trying to load file in current session...');
+
+	player.load(castOpts, (err) =>
 	{
-		if(castInterval) clearInterval(castInterval);
-		castInterval = null;
-		gnome.showRemote(false);
+		if(!err)
+		{
+			debug('File successfully loaded');
+
+			startCastInterval();
+			startPlayback();
+		}
+		else
+		{
+			debug('File could not be loaded');
+			return launchCast(castOpts);
+		}
+	});
+}
+
+function startCastInterval()
+{
+	if(!castInterval)
+	{
+		castInterval = setInterval(() =>
+		{
+			try { getChromecastStatus(); }
+			catch(err) { onIntervalError(); }
+		}, 500);
+
+		debug('Started status interval');
 	}
 }
 
-function getChromecastOpts()
+function stopCastInterval()
 {
-	var autoplayState = setAutoplay();
-	var chromecastName = getChromecastName();
+	if(castInterval)
+	{
+		clearInterval(castInterval);
+		castInterval = null;
 
-	var opts = {
-		path: webUrl,
-		type: mimeType,
-		streamType: initType,
-		autoplay: autoplayState,
-		activeTrackIds: trackIds,
-		media: mediaTracks,
-		device: chromecastName,
-		ttl: shared.chromecast.searchTimeout
-	};
-
-	return opts;
-}
-
-function setAutoplay()
-{
-	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) return true;
-	else return false;
-}
-
-function getChromecastName()
-{
-	var name = bridge.config.chromecastName;
-	if(!name) name = null;
-
-	return name;
+		debug('Stopped status interval');
+	}
 }
 
 function startPlayback()
 {
-	if(player.session)
+	remoteBusy = false;
+
+	player.getVolume((err, volume) =>
 	{
-		player.play();
+		if(!err)
+		{
+			playerVolume = volume.level;
+			debug(`Obtained volume value: ${volume.level}`);
+		}
+		else
+		{
+			playerVolume = 1;
+			debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
+		}
+	});
+
+	if(mimeType == 'video/*')
+	{
+		var play = () =>
+		{
+			if(player && player.session)
+			{
+				player.play(() =>
+				{
+					debug('Playback started');
+					gnome.showRemote(true)
+				});
+			}
+		}
+
+		debug('Starting delayed playback...');
+
+		/* mimeType video + streamType music = music with visualizer */
+		/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
+		if(bridge.selection.streamType == 'MUSIC') setTimeout(() => play(), shared.chromecast.visualizerBuffer);
+		else setTimeout(() => play(), shared.chromecast.videoBuffer);
+	}
+	else
+	{
+		debug('Playback autostart');
 		gnome.showRemote(true);
 	}
 }
 
-function closeCast()
+function onIntervalError()
 {
-	if(castInterval) clearInterval(castInterval);
-	castInterval = null;
+	debug('Interval error!');
 
-	if(player) player.close();
-	player = null;
-
-	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
-	var listLastID = bridge.list.length;
-
-	/* Do not change this order mindlessly */
-	if(controller.repeat && currentTrackID == listLastID) return controller.changeTrack(1);
-	else if(remoteAction == 'SKIP+') return controller.changeTrack(currentTrackID + 1);
-	else if(remoteAction == 'SKIP-') return controller.changeTrack(currentTrackID - 1);
-	else if(remoteAction == 'REINIT') return;
-	else if(remoteAction == 'STOP') return gnome.showRemote(false);
-	else if(remoteAction != 'STOP')
+	if(player && !player.session)
 	{
-		if(currentTrackID < listLastID) return controller.changeTrack(currentTrackID + 1);
-		else gnome.showRemote(false);
+		stopCastInterval();
+		gnome.showRemote(false);
 	}
 }
 
 function getChromecastStatus()
 {
-	player.getStatus(function(err, status)
+	statusTry++;
+	if(statusTry > 5)
 	{
+		debug('Could not obtain chromecast status!');
+		return closeCast();
+	}
+
+	/* On connection error callback is not executed */
+	player.getStatus((err, status) =>
+	{
+		statusTry = 0;
+
 		if(err)
 		{
+			debug(`Chromecast status error: ${err}`);
+
 			showTranslatedError(err.message);
 			return closeCast();
 		}
@@ -300,10 +357,11 @@ function getChromecastStatus()
 			var statusOk = checkStatusError(status);
 			if(!statusOk) return closeCast();
 
-			if(!remoteAction) bridge.setStatusFile(playerStatus);
+			if(!remoteBusy) bridge.setStatusFile(playerStatus);
 		}
 		else
 		{
+			debug('No playback status!');
 			return closeCast();
 		}
 	});
@@ -313,7 +371,9 @@ function checkStatusError(status)
 {
 	if(status.playerState == 'IDLE' && status.idleReason == 'ERROR')
 	{
-		if(transcodigEnabled) gnome.notify('Chromecast', messages.chromecast.playError + " " + bridge.selection.filePath);
+		debug('Chromecast is IDLE due to ERROR!');
+
+		if(initType == 'LIVE') gnome.notify('Chromecast', messages.chromecast.playError + " " + bridge.selection.filePath);
 		else gnome.notify('Chromecast', messages.chromecast.playError + " " + bridge.selection.filePath + '\n' + messages.chromecast.tryAgain);
 
 		return false;
@@ -324,65 +384,141 @@ function checkStatusError(status)
 
 function showTranslatedError(message)
 {
+	debug(message[0].toUpperCase() + message.slice(1));
+
 	if(message == 'device not found') gnome.notify('Chromecast', messages.chromecast.notFound);
 	else if(message == 'load failed') gnome.notify('Chromecast', messages.chromecast.loadFailed);
 }
 
-function checkRemoteAction(status)
+function closeCast(action)
 {
-	var position;
+	stopCastInterval();
 
-	switch(remoteAction)
+	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
+	var listLastID = bridge.list.length;
+
+	if(action)
+	{
+		if(action == 'SKIP+') return controller.changeTrack(currentTrackID + 1);
+		else if(action == 'SKIP-') return controller.changeTrack(currentTrackID - 1);
+	}
+
+	if(controller.repeat && currentTrackID == listLastID) return controller.changeTrack(1);
+	else if(action != 'STOP' && currentTrackID < listLastID) return controller.changeTrack(currentTrackID + 1);
+
+	if(player && player.session)
+	{
+		debug('Closing cast session...');
+		player.close();
+		debug('Session closed');
+	}
+
+	debug('Cast finished!');
+	gnome.showRemote(false);
+}
+
+function checkRemoteAction(action, value)
+{
+	if(value || typeof value == 'boolean') debug(`Signal from remote. ACTION: ${action}, VALUE: ${value}`);
+	else debug(`Signal from remote. ACTION: ${action}`);
+
+	var position;
+	remoteBusy = true;
+
+	var unsetBusy = () => { remoteBusy = false };
+
+	switch(action)
 	{
 		case 'PLAY':
-			remoteBusy = true;
-			player.play(() => remoteBusy = false);
+			player.play((err) =>
+			{
+				if(!err)
+				{
+					playerStatus.playerState = 'PLAYING';
+					bridge.setStatusFile(playerStatus);
+				}
+				unsetBusy();
+			});
 			break;
 		case 'PAUSE':
-			remoteBusy = true;
-			player.pause(() => remoteBusy = false);
+			player.pause((err) =>
+			{
+				if(!err)
+				{
+					playerStatus.playerState = 'PAUSED';
+					bridge.setStatusFile(playerStatus);
+				}
+				unsetBusy();
+			});
 			break;
 		case 'SEEK':
-			remoteBusy = true;
-			position = status.media.duration * remoteValue;
-			player.seek(position, () => remoteBusy = false);
+			position = playerStatus.media.duration * value;
+			player.seek(position, (err) =>
+			{
+				if(!err)
+				{
+					playerStatus.currentTime = position;
+					bridge.setStatusFile(playerStatus);
+				}
+				unsetBusy();
+			});
 			break;
 		case 'SEEK+':
-			remoteBusy = true;
-			position = status.currentTime + remoteValue;
-			if(position < status.media.duration)
+			position = playerStatus.currentTime + value;
+			if(position < playerStatus.media.duration)
 			{
-				player.seek(position, () => remoteBusy = false);
+				player.seek(position, (err) =>
+				{
+					if(!err)
+					{
+						playerStatus.currentTime = position;
+						bridge.setStatusFile(playerStatus);
+					}
+					unsetBusy();
+				});
 			}
 			break;
 		case 'SEEK-':
-			remoteBusy = true;
-			position = status.currentTime - remoteValue;
-			if(position > 0) player.seek(position, () => remoteBusy = false);
-			else player.seek(0, () => remoteBusy = false);
+			position = playerStatus.currentTime - value;
+			if(position < 0) position = 0;
+			player.seek(position, (err) =>
+			{
+				if(!err)
+				{
+					playerStatus.currentTime = position;
+					bridge.setStatusFile(playerStatus);
+				}
+				unsetBusy();
+			});
 			break;
 		case 'SKIP+':
 		case 'SKIP-':
-			status.currentTime = 0;
-			bridge.setStatusFile(status);
-			return closeCast();
+			playerStatus.currentTime = 0;
+			bridge.setStatusFile(playerStatus);
+			return closeCast(action);
+			break;
 		case 'REPEAT':
-			controller.repeat = remoteValue;
+			controller.repeat = value;
+			unsetBusy();
 			break;
 		case 'STOP':
 			controller.repeat = false;
-			return closeCast();
+			unsetBusy();
+			return closeCast(action);
 		case 'VOLUME':
-			remoteBusy = true;
-			player.setVolume(parseFloat(remoteValue), (err, volume) =>
+			player.setVolume(parseFloat(value), (err, volume) =>
 			{
-				if(!err) playerVolume = volume.level;
-				remoteBusy = false;
+				if(!err)
+				{
+					playerVolume = volume.level;
+					playerStatus.volume = playerVolume;
+					bridge.setStatusFile(playerStatus);
+				}
+				unsetBusy();
 			});
 			break;
 		default:
+			unsetBusy();
 			break;
 	}
-
-	remoteAction = null;
 }

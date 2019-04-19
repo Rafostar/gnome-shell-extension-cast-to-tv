@@ -21,9 +21,8 @@ module.exports = {
 	coverExtensions: ['.jpg', '.png'],
 	subsFormats: ['srt', 'ass', 'vtt'],
 	chromecast: {
-		relaunchDelay: 1200,
 		searchTimeout: 4000,
-		retryNumber: 2,
+		retryNumber: 3,
 		videoBuffer: 2500,
 		visualizerBuffer: 6500,
 		subsStyle: {
