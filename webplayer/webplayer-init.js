@@ -13,7 +13,7 @@ function preparePlayer(msg)
 	/* Show album cover when playing without visualizations */
 	if(msg.type == 'MUSIC')
 	{
-		posterPath = '/cover';
+		posterPath = '/cover?session=' + sessionID;
 	}
 	else if(msg.subs)
 	{
