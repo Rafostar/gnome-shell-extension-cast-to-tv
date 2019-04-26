@@ -1,17 +1,18 @@
 var websocket = io();
-var progress = 0;
-var playbackStarted = false;
-
-var statusContents = {
-	playerState: 'PAUSED',
-	currentTime: 0,
-	media: { duration: 0 },
-	volume: player.volume
-};
 
 /* Web player related websocket functions */
 if(typeof player !== 'undefined')
 {
+	var progress = 0;
+	var playbackStarted = false;
+
+	var statusContents = {
+		playerState: 'PAUSED',
+		currentTime: 0,
+		media: { duration: 0 },
+		volume: player.volume
+	};
+
 	websocket.emit('webplayer', 'webplayer-ask');
 
 	websocket.on('webplayer-init', msg => preparePlayer(msg));
