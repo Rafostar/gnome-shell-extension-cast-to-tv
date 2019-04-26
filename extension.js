@@ -10,6 +10,8 @@ const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
 const Mainloop = imports.mainloop;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
+const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
+const _ = Gettext.gettext;
 const Widget = Local.imports.widget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
@@ -29,6 +31,7 @@ function configCastRemote()
 	switch(configContents.receiverType)
 	{
 		case 'other':
+			/* TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter */
 			remoteMenu.toplabel.text = _("Web Player Remote");
 			break;
 		default:

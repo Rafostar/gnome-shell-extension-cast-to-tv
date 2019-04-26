@@ -3,10 +3,10 @@
 UUID = cast-to-tv@rafostar.github.com
 GETTEXT = cast-to-tv
 PACKAGE = "Cast to TV"
-TOLOCALIZE = widget.js file-chooser.js prefs.js node_scripts/messages.js
+TOLOCALIZE = extension.js widget.js file-chooser.js prefs.js node_scripts/messages.js
 MSGSRC = $(wildcard ./po/*.po)
 POTFILE = ./po/cast-to-tv.pot
-ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon LICENSE README.md
+ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon nautilus LICENSE README.md
 INSTALLPATH = ~/.local/share/gnome-shell/extensions
 
 # Compile schemas #

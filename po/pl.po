@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-10 18:14+0100\n"
-"PO-Revision-Date: 2019-03-11 22:16+0100\n"
+"POT-Creation-Date: 2019-04-27 08:26+0200\n"
+"PO-Revision-Date: 2019-04-27 08:24+0200\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: \n"
 "Language: pl\n"
@@ -19,167 +19,312 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: widget.js:22
+#. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
+#: extension.js:33
+msgid "Web Player Remote"
+msgstr "Pilot przeglądarki"
+
+#: extension.js:36 widget.js:71
+msgid "Chromecast Remote"
+msgstr "Pilot Chromecasta"
+
+#: widget.js:25
 msgid "Cast Media"
 msgstr "Prześlij media"
 
-#: widget.js:26
+#: widget.js:29
 msgid "Video"
 msgstr "Wideo"
 
-#: widget.js:27
+#: widget.js:30
 msgid "Music"
 msgstr "Muzyka"
 
-#: widget.js:28
+#: widget.js:31
 msgid "Picture"
 msgstr "Obraz"
 
-#: widget.js:29
+#: widget.js:32
 msgid "Cast Settings"
 msgstr "Ustawienia przesyłu"
 
-#: widget.js:54 widget.js:58 prefs.js:140
-msgid "Chromecast Remote"
-msgstr "Chromecast pilot"
-
-#: file-chooser.js:34
+#: file-chooser.js:56
 msgid "Transcode Video"
 msgstr "Transkoduj wideo"
 
 #. TRANSLATORS: Button text when selected SINGLE file
-#: file-chooser.js:53
+#: file-chooser.js:72
 msgid "Cast Selected File"
 msgstr "Wyślij wybrany plik"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
-#: file-chooser.js:55
+#: file-chooser.js:74
 msgid "Cast Selected Files"
 msgstr "Wyślij wybrane pliki"
 
-#: file-chooser.js:58
+#: file-chooser.js:77
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: file-chooser.js:65
+#: file-chooser.js:84
 msgid "Add Subtitles"
 msgstr "Dodaj napisy"
 
-#: file-chooser.js:66
+#: file-chooser.js:85
 msgid "Select Video"
 msgstr "Wybierz wideo"
 
-#: file-chooser.js:70
+#: file-chooser.js:89
 msgid "Video Files"
 msgstr "Pliki wideo"
 
-#: file-chooser.js:77
+#: file-chooser.js:96
 msgid "Select Music"
 msgstr "Wybierz muzykę"
 
-#: file-chooser.js:80
+#: file-chooser.js:99
 msgid "Audio Files"
 msgstr "Pliki audio"
 
-#: file-chooser.js:87
+#: file-chooser.js:106
 msgid "Select Picture"
 msgstr "Wybierz obraz"
 
-#: file-chooser.js:90
+#: file-chooser.js:109
 msgid "Pictures"
 msgstr "Obrazy"
 
-#: file-chooser.js:164
+#: file-chooser.js:185
 msgid "Select Subtitles"
 msgstr "Wybierz napisy"
 
-#: file-chooser.js:168
+#: file-chooser.js:189
 msgid "Subtitle Files"
 msgstr "Pliki napisów"
 
-#: prefs.js:32
-msgid "General"
-msgstr "Główne"
+#: prefs.js:25
+msgid "Streaming in progress"
+msgstr "Trwa strumieniowanie"
 
-#: prefs.js:41
-msgid "FFmpeg path"
-msgstr "Ścieżka do FFmpeg"
+#. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
+#: prefs.js:34
+msgid "Stop media transfer before accessing extension settings"
+msgstr "Zatrzymaj przesyłanie aby uzyskać dostęp do ustawień rozszerzenia"
 
-#: prefs.js:54
-msgid "FFprobe path"
-msgstr "Ścieżka do FFprobe"
+#: prefs.js:61
+msgid "Main Options"
+msgstr "Opcje główne"
 
-#: prefs.js:67
+#: prefs.js:70
 msgid "Receiver type"
 msgstr "Rodzaj odbiornika"
 
-#: prefs.js:74
-msgid "Other device"
-msgstr "Inne urządzenie"
+#. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
+#: prefs.js:78
+msgid "Web browser | Media player"
+msgstr "Przeglądarka | Odtwarzacz"
 
-#: prefs.js:82
+#: prefs.js:86
+msgid "FFmpeg path"
+msgstr "Ścieżka do FFmpeg"
+
+#: prefs.js:99
+msgid "FFprobe path"
+msgstr "Ścieżka do FFprobe"
+
+#: prefs.js:112
 msgid "Listening port"
 msgstr "Port połączeń przychodzących"
 
-#: prefs.js:98
+#: prefs.js:151
+msgid "Access web player from devices on local network"
+msgstr "Dostęp do odtwarzacza webowego z urządzeń w sieci lokalnej"
+
+#: prefs.js:182
+msgid "Remote Controller"
+msgstr "Zdalny pilot"
+
+#: prefs.js:191
+msgid "Remote position"
+msgstr "Pozycja pilota"
+
+#: prefs.js:197
+msgid "Left"
+msgstr "Lewa strona"
+
+#: prefs.js:198
+msgid "Center (left side)"
+msgstr "Środek (po lewej)"
+
+#: prefs.js:199
+msgid "Center (right side)"
+msgstr "Środek (po prawej)"
+
+#: prefs.js:200
+msgid "Right"
+msgstr "Prawa strona"
+
+#: prefs.js:207
+msgid "Seek backward/forward (seconds)"
+msgstr "Przewijanie w tył/przód (sekundy)"
+
+#: prefs.js:223
+msgid "Unify sliders"
+msgstr "Suwaki ujednolicone"
+
+#: prefs.js:237
+msgid "Show remote label"
+msgstr "Pokaż etykietę pilota"
+
+#: prefs.js:277
+msgid "Chromecast Options"
+msgstr "Opcje Chromecasta"
+
+#: prefs.js:286
+msgid "Device selection"
+msgstr "Wybór urządzenia"
+
+#: prefs.js:304
+msgid "Subtitles"
+msgstr "Napisy"
+
+#: prefs.js:314
+msgid "Font family"
+msgstr "Rodzina czcionki"
+
+#: prefs.js:338
+msgid "Font style"
+msgstr "Czcionka"
+
+#. TRANSLATORS: One of "Speed" setting value
+#: prefs.js:344 node_scripts/messages.js:19
+msgid "Normal"
+msgstr "Normalna"
+
+#: prefs.js:345
+msgid "Bold"
+msgstr "Pogrubiona"
+
+#: prefs.js:346
+msgid "Italic"
+msgstr "Kursywa"
+
+#: prefs.js:347
+msgid "Bold italic"
+msgstr "Pogrubiona kursywa"
+
+#: prefs.js:359
+msgid "Scale factor"
+msgstr "Współczynnik skali"
+
+#: prefs.js:379
+msgid "Font color"
+msgstr "Kolor czcionki"
+
+#: prefs.js:397
+msgid "Font outline"
+msgstr "Kontur czcionki"
+
+#: prefs.js:434
+msgid "Background color"
+msgstr "Kolor tła"
+
+#: prefs.js:476
 msgid "Media Encoding"
 msgstr "Kodowanie mediów"
 
-#: prefs.js:108
-msgid "Bitrate (Mbps)"
-msgstr "Przepływność (Mbps)"
-
-#: prefs.js:124
+#: prefs.js:485
 msgid "Hardware acceleration"
 msgstr "Akceleracja sprzętowa"
 
-#: prefs.js:130
+#: prefs.js:491
 msgid "None"
 msgstr "Brak"
 
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
-#: prefs.js:132
+#: prefs.js:493
 msgid "VAAPI"
 msgstr "VAAPI"
 
-#: prefs.js:150
-msgid "Remote position"
-msgstr "Pozycja pilota"
+#: prefs.js:502
+msgid "Bitrate (Mbps)"
+msgstr "Przepływność (Mbps)"
 
-#: prefs.js:156
-msgid "Left"
-msgstr "Lewa strona"
+#: prefs.js:518
+msgid "Web Player"
+msgstr "Odtwarzacz webowy"
 
-#: prefs.js:157
-msgid "Center (left side)"
-msgstr "Środek (po lewej)"
+#: prefs.js:528
+msgid "Subtitles scale factor"
+msgstr "Współczynnik skali napisów"
 
-#: prefs.js:158
-msgid "Center (right side)"
-msgstr "Środek (po prawej)"
-
-#: prefs.js:159
-msgid "Right"
-msgstr "Prawa strona"
-
-#: prefs.js:166
-msgid "Seek backward/forward (seconds)"
-msgstr "Przewijanie w tył/przód (sekundy)"
-
-#. TRANSLATORS: The rest  of settings (something like "Other" or "Remaining")
-#: prefs.js:183
+#: prefs.js:545
 msgid "Miscellaneous"
 msgstr "Pozostałe"
 
-#: prefs.js:193
+#: prefs.js:555
 msgid "Music visualizer"
 msgstr "Wizualizacje muzyczne"
 
-#: prefs.js:207
-msgid "Chromecast selection"
-msgstr "Wybór Chromecasta"
+#: prefs.js:569
+msgid "Nautilus integration"
+msgstr "Integracja z programem Nautilus"
 
-#: prefs.js:237
+#: prefs.js:669
+msgid "Install npm modules"
+msgstr "Zainstaluj moduły npm"
+
+#: prefs.js:683
+msgid "Installing..."
+msgstr "Instaluję..."
+
+#: prefs.js:748
+msgid "version:"
+msgstr "wersja:"
+
+#: prefs.js:755
+msgid "Developed by"
+msgstr "Opracowany przez"
+
+#: prefs.js:765
+msgid "Extension Homepage"
+msgstr "Strona domowa rozszerzenia"
+
+#: prefs.js:772
+msgid "Donate"
+msgstr "Darowizna"
+
+#: prefs.js:790
+msgid "Main"
+msgstr "Główne"
+
+#: prefs.js:794
+msgid "Remote"
+msgstr "Pilot"
+
+#. TRANSLATORS: Other extension settings
+#: prefs.js:803
+msgid "Other"
+msgstr "Inne"
+
+#: prefs.js:814
+msgid "Add-ons"
+msgstr "Rozszerzenia"
+
+#: prefs.js:819
+msgid "Modules"
+msgstr "Moduły"
+
+#: prefs.js:823
+msgid "About"
+msgstr "O programie"
+
+#. TRANSLATORS: Shown when scan for Chromecast devices is running
+#: prefs.js:887
+msgid "Scanning..."
+msgstr "Skanowanie..."
+
+#: prefs.js:909
 msgid "Automatic"
 msgstr "Automatyczny"
 
@@ -199,49 +344,60 @@ msgstr "Rodzaj odbiornika ustawiono jako Chromecast"
 msgid "Streaming process is still active"
 msgstr "Proces przesyłu jest nadal aktywny"
 
-#. TRANSLATORS: This sentence will contain file path after end
+#. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
+msgid ""
+"Too many connections!<p>Close all other tabs that are accessing this page in "
+"all browsers</p>"
+msgstr ""
+"Zbyt wiele połączeń!<p>Zamknij wszystkie inne karty, które mają dostęp do "
+"tej strony we wszystkich przeglądarkach</p>"
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:11
 msgid "FFmpeg could not transcode file:"
 msgstr "FFmpeg nie mógł transkodować pliku:"
 
-#: node_scripts/messages.js:10
+#: node_scripts/messages.js:12
 msgid "FFmpeg path is incorrect"
 msgstr "Ścieżka do FFmpeg jest niepoprawna"
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:12
+#: node_scripts/messages.js:14
 msgid "FFprobe could not process file:"
 msgstr "FFprobe nie mógł przetworzyć pliku:"
 
-#: node_scripts/messages.js:13
+#: node_scripts/messages.js:15
 msgid "FFprobe path is incorrect"
 msgstr "Ścieżka do FFprobe jest niepoprawna"
 
-#: node_scripts/messages.js:15
+#: node_scripts/messages.js:17
 msgid "Speed"
 msgstr "Szybkość"
 
-#. TRANSLATORS: One of "Speed" setting value
-#: node_scripts/messages.js:17
-msgid "Normal"
-msgstr "Normalna"
-
-#: node_scripts/messages.js:20
+#: node_scripts/messages.js:22
 msgid "Device not found"
 msgstr "Nie znaleziono urządzenia"
 
-#: node_scripts/messages.js:21
+#: node_scripts/messages.js:23
 msgid "Failed to load media"
 msgstr "Nie udało się załadować mediów"
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:23
+#: node_scripts/messages.js:25
 msgid "Could not play file:"
 msgstr "Nie można otworzyć pliku:"
 
-#: node_scripts/messages.js:24
+#: node_scripts/messages.js:26
 msgid "Try again with transcoding enabled"
 msgstr "Spróbuj ponownie z włączonym transkodowaniem"
 
-#~ msgid "Subtitles encoding"
-#~ msgstr "Kodowanie napisów"
+#, fuzzy
+#~ msgid "Chromecast"
+#~ msgstr "Chromecast pilot"
+
+#~ msgid "General"
+#~ msgstr "Główne"
+
+#~ msgid "Other device"
+#~ msgstr "Inne urządzenie"

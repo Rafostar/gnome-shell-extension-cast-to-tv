@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-03-21 15:23+0000\n"
+"POT-Creation-Date: 2019-04-27 08:26+0200\n"
 "PO-Revision-Date: 2019-03-21 15:54+0000\n"
 "Last-Translator: Hergeir Winther Lognberg <Hergeirs@gmail.com>\n"
 "Language-Team: \n"
@@ -16,29 +16,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: widget.js:23
+#. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
+#: extension.js:33
+msgid "Web Player Remote"
+msgstr ""
+
+#: extension.js:36 widget.js:71
+msgid "Chromecast Remote"
+msgstr "Chromecast Fjarstýring"
+
+#: widget.js:25
 msgid "Cast Media"
 msgstr "Varpa Media"
 
-#: widget.js:27
+#: widget.js:29
 msgid "Video"
 msgstr "Sjónband"
 
-#: widget.js:28
+#: widget.js:30
 msgid "Music"
 msgstr "Tónleik"
 
-#: widget.js:29
+#: widget.js:31
 msgid "Picture"
 msgstr "Mynd"
 
-#: widget.js:30
+#: widget.js:32
 msgid "Cast Settings"
 msgstr "Varpar Setingar"
-
-#: widget.js:57 widget.js:61 prefs.js:139
-msgid "Chromecast Remote"
-msgstr "Chromecast Fjarstýring"
 
 #: file-chooser.js:56
 msgid "Transcode Video"
@@ -94,94 +99,234 @@ msgstr "Vel Undirtekstir"
 msgid "Subtitle Files"
 msgstr "Undirteksta fílur"
 
-#: prefs.js:31
-msgid "General"
-msgstr "Tað vanliga"
+#: prefs.js:25
+msgid "Streaming in progress"
+msgstr ""
 
-#: prefs.js:40
-msgid "FFmpeg path"
-msgstr "FFmpeg slóð"
+#. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
+#: prefs.js:34
+msgid "Stop media transfer before accessing extension settings"
+msgstr ""
 
-#: prefs.js:53
-msgid "FFprobe path"
-msgstr "FFprobe slóð"
+#: prefs.js:61
+msgid "Main Options"
+msgstr ""
 
-#: prefs.js:66
+#: prefs.js:70
 msgid "Receiver type"
 msgstr "Slag av móttakara"
 
-#: prefs.js:73
-msgid "Other device"
-msgstr "Annað"
+#. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
+#: prefs.js:78
+msgid "Web browser | Media player"
+msgstr ""
 
-#: prefs.js:81
+#: prefs.js:86
+msgid "FFmpeg path"
+msgstr "FFmpeg slóð"
+
+#: prefs.js:99
+msgid "FFprobe path"
+msgstr "FFprobe slóð"
+
+#: prefs.js:112
 msgid "Listening port"
 msgstr "Portur at lurta at"
 
-#: prefs.js:97
+#: prefs.js:151
+msgid "Access web player from devices on local network"
+msgstr ""
+
+#: prefs.js:182
+#, fuzzy
+msgid "Remote Controller"
+msgstr "Remote position"
+
+#: prefs.js:191
+msgid "Remote position"
+msgstr "Remote position"
+
+#: prefs.js:197
+msgid "Left"
+msgstr "Vinstra"
+
+#: prefs.js:198
+msgid "Center (left side)"
+msgstr "Mitt fyri (vinstru síði)"
+
+#: prefs.js:199
+msgid "Center (right side)"
+msgstr "Mitt fyri (høgru síði)"
+
+#: prefs.js:200
+msgid "Right"
+msgstr "Høgra"
+
+#: prefs.js:207
+msgid "Seek backward/forward (seconds)"
+msgstr "Spola aftur/fram (sekund)"
+
+#: prefs.js:223
+msgid "Unify sliders"
+msgstr ""
+
+#: prefs.js:237
+msgid "Show remote label"
+msgstr ""
+
+#: prefs.js:277
+#, fuzzy
+msgid "Chromecast Options"
+msgstr "Vel Chromecast"
+
+#: prefs.js:286
+#, fuzzy
+msgid "Device selection"
+msgstr "Vel Chromecast"
+
+#: prefs.js:304
+#, fuzzy
+msgid "Subtitles"
+msgstr "Legg undirtekstir aftrat"
+
+#: prefs.js:314
+msgid "Font family"
+msgstr ""
+
+#: prefs.js:338
+msgid "Font style"
+msgstr ""
+
+#. TRANSLATORS: One of "Speed" setting value
+#: prefs.js:344 node_scripts/messages.js:19
+msgid "Normal"
+msgstr "Vanlig"
+
+#: prefs.js:345
+msgid "Bold"
+msgstr ""
+
+#: prefs.js:346
+msgid "Italic"
+msgstr ""
+
+#: prefs.js:347
+msgid "Bold italic"
+msgstr ""
+
+#: prefs.js:359
+msgid "Scale factor"
+msgstr ""
+
+#: prefs.js:379
+msgid "Font color"
+msgstr ""
+
+#: prefs.js:397
+msgid "Font outline"
+msgstr ""
+
+#: prefs.js:434
+msgid "Background color"
+msgstr ""
+
+#: prefs.js:476
 msgid "Media Encoding"
 msgstr "Media umkoting"
 
-#: prefs.js:107
-msgid "Bitrate (Mbps)"
-msgstr "Bitferð (Mdps)"
-
-#: prefs.js:123
+#: prefs.js:485
 msgid "Hardware acceleration"
 msgstr "Hardware acceleration"
 
-#: prefs.js:129
+#: prefs.js:491
 msgid "None"
 msgstr "Ongin"
 
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
-#: prefs.js:131
+#: prefs.js:493
 msgid "VAAPI"
 msgstr "VAAPI"
 
-#: prefs.js:149
-msgid "Remote position"
-msgstr "Remote position"
+#: prefs.js:502
+msgid "Bitrate (Mbps)"
+msgstr "Bitferð (Mdps)"
 
-#: prefs.js:155
-msgid "Left"
-msgstr "Vinstra"
+#: prefs.js:518
+msgid "Web Player"
+msgstr ""
 
-#: prefs.js:156
-msgid "Center (left side)"
-msgstr "Mitt fyri (vinstru síði)"
+#: prefs.js:528
+#, fuzzy
+msgid "Subtitles scale factor"
+msgstr "Undirteksta fílur"
 
-#: prefs.js:157
-msgid "Center (right side)"
-msgstr "Mitt fyri (høgru síði)"
-
-#: prefs.js:158
-msgid "Right"
-msgstr "Høgra"
-
-#: prefs.js:165
-msgid "Seek backward/forward (seconds)"
-msgstr "Spola aftur/fram (sekund)"
-
-#. TRANSLATORS: The rest  of settings (something like "Other" or "Remaining")
-#: prefs.js:182
+#: prefs.js:545
 msgid "Miscellaneous"
 msgstr "Annað"
 
-#: prefs.js:192
+#: prefs.js:555
 msgid "Music visualizer"
 msgstr "Vís endurgeving av tónleiki visuelt"
 
-#: prefs.js:206
-msgid "Chromecast selection"
-msgstr "Vel Chromecast"
+#: prefs.js:569
+msgid "Nautilus integration"
+msgstr ""
+
+#: prefs.js:669
+msgid "Install npm modules"
+msgstr ""
+
+#: prefs.js:683
+msgid "Installing..."
+msgstr ""
+
+#: prefs.js:748
+msgid "version:"
+msgstr ""
+
+#: prefs.js:755
+msgid "Developed by"
+msgstr ""
+
+#: prefs.js:765
+msgid "Extension Homepage"
+msgstr ""
+
+#: prefs.js:772
+msgid "Donate"
+msgstr ""
+
+#: prefs.js:790
+msgid "Main"
+msgstr ""
+
+#: prefs.js:794
+msgid "Remote"
+msgstr ""
+
+#. TRANSLATORS: Other extension settings
+#: prefs.js:803
+msgid "Other"
+msgstr ""
+
+#: prefs.js:814
+msgid "Add-ons"
+msgstr ""
+
+#: prefs.js:819
+msgid "Modules"
+msgstr ""
+
+#: prefs.js:823
+msgid "About"
+msgstr ""
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
-#: prefs.js:230
+#: prefs.js:887
 msgid "Scanning..."
 msgstr "Leitar..."
 
-#: prefs.js:249
+#: prefs.js:909
 msgid "Automatic"
 msgstr "Sjálvvirkið"
 
@@ -201,46 +346,58 @@ msgstr "Móttakara slag er stilla til Chromecast"
 msgid "Streaming process is still active"
 msgstr "Varping er enn í gongd"
 
-#. TRANSLATORS: This sentence will contain file path after end
+#. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
+msgid ""
+"Too many connections!<p>Close all other tabs that are accessing this page in "
+"all browsers</p>"
+msgstr ""
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:11
 msgid "FFmpeg could not transcode file:"
 msgstr "FFMpeg kláraði ikki at umkota hesa fíluna:"
 
-#: node_scripts/messages.js:10
+#: node_scripts/messages.js:12
 msgid "FFmpeg path is incorrect"
 msgstr "FFmpeg slógin er ikki røtt"
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:12
+#: node_scripts/messages.js:14
 msgid "FFprobe could not process file:"
 msgstr "FFprobe fekk ikki viðgjørt hesa fíluna:"
 
-#: node_scripts/messages.js:13
+#: node_scripts/messages.js:15
 msgid "FFprobe path is incorrect"
 msgstr "FFprobe slógin er ikki røtt"
 
-#: node_scripts/messages.js:15
+#: node_scripts/messages.js:17
 msgid "Speed"
 msgstr "Ferð"
 
-#. TRANSLATORS: One of "Speed" setting value
-#: node_scripts/messages.js:17
-msgid "Normal"
-msgstr "Vanlig"
-
-#: node_scripts/messages.js:20
+#: node_scripts/messages.js:22
 msgid "Device not found"
 msgstr "Tól ikki funnið"
 
-#: node_scripts/messages.js:21
+#: node_scripts/messages.js:23
 msgid "Failed to load media"
 msgstr "Fekk ikki lisið media"
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:23
+#: node_scripts/messages.js:25
 msgid "Could not play file:"
 msgstr "Fekk ikki spælt fíluna:"
 
-#: node_scripts/messages.js:24
+#: node_scripts/messages.js:26
 msgid "Try again with transcoding enabled"
 msgstr "Royn aftur ímeðan umkoting er koblað til"
+
+#, fuzzy
+#~ msgid "Chromecast"
+#~ msgstr "Chromecast Fjarstýring"
+
+#~ msgid "General"
+#~ msgstr "Tað vanliga"
+
+#~ msgid "Other device"
+#~ msgstr "Annað"

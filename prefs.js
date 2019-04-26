@@ -30,6 +30,7 @@ class StreamingNotification extends Gtk.VBox
 		this.pack_start(label, true, true, 0);
 
 		label = new Gtk.Label({
+			/* TRANSLATORS: Keep line this short (otherwise extension prefs will strech) */
 			label: '<span font="13">' + _("Stop media transfer before accessing extension settings") + '</span>',
 			use_markup: true,
 			vexpand: true,
@@ -74,7 +75,7 @@ class MainSettings extends Gtk.VBox
 		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 		widget.append('chromecast', "Chromecast");
 		/* TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player". */
-		widget.append('other', "Web browser | Media player");
+		widget.append('other', _("Web browser | Media player"));
 		//widget.append('cast-receiver', _("Receiver app"));
 		Settings.bind('receiver-type', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		grid.attach(label, 0, 1, 1, 1);
@@ -540,6 +541,7 @@ class OtherSettings extends Gtk.Grid
 
 		/* Label: Miscellaneous */
 		label = new Gtk.Label({
+			/* The rest of extension settings */
 			label: '<span font="12.5"><b>' + _("Miscellaneous") + '</b></span>',
 			use_markup: true,
 			hexpand: true,
@@ -793,10 +795,11 @@ class CastNotebook extends Gtk.Notebook
 		this.append_page(this.remoteWidget, label);
 
 		this.chromecastWidget = new ChromecastSettings();
-		label = new Gtk.Label({ label: _("Chromecast") });
+		label = new Gtk.Label({ label: "Chromecast" });
 		this.append_page(this.chromecastWidget, label);
 
 		this.otherWidget = new OtherSettings();
+		/* TRANSLATORS: Other extension settings */
 		label = new Gtk.Label({ label: _("Other") });
 		this.append_page(this.otherWidget, label);
 
