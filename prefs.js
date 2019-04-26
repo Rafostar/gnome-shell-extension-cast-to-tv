@@ -162,115 +162,8 @@ class MainSettings extends Gtk.VBox
 
 	destroy()
 	{
-		super.destroy();
-
 		this.portWidget.disconnect(this.linkSignal);
-	}
-}
 
-class OtherSettings extends Gtk.Grid
-{
-	constructor()
-	{
-		super({margin: 20, row_spacing: 6});
-		let label = null;
-		let widget = null;
-
-		/* Label: Media Encoding */
-		label = new Gtk.Label({
-			label: '<span font="12.5"><b>' + _("Media Encoding") + '</b></span>',
-			use_markup: true,
-			hexpand: true,
-			halign: Gtk.Align.START
-		});
-		this.attach(label, 0, 0, 1, 1);
-
-		/* Hardware Acceleration */
-		label = new Gtk.Label({
-			label: _("Hardware acceleration"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-		widget.append('none', _("None"));
-		/* TRANSLATORS: Should remain as VAAPI unless you use different alphabet */
-		widget.append('vaapi', _("VAAPI"));
-		/* TRANSLATORS: Should remain as NVENC unless you use different alphabet */
-		//widget.append('nvenc', _("NVENC"));
-		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 1, 1, 1);
-		this.attach(widget, 1, 1, 1, 1);
-
-		/* Video Bitrate */
-		label = new Gtk.Label({
-			label: _("Bitrate (Mbps)"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
-		widget.set_sensitive(true);
-		widget.set_range(2.0, 10.0);
-		widget.set_value(Settings.get_double('video-bitrate'));
-		widget.set_increments(0.1, 0.2);
-		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 2, 1, 1);
-		this.attach(widget, 1, 2, 1, 1);
-
-		/* Label: Web Player */
-		label = new Gtk.Label({
-			label: '<span font="12.5"><b>' + _("Web Player") + '</b></span>',
-			use_markup: true,
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_top: 20
-		});
-		this.attach(label, 0, 3, 1, 1);
-
-		/* Subtitles Scale */
-		label = new Gtk.Label({
-			label: _("Subtitles scale factor"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
-		widget.set_sensitive(true);
-		widget.set_range(0.1, 5.0);
-		widget.set_value(Settings.get_double('webplayer-subs'));
-		widget.set_increments(0.1, 0.2);
-		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(widget, 1, 4, 1, 1);
-
-		/* Label: Miscellaneous */
-		label = new Gtk.Label({
-			label: '<span font="12.5"><b>' + _("Miscellaneous") + '</b></span>',
-			use_markup: true,
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_top: 20
-		});
-		this.attach(label, 0, 5, 1, 1);
-
-		/* Music Visualizer */
-		label = new Gtk.Label({
-			label: _("Music visualizer"),
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_left: 12
-		});
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('music-visualizer'));
-		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(widget, 1, 6, 1, 1);
-	}
-
-	destroy()
-	{
 		super.destroy();
 	}
 }
@@ -556,8 +449,6 @@ class ChromecastSettings extends Gtk.Grid
 
 	destroy()
 	{
-		super.destroy();
-
 		this.scanButton.disconnect(this.scanSignal);
 		this.fontFamily.disconnect(this.familySignal);
 		this.fontStyle.disconnect(this.styleSignal);
@@ -566,6 +457,137 @@ class ChromecastSettings extends Gtk.Grid
 		this.outlineSignal.disconnect(this.outlineSignal);
 		this.edgeColor.disconnect(this.edgeSignal);
 		this.bgColor.disconnect(this.bgSignal);
+
+		super.destroy();
+	}
+}
+
+class OtherSettings extends Gtk.Grid
+{
+	constructor()
+	{
+		super({margin: 20, row_spacing: 6});
+		let label = null;
+		let widget = null;
+
+		/* Label: Media Encoding */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Media Encoding") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START
+		});
+		this.attach(label, 0, 0, 1, 1);
+
+		/* Hardware Acceleration */
+		label = new Gtk.Label({
+			label: _("Hardware acceleration"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+		widget.append('none', _("None"));
+		/* TRANSLATORS: Should remain as VAAPI unless you use different alphabet */
+		widget.append('vaapi', _("VAAPI"));
+		/* TRANSLATORS: Should remain as NVENC unless you use different alphabet */
+		//widget.append('nvenc', _("NVENC"));
+		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 1, 1, 1);
+		this.attach(widget, 1, 1, 1, 1);
+
+		/* Video Bitrate */
+		label = new Gtk.Label({
+			label: _("Bitrate (Mbps)"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
+		widget.set_sensitive(true);
+		widget.set_range(2.0, 10.0);
+		widget.set_value(Settings.get_double('video-bitrate'));
+		widget.set_increments(0.1, 0.2);
+		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 2, 1, 1);
+		this.attach(widget, 1, 2, 1, 1);
+
+		/* Label: Web Player */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Web Player") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 3, 1, 1);
+
+		/* Subtitles Scale */
+		label = new Gtk.Label({
+			label: _("Subtitles scale factor"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
+		widget.set_sensitive(true);
+		widget.set_range(0.1, 5.0);
+		widget.set_value(Settings.get_double('webplayer-subs'));
+		widget.set_increments(0.1, 0.2);
+		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(widget, 1, 4, 1, 1);
+
+		/* Label: Miscellaneous */
+		label = new Gtk.Label({
+			label: '<span font="12.5"><b>' + _("Miscellaneous") + '</b></span>',
+			use_markup: true,
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_top: 20
+		});
+		this.attach(label, 0, 5, 1, 1);
+
+		/* Music Visualizer */
+		label = new Gtk.Label({
+			label: _("Music visualizer"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('music-visualizer'));
+		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(widget, 1, 6, 1, 1);
+
+		/* Nautilus Integration */
+		label = new Gtk.Label({
+			label: _("Nautilus integration"),
+			hexpand: true,
+			halign: Gtk.Align.START,
+			margin_left: 12
+		});
+		this.nautilusSwitch = new Gtk.Switch({halign:Gtk.Align.END});
+		this.nautilusSwitch.set_sensitive(true);
+		this.nautilusSwitch.set_active(GLib.file_test(GLib.get_home_dir() +
+			'/.local/share/nautilus-python/extensions/nautilus-cast-to-tv.py', 16));
+
+		this.nautilusSignal = this.nautilusSwitch.connect('notify::active', () =>
+		{
+			enableNautilusExtension(this.nautilusSwitch.active);
+		});
+
+		this.attach(label, 0, 7, 1, 1);
+		this.attach(this.nautilusSwitch, 1, 7, 1, 1);
+	}
+
+	destroy()
+	{
+		this.nautilusSwitch.disconnect(this.nautilusSignal);
+
+		super.destroy();
 	}
 }
 
@@ -691,9 +713,9 @@ class ModulesSettings extends Gtk.VBox
 
 	destroy()
 	{
-		super.destroy();
-
 		this.installButton.disconnect(this.installSignal);
+
+		super.destroy();
 	}
 }
 
@@ -801,16 +823,15 @@ class CastNotebook extends Gtk.Notebook
 
 	destroy()
 	{
-		super.destroy();
-
 		this.mainWidget.destroy();
 		this.otherWidget.destroy();
 		this.remoteWidget.destroy();
 		this.chromecastWidget.destroy();
 		this.modulesWidget.destroy();
 		this.aboutWidget.destroy();
-
 		if(this.addonsWidget) this.addonsWidget.destroy();
+
+		super.destroy();
 	}
 }
 
@@ -826,7 +847,7 @@ class CastToTvSettings extends Gtk.VBox
 		this.notification = new StreamingNotification();
 		this.pack_start(this.notification, true, true, 0);
 
-		this.streamSignal = Settings.connect('changed::chromecast-playing', () =>
+		this.streamingSignal = Settings.connect('changed::chromecast-playing', () =>
 		{
 			let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 
@@ -845,12 +866,12 @@ class CastToTvSettings extends Gtk.VBox
 
 	destroy()
 	{
-		super.destroy();
+		Settings.disconnect(this.streamingSignal);
 
 		this.notebook.destroy();
 		this.notification.destroy();
 
-		Settings.disconnect(this.streamSignal);
+		super.destroy();
 	}
 }
 
@@ -910,6 +931,23 @@ function getHostIp()
 	}
 	catch(err) {
 		return null;
+	}
+}
+
+function enableNautilusExtension(enabled)
+{
+	let installPath = GLib.get_user_data_dir() + '/nautilus-python/extensions';
+	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
+	let destFile = Gio.File.new_for_path(installPath).get_child('nautilus-cast-to-tv.py');
+
+	if(enabled && GLib.file_test(srcPath, 16) && !destFile.query_exists(null))
+	{
+		GLib.mkdir_with_parents(installPath, 493); // 755 in octal
+		destFile.make_symbolic_link(Local.path + '/nautilus/nautilus-cast-to-tv.py', null);
+	}
+	else if(!enabled && destFile.query_exists(null))
+	{
+		destFile.delete(null);
 	}
 }
 

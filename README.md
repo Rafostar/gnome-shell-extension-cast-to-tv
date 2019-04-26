@@ -39,6 +39,12 @@ Please make sure you have all of the above installed.
 They might be available in your linux distro repos.
 Try installing them with your package manager or follow the links for more info.
 
+Optional:
+* [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
+
+Nautilus extension is included in Cast to TV (currently only in latest git source code).<br>
+Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
+
 **Before using extension** you also **must** install some additional npm packages.
 
 * Install npm dependencies:
@@ -86,6 +92,9 @@ This will update all `.po` files with changes from `.pot` template file.
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [Plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
 
+### Nautilus Extension
+Many thanks to [Rendy Anthony](https://github.com/rendyanthony) for helping me make Nautilus integration based on his [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) extension.
+
 ### Translations
 [@Rafostar](https://github.com/Rafostar) (pl), [@amivaleo](https://github.com/amivaleo) (it), [@TeknoMobil](https://github.com/TeknoMobil) (tr), [@Hergeirs](https://github.com/Hergeirs) (fo)
 
@@ -93,3 +102,4 @@ Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developi
 If you like my work please support it by buying me a cup of coffee :grin:
 
 [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
+
