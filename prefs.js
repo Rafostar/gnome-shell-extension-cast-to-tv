@@ -896,11 +896,17 @@ function getHostIp()
 			'/usr/bin', ['node', Local.path + '/node_scripts/utils/local-ip'],
 			null, 0, null);
 
-		if(stdout instanceof Uint8Array) ip4 = ByteArray.toString(stdout);
-		else ip4 = stdout.toString();
+		if(res && stdout)
+		{
+			if(stdout instanceof Uint8Array) ip4 = ByteArray.toString(stdout);
+			else ip4 = stdout.toString();
 
-		if(res) return ip4.replace(/\n/, '');
-		else return null;
+			return ip4.replace(/\n/, '');
+		}
+		else
+		{
+			return null;
+		}
 	}
 	catch(err) {
 		return null;
