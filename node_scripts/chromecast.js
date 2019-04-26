@@ -162,9 +162,7 @@ function initChromecast()
 
 	var getChromecastName = () =>
 	{
-		var name = bridge.config.chromecastName;
-		if(!name) name = null;
-
+		var name = bridge.config.chromecastName ? bridge.config.chromecastName : null;
 		return name;
 	}
 
@@ -274,19 +272,22 @@ function startPlayback()
 {
 	remoteBusy = false;
 
-	player.getVolume((err, volume) =>
+	if(mimeType != 'image/*')
 	{
-		if(!err)
+		player.getVolume((err, volume) =>
 		{
-			playerVolume = volume.level;
-			debug(`Obtained volume value: ${volume.level}`);
-		}
-		else
-		{
-			playerVolume = 1;
-			debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
-		}
-	});
+			if(!err)
+			{
+				playerVolume = volume.level;
+				debug(`Obtained volume value: ${volume.level}`);
+			}
+			else
+			{
+				playerVolume = 1;
+				debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
+			}
+		});
+	}
 
 	if(mimeType == 'video/*')
 	{
@@ -311,7 +312,9 @@ function startPlayback()
 	}
 	else
 	{
-		debug('Playback autostart');
+		if(mimeType != 'image/*') debug('Playback autostart');
+		else debug('Showing image');
+
 		gnome.showRemote(true);
 	}
 }
