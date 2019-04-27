@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-27 08:27+0200\n"
-"PO-Revision-Date: 2019-04-27 14:53\n"
+"PO-Revision-Date: 2019-04-27 16:34\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -167,7 +167,7 @@ msgstr "Przewijanie w tył/przód (sekundy)"
 
 #: prefs.js:223
 msgid "Unify sliders"
-msgstr "Suwaki ujednolicone"
+msgstr "Ujednolicone suwaki"
 
 #: prefs.js:237
 msgid "Show remote label"
@@ -241,7 +241,7 @@ msgstr "Brak"
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
 #: prefs.js:493
 msgid "VAAPI"
-msgstr ""
+msgstr "VAAPI"
 
 #: prefs.js:502
 msgid "Bitrate (Mbps)"
