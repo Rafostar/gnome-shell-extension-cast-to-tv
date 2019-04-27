@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-27 08:27+0200\n"
-"PO-Revision-Date: 2019-04-27 16:53\n"
+"PO-Revision-Date: 2019-04-27 18:32\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -344,7 +344,7 @@ msgstr "Akış işlemi hala etkin"
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
 msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
-msgstr "Çok fazla bağlantı! <p>Bu sayfaya erişen tüm diğer sekmeleri tüm tarayıcılarda kapatın</p>"
+msgstr "Çok fazla bağlantı!<p>Bu sayfaya erişen tüm diğer sekmeleri tüm tarayıcılarda kapatın</p>"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:11
