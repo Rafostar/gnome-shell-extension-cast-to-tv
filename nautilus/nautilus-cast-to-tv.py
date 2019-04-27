@@ -60,10 +60,13 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         return top_menuitem
 
     def get_menu_name(self):
-        if (self.config['receiverType'] == 'chromecast' and not self.config['chromecastName']):
-            return 'Chromecast'
-        elif (self.config['receiverType'] != 'chromecast' or not os.path.isfile(EXTENSION_PATH + '/config/devices.json')):
-            return 'Cast to TV'
+        if ((self.config['receiverType'] == 'chromecast' and
+            not self.config['chromecastName']) or
+            (self.config['receiverType'] == 'chromecast' and
+            not os.path.isfile(EXTENSION_PATH + '/config/devices.json'))):
+                return "Chromecast"
+        elif self.config['receiverType'] == 'other':
+            return _("Web browser | Media player")
 
         # Reduce disk reads when selecting files
         if self.config['chromecastName'] == self.current_name['name']:
