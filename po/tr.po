@@ -1,11 +1,6 @@
-# Cast to TV Türkçe Çeviri.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Cast to TV package.
-# Serdar Sağlam <teknomobil@yandex.com>, 2019.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Cast to TV\n"
+"Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-27 08:26+0200\n"
 "PO-Revision-Date: 2019-04-27 16:47+0300\n"
@@ -15,8 +10,11 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: tr\n"
+"X-Crowdin-File: /master/po/cast-to-tv.pot\n"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:33
@@ -345,9 +343,7 @@ msgstr "Akış işlemi hala etkin"
 
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
-msgid ""
-"Too many connections!<p>Close all other tabs that are accessing this page in "
-"all browsers</p>"
+msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
 msgstr ""
 "Çok fazla bağlantı! <p>Bu sayfaya erişen tüm diğer sekmeleri tüm "
 "tarayıcılarda kapatın</p>"
@@ -391,12 +387,3 @@ msgstr "Dosya oynatılamadı:"
 msgid "Try again with transcoding enabled"
 msgstr "Kod dönüştürme etkinken tekrar deneyin"
 
-#, fuzzy
-#~ msgid "Chromecast"
-#~ msgstr "Chromecast Kumandası"
-
-#~ msgid "General"
-#~ msgstr "Genel"
-
-#~ msgid "Other device"
-#~ msgstr "Diğer aygıtlar"

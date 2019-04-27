@@ -1,20 +1,20 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the Cast to TV package.
-# FIRST AUTHOR <hergeirs@gmail.com>, 2019.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Cast to TV\n"
+"Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-27 08:26+0200\n"
-"PO-Revision-Date: 2019-03-21 15:54+0000\n"
-"Last-Translator: Hergeir Winther Lognberg <Hergeirs@gmail.com>\n"
-"Language-Team: \n"
+"POT-Creation-Date: 2019-04-27 08:27+0200\n"
+"PO-Revision-Date: 2019-04-27 16:41\n"
+"Last-Translator: Rafostar\n"
+"Language-Team: Faroese\n"
 "Language: fo_FO\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: fo\n"
+"X-Crowdin-File: /master/po/cast-to-tv.pot\n"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:33
@@ -138,9 +138,8 @@ msgid "Access web player from devices on local network"
 msgstr ""
 
 #: prefs.js:182
-#, fuzzy
 msgid "Remote Controller"
-msgstr "Remote position"
+msgstr ""
 
 #: prefs.js:191
 msgid "Remote position"
@@ -175,19 +174,16 @@ msgid "Show remote label"
 msgstr ""
 
 #: prefs.js:277
-#, fuzzy
 msgid "Chromecast Options"
-msgstr "Vel Chromecast"
+msgstr ""
 
 #: prefs.js:286
-#, fuzzy
 msgid "Device selection"
-msgstr "Vel Chromecast"
+msgstr ""
 
 #: prefs.js:304
-#, fuzzy
 msgid "Subtitles"
-msgstr "Legg undirtekstir aftrat"
+msgstr ""
 
 #: prefs.js:314
 msgid "Font family"
@@ -256,9 +252,8 @@ msgid "Web Player"
 msgstr ""
 
 #: prefs.js:528
-#, fuzzy
 msgid "Subtitles scale factor"
-msgstr "Undirteksta fílur"
+msgstr ""
 
 #: prefs.js:545
 msgid "Miscellaneous"
@@ -348,9 +343,7 @@ msgstr "Varping er enn í gongd"
 
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
-msgid ""
-"Too many connections!<p>Close all other tabs that are accessing this page in "
-"all browsers</p>"
+msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
 msgstr ""
 
 #. TRANSLATORS: This sentence will contain file path after end
@@ -392,12 +385,3 @@ msgstr "Fekk ikki spælt fíluna:"
 msgid "Try again with transcoding enabled"
 msgstr "Royn aftur ímeðan umkoting er koblað til"
 
-#, fuzzy
-#~ msgid "Chromecast"
-#~ msgstr "Chromecast Fjarstýring"
-
-#~ msgid "General"
-#~ msgstr "Tað vanliga"
-
-#~ msgid "Other device"
-#~ msgstr "Annað"

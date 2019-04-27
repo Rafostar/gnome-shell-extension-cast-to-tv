@@ -1,23 +1,20 @@
-# Cast to TV - Polish translation
-# Copyright (C) 2019 Rafostar
-# This file is distributed under the same license as the Cast to TV package.
-# Rafostar, 2019.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: Cast to TV\n"
+"Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-27 08:26+0200\n"
-"PO-Revision-Date: 2019-04-27 08:24+0200\n"
+"POT-Creation-Date: 2019-04-27 08:27+0200\n"
+"PO-Revision-Date: 2019-04-27 16:41\n"
 "Last-Translator: Rafostar\n"
-"Language-Team: \n"
-"Language: pl\n"
+"Language-Team: Polish\n"
+"Language: pl_PL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.9\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: pl\n"
+"X-Crowdin-File: /master/po/cast-to-tv.pot\n"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:33
@@ -170,7 +167,7 @@ msgstr "Przewijanie w tył/przód (sekundy)"
 
 #: prefs.js:223
 msgid "Unify sliders"
-msgstr "Suwaki ujednolicone"
+msgstr "Ujednolicone suwaki"
 
 #: prefs.js:237
 msgid "Show remote label"
@@ -346,12 +343,8 @@ msgstr "Proces przesyłu jest nadal aktywny"
 
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
-msgid ""
-"Too many connections!<p>Close all other tabs that are accessing this page in "
-"all browsers</p>"
-msgstr ""
-"Zbyt wiele połączeń!<p>Zamknij wszystkie inne karty, które mają dostęp do "
-"tej strony we wszystkich przeglądarkach</p>"
+msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
+msgstr "Zbyt wiele połączeń!<p>Zamknij wszystkie inne karty, które mają dostęp do tej strony we wszystkich przeglądarkach</p>"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:11
@@ -392,12 +385,3 @@ msgstr "Nie można otworzyć pliku:"
 msgid "Try again with transcoding enabled"
 msgstr "Spróbuj ponownie z włączonym transkodowaniem"
 
-#, fuzzy
-#~ msgid "Chromecast"
-#~ msgstr "Chromecast pilot"
-
-#~ msgid "General"
-#~ msgstr "Główne"
-
-#~ msgid "Other device"
-#~ msgstr "Inne urządzenie"
