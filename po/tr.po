@@ -47,7 +47,7 @@ msgstr "Oynatıcı Ayarları"
 
 #: file-chooser.js:56
 msgid "Transcode Video"
-msgstr "Video Dönüştürme"
+msgstr "Video Kodunu Dönüştür"
 
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:72
