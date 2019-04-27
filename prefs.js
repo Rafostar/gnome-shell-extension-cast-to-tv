@@ -1,4 +1,4 @@
-const { Gtk, Gio, GLib, Gdk, Vte } = imports.gi;
+const { Gio, Gtk, GLib, Gdk, Vte } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
