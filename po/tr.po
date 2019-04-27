@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Cast to TV\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-27 08:26+0200\n"
-"PO-Revision-Date: 2019-03-12 03:11+0300\n"
+"PO-Revision-Date: 2019-04-27 16:47+0300\n"
 "Last-Translator: Serdar Sağlam <teknomobil@yandex.com>\n"
 "Language-Team: \n"
 "Language: tr\n"
@@ -21,7 +21,7 @@ msgstr ""
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:33
 msgid "Web Player Remote"
-msgstr ""
+msgstr "Uzak Web Oynatıcı"
 
 #: extension.js:36 widget.js:71
 msgid "Chromecast Remote"
@@ -49,7 +49,7 @@ msgstr "Oynatıcı Ayarları"
 
 #: file-chooser.js:56
 msgid "Transcode Video"
-msgstr "Video Dönüştürme"
+msgstr "Video Kodunu Dönüştür"
 
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:72
@@ -103,16 +103,16 @@ msgstr "Altyazı Dosyaları"
 
 #: prefs.js:25
 msgid "Streaming in progress"
-msgstr ""
+msgstr "Akış devam ediyor"
 
 #. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
 #: prefs.js:34
 msgid "Stop media transfer before accessing extension settings"
-msgstr ""
+msgstr "Eklenti ayarlarına erişmeden önce medya aktarımını durdur"
 
 #: prefs.js:61
 msgid "Main Options"
-msgstr ""
+msgstr "Ana Seçenekler"
 
 #: prefs.js:70
 msgid "Receiver type"
@@ -121,7 +121,7 @@ msgstr "Alıcı tipi"
 #. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
 #: prefs.js:78
 msgid "Web browser | Media player"
-msgstr ""
+msgstr "Web tarayıcı | Medya oynatıcı"
 
 #: prefs.js:86
 msgid "FFmpeg path"
@@ -137,12 +137,11 @@ msgstr "Dinleme portu"
 
 #: prefs.js:151
 msgid "Access web player from devices on local network"
-msgstr ""
+msgstr "Yerel ağdaki cihazlardan web oynatıcısına eriş"
 
 #: prefs.js:182
-#, fuzzy
 msgid "Remote Controller"
-msgstr "Kumanda konumu"
+msgstr "Uzaktan Kumanda"
 
 #: prefs.js:191
 msgid "Remote position"
@@ -170,34 +169,31 @@ msgstr "İleri/geri atlama (saniye)"
 
 #: prefs.js:223
 msgid "Unify sliders"
-msgstr ""
+msgstr "Sürgüleri birleştir"
 
 #: prefs.js:237
 msgid "Show remote label"
-msgstr ""
+msgstr "Uzak etiketi göster"
 
 #: prefs.js:277
-#, fuzzy
 msgid "Chromecast Options"
-msgstr "Chromecast seçimi"
+msgstr "Chromecast Seçenekleri"
 
 #: prefs.js:286
-#, fuzzy
 msgid "Device selection"
-msgstr "Chromecast seçimi"
+msgstr "Aygıt seçimi"
 
 #: prefs.js:304
-#, fuzzy
 msgid "Subtitles"
-msgstr "Altyazı Ekle"
+msgstr "Altyazılar"
 
 #: prefs.js:314
 msgid "Font family"
-msgstr ""
+msgstr "Yazıtipi ailesi"
 
 #: prefs.js:338
 msgid "Font style"
-msgstr ""
+msgstr "Yazıtipi biçimi"
 
 #. TRANSLATORS: One of "Speed" setting value
 #: prefs.js:344 node_scripts/messages.js:19
@@ -206,31 +202,31 @@ msgstr "Normal"
 
 #: prefs.js:345
 msgid "Bold"
-msgstr ""
+msgstr "Kalın"
 
 #: prefs.js:346
 msgid "Italic"
-msgstr ""
+msgstr "Eğik"
 
 #: prefs.js:347
 msgid "Bold italic"
-msgstr ""
+msgstr "Kalın eğik"
 
 #: prefs.js:359
 msgid "Scale factor"
-msgstr ""
+msgstr "Ölçek etkeni"
 
 #: prefs.js:379
 msgid "Font color"
-msgstr ""
+msgstr "Yazıtipi rengi"
 
 #: prefs.js:397
 msgid "Font outline"
-msgstr ""
+msgstr "Yaz tipi ana hattı"
 
 #: prefs.js:434
 msgid "Background color"
-msgstr ""
+msgstr "Arka plan rengi"
 
 #: prefs.js:476
 msgid "Media Encoding"
@@ -255,12 +251,11 @@ msgstr "Bit Hızı (Mbps)"
 
 #: prefs.js:518
 msgid "Web Player"
-msgstr ""
+msgstr "Web Oynatıcı"
 
 #: prefs.js:528
-#, fuzzy
 msgid "Subtitles scale factor"
-msgstr "Altyazı kodlaması"
+msgstr "Altyazı ölçek aşaması"
 
 #: prefs.js:545
 msgid "Miscellaneous"
@@ -272,61 +267,61 @@ msgstr "Müzik görselleştirici"
 
 #: prefs.js:569
 msgid "Nautilus integration"
-msgstr ""
+msgstr "Nautilus bütünleşmesi"
 
 #: prefs.js:669
 msgid "Install npm modules"
-msgstr ""
+msgstr "Npm modüllerini kur"
 
 #: prefs.js:683
 msgid "Installing..."
-msgstr ""
+msgstr "Kuruluyor..."
 
 #: prefs.js:748
 msgid "version:"
-msgstr ""
+msgstr "sürüm:"
 
 #: prefs.js:755
 msgid "Developed by"
-msgstr ""
+msgstr "Geliştirici"
 
 #: prefs.js:765
 msgid "Extension Homepage"
-msgstr ""
+msgstr "Eklenti Ana Sayfası"
 
 #: prefs.js:772
 msgid "Donate"
-msgstr ""
+msgstr "Bağış"
 
 #: prefs.js:790
 msgid "Main"
-msgstr ""
+msgstr "Ana"
 
 #: prefs.js:794
 msgid "Remote"
-msgstr ""
+msgstr "Uzak"
 
 #. TRANSLATORS: Other extension settings
 #: prefs.js:803
 msgid "Other"
-msgstr ""
+msgstr "Diğer"
 
 #: prefs.js:814
 msgid "Add-ons"
-msgstr ""
+msgstr "Eklentiler"
 
 #: prefs.js:819
 msgid "Modules"
-msgstr ""
+msgstr "Modüller"
 
 #: prefs.js:823
 msgid "About"
-msgstr ""
+msgstr "Hakkında"
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
 #: prefs.js:887
 msgid "Scanning..."
-msgstr ""
+msgstr "Taranıyor..."
 
 #: prefs.js:909
 msgid "Automatic"
@@ -354,6 +349,8 @@ msgid ""
 "Too many connections!<p>Close all other tabs that are accessing this page in "
 "all browsers</p>"
 msgstr ""
+"Çok fazla bağlantı! <p>Bu sayfaya erişen tüm diğer sekmeleri tüm "
+"tarayıcılarda kapatın</p>"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:11
