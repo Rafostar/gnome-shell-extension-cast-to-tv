@@ -1,6 +1,7 @@
 # Cast to TV Gnome Shell Extension
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
 [![Donate](https://img.shields.io/badge/Donate-PayPal.Me-lightgrey.svg)](https://www.paypal.me/Rafostar)
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/cast-to-tv/localized.svg)](https://crowdin.com/project/cast-to-tv)
 
 Cast files to Chromecast, web browser or media player app over local network.
 
@@ -72,22 +73,15 @@ You can also find some usage examples there.
 Check out [FAQ](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/FAQ), before asking questions.
 
 ## Info for translators
-Before translating use Makefile to generate updated POT file.
-```
-make potfile
-```
-Use `cast-to-tv.pot` file in `./po` directory to generate `.po` file.
-After translating, you can test your translation by running:
-```
-make compilemo
-```
-This will create `.mo` files. Restart gnome-shell for changes to be applied.
+Preferred translation method is to use [Cast to TV Crowdin](https://crowdin.com/project/cast-to-tv) web page.
 
-If you want to update existing translation:
-```
-make mergepo
-```
-This will update all `.po` files with changes from `.pot` template file.
+Alternatively you can still use Makefile and tools like Poedit to generate translations:
+
+`make potfile` - generates updated POT file.<br>
+`make mergepo` - merges changes from POT file into all PO files.<br>
+`make compilemo` - compiles translation files.<br>
+
+After compiling restart gnome-shell for changes to be applied.
 
 ## Special Thanks
 Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developing [chromecast-player](https://github.com/xat/chromecast-player) and [Sam Potts](https://github.com/sampotts) for making [Plyr](https://github.com/sampotts/plyr), an awesome HTML5 video player.
@@ -102,4 +96,3 @@ Many thanks to [Rendy Anthony](https://github.com/rendyanthony) for helping me m
 If you like my work please support it by buying me a cup of coffee :grin:
 
 [![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
-
