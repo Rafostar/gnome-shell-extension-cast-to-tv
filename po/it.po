@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-27 08:27+0200\n"
-"PO-Revision-Date: 2019-04-27 14:53\n"
+"PO-Revision-Date: 2019-04-27 16:34\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -31,7 +31,7 @@ msgstr "Condividi media"
 
 #: widget.js:29
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 #: widget.js:30
 msgid "Music"
@@ -241,11 +241,11 @@ msgstr "Nessuna"
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
 #: prefs.js:493
 msgid "VAAPI"
-msgstr ""
+msgstr "VAAPI"
 
 #: prefs.js:502
 msgid "Bitrate (Mbps)"
-msgstr ""
+msgstr "Bitrate (Mbps)"
 
 #: prefs.js:518
 msgid "Web Player"
