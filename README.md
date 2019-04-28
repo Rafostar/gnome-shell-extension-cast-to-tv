@@ -37,14 +37,15 @@ Here is a list of required programs that Cast to TV depends on:
 * [ffmpeg](https://ffmpeg.org) (with ffprobe)
 
 Please make sure you have all of the above installed.
-They might be available in your linux distro repos.
-Try installing them with your package manager or follow the links for more info.
 
-Optional:
-* [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
-
-Nautilus extension is included in Cast to TV (currently only in latest git source code).<br>
-Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
+Ubuntu:
+```
+sudo apt install npm nodejs ffmpeg
+```
+Fedora:
+```
+sudo dnf install npm nodejs ffmpeg
+```
 
 **Before using extension** you also **must** install some additional npm packages.
 
@@ -53,7 +54,23 @@ Alternatively you can manually install [nautilus-cast](https://github.com/rendya
 cd ~/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com
 npm install
 ```
-You can use hardware VAAPI encoding (optional). This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
+
+### Optional:
+* [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
+
+Ubuntu:
+```
+sudo apt install nautilus-python python3-gi
+```
+Fedora:
+```
+sudo dnf install nautilus-python python3-gobject
+```
+
+Nautilus extension is included in Cast to TV (currently only in latest git source code).<br>
+Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
+
+You can optionally use hardware VAAPI encoding. This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
 
 ## How to use
 Detailed instructions related to configuration and using the extension are in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).<br>
