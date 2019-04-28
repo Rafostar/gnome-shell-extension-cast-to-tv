@@ -1,5 +1,11 @@
 var websocket = io();
 
+function getVolume()
+{
+	if(player.muted) return 0;
+	else return player.volume;
+}
+
 /* Web player related websocket functions */
 if(typeof player !== 'undefined')
 {
@@ -10,7 +16,7 @@ if(typeof player !== 'undefined')
 		playerState: 'PAUSED',
 		currentTime: 0,
 		media: { duration: 0 },
-		volume: player.volume
+		volume: getVolume()
 	};
 
 	websocket.emit('webplayer', 'webplayer-ask');
@@ -44,19 +50,6 @@ if(typeof player !== 'undefined')
 		websocket.emit('status-update', statusContents);
 	});
 
-	player.on('timeupdate', () =>
-	{
-		progress++;
-
-		/* Reduce event frequency */
-		if(progress % 5 == 0)
-		{
-			progress = 0;
-			statusContents.currentTime = player.currentTime;
-			websocket.emit('status-update', statusContents);
-		}
-	});
-
 	player.on('seeked', () =>
 	{
 		progress = 0;
@@ -66,11 +59,15 @@ if(typeof player !== 'undefined')
 
 	player.on('volumechange', () =>
 	{
-		if(player.muted) statusContents.volume = 0;
-		else statusContents.volume = player.volume;
-
+		statusContents.volume = getVolume();
 		websocket.emit('status-update', statusContents);
 	});
+
+	setInterval(() =>
+	{
+		statusContents.currentTime = player.currentTime;
+		websocket.emit('status-update', statusContents);
+	}, 500);
 
 	websocket.on('remote-signal', msg =>
 	{
