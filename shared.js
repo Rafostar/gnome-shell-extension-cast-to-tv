@@ -32,6 +32,7 @@ module.exports = {
 			edgeColor: '#000000FF',
 			fontScale: '1.0',
 			fontStyle: 'NORMAL',
+			fontFamily: 'Droid Sans',
 			fontGenericFamily: 'SANS_SERIF',
 			windowType: 'NONE'
 		},

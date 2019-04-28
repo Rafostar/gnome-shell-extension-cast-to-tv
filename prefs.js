@@ -317,16 +317,17 @@ class ChromecastSettings extends Gtk.Grid
 			margin_left: 12
 		});
 		this.fontFamily = new Gtk.ComboBoxText({halign:Gtk.Align.END});
-		this.fontFamily.append('SANS_SERIF', "Sans Serif");
-		this.fontFamily.append('MONOSPACED_SANS_SERIF', "Monospaced Sans Serif");
-		this.fontFamily.append('SERIF', "Serif");
-		this.fontFamily.append('MONOSPACED_SERIF', "Monospaced Serif");
-		this.fontFamily.append('CASUAL', "Casual");
-		this.fontFamily.append('CURSIVE', "Cursive");
-		this.fontFamily.append('SMALL_CAPITALS', "SMALL CAPITALS");
+		this.fontFamily.append('SANS_SERIF', "Droid Sans");
+		this.fontFamily.append('MONOSPACED_SANS_SERIF', "Droid Sans Mono");
+		this.fontFamily.append('SERIF', "Droid Serif Regular");
+		this.fontFamily.append('MONOSPACED_SERIF', "Cutive Mono");
+		this.fontFamily.append('CASUAL', "Short Stack");
+		this.fontFamily.append('CURSIVE', "Quintessential");
+		this.fontFamily.append('SMALL_CAPITALS', "Alegreya Sans SC");
 		this.fontFamily.active_id = subsConfig.fontGenericFamily;
 		this.familySignal = this.fontFamily.connect('changed', () =>
 		{
+			subsConfig.fontFamily = this.fontFamily.get_active_text();
 			subsConfig.fontGenericFamily = this.fontFamily.active_id;
 			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
 		});
