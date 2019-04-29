@@ -104,7 +104,7 @@ function initChromecast()
 
 	var getTextTrackStyle = () =>
 	{
-		const subsConfigPath = '../config/subtitles.json';
+		const subsConfigPath = path.join(__dirname + '/../config/subtitles.json');
 		var exist = fs.existsSync(subsConfigPath);
 
 		if(exist) return JSON.parse(fs.readFileSync(subsConfigPath));
