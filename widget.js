@@ -22,9 +22,6 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 	constructor()
 	{
 		super();
-		this.chooserRunning = false;
-		this.prefsRunning = false;
-
 		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
 		this.castSubMenu.icon.icon_name = iconName;
 
@@ -49,41 +46,19 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>
 		{
-			if(this.chooserRunning) return;
+			GLib.spawn_command_line_sync(`pkill -SIGINT -f ${Local.path}/file-chooser`);
 
 			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
-			let [res, pid] = GLib.spawn_async('/usr/bin',
-				['gjs', Local.path + '/file-chooser.js', Local.path, streamType],
-				null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
-
-			if(res)
-			{
-				this.chooserRunning = true;
-
-				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
-				{
-					this.chooserRunning = false;
-				});
-			}
+			GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/file-chooser.js',
+				Local.path, streamType], null, 0, null);
 		}
 
 		this.spawnExtensionPrefs = () =>
 		{
-			if(this.prefsRunning) return;
+			GLib.spawn_command_line_sync('pkill -SIGINT -f gnome-shell-extension-prefs');
 
-			let [res, pid] = GLib.spawn_async('/usr/bin',
-				['gnome-shell-extension-prefs', 'cast-to-tv@rafostar.github.com'],
-				null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
-
-			if(res)
-			{
-				this.prefsRunning = true;
-
-				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
-				{
-					this.prefsRunning = false;
-				});
-			}
+			GLib.spawn_async('/usr/bin', ['gnome-shell-extension-prefs',
+				'cast-to-tv@rafostar.github.com'], null, 0, null);
 		}
 
 		this.addMenuItem(this.castSubMenu);
