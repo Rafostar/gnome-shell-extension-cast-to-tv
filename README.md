@@ -64,7 +64,7 @@ sudo apt install nautilus-python python3-gi
 ```
 Fedora:
 ```
-sudo dnf install nautilus-python python3-gobject
+sudo dnf install nautilus-python pygobject3 python3-gobject
 ```
 
 Nautilus extension is included in Cast to TV (currently only in latest git source code).<br>
