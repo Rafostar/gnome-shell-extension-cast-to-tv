@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-04-27 08:27+0200\n"
-"PO-Revision-Date: 2019-04-27 16:41\n"
+"PO-Revision-Date: 2019-04-29 14:30\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -191,7 +191,7 @@ msgstr "Rodzina czcionki"
 
 #: prefs.js:338
 msgid "Font style"
-msgstr "Czcionka"
+msgstr "Styl czcionki"
 
 #. TRANSLATORS: One of "Speed" setting value
 #: prefs.js:344 node_scripts/messages.js:19
