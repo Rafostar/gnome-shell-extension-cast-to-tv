@@ -9,11 +9,12 @@ const _ = Gettext.gettext;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const iconName = 'tv-symbolic';
+const maxDelay = 16;
+const minDelay = 8;
 
-var isRepeatActive = false;
-var isUnifiedSlider = true;
-var seekTime = 10;
-var sliderDelay = 5;
+var isRepeatActive;
+var isUnifiedSlider;
+var seekTime;
 
 var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
 
@@ -131,16 +132,21 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', () =>
+		this.positionSlider.connect('value-changed', () => this.positionSlider.delay = maxDelay);
+		this.positionSlider.connect('drag-begin', () => this.positionSlider.busy = true);
+		this.positionSlider.connect('drag-end', () => this.positionSliderAction());
+
+		this.positionSliderAction = () =>
 		{
-			this.positionSlider.delay = sliderDelay;
+			this.positionSlider.delay = minDelay;
 			let action;
 
 			if(this.positionSlider.isVolume) action = 'VOLUME';
 			else action = 'SEEK';
 
 			Temp.setRemoteAction(action, this.positionSlider.value.toFixed(3));
-		});
+			this.positionSlider.busy = false;
+		}
 
 		if(isUnifiedSlider)
 		{
@@ -164,11 +170,16 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			});
 		}
 
-		this.volumeSlider.connect('value-changed', () =>
+		this.volumeSlider.connect('value-changed', () => this.volumeSlider.delay = maxDelay);
+		this.volumeSlider.connect('drag-begin', () => this.volumeSlider.busy = true);
+		this.volumeSlider.connect('drag-end', () => this.volumeSliderAction());
+
+		this.volumeSliderAction = () =>
 		{
-			this.volumeSlider.delay = sliderDelay;
+			this.volumeSlider.delay = minDelay;
 			Temp.setRemoteAction('VOLUME', this.volumeSlider.value.toFixed(3));
-		});
+			this.volumeSlider.busy = false;
+		}
 
 		this.repeatButton.connect('clicked', () =>
 		{
@@ -186,6 +197,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
+
 		this.statusMonitor.connect('changed', () =>
 		{
 			if(this.mode == 'PICTURE') return;
@@ -195,13 +207,36 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			{
 				this.checkPlaying(statusContents);
 
-				if(this.positionSlider.delay > 0) return this.positionSlider.delay--;
-				if(this.volumeSlider.delay > 0) return this.volumeSlider.delay--;
+				if(this.positionSlider.delay > 0)
+				{
+					this.positionSlider.delay--;
+					if(
+						!this.positionSlider.busy &&
+						this.positionSlider.delay == minDelay
+					) {
+						this.positionSliderAction();
+					}
+				}
+
+				if(this.volumeSlider.delay > 0)
+				{
+					this.volumeSlider.delay--;
+					if(
+						!this.volumeSlider.busy &&
+						this.volumeSlider.delay == minDelay
+					) {
+						this.volumeSliderAction();
+					}
+				}
 
 				this.setVolume(statusContents);
 
-				if(this.positionSlider.visible && !this.positionSlider.isVolume)
-				{
+				if(
+					this.positionSlider.visible &&
+					!this.positionSlider.isVolume &&
+					this.positionSlider.delay == 0 &&
+					!this.positionSlider.busy
+				) {
 					this.setProgress(statusContents);
 				}
 			}
@@ -243,8 +278,20 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		{
 			if(statusContents.volume >= 0 && statusContents.volume <= 1)
 			{
-				if(this.volumeSlider.visible) this.volumeSlider.setValue(statusContents.volume);
-				else if(this.positionSlider.isVolume) this.positionSlider.setValue(statusContents.volume);
+				if(
+					this.volumeSlider.visible &&
+					this.volumeSlider.delay == 0 &&
+					!this.volumeSlider.busy
+				) {
+					this.volumeSlider.setValue(statusContents.volume);
+				}
+				else if(
+					this.positionSlider.isVolume &&
+					this.positionSlider.delay == 0 &&
+					!this.positionSlider.busy
+				) {
+					this.positionSlider.setValue(statusContents.volume);
+				}
 			}
 		}
 
@@ -384,6 +431,7 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
 
 		this.delay = 0;
+		this.busy = false;
 		this.isVolume = false;
 
 		this.actor.add(this.button);
