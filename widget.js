@@ -205,6 +205,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
+				if(isRepeatActive != statusContents.repeat)
+				{
+					isRepeatActive = statusContents.repeat;
+					this.repeatButton.turnOn(isRepeatActive);
+				}
+
 				this.checkPlaying(statusContents);
 
 				if(this.positionSlider.delay > 0)
@@ -356,7 +362,7 @@ class PopupBase extends PopupMenu.PopupBaseMenuItem
 	constructor()
 	{
 		super({ hover: false, reactive: true });
-		this.actor.add_style_pseudo_class = () => { return null; };
+		this.actor.add_style_pseudo_class = () => { return null };
 	}
 }
 

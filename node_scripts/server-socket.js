@@ -95,7 +95,11 @@ function checkClients()
 
 	clientTimeout = setTimeout(() =>
 	{
-		if(exports.clientsConnected == 0) gnome.showRemote(false);
+		if(exports.clientsConnected == 0)
+		{
+			controller.repeat = false;
+			gnome.showRemote(false);
+		}
 	}, 2500);
 }
 

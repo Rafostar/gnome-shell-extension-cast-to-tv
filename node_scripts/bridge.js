@@ -23,7 +23,8 @@ exports.setStatusFile = function(status)
 		playerState: status.playerState,
 		currentTime: status.currentTime,
 		mediaDuration: status.media.duration,
-		volume: status.volume
+		volume: status.volume,
+		repeat: controller.repeat
 	};
 
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
