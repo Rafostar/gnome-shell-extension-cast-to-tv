@@ -4,7 +4,8 @@
 import os, json, gettext, locale, gi
 gi.require_version('Nautilus', '3.0')
 gi.require_version('GObject', '2.0')
-from gi.repository import Nautilus, GObject
+gi.require_version('Gio', '2.0')
+from gi.repository import Nautilus, GObject, Gio
 
 # A way to get unquote working with python 2 and 3
 try:
@@ -14,7 +15,8 @@ except ImportError:
 
 _ = gettext.gettext
 
-EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com')
+EXTENSION_NAME = 'cast-to-tv@rafostar.github.com'
+EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/' + EXTENSION_NAME)
 TEMP_PATH = '/tmp/.cast-to-tv'
 SUBS_FORMATS = ['srt', 'ass', 'vtt']
 
@@ -24,6 +26,7 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         self.subs_path = ""
         self.config = {}
         self.current_name = {"name": "", "fn": ""}
+        self.settings = Gio.Settings('org.gnome.shell')
 
         try:
             locale.setlocale(locale.LC_ALL, '')
@@ -31,6 +34,16 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
             gettext.textdomain('cast-to-tv')
         except:
             pass
+
+    def check_extension_enabled(self):
+        all_extensions_disabled = self.settings.get_boolean('disable-user-extensions')
+
+        if not all_extensions_disabled:
+            enabled_extensions = self.settings.get_strv('enabled-extensions')
+            if EXTENSION_NAME in enabled_extensions:
+                return True
+
+        return False
 
     def create_menu_item(self, stream_type, files):
         cast_label="Cast Selected File"
@@ -174,6 +187,10 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
             os.path.isfile(TEMP_PATH + '/playlist.json') and
             os.path.isfile(TEMP_PATH + '/selection.json')):
                 return
+
+        extension_enabled = self.check_extension_enabled()
+        if not extension_enabled:
+            return
 
         stream_type = None
         is_video_and_subs = False
