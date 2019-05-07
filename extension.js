@@ -8,21 +8,19 @@ const GLib = imports.gi.GLib;
 const Main = imports.ui.main;
 const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
-const Mainloop = imports.mainloop;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Widget = Local.imports.widget;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
-const Service = Local.imports.service;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 
 let castMenu;
 let remoteMenu;
 let configContents;
-let serverStarted;
+let serviceStarted;
 let Signals;
 
 function configCastRemote()
@@ -306,13 +304,11 @@ function enable()
 	/* Add remote to top bar */
 	setRemotePosition();
 
-	/* Start media server service */
-	if(!serverStarted)
+	/* Start server monitoring service */
+	if(!serviceStarted)
 	{
-		let isServer = Service.checkServerRunning();
-		if(!isServer) Service.startServer(Local.path);
-
-		serverStarted = true;
+		GLib.spawn_async('/usr/bin', ['gjs', `${Local.path}/server-monitor.js`], null, 0, null);
+		serviceStarted = true;
 	}
 }
 
@@ -322,8 +318,9 @@ function disable()
 
 	if(!lockingScreen)
 	{
-		Service.closeServer(Local.path);
-		serverStarted = false;
+		/* Stop all apps running inside extension folder */
+		GLib.spawn_command_line_async(`pkill -SIGINT -f ${Local.path}`);
+		serviceStarted = false;
 	}
 
 	/* Disconnect signals from settings */

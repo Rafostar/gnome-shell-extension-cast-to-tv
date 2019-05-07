@@ -3,7 +3,6 @@ const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
-const Service = Local.imports.service;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
@@ -676,38 +675,33 @@ class ModulesSettings extends Gtk.VBox
 		});
 		this.pack_start(this.installButton, false, false, 0);
 
+		let installCallback = () =>
+		{
+			GLib.spawn_async('/usr/bin', ['gjs', `${Local.path}/server-monitor.js`], null, 0, null);
+
+			this.installButton.label = _(installLabel);
+			this.installButton.set_sensitive(true);
+		}
+
 		let installModules = () =>
 		{
 			TermWidget.reset(true, true);
-			Service.closeServer(Local.path);
+			/* Stops both server and monitor service */
+			GLib.spawn_command_line_sync(`pkill -SIGINT -f ${Local.path}`);
 			this.installButton.set_sensitive(false);
 			this.installButton.label = _("Installing...");
 
 			try {
 				TermWidget.spawn_async(
 					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'],
-					null, 0, null, null, null, 120000, null, () =>
-				{
-					let isServer = Service.checkServerRunning();
-					if(!isServer) Service.startServer(Local.path);
-
-					this.installButton.label = _(installLabel);
-					this.installButton.set_sensitive(true);
-				});
+					null, 0, null, null, null, 120000, null, () => installCallback());
 			}
 			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
 					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'],
 					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
 
-				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
-				{
-					let isServer = Service.checkServerRunning();
-					if(!isServer) Service.startServer(Local.path);
-
-					this.installButton.label = _(installLabel);
-					this.installButton.set_sensitive(true);
-				});
+				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback());
 			}
 		}
 
@@ -891,7 +885,7 @@ function scanDevices(widget, button)
 
 	GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
 
-	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
+	let [res, pid] = GLib.spawn_async(
 		'/usr/bin', ['node', Local.path + '/node_scripts/utils/scanner'],
 		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
@@ -917,6 +911,8 @@ function getHostIp()
 {
 	try {
 		let ip4;
+
+		/* synchronous because must be obtained before widget is shown */
 		let [res, stdout] = GLib.spawn_sync(
 			'/usr/bin', ['node', Local.path + '/node_scripts/utils/local-ip'],
 			null, 0, null);

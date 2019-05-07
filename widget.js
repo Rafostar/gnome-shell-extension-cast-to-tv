@@ -47,17 +47,19 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>
 		{
-			GLib.spawn_command_line_sync(`pkill -SIGINT -f ${Local.path}/file-chooser`);
+			/* Close open window before opening next one */
+			GLib.spawn_command_line_async(`pkill -SIGINT -f ${Local.path}/file-chooser.js`);
 
 			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
-			GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/file-chooser.js',
-				Local.path, streamType], null, 0, null);
+			GLib.spawn_async('/usr/bin', ['gjs', `${Local.path}/file-chooser.js`, streamType], null, 0, null);
 		}
 
 		this.spawnExtensionPrefs = () =>
 		{
-			GLib.spawn_command_line_sync('pkill -SIGINT -f gnome-shell-extension-prefs');
+			/* Close open window before reopening */
+			GLib.spawn_command_line_async('pkill -SIGINT -f gnome-shell-extension-prefs');
 
+			/* Open extension preferences */
 			GLib.spawn_async('/usr/bin', ['gnome-shell-extension-prefs',
 				'cast-to-tv@rafostar.github.com'], null, 0, null);
 		}
@@ -217,8 +219,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				{
 					this.positionSlider.delay--;
 					if(
-						!this.positionSlider.busy &&
-						this.positionSlider.delay == minDelay
+						!this.positionSlider.busy
+						&& this.positionSlider.delay == minDelay
 					) {
 						this.positionSliderAction();
 					}
@@ -228,8 +230,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				{
 					this.volumeSlider.delay--;
 					if(
-						!this.volumeSlider.busy &&
-						this.volumeSlider.delay == minDelay
+						!this.volumeSlider.busy
+						&& this.volumeSlider.delay == minDelay
 					) {
 						this.volumeSliderAction();
 					}
@@ -238,10 +240,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.setVolume(statusContents);
 
 				if(
-					this.positionSlider.visible &&
-					!this.positionSlider.isVolume &&
-					this.positionSlider.delay == 0 &&
-					!this.positionSlider.busy
+					this.positionSlider.visible
+					&& !this.positionSlider.isVolume
+					&& this.positionSlider.delay == 0
+					&& !this.positionSlider.busy
 				) {
 					this.setProgress(statusContents);
 				}
@@ -285,16 +287,16 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(statusContents.volume >= 0 && statusContents.volume <= 1)
 			{
 				if(
-					this.volumeSlider.visible &&
-					this.volumeSlider.delay == 0 &&
-					!this.volumeSlider.busy
+					this.volumeSlider.visible
+					&& this.volumeSlider.delay == 0
+					&& !this.volumeSlider.busy
 				) {
 					this.volumeSlider.setValue(statusContents.volume);
 				}
 				else if(
-					this.positionSlider.isVolume &&
-					this.positionSlider.delay == 0 &&
-					!this.positionSlider.busy
+					this.positionSlider.isVolume
+					&& this.positionSlider.delay == 0
+					&& !this.positionSlider.busy
 				) {
 					this.positionSlider.setValue(statusContents.volume);
 				}

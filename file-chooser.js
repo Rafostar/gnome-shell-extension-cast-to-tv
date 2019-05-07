@@ -4,10 +4,9 @@ const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';
 const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
-const localPath = ARGV[0];
-const streamType = ARGV[1];
+const localPath = `${GLib.get_home_dir()}/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com`;
+const streamType = ARGV[0];
 imports.searchPath.unshift(localPath);
-const Service = imports.service;
 const shared = imports.shared.module.exports;
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 
@@ -47,10 +46,6 @@ class fileChooser
 		selectionContents.subsPath = '';
 
 		if(!configContents || !selectionContents.streamType) return;
-
-		/* Start server if it is not running already */
-		const isServer = Service.checkServerRunning();
-		if(!isServer) Service.startServer(localPath);
 
 		this.fileFilter = new Gtk.FileFilter();
 		let buttonConvert = new Gtk.CheckButton({ label: _("Transcode Video") });
