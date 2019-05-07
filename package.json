@@ -12,7 +12,7 @@
     "deferential": "^1.0.0",
     "express": "^4.16.4",
     "gettext-parser": "^3.1.0",
-    "internal-ip": "^3.0.1",
+    "internal-ip": "^4.3.0",
     "jschardet": "^2.1.0",
     "multicast-scanner": "^1.0.0",
     "node-gettext": "^2.0.0",
