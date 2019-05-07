@@ -81,6 +81,8 @@ Check out [FAQ](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wik
 ## Info for translators
 Preferred translation method is to use [Cast to TV Crowdin](https://crowdin.com/project/cast-to-tv) web page.
 
+Crowdin does not require any additional tools and translating can be done through web browser. You can login using GitHub account or create a new one. Only I can add new languages to this project, so if your language is not available, please contact me first (you can leave comment [here](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/issues/29)).
+
 Alternatively you can still use Makefile and tools like Poedit to generate translations:
 
 `make potfile` - generates updated POT file.<br>
