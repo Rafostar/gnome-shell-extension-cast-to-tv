@@ -58,7 +58,11 @@ exports.remote = function(action, value)
 {
 	if((!remoteBusy && player && player.session) || action == 'STOP')
 	{
-		checkRemoteAction(action, value);
+		try { checkRemoteAction(action, value); }
+		catch(err) {
+			debug('Remote action error!');
+			debug(err);
+		}
 	}
 }
 
@@ -226,21 +230,27 @@ function loadCast(castOpts)
 {
 	debug('Trying to load file in current session...');
 
-	player.load(castOpts, (err) =>
-	{
-		if(!err)
+	try {
+		player.load(castOpts, (err) =>
 		{
-			debug('File successfully loaded');
+			if(!err)
+			{
+				debug('File successfully loaded');
 
-			startCastInterval();
-			startPlayback();
-		}
-		else
-		{
-			debug('File could not be loaded');
-			return launchCast(castOpts);
-		}
-	});
+				startCastInterval();
+				startPlayback();
+			}
+			else
+			{
+				debug('File could not be loaded');
+				launchCast(castOpts);
+			}
+		});
+	}
+	catch(err) {
+		debug('Error while loading in current session');
+		launchCast(castOpts);
+	}
 }
 
 function startCastInterval()
