@@ -14,7 +14,7 @@
     "gettext-parser": "^3.1.0",
     "internal-ip": "^4.3.0",
     "jschardet": "^2.1.0",
-    "multicast-scanner": "^1.0.0",
+    "multicast-scanner": "^2.0.0",
     "node-gettext": "^2.0.0",
     "node-watch": "^0.6.0",
     "plyr": "3.5.3",

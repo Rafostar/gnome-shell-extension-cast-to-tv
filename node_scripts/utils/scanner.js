@@ -3,8 +3,8 @@ var path = require('path');
 var scanner = require('multicast-scanner');
 var devicesPath = path.join(__dirname + '/../../config/devices.json');
 
-scanner((err, devices) => {
-
+scanner({ full_scan: true }, (err, devices) =>
+{
 	if(err) devices = [];
 	else devices.forEach(device => {
 		device.name = device.name.split('.')[0];
