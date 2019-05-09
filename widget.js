@@ -8,6 +8,7 @@ const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
+const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
 const iconName = 'tv-symbolic';
 const maxDelay = 16;
 const minDelay = 8;
@@ -47,8 +48,9 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>
 		{
-			/* Close open window before opening next one */
-			GLib.spawn_command_line_async(`pkill -SIGINT -f ${Local.path}/file-chooser.js`);
+			/* Close other possible opened windows */
+			GLib.spawn_command_line_async(`pkill -SIGINT -f ${Local.path}/file-chooser` +
+				`|${extensionsPath}/cast-to-tv-.*-addon@rafostar.github.com/app`);
 
 			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
 			GLib.spawn_async('/usr/bin', ['gjs', `${Local.path}/file-chooser.js`, streamType], null, 0, null);
