@@ -494,7 +494,6 @@ class AddonsSettings extends Gtk.Notebook
 		let extDir = Gio.File.new_for_path(extPath);
 		let dirEnum = extDir.enumerate_children('standard::name,standard::type', 0, null);
 		let addons = [];
-		let addonPrefs = [];
 
 		let info;
 		while((info = dirEnum.next_file(null)))
@@ -510,21 +509,21 @@ class AddonsSettings extends Gtk.Notebook
 		addons.forEach(addonDir =>
 		{
 			let addonPath = extPath + '/' + addonDir;
-			let isPrefs = GLib.file_test(addonPath + '/addon_prefs.js', 16);
+			let addonName = addonDir.substring(11, addonDir.lastIndexOf('-'));
+			let isPrefs = GLib.file_test(`${addonPath}/${addonName}_prefs.js`, 16);
 
 			if(isPrefs)
 			{
 				imports.searchPath.unshift(addonPath);
-				addonPrefs.push(imports.addon_prefs);
+				let addonPrefs = eval(`imports.${addonName}_prefs`);
+
+				addonPrefs.init();
+				let widget = addonPrefs.buildPrefsWidget();
+				this.append_page(widget, widget.title);
 			}
 		});
 
-		addonPrefs.forEach(prefs =>
-		{
-			prefs.init();
-			let widget = prefs.buildPrefsWidget();
-			this.append_page(widget, widget.title);
-		});
+		imports.searchPath.unshift(extPath);
 	}
 
 	destroy()
