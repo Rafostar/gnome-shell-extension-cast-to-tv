@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-05-10 15:51\n"
+"PO-Revision-Date: 2019-05-10 16:56\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -212,7 +212,7 @@ msgstr "Pogrubiona kursywa"
 
 #: prefs.js:310
 msgid "Scale factor"
-msgstr "Współczynnik skali"
+msgstr "Współczynnik skalowania"
 
 #: prefs.js:325
 msgid "Font color"
@@ -253,7 +253,7 @@ msgstr "Odtwarzacz webowy"
 
 #: prefs.js:438
 msgid "Subtitles scale factor"
-msgstr "Współczynnik skali napisów"
+msgstr "Współczynnik skalowania napisów"
 
 #. TRANSLATORS: The rest of extension settings
 #: prefs.js:450
