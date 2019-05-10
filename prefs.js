@@ -510,12 +510,12 @@ class AddonsSettings extends Gtk.Notebook
 		{
 			let addonPath = extPath + '/' + addonDir;
 			let addonName = addonDir.substring(11, addonDir.lastIndexOf('-'));
-			let isPrefs = GLib.file_test(`${addonPath}/${addonName}_prefs.js`, 16);
+			let isPrefs = GLib.file_test(addonPath + '/' + addonName + '_prefs.js', 16);
 
 			if(isPrefs)
 			{
 				imports.searchPath.unshift(addonPath);
-				let addonPrefs = eval(`imports.${addonName}_prefs`);
+				let addonPrefs = imports[addonName + '_prefs'];
 
 				addonPrefs.init();
 				let widget = addonPrefs.buildPrefsWidget();
@@ -566,7 +566,7 @@ class ModulesSettings extends Gtk.VBox
 
 		let installCallback = () =>
 		{
-			GLib.spawn_async('/usr/bin', ['gjs', `${Local.path}/server-monitor.js`], null, 0, null);
+			GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
 
 			this.installButton.label = _(installLabel);
 			this.installButton.set_sensitive(true);
@@ -576,7 +576,7 @@ class ModulesSettings extends Gtk.VBox
 		{
 			TermWidget.reset(true, true);
 			/* Stops both server and monitor service */
-			GLib.spawn_command_line_sync(`pkill -SIGINT -f ${Local.path}`);
+			GLib.spawn_command_line_sync('pkill -SIGINT -f ' + Local.path);
 			this.installButton.set_sensitive(false);
 			this.installButton.label = _("Installing...");
 
@@ -851,7 +851,7 @@ function hashToColor(colorHash)
 	array[1] = colorInt >> 16;
 	array[0] = colorInt >> 24;
 
-	return `rgba(${array[0]},${array[1]},${array[2]},${array[3] / 255})`
+	return 'rgba(' + array[0] + ',' + array[1] + ',' + array[2] + ',' + array[3] / 255 + ')';
 }
 
 function colorToHash(colorString)

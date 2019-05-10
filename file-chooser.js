@@ -4,11 +4,11 @@ const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';
 const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
-const localPath = `${GLib.get_home_dir()}/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com`;
+const localPath = GLib.get_home_dir() + '/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com';
 const streamType = ARGV[0];
 imports.searchPath.unshift(localPath);
 const shared = imports.shared.module.exports;
-Gettext.bindtextdomain(MetadataDomain, `${localPath}/locale`);
+Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 
 class fileChooser
 {
@@ -33,7 +33,7 @@ class fileChooser
 		let iconTheme = Gtk.IconTheme.get_default();
 		if(iconTheme.has_icon('cast-to-tv')) this.fileChooser.set_icon_name('cast-to-tv');
 		else {
-			try { this.fileChooser.set_icon_from_file(`${localPath}/appIcon/cast-to-tv.svg`); }
+			try { this.fileChooser.set_icon_from_file(localPath + '/appIcon/cast-to-tv.svg'); }
 			catch(err) { this.fileChooser.set_icon_name('application-x-executable'); }
 		}
 	}

@@ -307,7 +307,7 @@ function enable()
 	/* Start server monitoring service */
 	if(!serviceStarted)
 	{
-		GLib.spawn_async('/usr/bin', ['gjs', `${Local.path}/server-monitor.js`], null, 0, null);
+		GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
 		serviceStarted = true;
 	}
 }
@@ -319,7 +319,7 @@ function disable()
 	if(!lockingScreen)
 	{
 		/* Stop all apps running inside extension folder */
-		GLib.spawn_command_line_async(`pkill -SIGINT -f ${Local.path}`);
+		GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path);
 		serviceStarted = false;
 	}
 
