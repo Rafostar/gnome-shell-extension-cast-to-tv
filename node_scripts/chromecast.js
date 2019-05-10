@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var debug = require('debug')('chromecast');
-var castPlayer = require('chromecast-player')();
+var castPlayer = require('chromecast-player-reloaded')();
 var internalIp = require('internal-ip').v4;
 var bridge = require('./bridge');
 var extract = require('./extract');
@@ -230,27 +230,21 @@ function loadCast(castOpts)
 {
 	debug('Trying to load file in current session...');
 
-	try {
-		player.load(castOpts, (err) =>
+	player.load(castOpts, (err) =>
+	{
+		if(!err)
 		{
-			if(!err)
-			{
-				debug('File successfully loaded');
+			debug('File successfully loaded');
 
-				startCastInterval();
-				startPlayback();
-			}
-			else
-			{
-				debug('File could not be loaded');
-				launchCast(castOpts);
-			}
-		});
-	}
-	catch(err) {
-		debug('Error while loading in current session');
-		launchCast(castOpts);
-	}
+			startCastInterval();
+			startPlayback();
+		}
+		else
+		{
+			debug('File could not be loaded');
+			launchCast(castOpts);
+		}
+	});
 }
 
 function startCastInterval()
