@@ -71,7 +71,6 @@ class fileChooser
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
 		this.buttonCast = this.fileChooser.add_button(_(this.castLabelSingle), Gtk.ResponseType.OK);
-		let mimeType;
 
 		switch(selectionContents.streamType)
 		{
@@ -82,8 +81,7 @@ class fileChooser
 				this.fileChooser.set_extra_widget(box);
 
 				this.fileFilter.set_name(_("Video Files"));
-				mimeType = 'video/*';
-				this.fileFilter.add_mime_type(mimeType);
+				this.fileFilter.add_mime_type('video/*');
 
 				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onVideoSel());
 				break;
@@ -92,8 +90,7 @@ class fileChooser
 				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
 
 				this.fileFilter.set_name(_("Audio Files"));
-				mimeType = 'audio/*';
-				this.fileFilter.add_mime_type(mimeType);
+				this.fileFilter.add_mime_type('audio/*');
 
 				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onMusicAndPicSel());
 				break;
