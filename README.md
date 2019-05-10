@@ -21,14 +21,14 @@ Cast files to Chromecast, web browser or media player app over local network.
 * Optional VAAPI video encoding for low cpu usage
 * Stream music with visualizations (requires fast cpu)
 
-## Installation
+## Download
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
 
 [<img src="https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/Gnome-Extensions.png" width="30%" height="30%">](https://extensions.gnome.org/extension/1544/cast-to-tv)
 
 Installation from source code is described in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).
 
-After enabling the extension, remember to install [required dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements).
+After enabling the extension, remember to install all [requirements](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#requirements) and [npm dependencies](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv#install-npm-dependencies).
 
 ## Requirements
 Here is a list of required programs that Cast to TV depends on:
@@ -38,39 +38,48 @@ Here is a list of required programs that Cast to TV depends on:
 
 Please make sure you have all of the above installed.
 
-Ubuntu:
-```
-sudo apt install npm nodejs ffmpeg
-```
-Fedora:
-```
-sudo dnf install npm nodejs ffmpeg
-```
-
-**Before using extension** you also **must** install some additional npm packages.
-
-* Install npm dependencies:
-```
-cd ~/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com
-npm install
-```
-
 ### Optional:
 * [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
-
-Ubuntu:
-```
-sudo apt install python-nautilus python3-gi
-```
-Fedora:
-```
-sudo dnf install nautilus-python pygobject3 python3-gobject
-```
 
 Nautilus extension is included in Cast to TV (currently only in latest git source code).<br>
 Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
 
 You can optionally use hardware VAAPI encoding. This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
+
+## Installation
+
+### Ubuntu:
+Having enabled universe repo run:
+```
+sudo apt install npm nodejs ffmpeg
+```
+Ubuntu is shipping wrong npm version for some reason.<br>
+Update it and clear bash cache:
+```
+sudo npm install -g npm
+hash -r
+```
+Nautilus integration (optional):
+```
+sudo apt install python-nautilus python3-gi
+```
+
+### Fedora:
+Having enabled rpm fusion repos run:
+```
+sudo dnf install npm nodejs ffmpeg
+```
+Nautilus integration (optional):
+```
+sudo dnf install nautilus-python pygobject3 python3-gobject
+```
+
+## Install npm dependencies
+**Before using extension** you also **must** install some additional npm packages.
+```
+cd ~/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com
+npm install
+```
 
 ## How to use
 Detailed instructions related to configuration and using the extension are in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).<br>
