@@ -60,7 +60,7 @@ npm install
 
 Ubuntu:
 ```
-sudo apt install nautilus-python python3-gi
+sudo apt install python-nautilus python3-gi
 ```
 Fedora:
 ```
