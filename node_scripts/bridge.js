@@ -30,17 +30,26 @@ exports.setStatusFile = function(status)
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
 
-watch(shared.configPath, { delay: 0 }, (eventType, filename) =>
-{
-	exports.config = getContents(shared.configPath);
-	server.refreshConfig();
-});
-
-watch(shared.selectionPath, { delay: 0 }, (eventType, filename) =>
+watch(shared.configPath, { delay: 100 }, (eventType, filename) =>
 {
 	if(eventType == 'update')
 	{
-		exports.selection = getContents(shared.selectionPath);
+		var configContents = getContents(shared.configPath);
+		if(configContents === null) return;
+
+		exports.config = configContents;
+		server.refreshConfig();
+	}
+});
+
+watch(shared.selectionPath, { delay: 250 }, (eventType, filename) =>
+{
+	if(eventType == 'update')
+	{
+		var selectionContents = getContents(shared.selectionPath);
+		if(selectionContents === null || exports.list === null) return;
+
+		exports.selection = selectionContents;
 
 		/* Close addon before selecting a new one */
 		closeAddon();
@@ -66,7 +75,7 @@ watch(shared.selectionPath, { delay: 0 }, (eventType, filename) =>
 	}
 });
 
-watch(shared.listPath, { delay: 0 }, (eventType, filename) =>
+watch(shared.listPath, { delay: 200 }, (eventType, filename) =>
 {
 	if(eventType == 'update')
 	{
@@ -79,7 +88,10 @@ watch(shared.remotePath, { delay: 0 }, (eventType, filename) =>
 {
 	if(eventType == 'update')
 	{
-		remote = getContents(shared.remotePath);
+		var remoteContents = getContents(shared.remotePath);
+		if(remoteContents === null) return;
+
+		remote = remoteContents;
 
 		var action = remote.action;
 		var value = remote.value;
@@ -98,8 +110,14 @@ watch(shared.remotePath, { delay: 0 }, (eventType, filename) =>
 
 function getContents(path)
 {
+	var data;
+
 	delete require.cache[path];
-	return require(path);
+
+	try { data = require(path); }
+	catch(err) { data = null }
+
+	return data;
 }
 
 function setProcesses()
