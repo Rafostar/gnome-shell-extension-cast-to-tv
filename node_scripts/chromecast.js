@@ -170,6 +170,30 @@ function initChromecast()
 		return name;
 	}
 
+	var getChromecastIp = () =>
+	{
+		if(bridge.config.chromecastName)
+		{
+			const devicesPath = path.join(__dirname + '/../config/devices.json');
+			var exist = fs.existsSync(devicesPath);
+
+			if(exist)
+			{
+				var devices = JSON.parse(fs.readFileSync(devicesPath));
+
+				for(var i = 0; i < devices.length; i++)
+				{
+					if(devices[i].ip && devices[i].name == bridge.config.chromecastName)
+					{
+						return devices[i].ip;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
 	var castOpts = {
 		path: `http://${ip}:${port}/cast?session=${sessionID}`,
 		type: mimeType,
@@ -178,6 +202,7 @@ function initChromecast()
 		activeTrackIds: trackIds,
 		media: mediaTracks,
 		device: getChromecastName(),
+		address: getChromecastIp(),
 		ttl: shared.chromecast.searchTimeout
 	};
 
