@@ -160,8 +160,8 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         ]
 
         # Playlist must be updated before selection file
-        with open(TEMP_PATH + '/playlist.json', "w") as fp:
-            json.dump(playlist, fp, indent=1)
+        with open(TEMP_PATH + '/playlist.json', 'w') as fp:
+            json.dump(playlist, fp, indent=1, ensure_ascii=False)
 
         selection = {
             "streamType": stream_type,
@@ -169,8 +169,8 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
             "filePath": playlist[0]
         }
 
-        with open(TEMP_PATH + '/selection.json', "w") as fp:
-            json.dump(selection, fp, indent=1)
+        with open(TEMP_PATH + '/selection.json', 'w') as fp:
+            json.dump(selection, fp, indent=1, ensure_ascii=False)
 
     def transcode_files_cb(self, menu, files, stream_type):
         if self.config['videoAcceleration'] == 'vaapi':
