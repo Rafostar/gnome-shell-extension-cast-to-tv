@@ -20,6 +20,7 @@ Cast files to Chromecast, web browser or media player app over local network.
 * Transcode videos to supported format on the fly
 * Optional VAAPI video encoding for low cpu usage
 * Stream music with visualizations (requires fast cpu)
+* Nautilus right click menu integration
 
 ## Download
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
@@ -40,15 +41,16 @@ Please make sure you have all of the above installed.
 
 ### Optional:
 * [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
+* [cast-to-tv-config](https://github.com/Rafostar/cast-to-tv-config) (manual Chromecast IP config tool)
 
-Nautilus extension is included in Cast to TV (currently only in latest git source code).<br>
+Nautilus extension is included in Cast to TV (since version 9).<br>
 Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
 
 You can optionally use hardware VAAPI encoding. This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
 
 ## Installation
 
-### Ubuntu:
+### Ubuntu
 Having enabled universe repo run:
 ```
 sudo apt install npm nodejs ffmpeg
@@ -64,7 +66,7 @@ Nautilus integration (optional):
 sudo apt install python-nautilus python3-gi
 ```
 
-### Fedora:
+### Fedora
 Having enabled rpm fusion repos run:
 ```
 sudo dnf install npm nodejs ffmpeg
@@ -76,6 +78,17 @@ sudo dnf install nautilus-python pygobject3 python3-gobject
 
 ## Install npm dependencies
 **Before using extension** you also **must** install some additional npm packages.
+
+You should also repeat this step when updating the extension to the new version, otherwise you may not have newly added or updated dependencies.
+
+### New method
+In version 9 and later this can be done from extension preferences.<br>
+Go to `Cast Settings -> Modules` and click `Install npm modules` button.
+
+You must have `npm` and `nodejs` installed prior to this step.
+
+### Old method
+Run below code in terminal:
 ```
 cd ~/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com
 npm install
