@@ -7,6 +7,9 @@ const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
+const nodeDir = nodePath.substring(0, nodePath.lastIndexOf('/'));
+const nodeBin = nodePath.substring(nodePath.lastIndexOf('/') + 1);
 
 function init()
 {
@@ -580,14 +583,16 @@ class ModulesSettings extends Gtk.VBox
 			this.installButton.set_sensitive(false);
 			this.installButton.label = _("Installing...");
 
+			let npmPath = GLib.find_program_in_path('npm');
+
 			try {
 				TermWidget.spawn_async(
-					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'],
+					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
 					null, 0, null, null, null, 120000, null, () => installCallback());
 			}
 			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
-					Vte.PtyFlags.DEFAULT, Local.path, ['/usr/bin/npm', 'install'],
+					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
 					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
 
 				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback());
@@ -775,7 +780,7 @@ function scanDevices(widget, button)
 	GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
 
 	let [res, pid] = GLib.spawn_async(
-		'/usr/bin', ['node', Local.path + '/node_scripts/utils/scanner'],
+		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/scanner'],
 		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
 	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
@@ -803,7 +808,7 @@ function getHostIp()
 
 		/* synchronous because must be obtained before widget is shown */
 		let [res, stdout] = GLib.spawn_sync(
-			'/usr/bin', ['node', Local.path + '/node_scripts/utils/local-ip'],
+			nodeDir, [nodeBin, Local.path + '/node_scripts/utils/local-ip'],
 			null, 0, null);
 
 		if(res && stdout)

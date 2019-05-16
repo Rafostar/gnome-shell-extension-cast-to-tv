@@ -1,13 +1,13 @@
 const { Gio, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
-const Mainloop = imports.mainloop;
 const extensionName = 'cast-to-tv@rafostar.github.com';
 const localPath = `${GLib.get_home_dir()}/.local/share/gnome-shell/extensions/${extensionName}`;
 
-var statusTimer;
-var restartCount = 0;
-var persistent = true;
+let statusTimer;
+let restartCount = 0;
+let persistent = true;
+let loop = GLib.MainLoop.new(null, false);
 
 class ServerMonitor
 {
@@ -25,17 +25,26 @@ class ServerMonitor
 		Settings.connect('changed::enabled-extensions', () => this._onSettingsChanged());
 
 		this.startServer();
-		Mainloop.run();
+		loop.run();
 	}
 
 	startServer()
 	{
-		let proc = Gio.Subprocess.new(['node', localPath + '/node_scripts/server'], Gio.SubprocessFlags.NONE);
+		let nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
+
+		if(!nodePath)
+		{
+			print('Cast to TV: nodejs executable not found!');
+			loop.quit();
+			return;
+		}
+
+		let proc = Gio.Subprocess.new([nodePath, localPath + '/node_scripts/server'], Gio.SubprocessFlags.NONE);
 		print('Started Cast to TV service');
 
 		proc.wait_async(null, () =>
 		{
-			Mainloop.quit();
+			loop.quit();
 
 			if(persistent)
 			{
@@ -47,9 +56,16 @@ class ServerMonitor
 					this.startServer();
 
 					restartCount++;
+					if(restartCount >= 3)
+					{
+						print('Cast to TV server crashed too many times! Service stopped.');
+						this.stopServer();
+						return;
+					}
+
 					if(!statusTimer) this._startTimer();
 
-					Mainloop.run();
+					loop.run();
 				}
 			}
 		});
@@ -167,21 +183,12 @@ class ServerMonitor
 
 	_startTimer()
 	{
-		statusTimer = Mainloop.timeout_add_seconds(30, () =>
+		statusTimer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 30, () =>
 		{
-			if(restartCount >= 3)
-			{
-				print('Cast to TV server crashed too many times! Service stopped.');
-				this.stopServer();
-			}
-			else
-			{
-				restartCount = 0;
-			}
-
+			restartCount = 0;
 			statusTimer = null;
 		});
 	}
 }
 
-var monitor = new ServerMonitor();
+let monitor = new ServerMonitor();

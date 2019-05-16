@@ -1,3 +1,6 @@
+#!/bin/sh
+//bin/false || exec "$(command -v nodejs || command -v node)" "$0"
+
 var fs = require('fs');
 var path = require('path');
 var { execSync } = require('child_process');

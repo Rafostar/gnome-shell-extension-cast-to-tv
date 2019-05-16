@@ -5,7 +5,8 @@ exports.file = function(fileToRemove)
 {
 	if(fs.existsSync(fileToRemove))
 	{
-		fs.unlink(fileToRemove, (err) => {
+		fs.unlink(fileToRemove, (err) =>
+		{
 
 			if(err) throw err;
 		});

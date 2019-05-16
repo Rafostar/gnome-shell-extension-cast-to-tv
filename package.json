@@ -21,7 +21,7 @@
     "socket.io": "^2.2.0"
   },
   "scripts": {
-    "install": "node node_scripts/utils/install"
+    "install": "sh node_scripts/utils/install.js"
   },
   "repository": {
     "type": "git",
