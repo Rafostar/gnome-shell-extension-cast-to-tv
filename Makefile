@@ -9,13 +9,16 @@ POTFILE = ./po/cast-to-tv.pot
 ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon nautilus LICENSE README.md
 INSTALLPATH = ~/.local/share/gnome-shell/extensions
 
+# Add-ons translations #
+POFOLDERS = $(wildcard ./po_addons/cast-to-tv-*-addon)
+
 # Compile schemas #
 glib-schemas:
 	glib-compile-schemas ./schemas/
 
 # Create/update potfile #
 potfile:
-	mkdir -p po
+	mkdir -p ./po
 	xgettext -o $(POTFILE) --language=JavaScript --add-comments=TRANSLATORS: --package-name $(PACKAGE) $(TOLOCALIZE)
 
 # Update '.po' from 'potfile' #
@@ -26,11 +29,15 @@ mergepo:
 
 # Compile .mo files #
 compilemo:
-	mkdir -p locale
 	for i in $(MSGSRC); do \
-		mkdir -p ./locale/`basename $$i .po`; \
 		mkdir -p ./locale/`basename $$i .po`/LC_MESSAGES; \
 		msgfmt -c -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
+	done;
+	for i in $(POFOLDERS); do \
+		for j in $$i/*.po; do \
+			mkdir -p ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES; \
+			msgfmt -c -o ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES/`basename $$i`.mo $$j; \
+		done; \
 	done;
 
 # Create release zip #
@@ -39,7 +46,6 @@ zip-file: _build
 
 # Build and install #
 install: zip-file
-	mkdir -p $(INSTALLPATH)
 	mkdir -p $(INSTALLPATH)/$(UUID)
 	unzip -qo $(UUID).zip -d $(INSTALLPATH)/$(UUID)
 

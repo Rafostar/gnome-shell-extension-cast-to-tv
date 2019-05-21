@@ -1,4 +1,6 @@
 node_modules/
 locale/
+locale_addons/
 po/*.po~
+po_addons/*.po~
 config/*
