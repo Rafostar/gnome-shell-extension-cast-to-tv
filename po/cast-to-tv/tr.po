@@ -1,0 +1,388 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cast-to-tv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-10 17:39+0200\n"
+"PO-Revision-Date: 2019-05-21 21:02\n"
+"Last-Translator: Rafostar\n"
+"Language-Team: Turkish\n"
+"Language: tr_TR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: tr\n"
+"X-Crowdin-File: /master/po/cast-to-tv/cast-to-tv.pot\n"
+
+#. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
+#: extension.js:33
+msgid "Web Player Remote"
+msgstr "Uzak Web Oynatıcı"
+
+#: extension.js:36 widget.js:82
+msgid "Chromecast Remote"
+msgstr "Chromecast Kumandası"
+
+#: widget.js:27
+msgid "Cast Media"
+msgstr "Medya Oynatıcı"
+
+#: widget.js:31
+msgid "Video"
+msgstr "Video"
+
+#: widget.js:32
+msgid "Music"
+msgstr "Müzik"
+
+#: widget.js:33
+msgid "Picture"
+msgstr "Resim"
+
+#: widget.js:34
+msgid "Cast Settings"
+msgstr "Oynatıcı Ayarları"
+
+#: file-chooser.js:51
+msgid "Transcode Video"
+msgstr "Video Kodunu Dönüştür"
+
+#. TRANSLATORS: Button text when selected SINGLE file
+#: file-chooser.js:67
+msgid "Cast Selected File"
+msgstr "Oynatılacak Dosyayı Seç"
+
+#. TRANSLATORS: Button text when selected MULTIPLE files
+#: file-chooser.js:69
+msgid "Cast Selected Files"
+msgstr "Oynatılacak Dosyaları Seç"
+
+#: file-chooser.js:72
+msgid "Cancel"
+msgstr "İptal"
+
+#: file-chooser.js:79
+msgid "Add Subtitles"
+msgstr "Altyazı Ekle"
+
+#: file-chooser.js:80
+msgid "Select Video"
+msgstr "Video Seç"
+
+#: file-chooser.js:84
+msgid "Video Files"
+msgstr "Video Dosyaları"
+
+#: file-chooser.js:91
+msgid "Select Music"
+msgstr "Müzik Seç"
+
+#: file-chooser.js:94
+msgid "Audio Files"
+msgstr "Müzik Dosyaları"
+
+#: file-chooser.js:101
+msgid "Select Picture"
+msgstr "Resim Seç"
+
+#: file-chooser.js:104
+msgid "Pictures"
+msgstr "Resimler"
+
+#: file-chooser.js:180
+msgid "Select Subtitles"
+msgstr "Altyazı Seç"
+
+#: file-chooser.js:184
+msgid "Subtitle Files"
+msgstr "Altyazı Dosyaları"
+
+#: prefs.js:52
+msgid "Streaming in progress"
+msgstr "Akış devam ediyor"
+
+#. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
+#: prefs.js:61
+msgid "Stop media transfer before accessing extension settings"
+msgstr "Eklenti ayarlarına erişmeden önce medya aktarımını durdur"
+
+#: prefs.js:87
+msgid "Main Options"
+msgstr "Ana Seçenekler"
+
+#: prefs.js:91
+msgid "Receiver type"
+msgstr "Alıcı tipi"
+
+#. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
+#: prefs.js:95
+msgid "Web browser | Media player"
+msgstr "Web tarayıcı | Medya oynatıcı"
+
+#: prefs.js:102
+msgid "FFmpeg path"
+msgstr "FFmpeg yolu"
+
+#: prefs.js:110
+msgid "FFprobe path"
+msgstr "FFprobe yolu"
+
+#: prefs.js:118
+msgid "Listening port"
+msgstr "Dinleme portu"
+
+#: prefs.js:153
+msgid "Access web player from devices on local network"
+msgstr "Yerel ağdaki cihazlardan web oynatıcısına eriş"
+
+#: prefs.js:183
+msgid "Remote Controller"
+msgstr "Uzaktan Kumanda"
+
+#: prefs.js:187
+msgid "Remote position"
+msgstr "Kumanda konumu"
+
+#: prefs.js:189
+msgid "Left"
+msgstr "Sol"
+
+#: prefs.js:190
+msgid "Center (left side)"
+msgstr "Merkez (sol taraf)"
+
+#: prefs.js:191
+msgid "Center (right side)"
+msgstr "Merkez (sağ taraf)"
+
+#: prefs.js:192
+msgid "Right"
+msgstr "Sağ"
+
+#: prefs.js:198
+msgid "Seek backward/forward (seconds)"
+msgstr "İleri/geri atlama (saniye)"
+
+#: prefs.js:209
+msgid "Unify sliders"
+msgstr "Sürgüleri birleştir"
+
+#: prefs.js:218
+msgid "Show remote label"
+msgstr "Uzak etiketi göster"
+
+#: prefs.js:253
+msgid "Chromecast Options"
+msgstr "Chromecast Seçenekleri"
+
+#: prefs.js:257
+msgid "Device selection"
+msgstr "Aygıt seçimi"
+
+#: prefs.js:270
+msgid "Subtitles"
+msgstr "Altyazılar"
+
+#: prefs.js:274
+msgid "Font family"
+msgstr "Yazıtipi ailesi"
+
+#: prefs.js:294
+msgid "Font style"
+msgstr "Yazıtipi biçimi"
+
+#. TRANSLATORS: One of "Speed" setting value
+#: prefs.js:296 node_scripts/messages.js:19
+msgid "Normal"
+msgstr "Normal"
+
+#: prefs.js:297
+msgid "Bold"
+msgstr "Kalın"
+
+#: prefs.js:298
+msgid "Italic"
+msgstr "Eğik"
+
+#: prefs.js:299
+msgid "Bold italic"
+msgstr "Kalın eğik"
+
+#: prefs.js:310
+msgid "Scale factor"
+msgstr "Ölçek etkeni"
+
+#: prefs.js:325
+msgid "Font color"
+msgstr "Yazıtipi rengi"
+
+#: prefs.js:338
+msgid "Font outline"
+msgstr "Yaz tipi ana hattı"
+
+#: prefs.js:370
+msgid "Background color"
+msgstr "Arka plan rengi"
+
+#: prefs.js:407
+msgid "Media Encoding"
+msgstr "Medya Kodlaması"
+
+#: prefs.js:411
+msgid "Hardware acceleration"
+msgstr "Donanım hızlandırma"
+
+#: prefs.js:413
+msgid "None"
+msgstr "Hiçbiri"
+
+#. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
+#: prefs.js:415
+msgid "VAAPI"
+msgstr "VAAPI"
+
+#: prefs.js:423
+msgid "Bitrate (Mbps)"
+msgstr "Bit Hızı (Mbps)"
+
+#: prefs.js:434
+msgid "Web Player"
+msgstr "Web Oynatıcı"
+
+#: prefs.js:438
+msgid "Subtitles scale factor"
+msgstr "Altyazı ölçek aşaması"
+
+#. TRANSLATORS: The rest of extension settings
+#: prefs.js:450
+msgid "Miscellaneous"
+msgstr "Diğer Ayarlar"
+
+#: prefs.js:454
+msgid "Music visualizer"
+msgstr "Müzik görselleştirici"
+
+#: prefs.js:463
+msgid "Nautilus integration"
+msgstr "Nautilus bütünleşmesi"
+
+#: prefs.js:558
+msgid "Install npm modules"
+msgstr "Npm modüllerini kur"
+
+#: prefs.js:581
+msgid "Installing..."
+msgstr "Kuruluyor..."
+
+#: prefs.js:632
+msgid "version:"
+msgstr "sürüm:"
+
+#: prefs.js:639
+msgid "Developed by"
+msgstr "Geliştirici"
+
+#: prefs.js:649
+msgid "Extension Homepage"
+msgstr "Eklenti Ana Sayfası"
+
+#: prefs.js:656
+msgid "Donate"
+msgstr "Bağış"
+
+#: prefs.js:674
+msgid "Main"
+msgstr "Ana"
+
+#: prefs.js:678
+msgid "Remote"
+msgstr "Uzak"
+
+#. TRANSLATORS: Other extension settings
+#: prefs.js:687
+msgid "Other"
+msgstr "Diğer"
+
+#: prefs.js:698
+msgid "Add-ons"
+msgstr "Eklentiler"
+
+#: prefs.js:703
+msgid "Modules"
+msgstr "Modüller"
+
+#: prefs.js:707
+msgid "About"
+msgstr "Hakkında"
+
+#. TRANSLATORS: Shown when scan for Chromecast devices is running
+#: prefs.js:771
+msgid "Scanning..."
+msgstr "Taranıyor..."
+
+#: prefs.js:793
+msgid "Automatic"
+msgstr "Otomatik"
+
+#: node_scripts/messages.js:4
+msgid "LOADING"
+msgstr "YÜKLENİYOR"
+
+#: node_scripts/messages.js:5
+msgid "No file selected"
+msgstr "Dosya seçilmedi"
+
+#: node_scripts/messages.js:6
+msgid "Receiver type is set to Chromecast"
+msgstr "Alıcı tipi Chromecast’e ayarlandı"
+
+#: node_scripts/messages.js:7
+msgid "Streaming process is still active"
+msgstr "Akış işlemi hala etkin"
+
+#. TRANSLATORS: Do not remove HTML tags
+#: node_scripts/messages.js:9
+msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
+msgstr "Çok fazla bağlantı!<p>Bu sayfaya erişen tüm diğer sekmeleri tüm tarayıcılarda kapatın</p>"
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:11
+msgid "FFmpeg could not transcode file:"
+msgstr "FFmpeg dosya kodunu dönüştüremedi:"
+
+#: node_scripts/messages.js:12
+msgid "FFmpeg path is incorrect"
+msgstr "FFmpeg yolu yanlış"
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:14
+msgid "FFprobe could not process file:"
+msgstr "FFprobe dosyayı işleyemedi:"
+
+#: node_scripts/messages.js:15
+msgid "FFprobe path is incorrect"
+msgstr "FFprobe yolu yanlış"
+
+#: node_scripts/messages.js:17
+msgid "Speed"
+msgstr "Hız"
+
+#: node_scripts/messages.js:22
+msgid "Device not found"
+msgstr "Aygıt bulunamadı"
+
+#: node_scripts/messages.js:23
+msgid "Failed to load media"
+msgstr "Medya yüklenemedi"
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:25
+msgid "Could not play file:"
+msgstr "Dosya oynatılamadı:"
+
+#: node_scripts/messages.js:26
+msgid "Try again with transcoding enabled"
+msgstr "Kod dönüştürme etkinken tekrar deneyin"
+
