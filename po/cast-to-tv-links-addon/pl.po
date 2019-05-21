@@ -1,0 +1,108 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cast-to-tv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-21 20:50+0200\n"
+"PO-Revision-Date: 2019-05-21 21:02\n"
+"Last-Translator: Rafostar\n"
+"Language-Team: Polish\n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: pl\n"
+"X-Crowdin-File: /master/po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
+
+#. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
+#: app.js:104
+msgid "No Image"
+msgstr "Brak obrazka"
+
+#: app.js:118
+msgid "Title:"
+msgstr "Tytuł:"
+
+#: app.js:137
+msgid "Format:"
+msgstr "Format:"
+
+#: app.js:156
+msgid "Resolution:"
+msgstr "Rozdzielczość:"
+
+#: app.js:175
+msgid "Video codec:"
+msgstr "Kodek wideo:"
+
+#: app.js:194
+msgid "Audio codec:"
+msgstr "Kodek audio:"
+
+#: app.js:213
+msgid "Subtitles:"
+msgstr "Napisy:"
+
+#: app.js:242
+msgid "Enter or drop link here"
+msgstr "Wprowadź lub upuść link tutaj"
+
+#: app.js:250
+msgid "Cast link"
+msgstr "Prześlij link"
+
+#: widget.js:13
+msgid "Link"
+msgstr "Link"
+
+#: links_prefs.js:59
+msgid "Links"
+msgstr "Linki"
+
+#: links_prefs.js:64
+msgid "Links Options"
+msgstr "Opcje linków"
+
+#: links_prefs.js:68
+msgid "Preferred format"
+msgstr "Preferowany format"
+
+#: links_prefs.js:70
+msgid "Best seekable"
+msgstr "Najlepszy z przewijaniem"
+
+#: links_prefs.js:71
+msgid "Best quality"
+msgstr "Najlepsza jakość"
+
+#: links_prefs.js:77
+msgid "Path to youtube-dl"
+msgstr "Ścieżka do youtube-dl"
+
+#. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
+#: links_prefs.js:86
+msgid "Max video quality"
+msgstr "Maksymalna jakość wideo"
+
+#: links_prefs.js:104
+msgid "Allow VP9 codec"
+msgstr "Dopuść kodek VP9"
+
+#: links_prefs.js:112
+msgid "Subtitles"
+msgstr "Napisy"
+
+#: links_prefs.js:116
+msgid "Preferred language"
+msgstr "Preferowany język"
+
+#: links_prefs.js:124
+msgid "Fallback language"
+msgstr "Drugorzędny język"
+
+#: links_prefs.js:126
+msgid "none"
+msgstr "brak"
+
