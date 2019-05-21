@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-05-21 20:21\n"
+"PO-Revision-Date: 2019-05-21 20:41\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -19,76 +19,76 @@ msgstr ""
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:104
 msgid "No Image"
-msgstr ""
+msgstr "Brak obrazka"
 
 #: app.js:118
 msgid "Title:"
-msgstr ""
+msgstr "Tytuł:"
 
 #: app.js:137
 msgid "Format:"
-msgstr ""
+msgstr "Format:"
 
 #: app.js:156
 msgid "Resolution:"
-msgstr ""
+msgstr "Rozdzielczość:"
 
 #: app.js:175
 msgid "Video codec:"
-msgstr ""
+msgstr "Kodek wideo:"
 
 #: app.js:194
 msgid "Audio codec:"
-msgstr ""
+msgstr "Kodek audio:"
 
 #: app.js:213
 msgid "Subtitles:"
-msgstr ""
+msgstr "Napisy:"
 
 #: app.js:242
 msgid "Enter or drop link here"
-msgstr ""
+msgstr "Wprowadź lub upuść link tutaj"
 
 #: app.js:250
 msgid "Cast link"
-msgstr ""
+msgstr "Prześlij link"
 
 #: widget.js:13
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: links_prefs.js:59
 msgid "Links"
-msgstr ""
+msgstr "Linki"
 
 #: links_prefs.js:64
 msgid "Links Options"
-msgstr ""
+msgstr "Opcje linków"
 
 #: links_prefs.js:68
 msgid "Preferred format"
-msgstr ""
+msgstr "Preferowany format"
 
 #: links_prefs.js:70
 msgid "Best seekable"
-msgstr ""
+msgstr "Najlepszy z przewijaniem"
 
 #: links_prefs.js:71
 msgid "Best quality"
-msgstr ""
+msgstr "Najlepsza jakość"
 
 #: links_prefs.js:77
 msgid "Path to youtube-dl"
-msgstr ""
+msgstr "Ścieżka do youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
 #: links_prefs.js:86
 msgid "Max video quality"
-msgstr ""
+msgstr "Maksymalna jakość wideo"
 
 #: links_prefs.js:104
 msgid "Allow VP9 codec"
-msgstr ""
+msgstr "Dopuść kodek VP9"
 
 #: links_prefs.js:112
 msgid "Subtitles"
@@ -96,13 +96,13 @@ msgstr "Napisy"
 
 #: links_prefs.js:116
 msgid "Preferred language"
-msgstr ""
+msgstr "Preferowany język"
 
 #: links_prefs.js:124
 msgid "Fallback language"
-msgstr ""
+msgstr "Drugorzędny język"
 
 #: links_prefs.js:126
 msgid "none"
-msgstr ""
+msgstr "brak"
 
