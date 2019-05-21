@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-05-21 20:21\n"
+"PO-Revision-Date: 2019-05-21 21:02\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Faroese\n"
 "Language: fo_FO\n"
@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: crowdin.com\n"
 "X-Crowdin-Project: cast-to-tv\n"
 "X-Crowdin-Language: fo\n"
-"X-Crowdin-File: /master/po_addons/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
+"X-Crowdin-File: /master/po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
 
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:104

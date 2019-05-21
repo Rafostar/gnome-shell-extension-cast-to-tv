@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-05-21 20:21\n"
+"PO-Revision-Date: 2019-05-21 21:02\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -14,81 +14,81 @@ msgstr ""
 "X-Generator: crowdin.com\n"
 "X-Crowdin-Project: cast-to-tv\n"
 "X-Crowdin-Language: tr\n"
-"X-Crowdin-File: /master/po_addons/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
+"X-Crowdin-File: /master/po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
 
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:104
 msgid "No Image"
-msgstr ""
+msgstr "Görsel Yok"
 
 #: app.js:118
 msgid "Title:"
-msgstr ""
+msgstr "Başlık:"
 
 #: app.js:137
 msgid "Format:"
-msgstr ""
+msgstr "Biçim:"
 
 #: app.js:156
 msgid "Resolution:"
-msgstr ""
+msgstr "Çözünürlük:"
 
 #: app.js:175
 msgid "Video codec:"
-msgstr ""
+msgstr "Video çözücü:"
 
 #: app.js:194
 msgid "Audio codec:"
-msgstr ""
+msgstr "Ses çözücü:"
 
 #: app.js:213
 msgid "Subtitles:"
-msgstr ""
+msgstr "Altyazılar:"
 
 #: app.js:242
 msgid "Enter or drop link here"
-msgstr ""
+msgstr "Bağlantıyı buraya gir veya sürükle"
 
 #: app.js:250
 msgid "Cast link"
-msgstr ""
+msgstr "Akış bağlantısı"
 
 #: widget.js:13
 msgid "Link"
-msgstr ""
+msgstr "Bağlantı"
 
 #: links_prefs.js:59
 msgid "Links"
-msgstr ""
+msgstr "Bağlantılar"
 
 #: links_prefs.js:64
 msgid "Links Options"
-msgstr ""
+msgstr "Bağlantı Seçenekleri"
 
 #: links_prefs.js:68
 msgid "Preferred format"
-msgstr ""
+msgstr "Tercih edilen biçim"
 
 #: links_prefs.js:70
 msgid "Best seekable"
-msgstr ""
+msgstr "En iyi aranabilir"
 
 #: links_prefs.js:71
 msgid "Best quality"
-msgstr ""
+msgstr "En iyi kalite"
 
 #: links_prefs.js:77
 msgid "Path to youtube-dl"
-msgstr ""
+msgstr "Eklenti yolu youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
 #: links_prefs.js:86
 msgid "Max video quality"
-msgstr ""
+msgstr "En iyi video kalitesi"
 
 #: links_prefs.js:104
 msgid "Allow VP9 codec"
-msgstr ""
+msgstr "VP9 çözücüye izin ver"
 
 #: links_prefs.js:112
 msgid "Subtitles"
@@ -96,13 +96,13 @@ msgstr "Altyazılar"
 
 #: links_prefs.js:116
 msgid "Preferred language"
-msgstr ""
+msgstr "Tercih edilen dil"
 
 #: links_prefs.js:124
 msgid "Fallback language"
-msgstr ""
+msgstr "İkincil dil"
 
 #: links_prefs.js:126
 msgid "none"
-msgstr ""
+msgstr "hiçbiri"
 
