@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-05-21 21:02\n"
+"PO-Revision-Date: 2019-05-22 19:00\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -19,7 +19,7 @@ msgstr ""
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:33
 msgid "Web Player Remote"
-msgstr ""
+msgstr "Web Player remoto"
 
 #: extension.js:36 widget.js:82
 msgid "Chromecast Remote"
@@ -101,16 +101,16 @@ msgstr "File sottotitoli"
 
 #: prefs.js:52
 msgid "Streaming in progress"
-msgstr ""
+msgstr "Streaming in corso"
 
 #. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
 #: prefs.js:61
 msgid "Stop media transfer before accessing extension settings"
-msgstr ""
+msgstr "Interrompere il trasferimento multimediale prima di accedere alle impostazioni dell'estensione"
 
 #: prefs.js:87
 msgid "Main Options"
-msgstr ""
+msgstr "Opzioni Principali"
 
 #: prefs.js:91
 msgid "Receiver type"
@@ -119,7 +119,7 @@ msgstr "Tipo di ricevitore"
 #. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
 #: prefs.js:95
 msgid "Web browser | Media player"
-msgstr ""
+msgstr "Browser Web | lettore multimediale"
 
 #: prefs.js:102
 msgid "FFmpeg path"
@@ -135,11 +135,11 @@ msgstr "Porta di ascolto"
 
 #: prefs.js:153
 msgid "Access web player from devices on local network"
-msgstr ""
+msgstr "Accedi al web player dai dispositivi sulla rete locale"
 
 #: prefs.js:183
 msgid "Remote Controller"
-msgstr ""
+msgstr "Telecomando"
 
 #: prefs.js:187
 msgid "Remote position"
@@ -167,31 +167,31 @@ msgstr "Cerca indietro/avanti (secondi)"
 
 #: prefs.js:209
 msgid "Unify sliders"
-msgstr ""
+msgstr "Unificare i cursori"
 
 #: prefs.js:218
 msgid "Show remote label"
-msgstr ""
+msgstr "Mostra etichetta remota"
 
 #: prefs.js:253
 msgid "Chromecast Options"
-msgstr ""
+msgstr "Opzioni Chromecast"
 
 #: prefs.js:257
 msgid "Device selection"
-msgstr ""
+msgstr "Selezione dispositivo"
 
 #: prefs.js:270
 msgid "Subtitles"
-msgstr ""
+msgstr "Sottotitoli"
 
 #: prefs.js:274
 msgid "Font family"
-msgstr ""
+msgstr "Famiglia di caratteri"
 
 #: prefs.js:294
 msgid "Font style"
-msgstr ""
+msgstr "Stile carattere"
 
 #. TRANSLATORS: One of "Speed" setting value
 #: prefs.js:296 node_scripts/messages.js:19
@@ -200,31 +200,31 @@ msgstr "Normale"
 
 #: prefs.js:297
 msgid "Bold"
-msgstr ""
+msgstr "Grassetto"
 
 #: prefs.js:298
 msgid "Italic"
-msgstr ""
+msgstr "Corsivo"
 
 #: prefs.js:299
 msgid "Bold italic"
-msgstr ""
+msgstr "Corsivo Grassetto"
 
 #: prefs.js:310
 msgid "Scale factor"
-msgstr ""
+msgstr "Fattore scala"
 
 #: prefs.js:325
 msgid "Font color"
-msgstr ""
+msgstr "Colore carattere"
 
 #: prefs.js:338
 msgid "Font outline"
-msgstr ""
+msgstr "Margine font"
 
 #: prefs.js:370
 msgid "Background color"
-msgstr ""
+msgstr "Colore di sfondo"
 
 #: prefs.js:407
 msgid "Media Encoding"
@@ -249,11 +249,11 @@ msgstr "Bitrate (Mbps)"
 
 #: prefs.js:434
 msgid "Web Player"
-msgstr ""
+msgstr "Web Player"
 
 #: prefs.js:438
 msgid "Subtitles scale factor"
-msgstr ""
+msgstr "Fattore scala sottotitoli"
 
 #. TRANSLATORS: The rest of extension settings
 #: prefs.js:450
@@ -266,35 +266,35 @@ msgstr "Visualizzatore musicale"
 
 #: prefs.js:463
 msgid "Nautilus integration"
-msgstr ""
+msgstr "Integrazione Nautilus"
 
 #: prefs.js:558
 msgid "Install npm modules"
-msgstr ""
+msgstr "Installa moduli npm"
 
 #: prefs.js:581
 msgid "Installing..."
-msgstr ""
+msgstr "Installazione in corso..."
 
 #: prefs.js:632
 msgid "version:"
-msgstr ""
+msgstr "versione:"
 
 #: prefs.js:639
 msgid "Developed by"
-msgstr ""
+msgstr "Sviluppato da"
 
 #: prefs.js:649
 msgid "Extension Homepage"
-msgstr ""
+msgstr "Homepage dell'estensione"
 
 #: prefs.js:656
 msgid "Donate"
-msgstr ""
+msgstr "Effettua una donazione"
 
 #: prefs.js:674
 msgid "Main"
-msgstr ""
+msgstr "Principale"
 
 #: prefs.js:678
 msgid "Remote"
