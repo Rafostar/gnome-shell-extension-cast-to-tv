@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-05-22 19:00\n"
+"PO-Revision-Date: 2019-05-22 19:48\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -298,29 +298,29 @@ msgstr "Principale"
 
 #: prefs.js:678
 msgid "Remote"
-msgstr ""
+msgstr "Remoto"
 
 #. TRANSLATORS: Other extension settings
 #: prefs.js:687
 msgid "Other"
-msgstr ""
+msgstr "Altro"
 
 #: prefs.js:698
 msgid "Add-ons"
-msgstr ""
+msgstr "Componenti aggiuntivi"
 
 #: prefs.js:703
 msgid "Modules"
-msgstr ""
+msgstr "Moduli"
 
 #: prefs.js:707
 msgid "About"
-msgstr ""
+msgstr "Info su"
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
 #: prefs.js:771
 msgid "Scanning..."
-msgstr ""
+msgstr "Scansione in corso..."
 
 #: prefs.js:793
 msgid "Automatic"
@@ -345,7 +345,7 @@ msgstr "Il processo di streaming è ancora attivo"
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
 msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
-msgstr ""
+msgstr "Troppe connessioni!<p>Chiudi tutte le altre schede che stanno accedendo a questa pagina in tutti i browser</p>"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:11
