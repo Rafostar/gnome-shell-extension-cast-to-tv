@@ -34,7 +34,7 @@ exports.findCoverFile = function()
 		for(var j = 0; j < shared.coverExtensions.length; j++)
 		{
 			var coverExists = checkCombinedCover(i,j);
-			if(coverExists) coverFound = true;
+			if(coverExists) return coverFound = true;
 		}
 	}
 
