@@ -49,5 +49,5 @@ install: zip-file
 	mkdir -p $(INSTALLPATH)/$(UUID)
 	unzip -qo $(UUID).zip -d $(INSTALLPATH)/$(UUID)
 
-_build: glib-schemas potfile mergepo compilemo
+_build: glib-schemas compilemo
 
