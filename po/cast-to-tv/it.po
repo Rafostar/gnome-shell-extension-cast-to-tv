@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-05-22 19:48\n"
+"PO-Revision-Date: 2019-05-23 21:36\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -106,7 +106,7 @@ msgstr "Streaming in corso"
 #. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
 #: prefs.js:61
 msgid "Stop media transfer before accessing extension settings"
-msgstr "Interrompere il trasferimento multimediale prima di accedere alle impostazioni dell'estensione"
+msgstr "Interrompere il trasferimento multimediale prima di accedere alle impostazioni"
 
 #: prefs.js:87
 msgid "Main Options"
@@ -119,7 +119,7 @@ msgstr "Tipo di ricevitore"
 #. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
 #: prefs.js:95
 msgid "Web browser | Media player"
-msgstr "Browser Web | lettore multimediale"
+msgstr "Browser | Lettore multimediale"
 
 #: prefs.js:102
 msgid "FFmpeg path"
@@ -139,7 +139,7 @@ msgstr "Accedi al web player dai dispositivi sulla rete locale"
 
 #: prefs.js:183
 msgid "Remote Controller"
-msgstr "Telecomando"
+msgstr "Controllo Remoto"
 
 #: prefs.js:187
 msgid "Remote position"
@@ -220,7 +220,7 @@ msgstr "Colore carattere"
 
 #: prefs.js:338
 msgid "Font outline"
-msgstr "Margine font"
+msgstr "Contorno carattere"
 
 #: prefs.js:370
 msgid "Background color"
@@ -307,7 +307,7 @@ msgstr "Altro"
 
 #: prefs.js:698
 msgid "Add-ons"
-msgstr "Componenti aggiuntivi"
+msgstr "Estensioni"
 
 #: prefs.js:703
 msgid "Modules"
