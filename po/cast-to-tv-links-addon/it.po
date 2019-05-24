@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-05-22 19:48\n"
+"PO-Revision-Date: 2019-05-23 21:36\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -19,7 +19,8 @@ msgstr ""
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:104
 msgid "No Image"
-msgstr "Nessuna immagine"
+msgstr "Nessuna\n"
+"immagine"
 
 #: app.js:118
 msgid "Title:"
@@ -71,7 +72,7 @@ msgstr "Formato preferito"
 
 #: links_prefs.js:70
 msgid "Best seekable"
-msgstr "Migliore possibile"
+msgstr "Migliore ricercabile"
 
 #: links_prefs.js:71
 msgid "Best quality"
