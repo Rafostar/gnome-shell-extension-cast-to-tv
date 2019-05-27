@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-05-27 19:25\n"
+"PO-Revision-Date: 2019-05-27 20:26\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -19,90 +19,90 @@ msgstr ""
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:104
 msgid "No Image"
-msgstr ""
+msgstr "Geen afbeelding"
 
 #: app.js:118
 msgid "Title:"
-msgstr ""
+msgstr "Titel:"
 
 #: app.js:137
 msgid "Format:"
-msgstr ""
+msgstr "Formaat:"
 
 #: app.js:156
 msgid "Resolution:"
-msgstr ""
+msgstr "Resolutie:"
 
 #: app.js:175
 msgid "Video codec:"
-msgstr ""
+msgstr "Videocodec:"
 
 #: app.js:194
 msgid "Audio codec:"
-msgstr ""
+msgstr "Audiocodec:"
 
 #: app.js:213
 msgid "Subtitles:"
-msgstr ""
+msgstr "Ondertiteling:"
 
 #: app.js:242
 msgid "Enter or drop link here"
-msgstr ""
+msgstr "Voer een link in of versleep een link hierheen"
 
 #: app.js:250
 msgid "Cast link"
-msgstr ""
+msgstr "Link casten"
 
 #: widget.js:13
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: links_prefs.js:59
 msgid "Links"
-msgstr ""
+msgstr "Links"
 
 #: links_prefs.js:64
 msgid "Links Options"
-msgstr ""
+msgstr "Link-instellingen"
 
 #: links_prefs.js:68
 msgid "Preferred format"
-msgstr ""
+msgstr "Voorkeursformaat"
 
 #: links_prefs.js:70
 msgid "Best seekable"
-msgstr ""
+msgstr "Best doorspoelbaar"
 
 #: links_prefs.js:71
 msgid "Best quality"
-msgstr ""
+msgstr "Beste kwaliteit"
 
 #: links_prefs.js:77
 msgid "Path to youtube-dl"
-msgstr ""
+msgstr "Pad naar youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
 #: links_prefs.js:86
 msgid "Max video quality"
-msgstr ""
+msgstr "Max. videokwaliteit"
 
 #: links_prefs.js:104
 msgid "Allow VP9 codec"
-msgstr ""
+msgstr "VP9-codec toestaan"
 
 #: links_prefs.js:112
 msgid "Subtitles"
-msgstr ""
+msgstr "Ondertiteling"
 
 #: links_prefs.js:116
 msgid "Preferred language"
-msgstr ""
+msgstr "Voorkeurstaal"
 
 #: links_prefs.js:124
 msgid "Fallback language"
-msgstr ""
+msgstr "Terugvallen op taal"
 
 #: links_prefs.js:126
 msgid "none"
-msgstr ""
+msgstr "geen"
 
