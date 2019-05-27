@@ -1,0 +1,388 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cast-to-tv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-10 17:39+0200\n"
+"PO-Revision-Date: 2019-05-27 19:25\n"
+"Last-Translator: Rafostar\n"
+"Language-Team: Dutch\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: nl\n"
+"X-Crowdin-File: /master/po/cast-to-tv/cast-to-tv.pot\n"
+
+#. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
+#: extension.js:33
+msgid "Web Player Remote"
+msgstr ""
+
+#: extension.js:36 widget.js:82
+msgid "Chromecast Remote"
+msgstr ""
+
+#: widget.js:27
+msgid "Cast Media"
+msgstr ""
+
+#: widget.js:31
+msgid "Video"
+msgstr ""
+
+#: widget.js:32
+msgid "Music"
+msgstr ""
+
+#: widget.js:33
+msgid "Picture"
+msgstr ""
+
+#: widget.js:34
+msgid "Cast Settings"
+msgstr ""
+
+#: file-chooser.js:51
+msgid "Transcode Video"
+msgstr ""
+
+#. TRANSLATORS: Button text when selected SINGLE file
+#: file-chooser.js:67
+msgid "Cast Selected File"
+msgstr ""
+
+#. TRANSLATORS: Button text when selected MULTIPLE files
+#: file-chooser.js:69
+msgid "Cast Selected Files"
+msgstr ""
+
+#: file-chooser.js:72
+msgid "Cancel"
+msgstr ""
+
+#: file-chooser.js:79
+msgid "Add Subtitles"
+msgstr ""
+
+#: file-chooser.js:80
+msgid "Select Video"
+msgstr ""
+
+#: file-chooser.js:84
+msgid "Video Files"
+msgstr ""
+
+#: file-chooser.js:91
+msgid "Select Music"
+msgstr ""
+
+#: file-chooser.js:94
+msgid "Audio Files"
+msgstr ""
+
+#: file-chooser.js:101
+msgid "Select Picture"
+msgstr ""
+
+#: file-chooser.js:104
+msgid "Pictures"
+msgstr ""
+
+#: file-chooser.js:180
+msgid "Select Subtitles"
+msgstr ""
+
+#: file-chooser.js:184
+msgid "Subtitle Files"
+msgstr ""
+
+#: prefs.js:52
+msgid "Streaming in progress"
+msgstr ""
+
+#. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
+#: prefs.js:61
+msgid "Stop media transfer before accessing extension settings"
+msgstr ""
+
+#: prefs.js:87
+msgid "Main Options"
+msgstr ""
+
+#: prefs.js:91
+msgid "Receiver type"
+msgstr ""
+
+#. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
+#: prefs.js:95
+msgid "Web browser | Media player"
+msgstr ""
+
+#: prefs.js:102
+msgid "FFmpeg path"
+msgstr ""
+
+#: prefs.js:110
+msgid "FFprobe path"
+msgstr ""
+
+#: prefs.js:118
+msgid "Listening port"
+msgstr ""
+
+#: prefs.js:153
+msgid "Access web player from devices on local network"
+msgstr ""
+
+#: prefs.js:183
+msgid "Remote Controller"
+msgstr ""
+
+#: prefs.js:187
+msgid "Remote position"
+msgstr ""
+
+#: prefs.js:189
+msgid "Left"
+msgstr ""
+
+#: prefs.js:190
+msgid "Center (left side)"
+msgstr ""
+
+#: prefs.js:191
+msgid "Center (right side)"
+msgstr ""
+
+#: prefs.js:192
+msgid "Right"
+msgstr ""
+
+#: prefs.js:198
+msgid "Seek backward/forward (seconds)"
+msgstr ""
+
+#: prefs.js:209
+msgid "Unify sliders"
+msgstr ""
+
+#: prefs.js:218
+msgid "Show remote label"
+msgstr ""
+
+#: prefs.js:253
+msgid "Chromecast Options"
+msgstr ""
+
+#: prefs.js:257
+msgid "Device selection"
+msgstr ""
+
+#: prefs.js:270
+msgid "Subtitles"
+msgstr ""
+
+#: prefs.js:274
+msgid "Font family"
+msgstr ""
+
+#: prefs.js:294
+msgid "Font style"
+msgstr ""
+
+#. TRANSLATORS: One of "Speed" setting value
+#: prefs.js:296 node_scripts/messages.js:19
+msgid "Normal"
+msgstr ""
+
+#: prefs.js:297
+msgid "Bold"
+msgstr ""
+
+#: prefs.js:298
+msgid "Italic"
+msgstr ""
+
+#: prefs.js:299
+msgid "Bold italic"
+msgstr ""
+
+#: prefs.js:310
+msgid "Scale factor"
+msgstr ""
+
+#: prefs.js:325
+msgid "Font color"
+msgstr ""
+
+#: prefs.js:338
+msgid "Font outline"
+msgstr ""
+
+#: prefs.js:370
+msgid "Background color"
+msgstr ""
+
+#: prefs.js:407
+msgid "Media Encoding"
+msgstr ""
+
+#: prefs.js:411
+msgid "Hardware acceleration"
+msgstr ""
+
+#: prefs.js:413
+msgid "None"
+msgstr ""
+
+#. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
+#: prefs.js:415
+msgid "VAAPI"
+msgstr ""
+
+#: prefs.js:423
+msgid "Bitrate (Mbps)"
+msgstr ""
+
+#: prefs.js:434
+msgid "Web Player"
+msgstr ""
+
+#: prefs.js:438
+msgid "Subtitles scale factor"
+msgstr ""
+
+#. TRANSLATORS: The rest of extension settings
+#: prefs.js:450
+msgid "Miscellaneous"
+msgstr ""
+
+#: prefs.js:454
+msgid "Music visualizer"
+msgstr ""
+
+#: prefs.js:463
+msgid "Nautilus integration"
+msgstr ""
+
+#: prefs.js:558
+msgid "Install npm modules"
+msgstr ""
+
+#: prefs.js:581
+msgid "Installing..."
+msgstr ""
+
+#: prefs.js:632
+msgid "version:"
+msgstr ""
+
+#: prefs.js:639
+msgid "Developed by"
+msgstr ""
+
+#: prefs.js:649
+msgid "Extension Homepage"
+msgstr ""
+
+#: prefs.js:656
+msgid "Donate"
+msgstr ""
+
+#: prefs.js:674
+msgid "Main"
+msgstr ""
+
+#: prefs.js:678
+msgid "Remote"
+msgstr ""
+
+#. TRANSLATORS: Other extension settings
+#: prefs.js:687
+msgid "Other"
+msgstr ""
+
+#: prefs.js:698
+msgid "Add-ons"
+msgstr ""
+
+#: prefs.js:703
+msgid "Modules"
+msgstr ""
+
+#: prefs.js:707
+msgid "About"
+msgstr ""
+
+#. TRANSLATORS: Shown when scan for Chromecast devices is running
+#: prefs.js:771
+msgid "Scanning..."
+msgstr ""
+
+#: prefs.js:793
+msgid "Automatic"
+msgstr ""
+
+#: node_scripts/messages.js:4
+msgid "LOADING"
+msgstr ""
+
+#: node_scripts/messages.js:5
+msgid "No file selected"
+msgstr ""
+
+#: node_scripts/messages.js:6
+msgid "Receiver type is set to Chromecast"
+msgstr ""
+
+#: node_scripts/messages.js:7
+msgid "Streaming process is still active"
+msgstr ""
+
+#. TRANSLATORS: Do not remove HTML tags
+#: node_scripts/messages.js:9
+msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
+msgstr ""
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:11
+msgid "FFmpeg could not transcode file:"
+msgstr ""
+
+#: node_scripts/messages.js:12
+msgid "FFmpeg path is incorrect"
+msgstr ""
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:14
+msgid "FFprobe could not process file:"
+msgstr ""
+
+#: node_scripts/messages.js:15
+msgid "FFprobe path is incorrect"
+msgstr ""
+
+#: node_scripts/messages.js:17
+msgid "Speed"
+msgstr ""
+
+#: node_scripts/messages.js:22
+msgid "Device not found"
+msgstr ""
+
+#: node_scripts/messages.js:23
+msgid "Failed to load media"
+msgstr ""
+
+#. TRANSLATORS: This sentence will contain file path after end
+#: node_scripts/messages.js:25
+msgid "Could not play file:"
+msgstr ""
+
+#: node_scripts/messages.js:26
+msgid "Try again with transcoding enabled"
+msgstr ""
+
