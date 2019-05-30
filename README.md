@@ -119,8 +119,8 @@ Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developi
 ### Nautilus Extension
 Many thanks to [Rendy Anthony](https://github.com/rendyanthony) for helping me make Nautilus integration based on his [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) extension.
 
-### Translations
-[@Rafostar](https://github.com/Rafostar) (pl), [@amivaleo](https://github.com/amivaleo) (it), [@TeknoMobil](https://github.com/TeknoMobil) (tr), [@Hergeirs](https://github.com/Hergeirs) (fo)
+### Translators
+Many thanks to everyone involved in translating this extension either through GitHub or Crowdin.
 
 ## Donation
 If you like my work please support it by buying me a cup of coffee :grin:
