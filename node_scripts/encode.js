@@ -93,13 +93,13 @@ exports.videoVaapi = function()
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
 		getSubsPath();
-		encodeOpts.splice(0, 0, '-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
+		encodeOpts.unshift('-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
 			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
 	}
 	else
 	{
-		encodeOpts.splice(0, 0, '-vaapi_device', '/dev/dri/renderD128');
+		encodeOpts.unshift('-vaapi_device', '/dev/dri/renderD128');
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'format=nv12,hwmap');
 	}
 
