@@ -118,6 +118,7 @@ function initChromecast()
 	var getTitle = () =>
 	{
 		if(mimeType == 'audio/*' && extract.metadata) return extract.metadata.title;
+		else if(typeof bridge.selection.title !== 'undefined') return bridge.selection.title;
 		else return path.parse(bridge.selection.filePath).name;
 	}
 
