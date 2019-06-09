@@ -22,6 +22,10 @@ Cast files to Chromecast, web browser or media player app over local network.
 * Stream music with visualizations (requires fast cpu)
 * Nautilus right click menu integration
 
+Expand extension functionality through Add-ons (experimental):
+* [Links Add-on](https://github.com/Rafostar/cast-to-tv-links-addon) - cast media from web pages
+* [Desktop Add-on](https://github.com/Rafostar/cast-to-tv-desktop-addon) - desktop streaming (early development stage - testers are welcome)
+
 ## Download
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
 
@@ -41,7 +45,7 @@ Please make sure you have all of the above installed.
 
 ### Optional:
 * [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
-* [cast-to-tv-config](https://github.com/Rafostar/cast-to-tv-config) (manual Chromecast IP config tool)
+* [cast-to-tv-config](https://github.com/Rafostar/cast-to-tv-config) (manual Chromecast IP config tool - use when having problems with devices detection)
 
 Nautilus extension is included in Cast to TV (since version 9).<br>
 Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
@@ -96,7 +100,7 @@ npm install
 
 ## How to use
 Detailed instructions related to configuration and using the extension are in the [wiki](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki).<br>
-You can also find some usage examples there.
+You can also find some usage examples and firewall config there.
 
 Check out [FAQ](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/FAQ), before asking questions.
 
