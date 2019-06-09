@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-06-09 20:25\n"
+"PO-Revision-Date: 2019-06-09 21:25\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -224,165 +224,165 @@ msgstr "Schriftartumrandung"
 
 #: prefs.js:370
 msgid "Background color"
-msgstr ""
+msgstr "Hintergrundfarbe"
 
 #: prefs.js:407
 msgid "Media Encoding"
-msgstr ""
+msgstr "Mediencodierung"
 
 #: prefs.js:411
 msgid "Hardware acceleration"
-msgstr ""
+msgstr "Hardwarebeschleunigung"
 
 #: prefs.js:413
 msgid "None"
-msgstr ""
+msgstr "Nichts"
 
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
 #: prefs.js:415
 msgid "VAAPI"
-msgstr ""
+msgstr "VAAPI"
 
 #: prefs.js:423
 msgid "Bitrate (Mbps)"
-msgstr ""
+msgstr "Bitrate (Mbps)"
 
 #: prefs.js:434
 msgid "Web Player"
-msgstr ""
+msgstr "Web-Player"
 
 #: prefs.js:438
 msgid "Subtitles scale factor"
-msgstr ""
+msgstr "Untertitel Skalierungsfaktor"
 
 #. TRANSLATORS: The rest of extension settings
 #: prefs.js:450
 msgid "Miscellaneous"
-msgstr ""
+msgstr "Diverses"
 
 #: prefs.js:454
 msgid "Music visualizer"
-msgstr ""
+msgstr "Musikvisualisierung"
 
 #: prefs.js:463
 msgid "Nautilus integration"
-msgstr ""
+msgstr "Nautilus-Integration"
 
 #: prefs.js:558
 msgid "Install npm modules"
-msgstr ""
+msgstr "Installiere npm-Module"
 
 #: prefs.js:581
 msgid "Installing..."
-msgstr ""
+msgstr "Installiere..."
 
 #: prefs.js:632
 msgid "version:"
-msgstr ""
+msgstr "Version:"
 
 #: prefs.js:639
 msgid "Developed by"
-msgstr ""
+msgstr "Entwickelt von"
 
 #: prefs.js:649
 msgid "Extension Homepage"
-msgstr ""
+msgstr "Erweiterungs-Homepage"
 
 #: prefs.js:656
 msgid "Donate"
-msgstr ""
+msgstr "Spenden"
 
 #: prefs.js:674
 msgid "Main"
-msgstr ""
+msgstr "Allgemein"
 
 #: prefs.js:678
 msgid "Remote"
-msgstr ""
+msgstr "Remote"
 
 #. TRANSLATORS: Other extension settings
 #: prefs.js:687
 msgid "Other"
-msgstr ""
+msgstr "Sonstiges"
 
 #: prefs.js:698
 msgid "Add-ons"
-msgstr ""
+msgstr "Add-Ons"
 
 #: prefs.js:703
 msgid "Modules"
-msgstr ""
+msgstr "Module"
 
 #: prefs.js:707
 msgid "About"
-msgstr ""
+msgstr "Über"
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
 #: prefs.js:771
 msgid "Scanning..."
-msgstr ""
+msgstr "Suche..."
 
 #: prefs.js:793
 msgid "Automatic"
-msgstr ""
+msgstr "Automatisch"
 
 #: node_scripts/messages.js:4
 msgid "LOADING"
-msgstr ""
+msgstr "LADE"
 
 #: node_scripts/messages.js:5
 msgid "No file selected"
-msgstr ""
+msgstr "Keine Datei ausgewählt"
 
 #: node_scripts/messages.js:6
 msgid "Receiver type is set to Chromecast"
-msgstr ""
+msgstr "Empfänger-Typ ist auf Chromecast gesetzt"
 
 #: node_scripts/messages.js:7
 msgid "Streaming process is still active"
-msgstr ""
+msgstr "Streame noch"
 
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:9
 msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
-msgstr ""
+msgstr "Zu viele Verbindungen!<p>schließen Sie alle anderen Tabs, die auf diese Seite in allen Browsern zugreifen</p>"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:11
 msgid "FFmpeg could not transcode file:"
-msgstr ""
+msgstr "FFmpeg konnte die Datei nicht transkodieren:"
 
 #: node_scripts/messages.js:12
 msgid "FFmpeg path is incorrect"
-msgstr ""
+msgstr "FFmpeg Pfad ist ungültig"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:14
 msgid "FFprobe could not process file:"
-msgstr ""
+msgstr "FFprobe konnte Datei nicht verarbeiten:"
 
 #: node_scripts/messages.js:15
 msgid "FFprobe path is incorrect"
-msgstr ""
+msgstr "FFmpeg Pfad ist ungültig"
 
 #: node_scripts/messages.js:17
 msgid "Speed"
-msgstr ""
+msgstr "Geschwindigkeit"
 
 #: node_scripts/messages.js:22
 msgid "Device not found"
-msgstr ""
+msgstr "Gerät nicht gefunden"
 
 #: node_scripts/messages.js:23
 msgid "Failed to load media"
-msgstr ""
+msgstr "Fehler beim Laden der Datei"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:25
 msgid "Could not play file:"
-msgstr ""
+msgstr "Datei konnte nicht wiedergegeben werden:"
 
 #: node_scripts/messages.js:26
 msgid "Try again with transcoding enabled"
-msgstr ""
+msgstr "Versuche es erneut mit aktivierter Transkodierung"
 
