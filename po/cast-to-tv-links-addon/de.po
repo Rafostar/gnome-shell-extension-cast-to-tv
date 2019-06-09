@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-06-09 20:25\n"
+"PO-Revision-Date: 2019-06-09 21:25\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -19,72 +19,72 @@ msgstr ""
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:104
 msgid "No Image"
-msgstr ""
+msgstr "Kein Bild"
 
 #: app.js:118
 msgid "Title:"
-msgstr ""
+msgstr "Titel:"
 
 #: app.js:137
 msgid "Format:"
-msgstr ""
+msgstr "Format:"
 
 #: app.js:156
 msgid "Resolution:"
-msgstr ""
+msgstr "Auflösung:"
 
 #: app.js:175
 msgid "Video codec:"
-msgstr ""
+msgstr "Videocodec:"
 
 #: app.js:194
 msgid "Audio codec:"
-msgstr ""
+msgstr "Audio Codec:"
 
 #: app.js:213
 msgid "Subtitles:"
-msgstr ""
+msgstr "Untertitel:"
 
 #: app.js:242
 msgid "Enter or drop link here"
-msgstr ""
+msgstr "Link hier eingeben oder ablegen"
 
 #: app.js:250
 msgid "Cast link"
-msgstr ""
+msgstr "Castlink"
 
 #: widget.js:13
 msgid "Link"
-msgstr ""
+msgstr "Link"
 
 #: links_prefs.js:59
 msgid "Links"
-msgstr ""
+msgstr "Links"
 
 #: links_prefs.js:64
 msgid "Links Options"
-msgstr ""
+msgstr "Linkoptionen"
 
 #: links_prefs.js:68
 msgid "Preferred format"
-msgstr ""
+msgstr "Bevorzugtes Format"
 
 #: links_prefs.js:70
 msgid "Best seekable"
-msgstr ""
+msgstr "Am besten spulbar"
 
 #: links_prefs.js:71
 msgid "Best quality"
-msgstr ""
+msgstr "Beste Qualität"
 
 #: links_prefs.js:77
 msgid "Path to youtube-dl"
-msgstr ""
+msgstr "Pfad zu youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
 #: links_prefs.js:86
 msgid "Max video quality"
-msgstr ""
+msgstr "Max. Videoqualität"
 
 #: links_prefs.js:104
 msgid "Allow VP9 codec"
@@ -100,9 +100,9 @@ msgstr "Bevorzugte Sprache"
 
 #: links_prefs.js:124
 msgid "Fallback language"
-msgstr ""
+msgstr "Fallback-Sprache"
 
 #: links_prefs.js:126
 msgid "none"
-msgstr ""
+msgstr "Nichts"
 
