@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-06-09 18:46\n"
+"PO-Revision-Date: 2019-06-09 20:25\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -88,15 +88,15 @@ msgstr ""
 
 #: links_prefs.js:104
 msgid "Allow VP9 codec"
-msgstr ""
+msgstr "VP9 Codec erlauben"
 
 #: links_prefs.js:112
 msgid "Subtitles"
-msgstr ""
+msgstr "Untertitel"
 
 #: links_prefs.js:116
 msgid "Preferred language"
-msgstr ""
+msgstr "Bevorzugte Sprache"
 
 #: links_prefs.js:124
 msgid "Fallback language"
