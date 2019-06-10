@@ -23,6 +23,8 @@ exports.initTranslations = function()
 		var parsedTranslations = moParser.parse(translationsContent);
 		gt.addTranslations(locale, domain, parsedTranslations);
 	});
+
+	exports.locales.unshift('en');
 }
 
 exports.setLocale = function(locale)
