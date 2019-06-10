@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-06-09 21:25\n"
+"PO-Revision-Date: 2019-06-10 09:48\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -139,11 +139,11 @@ msgstr "Zugriff auf Web-Player von Geräten im lokalen Netzwerk"
 
 #: prefs.js:183
 msgid "Remote Controller"
-msgstr "Fernsteuerung"
+msgstr "Fernbedienung"
 
 #: prefs.js:187
 msgid "Remote position"
-msgstr "Remote-Position"
+msgstr "Fernbedienungsposition"
 
 #: prefs.js:189
 msgid "Left"
@@ -171,7 +171,7 @@ msgstr "Slider vereinen"
 
 #: prefs.js:218
 msgid "Show remote label"
-msgstr "Remote-Label anzeigen"
+msgstr "Fernbedienungsbeschriftung anzeigen"
 
 #: prefs.js:253
 msgid "Chromecast Options"
@@ -298,7 +298,7 @@ msgstr "Allgemein"
 
 #: prefs.js:678
 msgid "Remote"
-msgstr "Remote"
+msgstr "Fernbedienung"
 
 #. TRANSLATORS: Other extension settings
 #: prefs.js:687
