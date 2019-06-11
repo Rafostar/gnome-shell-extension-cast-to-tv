@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-06-11 06:57\n"
+"PO-Revision-Date: 2019-06-11 08:15\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -27,7 +27,7 @@ msgstr "Chromecast"
 
 #: widget.js:27
 msgid "Cast Media"
-msgstr "Mediendateien wiedergeben"
+msgstr "Cast Medien"
 
 #: widget.js:31
 msgid "Video"
@@ -52,12 +52,12 @@ msgstr "Videoumwandlung"
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:67
 msgid "Cast Selected File"
-msgstr "Ausgewählte Datei wiedergeben"
+msgstr "Datei abspielen"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
 #: file-chooser.js:69
 msgid "Cast Selected Files"
-msgstr "Ausgewählte Dateien wiedergeben"
+msgstr "Dateien abspielen"
 
 #: file-chooser.js:72
 msgid "Cancel"
@@ -131,7 +131,7 @@ msgstr "FFprobe Pfad"
 
 #: prefs.js:118
 msgid "Listening port"
-msgstr "Listening Port"
+msgstr "Zu überwachender Port"
 
 #: prefs.js:153
 msgid "Access web player from devices on local network"
@@ -278,7 +278,7 @@ msgstr "Installiere..."
 
 #: prefs.js:632
 msgid "version:"
-msgstr "Version:"
+msgstr "version:"
 
 #: prefs.js:639
 msgid "Developed by"
