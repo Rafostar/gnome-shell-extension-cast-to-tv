@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-06-11 08:15\n"
+"PO-Revision-Date: 2019-06-11 12:15\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -27,7 +27,7 @@ msgstr "Chromecast"
 
 #: widget.js:27
 msgid "Cast Media"
-msgstr "Cast Medien"
+msgstr "Medien wiedergeben"
 
 #: widget.js:31
 msgid "Video"
@@ -52,12 +52,12 @@ msgstr "Videoumwandlung"
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:67
 msgid "Cast Selected File"
-msgstr "Datei abspielen"
+msgstr "Datei wiedergeben"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
 #: file-chooser.js:69
 msgid "Cast Selected Files"
-msgstr "Dateien abspielen"
+msgstr "Dateien wiedergeben"
 
 #: file-chooser.js:72
 msgid "Cancel"
