@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-06-10 09:48\n"
+"PO-Revision-Date: 2019-06-11 06:57\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -19,11 +19,11 @@ msgstr ""
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:33
 msgid "Web Player Remote"
-msgstr "Web Player Fernbedienung"
+msgstr "Web Player"
 
 #: extension.js:36 widget.js:82
 msgid "Chromecast Remote"
-msgstr "Chromecast Fernbedienung"
+msgstr "Chromecast"
 
 #: widget.js:27
 msgid "Cast Media"
@@ -127,7 +127,7 @@ msgstr "FFmpeg Pfad"
 
 #: prefs.js:110
 msgid "FFprobe path"
-msgstr "FFprobe-Pfad"
+msgstr "FFprobe Pfad"
 
 #: prefs.js:118
 msgid "Listening port"
@@ -135,7 +135,7 @@ msgstr "Listening Port"
 
 #: prefs.js:153
 msgid "Access web player from devices on local network"
-msgstr "Zugriff auf Web-Player von Geräten im lokalen Netzwerk"
+msgstr "Zugriff auf Web Player von Geräten im lokalen Netzwerk"
 
 #: prefs.js:183
 msgid "Remote Controller"
