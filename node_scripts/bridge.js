@@ -89,6 +89,11 @@ exports.shutDown = function(err)
 	{
 		gnome.showMenu(false);
 		debug('Removed top bar indicator');
+
+		fs.writeFileSync(shared.selectionPath,
+			JSON.stringify({streamType: "", subsPath: "", filePath: ""}, null, 1));
+
+		debug('Cleaned selection temp file');
 		process.exit();
 	}
 
