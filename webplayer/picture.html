@@ -8,13 +8,13 @@
 		<link rel="icon" sizes="192x192" href="/webplayer/images/icon.png">
 		<link rel="apple-touch-icon" href="/webplayer/images/icon.png">
 		<link rel="stylesheet" href="/webplayer/webplayer.css">
-		<script src="/webplayer/preload.js"></script>
-		<script>window.onload = () => document.getElementById('img-src').src = "/cast?session=" + makeID();</script>
 	</head>
 	<body>
 		<center>
 			<img id="img-src" class="cast-picture">
 		</center>
+		<script src="/webplayer/preload.js"></script>
+		<script>window.onload = () => document.getElementById('img-src').src = "/cast?session=" + makeID();</script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/webplayer/websocket.js"></script>
 	</body>
