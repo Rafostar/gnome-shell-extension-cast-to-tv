@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-05-27 20:26\n"
+"PO-Revision-Date: 2019-06-12 08:52\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -52,12 +52,12 @@ msgstr "Video converteren"
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:67
 msgid "Cast Selected File"
-msgstr "Geselecteerd bestand casten"
+msgstr "Bestand casten"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
 #: file-chooser.js:69
 msgid "Cast Selected Files"
-msgstr "Geselecteerde bestanden casten"
+msgstr "Bestanden casten"
 
 #: file-chooser.js:72
 msgid "Cancel"
