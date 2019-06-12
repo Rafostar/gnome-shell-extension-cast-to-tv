@@ -1,4 +1,5 @@
-var spawn = require('child_process').spawn;
+var { spawn } = require('child_process');
+var debug = require('debug')('ffmpeg');
 var bridge = require('./bridge');
 var extract = require('./extract');
 var gnome = require('./gnome');
@@ -7,6 +8,9 @@ var shared = require('../shared');
 
 var subsPathEscaped;
 var codecAudio = 'copy';
+
+var stdioConf = 'ignore';
+if(debug.enabled) stdioConf = 'inherit';
 
 exports.streamProcess = null;
 
@@ -40,7 +44,6 @@ exports.video = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-maxrate', bridge.config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-f', 'matroska',
@@ -54,7 +57,7 @@ exports.video = function()
 	}
 
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', 'ignore'] });
+	{ stdio: ['ignore', 'pipe', stdioConf] });
 
 	var notifyError = false;
 
@@ -83,7 +86,6 @@ exports.videoVaapi = function()
 	'-c:v', 'h264_vaapi',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-maxrate', bridge.config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-f', 'matroska',
@@ -104,7 +106,7 @@ exports.videoVaapi = function()
 	}
 
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', 'ignore'] });
+	{ stdio: ['ignore', 'pipe', stdioConf] });
 
 	var notifyError = false;
 
@@ -158,7 +160,6 @@ exports.musicVisualizer = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-maxrate', bridge.config.videoBitrate + 'M',
 	'-c:a', codecAudio,
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-f', 'matroska',
@@ -166,7 +167,7 @@ exports.musicVisualizer = function()
 	];
 
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', 'ignore'] });
+	{ stdio: ['ignore', 'pipe', stdioConf] });
 
 	var notifyError = false;
 
