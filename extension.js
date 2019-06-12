@@ -16,6 +16,7 @@ const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
+const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
 
 let castMenu;
 let remoteMenu;
@@ -253,6 +254,51 @@ function recreateRemote()
 	setRemotePosition();
 }
 
+function changeServiceEnabled()
+{
+	let enable = !Settings.get_boolean('service-enabled');
+	Settings.set_boolean('service-wanted', enable);
+	enableService(enable);
+}
+
+function enableService(enable)
+{
+	if(enable)
+	{
+		/* Start server monitoring service */
+		GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
+	}
+	else
+	{
+		/* Stop all apps running inside extension and add-ons folders */
+		GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path + '|' +
+			extensionsPath + '/cast-to-tv-.*-addon@rafostar.github.com');
+	}
+}
+
+function setIndicator(enable)
+{
+	if(enable !== true && enable !== false)
+	{
+		enable = Settings.get_boolean('service-enabled');
+	}
+
+	let children = Indicator.get_children();
+	if(children && children.length)
+	{
+		if(enable && !children.includes(Widget.statusIcon))
+		{
+			Indicator.add_child(Widget.statusIcon);
+		}
+		else if(!enable && children.includes(Widget.statusIcon))
+		{
+			Indicator.remove_child(Widget.statusIcon);
+		}
+	}
+
+	castMenu.enableFullMenu(enable);
+}
+
 function init()
 {
 	Convenience.initTranslations();
@@ -266,6 +312,8 @@ function enable()
 	/* Get remaining necessary settings */
 	Widget.seekTime = Settings.get_int('seek-time');
 	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
+	let serviceEnabled = Settings.get_boolean('service-enabled');
+	let serviceWanted = Settings.get_boolean('service-wanted');
 
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
@@ -292,46 +340,51 @@ function enable()
 	Signals.push(Settings.connect('changed::chromecast-name', changeChromecastName.bind(this)));
 	Signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
+	Signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
+
+	/* Other signals */
+	castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
 
 	/* Set insert position after network menu items */
 	let menuItems = AggregateMenu.menu._getMenuItems();
 	let menuPosition = menuItems.indexOf(AggregateMenu._network.menu) + 1;
 
-	/* Add indicator and menu item */
-	Indicator.add_child(Widget.statusIcon);
+	/* Add menu item */
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
 
 	/* Add remote to top bar */
 	setRemotePosition();
 
-	/* Start server monitoring service */
-	if(!serviceStarted)
+	/* Check if service should start */
+	if(!serviceStarted && serviceWanted)
 	{
-		GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
+		enableService(true);
 		serviceStarted = true;
 	}
+
+	setIndicator(serviceEnabled);
 }
 
 function disable()
 {
-	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
+	/* Disconnect signals from settings */
+	Signals.forEach(signal => Settings.disconnect(signal));
 
+	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)
 	{
-		/* Stop all apps running inside extension folder */
-		GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path);
+		enableService(false);
 		serviceStarted = false;
 	}
 
-	/* Disconnect signals from settings */
-	Signals.forEach(signal => Settings.disconnect(signal));
+	/* Remove top bar indicator */
+	setIndicator(false);
 
 	/* Remove Chromecast Remote */
 	remoteMenu.destroy();
 	remoteMenu = null;
 
-	/* Remove indicator and menu item object */
-	Indicator.remove_child(Widget.statusIcon);
+	/* Remove menu item object */
 	castMenu.destroy();
 	castMenu = null;
 }

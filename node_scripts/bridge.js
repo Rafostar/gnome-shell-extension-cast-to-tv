@@ -21,6 +21,7 @@ exports.config = require(shared.configPath);
 exports.selection = require(shared.selectionPath);
 exports.list = require(shared.listPath);
 exports.addon = null;
+gnome.showMenu(true);
 
 exports.setStatusFile = function(status)
 {
@@ -35,7 +36,7 @@ exports.setStatusFile = function(status)
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
 
-watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
+var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 {
 	if(eventType == 'update')
 	{
@@ -73,6 +74,41 @@ watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 		}
 	}
 });
+
+exports.shutDown = function(err)
+{
+	if(err) console.log(err);
+	else process.stdout.write('\n');
+
+	debug('Closing node server');
+
+	watcher.close();
+	debug('Closed file watcher');
+
+	var finish = () =>
+	{
+		gnome.showMenu(false);
+		debug('Removed top bar indicator');
+		process.exit();
+	}
+
+	if(gnome.isRemote())
+	{
+		gnome.showRemote(false);
+		handleRemoteSignal('STOP');
+
+		setTimeout(() =>
+		{
+			/* Remote might be reshown before timeout executes */
+			if(gnome.isRemote()) gnome.showRemote(false);
+			finish();
+		}, 3000);
+	}
+	else
+	{
+		finish();
+	}
+}
 
 function updateConfig()
 {
@@ -138,9 +174,11 @@ function updateRemote()
 	debug(`New remote contents: ${JSON.stringify(remoteContents)}`);
 	remote = remoteContents;
 
-	var action = remote.action;
-	var value = remote.value;
+	handleRemoteSignal(remote.action, remote.value);
+}
 
+function handleRemoteSignal(action, value)
+{
 	switch(exports.config.receiverType)
 	{
 		case 'other':

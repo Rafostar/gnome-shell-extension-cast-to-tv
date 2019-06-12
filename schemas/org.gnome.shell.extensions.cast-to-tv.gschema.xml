@@ -61,5 +61,14 @@
       <default>false</default>
       <summary>Chromecast playing state</summary>
     </key>
+    <!-- Service -->
+    <key name="service-enabled" type="b">
+      <default>true</default>
+      <summary>Enable local service process</summary>
+    </key>
+    <key name="service-wanted" type="b">
+      <default>true</default>
+      <summary>Remember last service state</summary>
+    </key>
   </schema>
 </schemalist>

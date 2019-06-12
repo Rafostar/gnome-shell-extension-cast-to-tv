@@ -26,17 +26,20 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		super();
 		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
 		this.castSubMenu.icon.icon_name = iconName;
+		this.isServiceEnabled = true;
 
 		/* Expandable menu */
 		this.videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
 		this.musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
 		this.pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
+		this.serviceMenuItem = new PopupMenu.PopupMenuItem(_("Turn Off"));
 		this.settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
 
 		/* Assemble all menu items */
 		this.castSubMenu.menu.addMenuItem(this.videoMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.musicMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.pictureMenuItem);
+		this.castSubMenu.menu.addMenuItem(this.serviceMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.settingsMenuItem);
 
 		/* Signals connections */
@@ -64,6 +67,28 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 			/* Open extension preferences */
 			GLib.spawn_async('/usr/bin', ['gnome-shell-extension-prefs',
 				'cast-to-tv@rafostar.github.com'], null, 0, null);
+		}
+
+		this.enableFullMenu = (enable) =>
+		{
+			let menuItems = this.castSubMenu.menu._getMenuItems();
+
+			if(enable)
+			{
+				menuItems.forEach(item => item.actor.show());
+				this.serviceMenuItem.label.text = _("Turn Off");
+				this.castSubMenu.label.text = _("Cast Media");
+			}
+			else
+			{
+				menuItems.forEach(item => item.actor.hide());
+				this.serviceMenuItem.actor.show();
+				this.settingsMenuItem.actor.show();
+				this.serviceMenuItem.label.text = _("Turn On");
+				this.castSubMenu.label.text = _("Cast Off");
+			}
+
+			this.isServiceEnabled = enable;
 		}
 
 		this.addMenuItem(this.castSubMenu);

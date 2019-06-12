@@ -8,11 +8,14 @@ var encode = require('./encode');
 var extract = require('./extract');
 var gettext = require('./gettext');
 var listeningPort = bridge.config.listeningPort;
-
-var server = app.listen(listeningPort).on('error', () => process.exit());
+var server = app.listen(listeningPort);
 
 socket.listen(server);
 gettext.initTranslations();
+
+process.on('SIGINT', () => bridge.shutDown());
+process.on('SIGTERM', () => bridge.shutDown());
+process.on('uncaughtException', (err) => bridge.shutDown(err));
 
 exports.refreshConfig = function()
 {
@@ -20,7 +23,7 @@ exports.refreshConfig = function()
 	{
 		server.close();
 		listeningPort = bridge.config.listeningPort;
-		server = app.listen(listeningPort).on('error', () => process.exit());
+		server = app.listen(listeningPort);
 		socket.listen(server);
 	}
 }

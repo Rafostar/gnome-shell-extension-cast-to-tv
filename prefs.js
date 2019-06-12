@@ -92,7 +92,7 @@ class MainSettings extends Gtk.VBox
 
 		/* Receiver Type */
 		label = new settingLabel(_("Receiver type"));
-		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+		widget = new Gtk.ComboBoxText({width_request: 220, halign:Gtk.Align.END});
 		widget.append('chromecast', "Chromecast");
 		/* TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player". */
 		widget.append('other', _("Web browser | Media player"));
@@ -143,31 +143,49 @@ class MainSettings extends Gtk.VBox
 			this.linkButton.label = link;
 		}
 
+		box = new Gtk.VBox({
+			margin: 5,
+			hexpand: true,
+			valign:Gtk.Align.END,
+			halign:Gtk.Align.CENTER
+		});
+
+		this.infoLabel = new Gtk.Label();
+
 		if(this.hostIp)
 		{
-			box = new Gtk.VBox({
-				margin: 5,
-				hexpand: true,
-				valign:Gtk.Align.END,
-				halign:Gtk.Align.CENTER
-			});
-
-			label = new Gtk.Label({
-				label: _("Access web player from devices on local network")
-			});
-
+			this.infoLabel.label = _("Access web player from devices on local network");
 			this.updateLink();
-
-			box.pack_start(label, false, false, 0);
-			box.pack_start(this.linkButton, false, false, 0);
-			this.pack_end(box, false, false, 0);
 		}
 
+		box.pack_start(this.infoLabel, false, false, 0);
+		box.pack_start(this.linkButton, false, false, 0);
+		this.pack_end(box, false, false, 0);
+
 		this.linkSignal = this.portWidget.connect('value-changed', () => this.updateLink());
+
+		this.checkService = () =>
+		{
+			let serviceEnabled = Settings.get_boolean('service-enabled');
+
+			if(serviceEnabled && this.hostIp)
+			{
+				this.infoLabel.show();
+				this.linkButton.show();
+			}
+			else
+			{
+				this.infoLabel.hide();
+				this.linkButton.hide();
+			}
+		}
+
+		this.serviceSignal = Settings.connect('changed::service-enabled', () => this.checkService());
 	}
 
 	destroy()
 	{
+		Settings.disconnect(this.serviceSignal);
 		this.portWidget.disconnect(this.linkSignal);
 
 		super.destroy();
@@ -509,6 +527,7 @@ class AddonsSettings extends Gtk.Notebook
 			}
 		}
 
+		addons.sort();
 		addons.forEach(addonDir =>
 		{
 			let addonPath = extPath + '/' + addonDir;
@@ -882,6 +901,8 @@ function buildPrefsWidget()
 {
 	let widget = new CastToTvSettings();
 	widget.show_all();
+
+	widget.notebook.mainWidget.checkService();
 
 	let isStreaming = Settings.get_boolean('chromecast-playing');
 

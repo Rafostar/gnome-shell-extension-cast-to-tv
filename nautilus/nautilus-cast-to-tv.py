@@ -28,6 +28,12 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
 
+        Gio_SSS = Gio.SettingsSchemaSource;
+        schema_source = Gio_SSS.new_from_directory(
+            EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False);
+        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True);
+        self.ext_settings = Gio.Settings.new_full(schema_obj);
+
         try:
             locale.setlocale(locale.LC_ALL, '')
             gettext.bindtextdomain('cast-to-tv', EXTENSION_PATH + '/locale')
@@ -183,6 +189,9 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         self.cast_files_cb(menu, files, stream_type)
 
     def get_file_items(self, window, files):
+        if not self.ext_settings.get_boolean('service-enabled'):
+            return
+
         if not (os.path.isfile(TEMP_PATH + '/config.json') and
             os.path.isfile(TEMP_PATH + '/playlist.json') and
             os.path.isfile(TEMP_PATH + '/selection.json')):
