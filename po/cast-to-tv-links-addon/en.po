@@ -1,0 +1,108 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cast-to-tv\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-21 20:50+0200\n"
+"PO-Revision-Date: 2019-06-22 10:44\n"
+"Last-Translator: Rafostar\n"
+"Language-Team: English, United Kingdom\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: cast-to-tv\n"
+"X-Crowdin-Language: en-GB\n"
+"X-Crowdin-File: /master/po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
+
+#. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
+#: app.js:104
+msgid "No Image"
+msgstr ""
+
+#: app.js:118
+msgid "Title:"
+msgstr ""
+
+#: app.js:137
+msgid "Format:"
+msgstr ""
+
+#: app.js:156
+msgid "Resolution:"
+msgstr ""
+
+#: app.js:175
+msgid "Video codec:"
+msgstr ""
+
+#: app.js:194
+msgid "Audio codec:"
+msgstr ""
+
+#: app.js:213
+msgid "Subtitles:"
+msgstr ""
+
+#: app.js:242
+msgid "Enter or drop link here"
+msgstr ""
+
+#: app.js:250
+msgid "Cast link"
+msgstr ""
+
+#: widget.js:13
+msgid "Link"
+msgstr ""
+
+#: links_prefs.js:59
+msgid "Links"
+msgstr ""
+
+#: links_prefs.js:64
+msgid "Links Options"
+msgstr ""
+
+#: links_prefs.js:68
+msgid "Preferred format"
+msgstr ""
+
+#: links_prefs.js:70
+msgid "Best seekable"
+msgstr ""
+
+#: links_prefs.js:71
+msgid "Best quality"
+msgstr ""
+
+#: links_prefs.js:77
+msgid "Path to youtube-dl"
+msgstr ""
+
+#. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
+#: links_prefs.js:86
+msgid "Max video quality"
+msgstr ""
+
+#: links_prefs.js:104
+msgid "Allow VP9 codec"
+msgstr ""
+
+#: links_prefs.js:112
+msgid "Subtitles"
+msgstr ""
+
+#: links_prefs.js:116
+msgid "Preferred language"
+msgstr ""
+
+#: links_prefs.js:124
+msgid "Fallback language"
+msgstr ""
+
+#: links_prefs.js:126
+msgid "none"
+msgstr ""
+
