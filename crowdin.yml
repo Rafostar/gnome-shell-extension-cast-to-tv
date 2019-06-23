@@ -2,4 +2,4 @@ files:
   - source: /po/cast-to-tv/cast-to-tv.pot
     translation: /po/cast-to-tv/%two_letters_code%.po
   - source: /po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot
-    translation: /po/cast-to-tv-links-addon/%two_letters_code%.po
+    translation: /po/cast-to-tv/%two_letters_code%.po
