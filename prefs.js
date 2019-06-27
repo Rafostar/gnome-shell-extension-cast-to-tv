@@ -18,7 +18,7 @@ function init()
 	Convenience.initTranslations();
 }
 
-class settingLabel
+class SettingLabel
 {
 	constructor(text, isTitle, isTopMargin)
 	{
@@ -108,11 +108,11 @@ class MainSettings extends Gtk.VBox
 		this.pack_start(grid, false, false, 0);
 
 		/* Label: Main Options */
-		label = new settingLabel(_("Main Options"), true);
+		label = new SettingLabel(_("Main Options"), true);
 		grid.attach(label, 0, 0, 1, 1);
 
 		/* Receiver Type */
-		label = new settingLabel(_("Receiver type"));
+		label = new SettingLabel(_("Receiver type"));
 		widget = new Gtk.ComboBoxText({width_request: 220, halign:Gtk.Align.END});
 		widget.append('chromecast', "Chromecast");
 		/* TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player". */
@@ -123,7 +123,7 @@ class MainSettings extends Gtk.VBox
 		grid.attach(widget, 1, 1, 1, 1);
 
 		/* FFmpeg Path */
-		label = new settingLabel(_("FFmpeg path"));
+		label = new SettingLabel(_("FFmpeg path"));
 		widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffmpeg");
 		Settings.bind('ffmpeg-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
@@ -131,7 +131,7 @@ class MainSettings extends Gtk.VBox
 		grid.attach(widget, 1, 2, 1, 1);
 
 		/* FFprobe Path */
-		label = new settingLabel(_("FFprobe path"));
+		label = new SettingLabel(_("FFprobe path"));
 		widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffprobe");
 		Settings.bind('ffprobe-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
@@ -139,7 +139,7 @@ class MainSettings extends Gtk.VBox
 		grid.attach(widget, 1, 3, 1, 1);
 
 		/* Listening Port */
-		label = new settingLabel(_("Listening port"));
+		label = new SettingLabel(_("Listening port"));
 		this.portWidget = new Gtk.SpinButton({halign:Gtk.Align.END});
 		this.portWidget.set_sensitive(true);
 		this.portWidget.set_range(1, 65535);
@@ -222,11 +222,11 @@ class RemoteSettings extends Gtk.Grid
 		let widget = null;
 
 		/* Label: Remote Controller */
-		label = new settingLabel(_("Remote Controller"), true);
+		label = new SettingLabel(_("Remote Controller"), true);
 		this.attach(label, 0, 0, 1, 1);
 
 		/* Remote Position */
-		label = new settingLabel(_("Remote position"));
+		label = new SettingLabel(_("Remote position"));
 		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 		widget.append('left', _("Left"));
 		widget.append('center-left', _("Center (left side)"));
@@ -237,7 +237,7 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(widget, 1, 1, 1, 1);
 
 		/* Seek Backward/Forward */
-		label = new settingLabel(_("Seek backward/forward (seconds)"));
+		label = new SettingLabel(_("Seek backward/forward (seconds)"));
 		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
 		widget.set_range(1, 120);
@@ -248,7 +248,7 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(widget, 1, 2, 1, 1);
 
 		/* Volume Slider */
-		label = new settingLabel(_("Unify sliders"));
+		label = new SettingLabel(_("Unify sliders"));
 		widget = new Gtk.Switch({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('unified-slider'));
@@ -257,7 +257,7 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(widget, 1, 3, 1, 1);
 
 		/* Remote Label */
-		label = new settingLabel(_("Show remote label"));
+		label = new SettingLabel(_("Show remote label"));
 		widget = new Gtk.Switch({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('remote-label'));
@@ -292,11 +292,11 @@ class ChromecastSettings extends Gtk.Grid
 		}
 
 		/* Label: Chromecast Options */
-		label = new settingLabel(_("Chromecast Options"), true);
+		label = new SettingLabel(_("Chromecast Options"), true);
 		this.attach(label, 0, 0, 1, 1);
 
 		/* Chromecast device name */
-		label = new settingLabel(_("Device selection"));
+		label = new SettingLabel(_("Device selection"));
 		box = new Gtk.HBox({halign:Gtk.Align.END});
 		widget = new Gtk.ComboBoxText();
 		this.scanButton = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
@@ -309,11 +309,11 @@ class ChromecastSettings extends Gtk.Grid
 		this.attach(box, 1, 1, 1, 1);
 
 		/* Label: Subtitles */
-		label = new settingLabel(_("Subtitles"), true, true);
+		label = new SettingLabel(_("Subtitles"), true, true);
 		this.attach(label, 0, 2, 1, 1);
 
 		/* Font Family */
-		label = new settingLabel(_("Font family"));
+		label = new SettingLabel(_("Font family"));
 		this.fontFamily = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 		this.fontFamily.append('SANS_SERIF', "Droid Sans");
 		this.fontFamily.append('MONOSPACED_SANS_SERIF', "Droid Sans Mono");
@@ -333,7 +333,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.attach(this.fontFamily, 1, 3, 1, 1);
 
 		/* Font Style */
-		label = new settingLabel(_("Font style"));
+		label = new SettingLabel(_("Font style"));
 		this.fontStyle = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 		this.fontStyle.append('NORMAL', _("Normal"));
 		this.fontStyle.append('BOLD', _("Bold"));
@@ -349,7 +349,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.attach(this.fontStyle, 1, 4, 1, 1);
 
 		/* Subtitles Scale */
-		label = new settingLabel(_("Scale factor"));
+		label = new SettingLabel(_("Scale factor"));
 		this.scaleButton = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
 		this.scaleButton.set_sensitive(true);
 		this.scaleButton.set_range(0.1, 5.0);
@@ -364,7 +364,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.attach(this.scaleButton, 1, 5, 1, 1);
 
 		/* Font Color */
-		label = new settingLabel(_("Font color"));
+		label = new SettingLabel(_("Font color"));
 		rgba.parse(hashToColor(subsConfig.foregroundColor));
 		this.fontColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.fontColor.set_sensitive(true);
@@ -377,7 +377,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.attach(this.fontColor, 1, 6, 1, 1);
 
 		/* Font Outline */
-		label = new settingLabel(_("Font outline"));
+		label = new SettingLabel(_("Font outline"));
 		box = new Gtk.HBox({halign:Gtk.Align.END});
 		this.outlineSwitch = new Gtk.Switch({halign:Gtk.Align.END, valign:Gtk.Align.CENTER});
 		this.outlineSwitch.set_sensitive(true);
@@ -409,7 +409,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.attach(box, 1, 7, 1, 1);
 
 		/* Background color */
-		label = new settingLabel(_("Background color"));
+		label = new SettingLabel(_("Background color"));
 		rgba.parse(hashToColor(subsConfig.backgroundColor));
 		this.bgColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true, use_alpha: true});
 		this.bgColor.set_sensitive(true);
@@ -446,11 +446,11 @@ class OtherSettings extends Gtk.Grid
 		let widget = null;
 
 		/* Label: Media Encoding */
-		label = new settingLabel(_("Media Encoding"), true);
+		label = new SettingLabel(_("Media Encoding"), true);
 		this.attach(label, 0, 0, 1, 1);
 
 		/* Hardware Acceleration */
-		label = new settingLabel(_("Hardware acceleration"));
+		label = new SettingLabel(_("Hardware acceleration"));
 		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 		widget.append('none', _("None"));
 		/* TRANSLATORS: Should remain as VAAPI unless you use different alphabet */
@@ -462,7 +462,7 @@ class OtherSettings extends Gtk.Grid
 		this.attach(widget, 1, 1, 1, 1);
 
 		/* Video Bitrate */
-		label = new settingLabel(_("Bitrate (Mbps)"));
+		label = new SettingLabel(_("Bitrate (Mbps)"));
 		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
 		widget.set_sensitive(true);
 		widget.set_range(2.0, 10.0);
@@ -473,11 +473,11 @@ class OtherSettings extends Gtk.Grid
 		this.attach(widget, 1, 2, 1, 1);
 
 		/* Label: Web Player */
-		label = new settingLabel(_("Web Player"), true, true);
+		label = new SettingLabel(_("Web Player"), true, true);
 		this.attach(label, 0, 3, 1, 1);
 
 		/* Subtitles Scale */
-		label = new settingLabel(_("Subtitles scale factor"));
+		label = new SettingLabel(_("Subtitles scale factor"));
 		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
 		widget.set_sensitive(true);
 		widget.set_range(0.1, 5.0);
@@ -489,11 +489,11 @@ class OtherSettings extends Gtk.Grid
 
 		/* Label: Miscellaneous */
 		/* TRANSLATORS: The rest of extension settings */
-		label = new settingLabel(_("Miscellaneous"), true, true);
+		label = new SettingLabel(_("Miscellaneous"), true, true);
 		this.attach(label, 0, 5, 1, 1);
 
 		/* Music Visualizer */
-		label = new settingLabel(_("Music visualizer"));
+		label = new SettingLabel(_("Music visualizer"));
 		widget = new Gtk.Switch({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('music-visualizer'));
@@ -502,7 +502,7 @@ class OtherSettings extends Gtk.Grid
 		this.attach(widget, 1, 6, 1, 1);
 
 		/* Nautilus Integration */
-		label = new settingLabel(_("Nautilus integration"));
+		label = new SettingLabel(_("Nautilus integration"));
 		this.nautilusSwitch = new Gtk.Switch({halign:Gtk.Align.END});
 		this.nautilusSwitch.set_sensitive(true);
 		this.nautilusSwitch.set_active(GLib.file_test(GLib.get_home_dir() +
