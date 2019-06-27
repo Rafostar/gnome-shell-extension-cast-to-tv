@@ -8,8 +8,10 @@ const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
-const nodeDir = nodePath.substring(0, nodePath.lastIndexOf('/'));
-const nodeBin = nodePath.substring(nodePath.lastIndexOf('/') + 1);
+const npmPath = GLib.find_program_in_path('npm');
+
+var nodeDir;
+var nodeBin;
 
 function init()
 {
@@ -41,6 +43,25 @@ class settingLabel
 			margin_top: marginTop,
 			margin_left: marginLeft
 		});
+	}
+}
+
+class MissingNotification extends Gtk.VBox
+{
+	constructor(dependName)
+	{
+		super({height_request: 380, spacing: 10, margin: 25});
+		let label = null;
+
+		label = new Gtk.Label({
+			/* TRANSLATORS: Will contain dependency name at the beginning (e.g. Node.js is not installed) */
+			label: '<span font="16"><b>' + dependName + " " + _("is not installed") + '</b></span>',
+			use_markup: true,
+			vexpand: true,
+			valign: Gtk.Align.CENTER
+		});
+		this.pack_start(label, true, true, 0);
+		this.show_all();
 	}
 }
 
@@ -602,8 +623,6 @@ class ModulesSettings extends Gtk.VBox
 			this.installButton.set_sensitive(false);
 			this.installButton.label = _("Installing...");
 
-			let npmPath = GLib.find_program_in_path('npm');
-
 			try {
 				TermWidget.spawn_async(
 					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
@@ -881,14 +900,13 @@ function hashToColor(colorHash)
 function colorToHash(colorString)
 {
 	let values = colorString.substring(colorString.indexOf('(') + 1, colorString.indexOf(')')).split(',');
-	let integer = null;
 	let hash = "#";
 
 	if(values[3]) values[3] *= 255;
 
 	values.forEach(value =>
 	{
-		integer = parseInt(value, 10);
+		let integer = parseInt(value, 10);
 		hash += integer.toString(16).toUpperCase().padStart(2, 0);
 	});
 
@@ -899,14 +917,20 @@ function colorToHash(colorString)
 
 function buildPrefsWidget()
 {
-	let widget = new CastToTvSettings();
+	let widget = null;
+
+	if(!nodePath) return widget = new MissingNotification('Node.js');
+	else if(!npmPath) return widget = new MissingNotification('npm');
+
+	nodeDir = nodePath.substring(0, nodePath.lastIndexOf('/'));
+	nodeBin = nodePath.substring(nodePath.lastIndexOf('/') + 1);
+
+	widget = new CastToTvSettings();
 	widget.show_all();
 
 	widget.notebook.mainWidget.checkService();
 
-	let isStreaming = Settings.get_boolean('chromecast-playing');
-
-	if(isStreaming) widget.notebook.hide();
+	if(Settings.get_boolean('chromecast-playing')) widget.notebook.hide();
 	else widget.notification.hide();
 
 	return widget;
