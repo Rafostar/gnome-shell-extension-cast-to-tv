@@ -1,5 +1,5 @@
 {
-  "description": "Cast files to Chromecast, web browser or media player app over local network.\n\nThis extension requires some additional dependencies.\nVisit this extension homepage for more info on how to install and use.\n\nPlease use GitHub to report issues.", 
+  "description": "Cast files to Chromecast, web browser or media player app over local network.\n\nRequires: npm nodejs ffmpeg\n\nAfter enabling go to Cast Settings \u2192 Modules and click \"Install npm modules\" button.\n\nVisit this extension homepage for more info on how to install and use.\nPlease use GitHub to report issues.", 
   "extension-id": "cast-to-tv", 
   "gettext-domain": "cast-to-tv", 
   "name": "Cast to TV", 
