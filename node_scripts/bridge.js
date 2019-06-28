@@ -77,8 +77,10 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 
 exports.shutDown = function(err)
 {
-	if(err) console.log(err);
+	if(err) console.error(err);
 	else process.stdout.write('\n');
+
+	console.log('Closing Cast to TV...');
 
 	debug('Closing node server');
 
@@ -94,6 +96,8 @@ exports.shutDown = function(err)
 			JSON.stringify({streamType: "", subsPath: "", filePath: ""}, null, 1));
 
 		debug('Cleaned selection temp file');
+
+		console.log('Cast to TV closed successfully');
 		process.exit();
 	}
 
