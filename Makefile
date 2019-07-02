@@ -6,7 +6,7 @@ PACKAGE = "Cast to TV"
 TOLOCALIZE = extension.js widget.js file-chooser.js prefs.js node_scripts/messages.js
 MSGSRC = $(wildcard ./po/cast-to-tv/*.po)
 POTFILE = ./po/cast-to-tv/cast-to-tv.pot
-ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon nautilus LICENSE README.md
+ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon nautilus COPYING README.md
 INSTALLPATH = ~/.local/share/gnome-shell/extensions
 
 # Add-ons translations #
