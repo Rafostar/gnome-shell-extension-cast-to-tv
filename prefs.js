@@ -115,9 +115,10 @@ class MainSettings extends Gtk.VBox
 		label = new SettingLabel(_("Receiver type"));
 		widget = new Gtk.ComboBoxText({width_request: 220, halign:Gtk.Align.END});
 		widget.append('chromecast', "Chromecast");
+		/* TRANSLATORS: "Playercast" is a name of an app, so do not change it */
+		widget.append('playercast', _("Playercast app"));
 		/* TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player". */
 		widget.append('other', _("Web browser | Media player"));
-		//widget.append('cast-receiver', _("Receiver app"));
 		Settings.bind('receiver-type', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		grid.attach(label, 0, 1, 1, 1);
 		grid.attach(widget, 1, 1, 1, 1);

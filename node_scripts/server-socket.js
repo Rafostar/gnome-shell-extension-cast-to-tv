@@ -61,6 +61,7 @@ function handleMessages(socket)
 	});
 
 	socket.on('status-update', msg => bridge.setStatusFile(msg));
+	socket.on('show-remote', msg => gnome.showRemote(msg));
 	socket.on('disconnect', checkClients);
 }
 

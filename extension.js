@@ -29,6 +29,10 @@ function configCastRemote()
 	/* Change remote label */
 	switch(configContents.receiverType)
 	{
+		case 'playercast':
+			/* TRANSLATORS: "Playercast" is a name of an app, so do not change it */
+			remoteMenu.toplabel.text = _("Playercast Remote");
+			break;
 		case 'other':
 			/* TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter */
 			remoteMenu.toplabel.text = _("Web Player Remote");

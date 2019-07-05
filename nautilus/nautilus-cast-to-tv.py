@@ -84,6 +84,8 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
             (self.config['receiverType'] == 'chromecast' and
             not os.path.isfile(EXTENSION_PATH + '/config/devices.json'))):
                 return "Chromecast"
+        elif self.config['receiverType'] == 'playercast':
+            return _("Playercast app")
         elif self.config['receiverType'] == 'other':
             return _("Web browser | Media player")
 

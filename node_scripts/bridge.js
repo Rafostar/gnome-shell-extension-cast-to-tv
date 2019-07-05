@@ -170,8 +170,20 @@ function updateSelection()
 
 	if(exports.selection.filePath)
 	{
-		if(exports.config.receiverType == 'chromecast') chromecast.cast();
-		else if(exports.config.receiverType == 'other') setTimeout(socket.emit, 250, 'reload');
+		switch(exports.config.receiverType)
+		{
+			case 'chromecast':
+				chromecast.cast();
+				break;
+			case 'playercast':
+				socket.emit('playercast');
+				break;
+			case 'other':
+				setTimeout(socket.emit, 250, 'reload');
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -190,11 +202,14 @@ function handleRemoteSignal(action, value)
 {
 	switch(exports.config.receiverType)
 	{
+		case 'chromecast':
+			chromecast.remote(action, value);
+			break;
+		case 'playercast':
 		case 'other':
 			controller.webControl(action, value);
 			break;
 		default:
-			chromecast.remote(action, value);
 			break;
 	}
 }
