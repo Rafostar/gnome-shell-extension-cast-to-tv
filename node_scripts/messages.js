@@ -3,7 +3,8 @@ function _(text) { return text; }
 module.exports = {
 	loading: _("LOADING"),
 	noMedia: _("No file selected"),
-	wrongReceiver: _("Receiver type is set to Chromecast"),
+	receiverChromecast: _("Receiver type is set to Chromecast"),
+	receiverPlayercast: _("Receiver type is set to Playercast app"),
 	streamActive: _("Streaming process is still active"),
 	/* TRANSLATORS: Do not remove HTML tags */
 	connectLimit: _("Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"),
