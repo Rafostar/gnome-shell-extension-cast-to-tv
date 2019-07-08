@@ -1,11 +1,9 @@
-# Cast to TV Gnome Shell Extension
+# Gnome Shell Extension Cast to TV
 [![License](https://img.shields.io/github/license/Rafostar/gnome-shell-extension-cast-to-tv.svg)](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/blob/master/COPYING)
 [![Crowdin](https://d322cqt584bo4o.cloudfront.net/cast-to-tv/localized.svg)](https://crowdin.com/project/cast-to-tv)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
 [![Donate](https://img.shields.io/badge/Donate-PayPal.Me-lightgrey.svg)](https://www.paypal.me/Rafostar)
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/Rafostar/gnome-shell-extension-cast-to-tv.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2FRafostar%2Fgnome-shell-extension-cast-to-tv)
-
-Cast files to Chromecast, web browser or media player app over local network.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png" width="80%" height="80%">
@@ -129,6 +127,6 @@ Many thanks to [Rendy Anthony](https://github.com/rendyanthony) for helping me m
 Many thanks to everyone involved in translating this extension either through GitHub or Crowdin.
 
 ## Donation
-If you like my work please support it by buying me a cup of coffee :grin:
+If you like my work please support it by buying me a cup of coffee :-)
 
-[![PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
+[![PayPal](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/wiki/images/paypal.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=TFVDFD88KQ322)
