@@ -102,11 +102,7 @@ class ServerMonitor
 		if(out_fd instanceof Uint8Array) outStr = ByteArray.toString(out_fd);
 		else outStr = out_fd.toString();
 
-		if(res && outStr.includes(extensionName) && outStr.includes('server'))
-		{
-			print('Cast to TV server is already running!');
-			return true;
-		}
+		if(res && outStr.includes(extensionName) && outStr.includes('server')) return true;
 		else return false;
 	}
 
