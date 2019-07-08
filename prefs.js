@@ -673,7 +673,8 @@ class AboutPage extends Gtk.VBox
 		/* Image */
 		let image = new Gtk.Image({
 			file: Local.path + '/appIcon/prefs.png',
-			margin: 5
+			margin: 5,
+			margin_top: 25
 		});
 		this.pack_start(image, false, false, 0);
 
@@ -700,18 +701,25 @@ class AboutPage extends Gtk.VBox
 		this.pack_start(label, false, false, 0);
 
 		/* Homepage link */
-		linkButton = new Gtk.LinkButton();
+		linkButton = new Gtk.LinkButton({
+			uri: 'https://rafostar.github.io/gnome-shell-extension-cast-to-tv',
+			label: _("Extension Homepage")
+		});
+		this.pack_start(linkButton, false, false, 0);
 
-		linkButton.uri = Local.metadata['url'];
-		linkButton.label = _("Extension Homepage");
+		/* Playercast link */
+		linkButton = new Gtk.LinkButton({
+			uri: 'https://rafostar.github.io/playercast',
+			label: _("Playercast Homepage")
+		});
 		this.pack_start(linkButton, false, false, 0);
 
 		/* Donation link */
-		linkButton = new Gtk.LinkButton();
-
-		linkButton.uri = 'https://www.paypal.me/Rafostar';
-		linkButton.label = _("Donate");
-		this.pack_start(linkButton, false, false, 0);
+		linkButton = new Gtk.LinkButton({
+			uri: 'https://www.paypal.me/Rafostar',
+			label: _("Donate")
+		});
+		this.pack_start(linkButton, false, false, 20);
 	}
 
 	destroy()
