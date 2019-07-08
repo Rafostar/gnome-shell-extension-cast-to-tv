@@ -4,31 +4,42 @@ var gettext = require('./gettext');
 var schemaDir = path.join(__dirname + '/../schemas');
 var sysLang = process.env.LANG.substring(0, 2);
 
-exports.showRemote = function(enable)
+var gnome =
 {
-	spawn('gsettings', ['--schemadir', schemaDir,
-		'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
+	showRemote: (enable) =>
+	{
+		spawn('gsettings', ['--schemadir', schemaDir,
+			'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
+	},
+
+	showMenu: (enable) =>
+	{
+		spawn('gsettings', ['--schemadir', schemaDir,
+			'set', 'org.gnome.shell.extensions.cast-to-tv', 'service-enabled', enable]);
+	},
+
+	getSetting: (setting) =>
+	{
+		var gsettings = spawnSync('gsettings', ['--schemadir', schemaDir,
+			'get', 'org.gnome.shell.extensions.cast-to-tv', setting]);
+
+		var outStr = String(gsettings.stdout).replace(/\'/g, '').replace(/\n/, '');
+
+		if(outStr == 'true') return true;
+		else if(outStr == 'false') return false;
+		else return outStr;
+	},
+
+	isRemote: () =>
+	{
+		return gnome.getSetting('chromecast-playing');
+	},
+
+	notify: (summary, body) =>
+	{
+		gettext.setLocale(sysLang);
+		spawn('notify-send', [summary, gettext.translate(body)]);
+	}
 }
 
-exports.showMenu = function(enable)
-{
-	spawn('gsettings', ['--schemadir', schemaDir,
-		'set', 'org.gnome.shell.extensions.cast-to-tv', 'service-enabled', enable]);
-}
-
-exports.isRemote = function()
-{
-	var gsettings = spawnSync('gsettings', ['--schemadir', schemaDir,
-		'get', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing']);
-
-	var outStr = gsettings.stdout.toString().replace(/\'/g, '').replace(/\n/, '');
-
-	if(outStr == 'true') return true;
-	else return false;
-}
-
-exports.notify = function(summary, body)
-{
-	gettext.setLocale(sysLang);
-	spawn('notify-send', [summary, gettext.translate(body)]);
-}
+module.exports = gnome;

@@ -229,6 +229,12 @@ function changeChromecastName()
 	Temp.writeToFile(shared.configPath, configContents);
 }
 
+function changePlayercastName()
+{
+	configContents.playercastName = Settings.get_string('playercast-name');
+	Temp.writeToFile(shared.configPath, configContents);
+}
+
 function changeSeekTime()
 {
 	Widget.seekTime = Settings.get_int('seek-time');
@@ -342,6 +348,7 @@ function enable()
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
 	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-name', changeChromecastName.bind(this)));
+	Signals.push(Settings.connect('changed::playercast-name', changePlayercastName.bind(this)));
 	Signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 	Signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));

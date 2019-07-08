@@ -39,6 +39,11 @@
       <default>""</default>
       <summary>Chromecast device name</summary>
     </key>
+    <!-- Playercast -->
+    <key name="playercast-name" type="s">
+      <default>""</default>
+      <summary>Playercast device name</summary>
+    </key>
     <!-- Other -->
     <key name="music-visualizer" type="b">
       <default>false</default>

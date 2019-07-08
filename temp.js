@@ -54,7 +54,8 @@ function setConfigFile()
 		videoBitrate: Settings.get_double('video-bitrate').toFixed(1),
 		videoAcceleration: Settings.get_string('video-acceleration'),
 		musicVisualizer: Settings.get_boolean('music-visualizer'),
-		chromecastName: Settings.get_string('chromecast-name')
+		chromecastName: Settings.get_string('chromecast-name'),
+		playercastName: Settings.get_string('playercast-name')
 	};
 
 	/* Use default paths if custom paths are not defined */

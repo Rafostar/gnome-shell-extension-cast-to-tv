@@ -16,6 +16,7 @@ var remote = require(shared.remotePath);
 var configTimeout;
 var playlistTimeout;
 var selectionTimeout;
+var writeTimeout;
 
 exports.config = require(shared.configPath);
 exports.selection = require(shared.selectionPath);
@@ -119,6 +120,30 @@ exports.shutDown = function(err)
 	}
 }
 
+exports.writePlayercasts = function()
+{
+	if(writeTimeout)
+	{
+		clearTimeout(writeTimeout);
+		writeTimeout = null;
+	}
+
+	writeTimeout = setTimeout(() =>
+	{
+		writeTimeout = null;
+
+		fs.writeFile(shared.playercastsPath, JSON.stringify(socket.playercasts), (err) =>
+		{
+			if(err)
+			{
+				var nextRetry = 60000;
+				console.error(`Could not write Playercasts to temp file! Next retry in ${nextRetry/1000} seconds.`);
+				setTimeout(() => exports.writePlayercasts(), nextRetry);
+			}
+		});
+	}, 1000);
+}
+
 function updateConfig()
 {
 	var configContents = getContents(shared.configPath);
@@ -176,7 +201,13 @@ function updateSelection()
 				chromecast.cast();
 				break;
 			case 'playercast':
-				socket.emit('playercast');
+				if(socket.playercasts.length > 0)
+				{
+					var name = (socket.playercasts.includes(exports.config.playercastName)) ?
+						exports.config.playercastName : socket.playercasts[0];
+
+					socket.emit('playercast', name);
+				}
 				break;
 			case 'other':
 				setTimeout(socket.emit, 250, 'reload');
@@ -205,11 +236,8 @@ function handleRemoteSignal(action, value)
 		case 'chromecast':
 			chromecast.remote(action, value);
 			break;
-		case 'playercast':
-		case 'other':
-			controller.webControl(action, value);
-			break;
 		default:
+			controller.webControl(action, value);
 			break;
 	}
 }

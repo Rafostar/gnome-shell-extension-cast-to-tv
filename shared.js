@@ -14,6 +14,7 @@ module.exports = {
 	listPath: tempDir + '/playlist.json',
 	remotePath: tempDir + '/remote-controller.json',
 	statusPath: tempDir + '/chromecast-status.json',
+	playercastsPath: tempDir + '/playercasts.json',
 	vttSubsPath: tempDir + '/webplayer_subs.vtt',
 	coverDefault: tempDir + '/cover',
 	escapeChars: [' ', '[', ']', '"', "'"],

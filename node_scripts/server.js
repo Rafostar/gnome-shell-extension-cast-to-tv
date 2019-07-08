@@ -35,7 +35,7 @@ function checkMessagePage(req, res)
 	if(	bridge.config.receiverType != 'other'
 		|| !bridge.selection.filePath
 		|| encode.streamProcess
-		|| socket.clientsConnected > 0
+		|| socket.activeConnections > 0
 	) {
 		showMessage = true;
 	}

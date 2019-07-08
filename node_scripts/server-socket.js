@@ -12,7 +12,8 @@ var shared = require('../shared');
 var clientTimeout;
 var websocket;
 
-exports.clientsConnected = 0;
+exports.activeConnections = 0;
+exports.playercasts = [];
 
 exports.listen = function(server)
 {
@@ -27,7 +28,7 @@ exports.emit = function(message, opts)
 
 function handleMessages(socket)
 {
-	exports.clientsConnected++;
+	exports.activeConnections++;
 
 	if(clientTimeout)
 	{
@@ -62,7 +63,32 @@ function handleMessages(socket)
 
 	socket.on('status-update', msg => bridge.setStatusFile(msg));
 	socket.on('show-remote', msg => gnome.showRemote(msg));
-	socket.on('disconnect', checkClients);
+	socket.on('disconnect', msg =>
+	{
+		if(	socket.playercastName
+			&& exports.playercasts.includes(socket.playercastName)
+		) {
+			var index = exports.playercasts.indexOf(socket.playercastName);
+			exports.playercasts.splice(index, 1);
+			bridge.writePlayercasts();
+		}
+		else {
+			checkClients(msg);
+		}
+	});
+	socket.on('playercast-connect', msg =>
+	{
+		socket.playercastName = msg;
+
+		if(exports.activeConnections > 0)
+			exports.activeConnections--;
+
+		if(!exports.playercasts.includes(socket.playercastName))
+		{
+			exports.playercasts.push(socket.playercastName);
+			bridge.writePlayercasts();
+		}
+	});
 }
 
 function initWebPlayer()
@@ -92,11 +118,14 @@ function initWebPlayer()
 
 function checkClients()
 {
-	if(exports.clientsConnected > 0) exports.clientsConnected--;
+	if(exports.activeConnections > 0)
+		exports.activeConnections--;
 
 	clientTimeout = setTimeout(() =>
 	{
-		if(exports.clientsConnected == 0)
+		clientTimeout = null;
+
+		if(exports.activeConnections == 0)
 		{
 			controller.repeat = false;
 			gnome.showRemote(false);
@@ -109,7 +138,7 @@ function sendMessage()
 	if(bridge.config.receiverType != 'other') websocket.emit('message-refresh', gettext.translate(messages.wrongReceiver));
 	else if(!bridge.selection.filePath) websocket.emit('message-refresh', gettext.translate(messages.noMedia));
 	else if(encode.streamProcess) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
-	else if(exports.clientsConnected > 1) websocket.emit('message-refresh', gettext.translate(messages.connectLimit));
-	else if(exports.clientsConnected == 1) exports.clientsConnected--;
+	else if(exports.activeConnections > 1) websocket.emit('message-refresh', gettext.translate(messages.connectLimit));
+	else if(exports.activeConnections == 1) exports.activeConnections--;
 	else websocket.emit('message-clear');
 }

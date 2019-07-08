@@ -7,6 +7,7 @@ const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const devicesPath = Local.path + '/config/devices.json';
 const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 const npmPath = GLib.find_program_in_path('npm');
 
@@ -488,10 +489,22 @@ class OtherSettings extends Gtk.Grid
 		this.attach(label, 0, 4, 1, 1);
 		this.attach(widget, 1, 4, 1, 1);
 
+		/* Label: Playercast */
+		label = new SettingLabel(_("Playercast app"), true, true);
+		this.attach(label, 0, 5, 1, 1);
+
+		/* Playercast device name */
+		label = new SettingLabel(_("Device selection"));
+		widget = new Gtk.ComboBoxText();
+		setDevices(widget, shared.playercastsPath);
+		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(widget, 1, 6, 1, 1);
+
 		/* Label: Miscellaneous */
 		/* TRANSLATORS: The rest of extension settings */
 		label = new SettingLabel(_("Miscellaneous"), true, true);
-		this.attach(label, 0, 5, 1, 1);
+		this.attach(label, 0, 7, 1, 1);
 
 		/* Music Visualizer */
 		label = new SettingLabel(_("Music visualizer"));
@@ -499,8 +512,8 @@ class OtherSettings extends Gtk.Grid
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('music-visualizer'));
 		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(widget, 1, 6, 1, 1);
+		this.attach(label, 0, 8, 1, 1);
+		this.attach(widget, 1, 8, 1, 1);
 
 		/* Nautilus Integration */
 		label = new SettingLabel(_("Nautilus integration"));
@@ -514,8 +527,8 @@ class OtherSettings extends Gtk.Grid
 			enableNautilusExtension(this.nautilusSwitch.active);
 		});
 
-		this.attach(label, 0, 7, 1, 1);
-		this.attach(this.nautilusSwitch, 1, 7, 1, 1);
+		this.attach(label, 0, 9, 1, 1);
+		this.attach(this.nautilusSwitch, 1, 9, 1, 1);
 	}
 
 	destroy()
@@ -831,13 +844,22 @@ function scanDevices(widget, button)
 	});
 }
 
-function setDevices(widget)
+function setDevices(widget, filePath)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
 
-	let devices = Temp.readFromFile(Local.path + '/config/devices.json');
-	if(devices) devices.forEach(device => widget.append(device.name, device.friendlyName));
+	filePath = (typeof filePath === 'string') ? filePath: devicesPath;
+	let devices = Temp.readFromFile(filePath);
+	if(Array.isArray(devices))
+	{
+		devices.forEach(device =>
+		{
+			var value = (device.name) ? device.name : device;
+			var text = (device.friendlyName) ? device.friendlyName : device;
+			widget.append(value, text);
+		});
+	}
 }
 
 function getHostIp()
