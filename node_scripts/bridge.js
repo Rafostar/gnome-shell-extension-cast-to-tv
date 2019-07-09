@@ -203,7 +203,7 @@ function updateSelection()
 			case 'playercast':
 				if(socket.playercasts.length > 0)
 				{
-					var name = (socket.playercasts.includes(exports.config.playercastName)) ?
+					var name = (exports.config.playercastName) ?
 						exports.config.playercastName : socket.playercasts[0];
 
 					socket.emit('playercast', name);

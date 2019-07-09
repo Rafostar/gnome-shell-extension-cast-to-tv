@@ -498,6 +498,12 @@ class OtherSettings extends Gtk.Grid
 		widget = new Gtk.ComboBoxText();
 		setDevices(widget, shared.playercastsPath);
 		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+		let currentPlayercast = Settings.get_string('playercast-name');
+		if(widget.active_id != currentPlayercast)
+		{
+			widget.append(currentPlayercast, currentPlayercast);
+			widget.active_id = currentPlayercast;
+		}
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(widget, 1, 6, 1, 1);
 
