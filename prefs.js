@@ -702,7 +702,7 @@ class AboutPage extends Gtk.VBox
 
 		/* Homepage link */
 		linkButton = new Gtk.LinkButton({
-			uri: 'https://rafostar.github.io/gnome-shell-extension-cast-to-tv',
+			uri: Local.metadata['url'],
 			label: _("Extension Homepage")
 		});
 		this.pack_start(linkButton, false, false, 0);
