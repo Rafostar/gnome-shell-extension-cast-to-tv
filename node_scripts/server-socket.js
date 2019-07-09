@@ -65,16 +65,16 @@ function handleMessages(socket)
 	socket.on('show-remote', msg => gnome.showRemote(msg));
 	socket.on('disconnect', msg =>
 	{
-		if(	socket.playercastName
-			&& exports.playercasts.includes(socket.playercastName)
-		) {
+		if(socket.playercastName)
+		{
+			if(socket.playercastInvalid || !exports.playercasts.includes(socket.playercastName)) return;
+
 			var index = exports.playercasts.indexOf(socket.playercastName);
 			exports.playercasts.splice(index, 1);
 			bridge.writePlayercasts();
 		}
-		else {
+		else
 			checkClients(msg);
-		}
 	});
 	socket.on('playercast-connect', msg =>
 	{
@@ -87,6 +87,11 @@ function handleMessages(socket)
 		{
 			exports.playercasts.push(socket.playercastName);
 			bridge.writePlayercasts();
+		}
+		else
+		{
+			socket.playercastInvalid = true;
+			socket.emit('invalid', 'name');
 		}
 	});
 }
