@@ -188,7 +188,7 @@ function updateSelection()
 		remove.covers();
 		remove.file(shared.vttSubsPath);
 	}
-	else if(exports.selection.filePath)
+	else if(exports.selection.filePath && exports.config.receiverType !== 'playercast')
 	{
 		setProcesses();
 	}
