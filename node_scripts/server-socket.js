@@ -86,6 +86,7 @@ function handleMessages(socket)
 		if(!exports.playercasts.includes(socket.playercastName))
 		{
 			exports.playercasts.push(socket.playercastName);
+			socket.emit('invalid', false);
 			bridge.writePlayercasts();
 		}
 		else
