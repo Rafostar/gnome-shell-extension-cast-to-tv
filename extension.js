@@ -163,75 +163,22 @@ function getTempFiles()
 	if(!statusExists) Temp.setStatusFile();
 }
 
-function changeFFmpegPath()
+function updateTempConfig(schemaKey, valueType)
 {
-	configContents.ffmpegPath = Settings.get_string('ffmpeg-path');
+	let confKey = schemaKey.split('-');
+	confKey = confKey[0] + confKey[1].charAt(0).toUpperCase() + confKey[1].slice(1);
+
+	configContents[confKey] = Settings['get_' + valueType](schemaKey);
+
+	if(valueType === 'double')
+		configContents[confKey] = configContents[confKey].toFixed(1);
 
 	if(!configContents.ffmpegPath)
-	{
 		configContents.ffmpegPath = '/usr/bin/ffmpeg';
-	}
-
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeFFprobePath()
-{
-	configContents.ffprobePath = Settings.get_string('ffprobe-path');
 
 	if(!configContents.ffprobePath)
-	{
 		configContents.ffprobePath = '/usr/bin/ffprobe';
-	}
 
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeReceiverType()
-{
-	configContents.receiverType = Settings.get_string('receiver-type');
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeListeningPort()
-{
-	configContents.listeningPort = Settings.get_int('listening-port');
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeWebplayerSubs()
-{
-	configContents.webplayerSubs = Settings.get_double('webplayer-subs').toFixed(1);
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeVideoBitrate()
-{
-	configContents.videoBitrate = Settings.get_double('video-bitrate').toFixed(1);
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeVideoAcceleration()
-{
-	configContents.videoAcceleration = Settings.get_string('video-acceleration');
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeMusicVisualizer()
-{
-	configContents.musicVisualizer = Settings.get_boolean('music-visualizer');
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changeChromecastName()
-{
-	configContents.chromecastName = Settings.get_string('chromecast-name');
-	Temp.writeToFile(shared.configPath, configContents);
-}
-
-function changePlayercastName()
-{
-	configContents.playercastName = Settings.get_string('playercast-name');
 	Temp.writeToFile(shared.configPath, configContents);
 }
 
@@ -336,19 +283,19 @@ function enable()
 	Signals = [];
 
 	/* Connect signals */
-	Signals.push(Settings.connect('changed::ffmpeg-path', changeFFmpegPath.bind(this)));
-	Signals.push(Settings.connect('changed::ffprobe-path', changeFFprobePath.bind(this)));
-	Signals.push(Settings.connect('changed::receiver-type', changeReceiverType.bind(this)));
-	Signals.push(Settings.connect('changed::listening-port', changeListeningPort.bind(this)));
-	Signals.push(Settings.connect('changed::webplayer-subs', changeWebplayerSubs.bind(this)));
-	Signals.push(Settings.connect('changed::video-bitrate', changeVideoBitrate.bind(this)));
-	Signals.push(Settings.connect('changed::video-acceleration', changeVideoAcceleration.bind(this)));
+	Signals.push(Settings.connect('changed::ffmpeg-path', updateTempConfig.bind(this, 'ffmpeg-path', 'string')));
+	Signals.push(Settings.connect('changed::ffprobe-path', updateTempConfig.bind(this, 'ffprobe-path', 'string')));
+	Signals.push(Settings.connect('changed::receiver-type', updateTempConfig.bind(this, 'receiver-type', 'string')));
+	Signals.push(Settings.connect('changed::listening-port', updateTempConfig.bind(this, 'listening-port', 'int')));
+	Signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
+	Signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
+	Signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
+	Signals.push(Settings.connect('changed::music-visualizer', updateTempConfig.bind(this, 'music-visualizer', 'boolean')));
+	Signals.push(Settings.connect('changed::chromecast-name', updateTempConfig.bind(this, 'chromecast-name', 'string')));
+	Signals.push(Settings.connect('changed::playercast-name', updateTempConfig.bind(this, 'playercast-name', 'string')));
 	Signals.push(Settings.connect('changed::remote-position', recreateRemote.bind(this)));
 	Signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
-	Signals.push(Settings.connect('changed::music-visualizer', changeMusicVisualizer.bind(this)));
-	Signals.push(Settings.connect('changed::chromecast-name', changeChromecastName.bind(this)));
-	Signals.push(Settings.connect('changed::playercast-name', changePlayercastName.bind(this)));
 	Signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 	Signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
