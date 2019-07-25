@@ -61,21 +61,6 @@ function handleMessages(socket)
 		}
 	});
 
-	socket.on('status-update', msg => bridge.setStatusFile(msg));
-	socket.on('show-remote', msg => gnome.showRemote(msg));
-	socket.on('disconnect', msg =>
-	{
-		if(socket.playercastName)
-		{
-			if(socket.playercastInvalid || !exports.playercasts.includes(socket.playercastName)) return;
-
-			var index = exports.playercasts.indexOf(socket.playercastName);
-			exports.playercasts.splice(index, 1);
-			bridge.writePlayercasts();
-		}
-		else
-			checkClients(msg);
-	});
 	socket.on('playercast-connect', msg =>
 	{
 		socket.playercastName = msg;
@@ -94,6 +79,41 @@ function handleMessages(socket)
 			socket.playercastInvalid = true;
 			socket.emit('invalid', 'name');
 		}
+	});
+
+	socket.on('playercast-ctl', msg =>
+	{
+		switch(msg)
+		{
+			case 'track-ended':
+				controller.checkNextTrack();
+				break;
+			case 'previous-track':
+				controller.webControl('SKIP-');
+				break;
+			case 'next-track':
+				controller.webControl('SKIP+');
+				break;
+			default:
+				break;
+		}
+	});
+
+	socket.on('status-update', msg => bridge.setStatusFile(msg));
+	socket.on('show-remote', msg => gnome.showRemote(msg));
+
+	socket.on('disconnect', msg =>
+	{
+		if(socket.playercastName)
+		{
+			if(socket.playercastInvalid || !exports.playercasts.includes(socket.playercastName)) return;
+
+			var index = exports.playercasts.indexOf(socket.playercastName);
+			exports.playercasts.splice(index, 1);
+			bridge.writePlayercasts();
+		}
+		else
+			checkClients(msg);
 	});
 }
 
