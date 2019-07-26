@@ -86,7 +86,8 @@ function handleMessages(socket)
 		switch(msg)
 		{
 			case 'track-ended':
-				controller.checkNextTrack();
+				if(!controller.checkNextTrack())
+					controller.webControl('STOP');
 				break;
 			case 'previous-track':
 				controller.webControl('SKIP-');

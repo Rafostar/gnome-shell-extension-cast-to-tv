@@ -42,6 +42,16 @@ exports.checkNextTrack = function()
 	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
 	var listLastID = bridge.list.length;
 
-	if(exports.repeat && currentTrackID == listLastID) return exports.changeTrack(1);
-	else if(currentTrackID < listLastID) return exports.changeTrack(currentTrackID + 1);
+	if(exports.repeat && currentTrackID == listLastID)
+	{
+		exports.changeTrack(1);
+		return true;
+	}
+	else if(currentTrackID < listLastID)
+	{
+		exports.changeTrack(currentTrackID + 1);
+		return true;
+	}
+
+	return false;
 }
