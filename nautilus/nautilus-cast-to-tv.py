@@ -88,7 +88,7 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
             if self.config['playercastName']:
                 return self.config['playercastName']
             else:
-                return _("Playercast app")
+                return "Playercast"
         elif self.config['receiverType'] == 'other':
             return _("Web browser | Media player")
 
