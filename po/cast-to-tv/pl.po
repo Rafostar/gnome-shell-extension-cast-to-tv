@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-07-27 19:09+0200\n"
-"PO-Revision-Date: 2019-07-27 18:06\n"
+"PO-Revision-Date: 2019-07-27 19:04\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -19,7 +19,7 @@ msgstr ""
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
 #: extension.js:34
 msgid "Playercast Remote"
-msgstr ""
+msgstr "Pilot Playercasta"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:38
@@ -48,7 +48,7 @@ msgstr "Obraz"
 
 #: widget.js:35 widget.js:79
 msgid "Turn Off"
-msgstr ""
+msgstr "Wyłącz"
 
 #: widget.js:36
 msgid "Cast Settings"
@@ -56,12 +56,12 @@ msgstr "Ustawienia przesyłu"
 
 #: widget.js:87
 msgid "Turn On"
-msgstr ""
+msgstr "Włącz"
 
 #. TRANSLATORS: When "Cast Media" service is turned off
 #: widget.js:89
 msgid "Cast Off"
-msgstr ""
+msgstr "Przesyłanie wyłączone"
 
 #: file-chooser.js:51
 msgid "Transcode Video"
@@ -120,7 +120,7 @@ msgstr "Pliki napisów"
 #. TRANSLATORS: Will contain dependency name at the beginning (e.g. Node.js is not installed)
 #: prefs.js:59
 msgid "is not installed"
-msgstr ""
+msgstr "nie jest zainstalowany"
 
 #: prefs.js:77
 msgid "Streaming in progress"
@@ -142,7 +142,7 @@ msgstr "Rodzaj odbiornika"
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
 #: prefs.js:120 prefs.js:493
 msgid "Playercast app"
-msgstr ""
+msgstr "Aplikacja Playercast"
 
 #. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
 #: prefs.js:122
@@ -318,7 +318,7 @@ msgstr "Strona domowa rozszerzenia"
 
 #: prefs.js:719
 msgid "Playercast Homepage"
-msgstr ""
+msgstr "Strona domowa Playercasta"
 
 #: prefs.js:726
 msgid "Donate"
@@ -372,7 +372,7 @@ msgstr "Rodzaj odbiornika ustawiono jako Chromecast"
 
 #: node_scripts/messages.js:7
 msgid "Receiver type is set to Playercast app"
-msgstr ""
+msgstr "Rodzaj odbiornika ustawiono jako Playercast"
 
 #: node_scripts/messages.js:8
 msgid "Streaming process is still active"
