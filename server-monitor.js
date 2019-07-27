@@ -1,25 +1,37 @@
 const { Gio, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
-const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
 const extensionName = 'cast-to-tv@rafostar.github.com';
 const localPath = `${GLib.get_home_dir()}/.local/share/gnome-shell/extensions/${extensionName}`;
+const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
+const castSettings = getSettings();
 
 let statusTimer;
 let restartCount = 0;
 let persistent = true;
 let loop = GLib.MainLoop.new(null, false);
 
+function getSettings()
+{
+	const GioSSS = Gio.SettingsSchemaSource;
+	let schemaSource = GioSSS.new_from_directory(
+		localPath + '/schemas', GioSSS.get_default(), false);
+	let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.cast-to-tv', true);
+
+	return new Gio.Settings({ settings_schema: schemaObj });
+}
+
 class ServerMonitor
 {
 	constructor()
 	{
-		let canStart = (
-			this._isExtensionEnabled()
-			&& !this._isServerRunning()
-			&& this._checkModules()
-		);
-
+		let canStart = (this._isExtensionEnabled() && !this._isServerRunning());
 		if(!canStart) return;
+
+		if(!this._checkModules())
+		{
+			castSettings.set_boolean('service-enabled', false);
+			return;
+		}
 
 		Settings.connect('changed::disable-user-extensions', () => this._onSettingsChanged());
 		Settings.connect('changed::enabled-extensions', () => this._onSettingsChanged());
