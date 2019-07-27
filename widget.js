@@ -85,6 +85,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 				this.serviceMenuItem.actor.show();
 				this.settingsMenuItem.actor.show();
 				this.serviceMenuItem.label.text = _("Turn On");
+				/* TRANSLATORS: When "Cast Media" service is turned off */
 				this.castSubMenu.label.text = _("Cast Off");
 			}
 
