@@ -153,10 +153,7 @@ function checkClients()
 		clientTimeout = null;
 
 		if(exports.activeConnections == 0)
-		{
-			controller.repeat = false;
 			gnome.showRemote(false);
-		}
 	}, 2500);
 }
 

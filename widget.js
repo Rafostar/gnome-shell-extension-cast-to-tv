@@ -13,9 +13,9 @@ const iconName = 'tv-symbolic';
 const maxDelay = 16;
 const minDelay = 8;
 
-var isRepeatActive;
-var isUnifiedSlider;
-var seekTime;
+var isRepeatActive = false;
+var isUnifiedSlider = true;
+var seekTime = 10;
 
 var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
 
@@ -236,7 +236,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			{
 				if(isRepeatActive != statusContents.repeat)
 				{
-					isRepeatActive = statusContents.repeat;
+					isRepeatActive = (statusContents.repeat === true) ? true : false;
 					this.repeatButton.turnOn(isRepeatActive);
 				}
 

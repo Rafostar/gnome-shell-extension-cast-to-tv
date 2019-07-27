@@ -57,8 +57,7 @@ function configCastRemote()
 		let listLastID = listContents.length;
 
 		/* Restore repeat button state */
-		if(Widget.isRepeatActive) remoteMenu.enableRepeat(true);
-		else remoteMenu.enableRepeat(false);
+		remoteMenu.enableRepeat(Widget.isRepeatActive);
 
 		/* Disable skip backward if playing first file from list */
 		if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
