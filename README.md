@@ -22,6 +22,8 @@
 * Stream music with visualizations (requires fast cpu)
 * Nautilus right click menu integration
 
+[Playercast](https://rafostar.github.io/playercast) app turns your media player on any other Linux device (e.g. HTPC, Raspberry Pi) into a media receiver that works similarly to Chromecast.
+
 Expand extension functionality through Add-ons (experimental):
 * [Links Add-on](https://github.com/Rafostar/cast-to-tv-links-addon) - cast media from web pages
 * [Desktop Add-on](https://github.com/Rafostar/cast-to-tv-desktop-addon) - desktop streaming (early development stage - testers are welcome)
@@ -123,7 +125,7 @@ Special thanks go to [Simon Kusterer (xat)](https://github.com/xat) for developi
 ### Nautilus Extension
 Many thanks to [Rendy Anthony](https://github.com/rendyanthony) for helping me make Nautilus integration based on his [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) extension.
 
-### Translators
+### Translations
 Many thanks to everyone involved in translating this extension either through GitHub or Crowdin.
 
 ## Donation
