@@ -203,10 +203,23 @@ function updateSelection()
 			case 'playercast':
 				if(socket.playercasts.length > 0)
 				{
+					/* Temporary workaround for Playercast cover detection */
+					extract.coverPath = 'muxed_image';
+
 					var playercastName = (exports.config.playercastName) ?
 						exports.config.playercastName : socket.playercasts[0];
 
-					socket.emit('playercast', { name: playercastName, ...exports.selection });
+					if(exports.selection.streamType == 'MUSIC' && !exports.config.musicVisualizer)
+					{
+						extract.checkCoverIncluded((isIncluded) =>
+						{
+							if(!isIncluded) extract.findCoverFile();
+
+							socket.emit('playercast', { name: playercastName, ...exports.selection });
+						});
+					}
+					else
+						socket.emit('playercast', { name: playercastName, ...exports.selection });
 				}
 				break;
 			case 'other':

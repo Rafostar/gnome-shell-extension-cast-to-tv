@@ -111,51 +111,59 @@ exports.encodedStream = function(req, res)
 
 exports.subsStream = function(req, res)
 {
-	var subsPath = bridge.selection.subsPath;
-	var parsedUrl = req._parsedUrl.pathname;
-
-	if(!subsPath || parsedUrl == '/subswebplayer')
+	if(bridge.selection.streamType.startsWith('VIDEO'))
 	{
-		subsPath = shared.vttSubsPath;
+		var subsPath = bridge.selection.subsPath;
+
+		if(bridge.config.receiverType !== 'playercast')
+		{
+			var parsedUrl = req._parsedUrl.pathname;
+
+			if(!subsPath || parsedUrl == '/subswebplayer')
+				subsPath = shared.vttSubsPath;
+		}
+
+		/* Check if file exist */
+		var exist = (subsPath && fs.existsSync(subsPath));
+
+		if(exist)
+		{
+			res.writeHead(200, {
+				'Access-Control-Allow-Origin': '*',
+				'Content-Type': 'text/vtt'
+			});
+
+			return fs.createReadStream(subsPath).pipe(res);
+		}
 	}
 
-	/* Check if file exist */
-	var exist = fs.existsSync(subsPath);
-
-	if(exist)
-	{
-		res.writeHead(200, {
-			'Access-Control-Allow-Origin': '*',
-			'Content-Type': 'text/vtt'
-		});
-
-		return fs.createReadStream(subsPath).pipe(res);
-	}
-	else
-	{
-		res.statusCode = 204;
-		res.end();
-	}
+	res.sendStatus(204);
 }
 
 exports.coverStream = function(req, res)
 {
-	var coverPath = extract.coverPath;
-
-	res.writeHead(200, {
-		'Access-Control-Allow-Origin': '*',
-		'Content-Type': 'image/png'
-	});
-
-	/* Check if file exist */
-	var exist = fs.existsSync(coverPath);
-
-	if(!exist)
+	if(bridge.selection.streamType == 'MUSIC')
 	{
-		coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
+		var coverPath = extract.coverPath;
+
+		/* Playercast supports covers in media file */
+		if(bridge.config.receiverType === 'playercast' && coverPath === 'muxed_image')
+			return res.sendStatus(204);
+
+		res.writeHead(200, {
+			'Access-Control-Allow-Origin': '*',
+			'Content-Type': 'image/png'
+		});
+
+		var exist = (coverPath && fs.existsSync(coverPath));
+
+		if(!exist)
+			coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
+
+		return fs.createReadStream(coverPath).pipe(res);
 	}
 
-	return fs.createReadStream(coverPath).pipe(res);
+	res.sendStatus(204);
 }
 
 exports.webConfig = function(req, res)

@@ -38,7 +38,7 @@ exports.findCoverFile = function()
 		}
 	}
 
-	coverFound = false;
+	return coverFound = false;
 }
 
 exports.analyzeFile = function()
@@ -56,6 +56,28 @@ exports.analyzeFile = function()
 			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', messages.ffprobePath);
 			exports.subsProcess = null;
 			exports.coverProcess = null;
+		});
+}
+
+exports.checkCoverIncluded = function(cb)
+{
+	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
+
+	ffprobePromise
+		.then(data => {
+			for(var i = 0; i < data.streams.length; i++)
+			{
+				if(data.streams[i].codec_name == 'mjpeg')
+					return cb(true);
+			}
+
+			cb(false);
+		})
+		.catch(err => {
+			if(err.message == 'FFprobe process error') gnome.notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
+			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', messages.ffprobePath);
+
+			cb(false);
 		});
 }
 
@@ -162,5 +184,6 @@ function checkCombinedCover(i,j)
 		}
 	}
 
+	exports.coverPath = "";
 	return false;
 }
