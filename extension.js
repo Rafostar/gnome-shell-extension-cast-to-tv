@@ -12,8 +12,8 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Widget = Local.imports.widget;
-const Convenience = Local.imports.convenience;
-const Settings = Convenience.getSettings();
+const Helper = Local.imports.helper;
+const Settings = Helper.getSettings(Local.path, Local.metadata['settings-schema']);
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
@@ -257,7 +257,7 @@ function setIndicator(enable)
 
 function init()
 {
-	Convenience.initTranslations();
+	Helper.initTranslations(Local.path, Local.metadata['gettext-domain']);
 }
 
 function enable()

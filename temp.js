@@ -1,8 +1,7 @@
 const GLib = imports.gi.GLib;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
-const Convenience = Local.imports.convenience;
-const Settings = Convenience.getSettings();
+const Settings = Local.imports.helper.getSettings(Local.path, Local.metadata['settings-schema']);
 const shared = Local.imports.shared.module.exports;
 
 function writeToFile(path, contents)

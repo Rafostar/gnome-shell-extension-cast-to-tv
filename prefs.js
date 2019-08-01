@@ -2,8 +2,8 @@ const { Gio, Gtk, GLib, Gdk, Vte } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel } = Local.imports.prefs_shared;
-const Convenience = Local.imports.convenience;
-const Settings = Convenience.getSettings();
+const Helper = Local.imports.helper;
+const Settings = Helper.getSettings(Local.path, Local.metadata['settings-schema']);
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
@@ -17,7 +17,7 @@ var nodeBin;
 
 function init()
 {
-	Convenience.initTranslations();
+	Helper.initTranslations(Local.path, Local.metadata['gettext-domain']);
 }
 
 class MissingNotification extends Gtk.VBox
