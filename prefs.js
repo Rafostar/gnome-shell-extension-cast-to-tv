@@ -1,6 +1,7 @@
 const { Gio, Gtk, GLib, Gdk, Vte } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
+const { SettingLabel } = Local.imports.prefs_shared;
 const Convenience = Local.imports.convenience;
 const Settings = Convenience.getSettings();
 const Temp = Local.imports.temp;
@@ -17,34 +18,6 @@ var nodeBin;
 function init()
 {
 	Convenience.initTranslations();
-}
-
-class SettingLabel
-{
-	constructor(text, isTitle, isTopMargin)
-	{
-		let label = null;
-		let marginLeft = 0;
-		let marginTop = 0;
-
-		if(isTitle) label = '<span font="12.5"><b>' + text + '</b></span>';
-		else
-		{
-			label = text;
-			marginLeft = 12;
-		}
-
-		if(isTopMargin) marginTop = 20;
-
-		return new Gtk.Label({
-			label: label,
-			use_markup: true,
-			hexpand: true,
-			halign: Gtk.Align.START,
-			margin_top: marginTop,
-			margin_left: marginLeft
-		});
-	}
 }
 
 class MissingNotification extends Gtk.VBox
