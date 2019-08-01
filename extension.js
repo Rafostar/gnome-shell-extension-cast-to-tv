@@ -1,5 +1,5 @@
 /*
-gnome-shell-extension-cast-to-tv
+GNOME Shell Extension Cast to TV
 Developer: Rafostar
 Extension GitHub: https://github.com/Rafostar/gnome-shell-extension-cast-to-tv
 */
