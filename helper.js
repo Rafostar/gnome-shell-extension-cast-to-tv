@@ -1,4 +1,7 @@
-/* Convenience replacement, as convenience does not work correctly with my use-cases */
+/*
+Convenience replacement
+Original convenience.js does not work correctly with this extension use-cases
+*/
 
 const { Gio } = imports.gi;
 const Gettext = imports.gettext;
@@ -17,7 +20,6 @@ function getSettings(localPath, schemaName)
 
 function initTranslations(localPath, gettextDomain)
 {
-	if(!localPath || !gettextDomain) return;
-
-	Gettext.bindtextdomain(gettextDomain, localPath + '/locale');
+	if(localPath && gettextDomain)
+		Gettext.bindtextdomain(gettextDomain, localPath + '/locale');
 }
