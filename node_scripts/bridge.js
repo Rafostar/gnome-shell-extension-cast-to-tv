@@ -84,6 +84,7 @@ exports.shutDown = function(err)
 	console.log('Closing Cast to TV...');
 
 	debug('Closing node server');
+	closeAddon();
 
 	watcher.close();
 	debug('Closed file watcher');
@@ -301,5 +302,6 @@ function closeAddon()
 	{
 		exports.addon.closeStream();
 		exports.addon = null;
+		debug('Closed Add-on');
 	}
 }
