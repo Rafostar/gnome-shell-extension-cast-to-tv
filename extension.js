@@ -86,13 +86,16 @@ function configCastRemote()
 				break;
 			case 'MUSIC':
 				if(!configContents.musicVisualizer) remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
-				else remoteMenu.setMode('ENCODE', 'folder-music-symbolic');
+				else remoteMenu.setMode('ENCODE');
 				break;
 			case 'PICTURE':
 				remoteMenu.setMode('PICTURE');
 				break;
+			case 'LIVE':
+				remoteMenu.setMode('LIVE');
+				break;
 			default:
-				remoteMenu.setMode('ENCODE', 'folder-videos-symbolic');
+				remoteMenu.setMode('ENCODE');
 				break;
 		}
 

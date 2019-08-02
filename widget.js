@@ -139,6 +139,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
 
+		/* Items that might be shown or hidden depending on media content */
+		let changableItems = ['positionSlider', 'volumeSlider', 'playButton', 'pauseButton',
+			'seekBackwardButton', 'seekForwardButton', 'repeatButton'];
+
 		/* Add space between stop and the remaining buttons */
 		this.stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
 
@@ -331,39 +335,45 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
+		this.setShownRemoteItems = (itemsArray) =>
+		{
+			changableItems.forEach(item =>
+			{
+				if(this.hasOwnProperty(item))
+				{
+					if(itemsArray.includes(item))
+						this[item].show();
+					else
+						this[item].hide();
+				}
+			});
+		}
+
 		this.setMode = (value, icon) =>
 		{
 			this.mode = value;
+			let shownItems = [];
 
 			switch(this.mode)
 			{
 				case 'DIRECT':
-					this.positionSlider.show();
-					this.repeatButton.show();
-					this.pauseButton.show();
-					this.playButton.hide();
-					this.seekBackwardButton.show();
-					this.seekForwardButton.show();
-					if(isUnifiedSlider) this.volumeSlider.hide();
-					else this.volumeSlider.show();
+					shownItems = ['positionSlider', 'repeatButton', 'pauseButton',
+						'seekBackwardButton', 'seekForwardButton'];
+					if(!isUnifiedSlider) shownItems.push('volumeSlider');
+					this.setShownRemoteItems(shownItems);
 					break;
 				case 'ENCODE':
-					this.positionSlider.hide();
-					this.volumeSlider.show();
-					this.repeatButton.show();
-					this.pauseButton.show();
-					this.playButton.hide();
-					this.seekBackwardButton.hide();
-					this.seekForwardButton.hide();
+					shownItems = ['volumeSlider', 'repeatButton', 'pauseButton'];
+					this.setShownRemoteItems(shownItems);
 					break;
 				case 'PICTURE':
-					this.positionSlider.hide();
-					this.volumeSlider.hide();
-					this.repeatButton.hide();
-					this.pauseButton.hide();
-					this.playButton.hide();
-					this.seekBackwardButton.hide();
-					this.seekForwardButton.hide();
+					this.setShownRemoteItems(shownItems);
+					break;
+				case 'LIVE':
+					shownItems = ['volumeSlider', 'pauseButton'];
+					this.setShownRemoteItems(shownItems);
+					break;
+				default:
 					break;
 			}
 
