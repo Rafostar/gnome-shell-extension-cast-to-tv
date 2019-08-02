@@ -42,7 +42,7 @@ function enableAddon(addonName, Widget, delay)
 		/* Give main extension time to finish startup */
 		timeouts[addonName] = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () =>
 		{
-			delete timeouts[addonName];
+			timeouts[addonName] = null;
 
 			castMenu = findCastToTv();
 			if(castMenu)
@@ -73,7 +73,7 @@ function disableAddon(addonName)
 	if(timeouts[addonName])
 	{
 		GLib.source_remove(timeouts[addonName]);
-		delete timeouts[addonName];
+		timeouts[addonName] = null;
 	}
 
 	if(addonMenuItems[addonName])
@@ -87,6 +87,6 @@ function disableAddon(addonName)
 			setLastMenuItem(castMenu, addonMenuItems[addonName]);
 
 		addonMenuItems[addonName].destroy();
-		delete addonMenuItems[addonName];
+		addonMenuItems[addonName] = null;
 	}
 }
