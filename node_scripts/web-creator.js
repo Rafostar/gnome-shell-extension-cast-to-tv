@@ -12,16 +12,10 @@ exports.fileStream = function(req, res)
 	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
-	{
-		res.statusCode = 404;
-		res.end();
-		return;
-	}
+		return res.sendStatus(404);
 
-	/* Check if file exist */
-	var exist = fs.existsSync(filePath);
-
-	if(exist)
+	/* Check if file exists */
+	if(fs.existsSync(filePath))
 	{
 		res.setHeader('Access-Control-Allow-Origin', '*');
 
@@ -56,11 +50,8 @@ exports.fileStream = function(req, res)
 		res.statusCode = 206;
 		return file.pipe(res);
 	}
-	else
-	{
-		res.statusCode = 404;
-		res.end();
-	}
+
+	res.sendStatus(404);
 }
 
 exports.encodedStream = function(req, res)
@@ -68,32 +59,22 @@ exports.encodedStream = function(req, res)
 	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
-	{
-		res.statusCode = 404;
-		res.end();
-		return;
-	}
+		return res.sendStatus(404);
 
 	/* Prevent spawning more then one ffmpeg encode process */
 	if(encode.streamProcess)
-	{
-		res.statusCode = 429;
-		res.end();
-		return;
-	}
-
-	res.setHeader('Content-Type', 'video/x-matroska');
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	res.setHeader('Connection', 'keep-alive');
-	res.statusCode = 200;
+		return res.sendStatus(429);
 
 	var streamType = bridge.selection.streamType;
 
-	/* Check if file exist */
-	var exist = fs.existsSync(filePath);
-
-	if(exist)
+	/* Check if file exists */
+	if(fs.existsSync(filePath))
 	{
+		res.setHeader('Content-Type', 'video/x-matroska');
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.setHeader('Connection', 'keep-alive');
+		res.statusCode = 200;
+
 		if(streamType == 'VIDEO_ENCODE') encode.video().pipe(res);
 		else if(streamType == 'VIDEO_VAAPI') encode.videoVaapi().pipe(res);
 		else if(streamType == 'VIDEO_NVENC') encode.videoNvenc().pipe(res);
@@ -102,11 +83,8 @@ exports.encodedStream = function(req, res)
 
 		return;
 	}
-	else
-	{
-		res.statusCode = 404;
-		res.end();
-	}
+
+	res.sendStatus(404);
 }
 
 exports.subsStream = function(req, res)
@@ -123,10 +101,8 @@ exports.subsStream = function(req, res)
 				subsPath = shared.vttSubsPath;
 		}
 
-		/* Check if file exist */
-		var exist = (subsPath && fs.existsSync(subsPath));
-
-		if(exist)
+		/* Check if file is specified and exists */
+		if(subsPath && fs.existsSync(subsPath))
 		{
 			res.writeHead(200, {
 				'Access-Control-Allow-Origin': '*',
@@ -155,9 +131,8 @@ exports.coverStream = function(req, res)
 			'Content-Type': 'image/png'
 		});
 
-		var exist = (coverPath && fs.existsSync(coverPath));
-
-		if(!exist)
+		/* Use default cover when other does not exists */
+		if(!(coverPath && fs.existsSync(coverPath)))
 			coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
 
 		return fs.createReadStream(coverPath).pipe(res);
