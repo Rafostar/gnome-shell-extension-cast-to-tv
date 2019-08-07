@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-07-27 19:09+0200\n"
-"PO-Revision-Date: 2019-08-05 18:16\n"
+"PO-Revision-Date: 2019-08-07 14:19\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -19,7 +19,7 @@ msgstr ""
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
 #: extension.js:34
 msgid "Playercast Remote"
-msgstr "Playercast-mediabediening"
+msgstr "Playercast-bediening"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:38
