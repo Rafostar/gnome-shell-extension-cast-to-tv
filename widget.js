@@ -24,6 +24,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 	constructor()
 	{
 		super();
+		this.extensionId = Local.metadata['extension-id'];
 		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
 		this.castSubMenu.icon.icon_name = iconName;
 		this.isServiceEnabled = true;

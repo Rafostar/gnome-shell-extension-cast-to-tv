@@ -13,7 +13,7 @@ function findCastToTv()
 
 	while(index < menuItems.length)
 	{
-		if(menuItems[index].castSubMenu) break;
+		if(menuItems[index].extensionId === 'cast-to-tv') break;
 		index++;
 	}
 
