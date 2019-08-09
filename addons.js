@@ -13,12 +13,16 @@ function findCastToTv()
 
 	while(index < menuItems.length)
 	{
-		if(menuItems[index].extensionId === 'cast-to-tv') break;
+		if(	menuItems[index].hasOwnProperty('extensionId')
+			&& menuItems[index].extensionId === 'cast-to-tv'
+		) {
+			return menuItems[index];
+		}
+
 		index++;
 	}
 
-	if(menuItems[index]) return menuItems[index];
-	else return null;
+	return null;
 }
 
 function setLastMenuItem(extMenu, item, endOffset)
@@ -50,16 +54,16 @@ function enableAddon(addonName, Widget, delay)
 				addonMenuItems[addonName] = new Widget.addonMenuItem();
 				castMenu.castSubMenu.menu.addMenuItem(addonMenuItems[addonName]);
 
-				if(	typeof castMenu.isServiceEnabled !== 'undefined'
+				if(	castMenu.hasOwnProperty('isServiceEnabled')
 					&& castMenu.isServiceEnabled === false
 				) {
 					addonMenuItems[addonName].actor.hide();
 				}
 
-				if(typeof castMenu.serviceMenuItem !== 'undefined')
+				if(castMenu.hasOwnProperty('serviceMenuItem'))
 					setLastMenuItem(castMenu, castMenu.serviceMenuItem);
 
-				if(typeof castMenu.settingsMenuItem !== 'undefined')
+				if(castMenu.hasOwnProperty('settingsMenuItem'))
 					setLastMenuItem(castMenu, castMenu.settingsMenuItem);
 			}
 
