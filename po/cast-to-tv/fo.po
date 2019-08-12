@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-10 17:39+0200\n"
-"PO-Revision-Date: 2019-05-21 21:02\n"
+"POT-Creation-Date: 2019-07-27 19:09+0200\n"
+"PO-Revision-Date: 2019-07-27 18:06\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Faroese\n"
 "Language: fo_FO\n"
@@ -16,34 +16,52 @@ msgstr ""
 "X-Crowdin-Language: fo\n"
 "X-Crowdin-File: /master/po/cast-to-tv/cast-to-tv.pot\n"
 
+#. TRANSLATORS: "Playercast" is a name of an app, so do not change it
+#: extension.js:34
+msgid "Playercast Remote"
+msgstr ""
+
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
-#: extension.js:33
+#: extension.js:38
 msgid "Web Player Remote"
 msgstr ""
 
-#: extension.js:36 widget.js:82
+#: extension.js:41 widget.js:108
 msgid "Chromecast Remote"
 msgstr "Chromecast Fjarstýring"
 
-#: widget.js:27
+#: widget.js:27 widget.js:80
 msgid "Cast Media"
 msgstr "Varpa Media"
 
-#: widget.js:31
+#: widget.js:32
 msgid "Video"
 msgstr "Sjónband"
 
-#: widget.js:32
+#: widget.js:33
 msgid "Music"
 msgstr "Tónleik"
 
-#: widget.js:33
+#: widget.js:34
 msgid "Picture"
 msgstr "Mynd"
 
-#: widget.js:34
+#: widget.js:35 widget.js:79
+msgid "Turn Off"
+msgstr ""
+
+#: widget.js:36
 msgid "Cast Settings"
 msgstr "Varpar Setingar"
+
+#: widget.js:87
+msgid "Turn On"
+msgstr ""
+
+#. TRANSLATORS: When "Cast Media" service is turned off
+#: widget.js:89
+msgid "Cast Off"
+msgstr ""
 
 #: file-chooser.js:51
 msgid "Transcode Video"
@@ -63,266 +81,280 @@ msgstr "Varpa valdu fílurnar"
 msgid "Cancel"
 msgstr "Avlýs"
 
-#: file-chooser.js:79
+#: file-chooser.js:78
 msgid "Add Subtitles"
 msgstr "Legg undirtekstir aftrat"
 
-#: file-chooser.js:80
+#: file-chooser.js:79
 msgid "Select Video"
 msgstr "Vel Sjónband"
 
-#: file-chooser.js:84
+#: file-chooser.js:83
 msgid "Video Files"
 msgstr "Sjónbond"
 
-#: file-chooser.js:91
+#: file-chooser.js:89
 msgid "Select Music"
 msgstr "Vel Tónleik"
 
-#: file-chooser.js:94
+#: file-chooser.js:92
 msgid "Audio Files"
 msgstr "Tónleikar Fílur"
 
-#: file-chooser.js:101
+#: file-chooser.js:98
 msgid "Select Picture"
 msgstr "Vel Mynd"
 
-#: file-chooser.js:104
+#: file-chooser.js:101
 msgid "Pictures"
 msgstr "Myndir"
 
-#: file-chooser.js:180
+#: file-chooser.js:177
 msgid "Select Subtitles"
 msgstr "Vel Undirtekstir"
 
-#: file-chooser.js:184
+#: file-chooser.js:181
 msgid "Subtitle Files"
 msgstr "Undirteksta fílur"
 
-#: prefs.js:52
+#. TRANSLATORS: Will contain dependency name at the beginning (e.g. Node.js is not installed)
+#: prefs.js:59
+msgid "is not installed"
+msgstr ""
+
+#: prefs.js:77
 msgid "Streaming in progress"
 msgstr ""
 
 #. TRANSLATORS: Keep line this short (otherwise extension prefs will strech)
-#: prefs.js:61
+#: prefs.js:86
 msgid "Stop media transfer before accessing extension settings"
 msgstr ""
 
-#: prefs.js:87
+#: prefs.js:112
 msgid "Main Options"
 msgstr ""
 
-#: prefs.js:91
+#: prefs.js:116
 msgid "Receiver type"
 msgstr "Slag av móttakara"
 
+#. TRANSLATORS: "Playercast" is a name of an app, so do not change it
+#: prefs.js:120 prefs.js:493
+msgid "Playercast app"
+msgstr ""
+
 #. TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player".
-#: prefs.js:95
+#: prefs.js:122
 msgid "Web browser | Media player"
 msgstr ""
 
-#: prefs.js:102
+#: prefs.js:128
 msgid "FFmpeg path"
 msgstr "FFmpeg slóð"
 
-#: prefs.js:110
+#: prefs.js:136
 msgid "FFprobe path"
 msgstr "FFprobe slóð"
 
-#: prefs.js:118
+#: prefs.js:144
 msgid "Listening port"
 msgstr "Portur at lurta at"
 
-#: prefs.js:153
+#: prefs.js:180
 msgid "Access web player from devices on local network"
 msgstr ""
 
-#: prefs.js:183
+#: prefs.js:227
 msgid "Remote Controller"
 msgstr ""
 
-#: prefs.js:187
+#: prefs.js:231
 msgid "Remote position"
 msgstr "Remote position"
 
-#: prefs.js:189
+#: prefs.js:233
 msgid "Left"
 msgstr "Vinstra"
 
-#: prefs.js:190
+#: prefs.js:234
 msgid "Center (left side)"
 msgstr "Mitt fyri (vinstru síði)"
 
-#: prefs.js:191
+#: prefs.js:235
 msgid "Center (right side)"
 msgstr "Mitt fyri (høgru síði)"
 
-#: prefs.js:192
+#: prefs.js:236
 msgid "Right"
 msgstr "Høgra"
 
-#: prefs.js:198
+#: prefs.js:242
 msgid "Seek backward/forward (seconds)"
 msgstr "Spola aftur/fram (sekund)"
 
-#: prefs.js:209
+#: prefs.js:253
 msgid "Unify sliders"
 msgstr ""
 
-#: prefs.js:218
+#: prefs.js:262
 msgid "Show remote label"
 msgstr ""
 
-#: prefs.js:253
+#: prefs.js:297
 msgid "Chromecast Options"
 msgstr ""
 
-#: prefs.js:257
+#: prefs.js:301 prefs.js:497
 msgid "Device selection"
 msgstr ""
 
-#: prefs.js:270
+#: prefs.js:314
 msgid "Subtitles"
 msgstr ""
 
-#: prefs.js:274
+#: prefs.js:318
 msgid "Font family"
 msgstr ""
 
-#: prefs.js:294
+#: prefs.js:338
 msgid "Font style"
 msgstr ""
 
 #. TRANSLATORS: One of "Speed" setting value
-#: prefs.js:296 node_scripts/messages.js:19
+#: prefs.js:340 node_scripts/messages.js:20
 msgid "Normal"
 msgstr "Vanlig"
 
-#: prefs.js:297
+#: prefs.js:341
 msgid "Bold"
 msgstr ""
 
-#: prefs.js:298
+#: prefs.js:342
 msgid "Italic"
 msgstr ""
 
-#: prefs.js:299
+#: prefs.js:343
 msgid "Bold italic"
 msgstr ""
 
-#: prefs.js:310
+#: prefs.js:354
 msgid "Scale factor"
 msgstr ""
 
-#: prefs.js:325
+#: prefs.js:369
 msgid "Font color"
 msgstr ""
 
-#: prefs.js:338
+#: prefs.js:382
 msgid "Font outline"
 msgstr ""
 
-#: prefs.js:370
+#: prefs.js:414
 msgid "Background color"
 msgstr ""
 
-#: prefs.js:407
+#: prefs.js:451
 msgid "Media Encoding"
 msgstr "Media umkoting"
 
-#: prefs.js:411
+#: prefs.js:455
 msgid "Hardware acceleration"
 msgstr "Hardware acceleration"
 
-#: prefs.js:413
+#: prefs.js:457
 msgid "None"
 msgstr "Ongin"
 
 #. TRANSLATORS: Should remain as VAAPI unless you use different alphabet
-#: prefs.js:415
+#: prefs.js:459
 msgid "VAAPI"
 msgstr "VAAPI"
 
-#: prefs.js:423
+#: prefs.js:467
 msgid "Bitrate (Mbps)"
 msgstr "Bitferð (Mdps)"
 
-#: prefs.js:434
+#: prefs.js:478
 msgid "Web Player"
 msgstr ""
 
-#: prefs.js:438
+#: prefs.js:482
 msgid "Subtitles scale factor"
 msgstr ""
 
 #. TRANSLATORS: The rest of extension settings
-#: prefs.js:450
+#: prefs.js:512
 msgid "Miscellaneous"
 msgstr "Annað"
 
-#: prefs.js:454
+#: prefs.js:516
 msgid "Music visualizer"
 msgstr "Vís endurgeving av tónleiki visuelt"
 
-#: prefs.js:463
+#: prefs.js:525
 msgid "Nautilus integration"
 msgstr ""
 
-#: prefs.js:558
+#: prefs.js:621
 msgid "Install npm modules"
 msgstr ""
 
-#: prefs.js:581
+#: prefs.js:644
 msgid "Installing..."
 msgstr ""
 
-#: prefs.js:632
+#: prefs.js:696
 msgid "version:"
 msgstr ""
 
-#: prefs.js:639
+#: prefs.js:703
 msgid "Developed by"
 msgstr ""
 
-#: prefs.js:649
+#: prefs.js:712
 msgid "Extension Homepage"
 msgstr ""
 
-#: prefs.js:656
+#: prefs.js:719
+msgid "Playercast Homepage"
+msgstr ""
+
+#: prefs.js:726
 msgid "Donate"
 msgstr ""
 
-#: prefs.js:674
+#: prefs.js:745
 msgid "Main"
 msgstr ""
 
-#: prefs.js:678
+#: prefs.js:749
 msgid "Remote"
 msgstr ""
 
 #. TRANSLATORS: Other extension settings
-#: prefs.js:687
+#: prefs.js:758
 msgid "Other"
 msgstr ""
 
-#: prefs.js:698
+#: prefs.js:769
 msgid "Add-ons"
 msgstr ""
 
-#: prefs.js:703
+#: prefs.js:774
 msgid "Modules"
 msgstr ""
 
-#: prefs.js:707
+#: prefs.js:778
 msgid "About"
 msgstr ""
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
-#: prefs.js:771
+#: prefs.js:842
 msgid "Scanning..."
 msgstr "Leitar..."
 
-#: prefs.js:793
+#: prefs.js:864
 msgid "Automatic"
 msgstr "Sjálvvirkið"
 
@@ -339,50 +371,54 @@ msgid "Receiver type is set to Chromecast"
 msgstr "Móttakara slag er stilla til Chromecast"
 
 #: node_scripts/messages.js:7
+msgid "Receiver type is set to Playercast app"
+msgstr ""
+
+#: node_scripts/messages.js:8
 msgid "Streaming process is still active"
 msgstr "Varping er enn í gongd"
 
 #. TRANSLATORS: Do not remove HTML tags
-#: node_scripts/messages.js:9
+#: node_scripts/messages.js:10
 msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
 msgstr ""
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:11
+#: node_scripts/messages.js:12
 msgid "FFmpeg could not transcode file:"
 msgstr "FFMpeg kláraði ikki at umkota hesa fíluna:"
 
-#: node_scripts/messages.js:12
+#: node_scripts/messages.js:13
 msgid "FFmpeg path is incorrect"
 msgstr "FFmpeg slógin er ikki røtt"
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:14
+#: node_scripts/messages.js:15
 msgid "FFprobe could not process file:"
 msgstr "FFprobe fekk ikki viðgjørt hesa fíluna:"
 
-#: node_scripts/messages.js:15
+#: node_scripts/messages.js:16
 msgid "FFprobe path is incorrect"
 msgstr "FFprobe slógin er ikki røtt"
 
-#: node_scripts/messages.js:17
+#: node_scripts/messages.js:18
 msgid "Speed"
 msgstr "Ferð"
 
-#: node_scripts/messages.js:22
+#: node_scripts/messages.js:23
 msgid "Device not found"
 msgstr "Tól ikki funnið"
 
-#: node_scripts/messages.js:23
+#: node_scripts/messages.js:24
 msgid "Failed to load media"
 msgstr "Fekk ikki lisið media"
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:25
+#: node_scripts/messages.js:26
 msgid "Could not play file:"
 msgstr "Fekk ikki spælt fíluna:"
 
-#: node_scripts/messages.js:26
+#: node_scripts/messages.js:27
 msgid "Try again with transcoding enabled"
 msgstr "Royn aftur ímeðan umkoting er koblað til"
 
