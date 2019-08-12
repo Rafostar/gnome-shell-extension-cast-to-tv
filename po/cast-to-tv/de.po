@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-07-27 19:09+0200\n"
-"PO-Revision-Date: 2019-07-28 14:04\n"
+"PO-Revision-Date: 2019-08-12 17:55\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -52,7 +52,7 @@ msgstr "Ausschalten"
 
 #: widget.js:36
 msgid "Cast Settings"
-msgstr "Cast Einstellungen"
+msgstr "Cast-Einstellungen"
 
 #: widget.js:87
 msgid "Turn On"
