@@ -602,7 +602,8 @@ class ModulesSettings extends Gtk.VBox
 
 		let installCallback = () =>
 		{
-			GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
+			if(Settings.get_boolean('service-wanted'))
+				GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
 
 			this.installButton.label = _(installLabel);
 			this.installButton.set_sensitive(true);
@@ -929,7 +930,7 @@ function buildPrefsWidget()
 {
 	let widget = null;
 
-	if(!nodePath) return widget = new MissingNotification('Node.js');
+	if(!nodePath) return widget = new MissingNotification('nodejs');
 	else if(!npmPath) return widget = new MissingNotification('npm');
 
 	nodeDir = nodePath.substring(0, nodePath.lastIndexOf('/'));
