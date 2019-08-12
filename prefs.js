@@ -12,8 +12,8 @@ const devicesPath = Local.path + '/config/devices.json';
 const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 const npmPath = GLib.find_program_in_path('npm');
 
-var nodeDir;
-var nodeBin;
+let nodeDir;
+let nodeBin;
 
 function init()
 {
@@ -842,8 +842,8 @@ function setDevices(widget, filePath)
 	{
 		devices.forEach(device =>
 		{
-			var value = (device.name) ? device.name : device;
-			var text = (device.friendlyName) ? device.friendlyName : device;
+			let value = (device.name) ? device.name : device;
+			let text = (device.friendlyName) ? device.friendlyName : device;
 			widget.append(value, text);
 		});
 	}
