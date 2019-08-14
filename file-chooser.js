@@ -4,10 +4,11 @@ const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';
 const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
-const localPath = GLib.get_home_dir() + '/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com';
+const localPath = GLib.get_current_dir();
 const streamType = ARGV[0];
 imports.searchPath.unshift(localPath);
 const shared = imports.shared.module.exports;
+imports.searchPath.shift();
 Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
 
 class fileChooser
