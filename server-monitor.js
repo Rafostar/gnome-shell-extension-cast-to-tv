@@ -1,7 +1,7 @@
 const { Gio, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 const extensionName = 'cast-to-tv@rafostar.github.com';
-const localPath = `${GLib.get_home_dir()}/.local/share/gnome-shell/extensions/${extensionName}`;
+const localPath = GLib.get_current_dir();
 const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
 const castSettings = getSettings();
 
