@@ -603,7 +603,7 @@ class ModulesSettings extends Gtk.VBox
 		let installCallback = () =>
 		{
 			if(Settings.get_boolean('service-wanted'))
-				GLib.spawn_async(Local.path, ['/usr/bin/gjs', 'server-monitor.js'], null, 0, null);
+				GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/server-monitor.js'], null, 0, null);
 
 			this.installButton.label = _(installLabel);
 			this.installButton.set_sensitive(true);
