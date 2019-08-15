@@ -201,7 +201,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(this.positionSlider.isVolume) action = 'VOLUME';
 			else action = 'SEEK';
 
-			Temp.setRemoteAction(action, this.positionSlider.value.toFixed(3));
+			Temp.setRemoteAction(action, this.positionSlider.getValue());
 			this.positionSlider.busy = false;
 		}
 
@@ -234,7 +234,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.volumeSliderAction = () =>
 		{
 			this.volumeSlider.delay = minDelay;
-			Temp.setRemoteAction('VOLUME', this.volumeSlider.value.toFixed(3));
+			Temp.setRemoteAction('VOLUME', this.volumeSlider.getValue());
 			this.volumeSlider.busy = false;
 		}
 
@@ -295,7 +295,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.setVolume(statusContents);
 
 				if(
-					this.positionSlider.visible
+					this.positionSlider.getVisible()
 					&& !this.positionSlider.isVolume
 					&& this.positionSlider.delay == 0
 					&& !this.positionSlider.busy
@@ -342,7 +342,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(statusContents.volume >= 0 && statusContents.volume <= 1)
 			{
 				if(
-					this.volumeSlider.visible
+					this.volumeSlider.getVisible()
 					&& this.volumeSlider.delay == 0
 					&& !this.volumeSlider.busy
 				) {
@@ -496,7 +496,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.volumeIcon = 'audio-volume-high-symbolic';
 		this._toggle = toggle;
 		this._slider = new Slider.Slider(0);
-		this.value = this._slider.value;
 
 		if(this._toggle) this.button = new MediaControlButton(this.defaultIcon, false, 16);
 		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
@@ -513,7 +512,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 			this.actor.visible = true;
 
 			/* Available by default when without actor */
-			this.visible = this.actor.visible;
 			this.hide = () => this.actor.hide();
 			this.show = () => this.actor.show();
 		}
@@ -528,6 +526,17 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.button.style = 'margin-right: 2px;';
 
 		/* Functions */
+		this.getVisible = () =>
+		{
+			if(this.hasOwnProperty('actor'))
+				return this.actor.visible;
+			else
+				return this.visible;
+		};
+		this.getValue = () =>
+		{
+			return this._slider.value.toFixed(3);
+		};
 		this.setValue = (value) => this._slider.setValue(value);
 		this.setIcon = (iconName) =>
 		{
@@ -544,7 +553,6 @@ class trackTitleItem extends PopupMenu.PopupBaseMenuItem
 	{
 		super({ hover: false, reactive: true });
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
-		this.text = this._title.text;
 
 		if(this.hasOwnProperty('actor'))
 		{
@@ -556,5 +564,8 @@ class trackTitleItem extends PopupMenu.PopupBaseMenuItem
 			this.add(this._title);
 			this.add_style_pseudo_class = () => { return null };
 		}
+
+		/* Functions */
+		this.setText = (text) => this._title.text = text;
 	}
 }

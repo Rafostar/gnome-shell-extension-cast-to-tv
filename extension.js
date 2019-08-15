@@ -68,14 +68,14 @@ function configCastRemote()
 		else remoteMenu.skipForwardButton.reactive = false;
 
 		/* Update track title */
-		if(selectionContents.title) remoteMenu.trackTitle.text = selectionContents.title;
+		if(selectionContents.title) remoteMenu.trackTitle.setText(selectionContents.title);
 		else
 		{
 			let filename = selectionContents.filePath.substring(selectionContents.filePath.lastIndexOf('/') + 1);
 			let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
 
-			if(title) remoteMenu.trackTitle.text = title;
-			else remoteMenu.trackTitle.text = "";
+			if(title) remoteMenu.trackTitle.setText(title);
+			else remoteMenu.trackTitle.setText("");
 		}
 
 		/* Choose remote to create */
