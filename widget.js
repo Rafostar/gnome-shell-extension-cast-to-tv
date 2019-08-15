@@ -76,15 +76,29 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 			if(enable)
 			{
-				menuItems.forEach(item => item.actor.show());
+				menuItems.forEach(item =>
+				{
+					if(item.hasOwnProperty('actor'))
+						item.actor.show();
+					else
+						item.show();
+				});
 				this.serviceMenuItem.label.text = _("Turn Off");
 				this.castSubMenu.label.text = _("Cast Media");
 			}
 			else
 			{
-				menuItems.forEach(item => item.actor.hide());
-				this.serviceMenuItem.actor.show();
-				this.settingsMenuItem.actor.show();
+				menuItems.forEach(item =>
+				{
+					if(	item !== this.serviceMenuItem
+						&& item !== this.settingsMenuItem
+					) {
+						if(item.hasOwnProperty('actor'))
+							item.actor.hide();
+						else
+							item.hide();
+					}
+				});
 				this.serviceMenuItem.label.text = _("Turn On");
 				/* TRANSLATORS: When "Cast Media" service is turned off */
 				this.castSubMenu.label.text = _("Cast Off");
@@ -118,7 +132,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.box.add(this.toplabel);
 		this.box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
-		this.actor.add_child(this.box);
+		if(this.hasOwnProperty('actor'))
+			this.actor.add_child(this.box);
+		else
+			this.add_child(this.box);
 
 		/* Create base for media control buttons */
 		this.popupBase = new PopupBase();
@@ -160,7 +177,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.menu.addMenuItem(this.trackTitle);
 		this.menu.addMenuItem(this.positionSlider);
 		this.menu.addMenuItem(this.volumeSlider);
-		this.popupBase.actor.add(this.controlsButtonBox);
+
+		if(this.popupBase.hasOwnProperty('actor'))
+			this.popupBase.actor.add(this.controlsButtonBox);
+		else
+			this.popupBase.add(this.controlsButtonBox);
+
 		this.menu.addMenuItem(this.popupBase);
 
 		/* We do not want to display both play and pause buttons at once */
@@ -381,8 +403,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(icon) this.positionSlider.defaultIcon = icon;
 		}
 
-		this.hide = () => this.actor.hide();
-		this.show = () => this.actor.show();
+		/* Only need to be added when used with actor */
+		if(this.hasOwnProperty('actor'))
+		{
+			this.hide = () => this.actor.hide();
+			this.show = () => this.actor.show();
+		}
 	}
 
 	destroy()
@@ -396,7 +422,11 @@ class PopupBase extends PopupMenu.PopupBaseMenuItem
 	constructor()
 	{
 		super({ hover: false, reactive: true });
-		this.actor.add_style_pseudo_class = () => { return null };
+
+		if(this.hasOwnProperty('actor'))
+			this.actor.add_style_pseudo_class = () => { return null };
+		else
+			this.add_style_pseudo_class = () => { return null };
 	}
 }
 
@@ -467,7 +497,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this._toggle = toggle;
 		this._slider = new Slider.Slider(0);
 		this.value = this._slider.value;
-		this.visible = this.actor.visible;
 
 		if(this._toggle) this.button = new MediaControlButton(this.defaultIcon, false, 16);
 		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
@@ -476,10 +505,25 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.busy = false;
 		this.isVolume = false;
 
-		this.actor.add(this.button);
-		this.actor.add(this._slider.actor, { expand: true });
-		this.actor.add_style_pseudo_class = () => { return null };
-		this.actor.visible = true;
+		if(this.hasOwnProperty('actor'))
+		{
+			this.actor.add(this.button);
+			this.actor.add(this._slider.actor, { expand: true });
+			this.actor.add_style_pseudo_class = () => { return null };
+			this.actor.visible = true;
+
+			/* Available by default when without actor */
+			this.visible = this.actor.visible;
+			this.hide = () => this.actor.hide();
+			this.show = () => this.actor.show();
+		}
+		else
+		{
+			this.add(this.button);
+			this.add(this._slider, { expand: true });
+			this.add_style_pseudo_class = () => { return null };
+			this.visible = true;
+		}
 
 		this.button.style = 'margin-right: 2px;';
 
@@ -490,8 +534,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 			if(this._toggle) this.button.child.icon_name = iconName;
 			else this.button.icon_name = iconName;
 		}
-		this.hide = () => this.actor.hide();
-		this.show = () => this.actor.show();
 		this.connect = (signal, callback) => this._slider.connect(signal, callback);
 	}
 }
@@ -504,7 +546,15 @@ class trackTitleItem extends PopupMenu.PopupBaseMenuItem
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
 		this.text = this._title.text;
 
-		this.actor.add(this._title);
-		this.actor.add_style_pseudo_class = () => { return null };
+		if(this.hasOwnProperty('actor'))
+		{
+			this.actor.add(this._title);
+			this.actor.add_style_pseudo_class = () => { return null };
+		}
+		else
+		{
+			this.add(this._title);
+			this.add_style_pseudo_class = () => { return null };
+		}
 	}
 }
