@@ -194,12 +194,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 				if(this.positionSlider.isVolume)
 				{
-					this.positionSlider.icon = this.positionSlider.volumeIcon;
+					this.positionSlider.setIcon(this.positionSlider.volumeIcon);
 					if(statusContents) this.setVolume(statusContents);
 				}
 				else
 				{
-					this.positionSlider.icon = this.positionSlider.defaultIcon;
+					this.positionSlider.setIcon(this.positionSlider.defaultIcon);
 					if(statusContents) this.setProgress(statusContents);
 				}
 			});
@@ -380,16 +380,9 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(icon) this.positionSlider.defaultIcon = icon;
 		}
-	}
 
-	hide()
-	{
-		this.actor.hide();
-	}
-
-	show()
-	{
-		this.actor.show();
+		this.hide = () => this.actor.hide();
+		this.show = () => this.actor.show();
 	}
 
 	destroy()
@@ -473,6 +466,8 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.volumeIcon = 'audio-volume-high-symbolic';
 		this._toggle = toggle;
 		this._slider = new Slider.Slider(0);
+		this.value = this._slider.value;
+		this.visible = this.actor.visible;
 
 		if(this._toggle) this.button = new MediaControlButton(this.defaultIcon, false, 16);
 		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
@@ -490,25 +485,14 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 
 		/* Functions */
 		this.setValue = (value) => this._slider.setValue(value);
+		this.setIcon = (iconName) =>
+		{
+			if(this._toggle) this.button.child.icon_name = iconName;
+			else this.button.icon_name = iconName;
+		}
 		this.hide = () => this.actor.hide();
 		this.show = () => this.actor.show();
 		this.connect = (signal, callback) => this._slider.connect(signal, callback);
-	}
-
-	get value()
-	{
-		return this._slider.value;
-	}
-
-	get visible()
-	{
-		return this.actor.visible;
-	}
-
-	set icon(value)
-	{
-		if(this._toggle) this.button.child.icon_name = value;
-		else this.button.icon_name = value;
 	}
 }
 
@@ -518,13 +502,9 @@ class trackTitleItem extends PopupMenu.PopupBaseMenuItem
 	{
 		super({ hover: false, reactive: true });
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
+		this.text = this._title.text;
 
 		this.actor.add(this._title);
 		this.actor.add_style_pseudo_class = () => { return null };
-	}
-
-	set text(value)
-	{
-		this._title.text = value;
 	}
 }

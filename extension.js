@@ -102,12 +102,12 @@ function configCastRemote()
 		/* Set slider startup values */
 		if(remoteMenu.positionSlider.isVolume)
 		{
-			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.volumeIcon;
+			remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.volumeIcon);
 		}
 		else
 		{
 			remoteMenu.positionSlider.setValue(0);
-			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.defaultIcon;
+			remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
 		}
 
 		remoteMenu.show();
