@@ -222,24 +222,6 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(label, 0, 2, 1, 1);
 		this.attach(widget, 1, 2, 1, 1);
 
-		/* Volume Slider */
-		label = new SettingLabel(_("Unify sliders"));
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('unified-slider'));
-		Settings.bind('unified-slider', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(widget, 1, 3, 1, 1);
-
-		/* Remote Label */
-		label = new SettingLabel(_("Show remote label"));
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('remote-label'));
-		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(widget, 1, 4, 1, 1);
-
 		/* Media Buttons Size */
 		label = new SettingLabel(_("Media control buttons size"));
 		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
@@ -248,8 +230,8 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_value(Settings.get_int('media-buttons-size'));
 		widget.set_increments(1, 2);
 		Settings.bind('media-buttons-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 5, 1, 1);
-		this.attach(widget, 1, 5, 1, 1);
+		this.attach(label, 0, 3, 1, 1);
+		this.attach(widget, 1, 3, 1, 1);
 
 		/* Slider Icon Size */
 		label = new SettingLabel(_("Slider icon size"));
@@ -259,6 +241,24 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_value(Settings.get_int('slider-icon-size'));
 		widget.set_increments(1, 2);
 		Settings.bind('slider-icon-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(widget, 1, 4, 1, 1);
+
+		/* Volume Slider */
+		label = new SettingLabel(_("Unify sliders"));
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('unified-slider'));
+		Settings.bind('unified-slider', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(widget, 1, 5, 1, 1);
+
+		/* Remote Label */
+		label = new SettingLabel(_("Show remote label"));
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('remote-label'));
+		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(widget, 1, 6, 1, 1);
 	}
