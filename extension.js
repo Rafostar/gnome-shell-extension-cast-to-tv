@@ -219,7 +219,10 @@ function recreateRemote()
 	remoteMenu.destroy();
 	remoteMenu = new Widget.remoteMenu();
 
+	/* Restore remote settings */
 	changeLabelVisibility();
+	changeMediaButtonsSize();
+	changeSlidersIconSize();
 	setRemotePosition();
 }
 
