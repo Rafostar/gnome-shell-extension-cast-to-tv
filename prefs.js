@@ -24,7 +24,7 @@ class MissingNotification extends Gtk.VBox
 {
 	constructor(dependName)
 	{
-		super({height_request: 380, spacing: 10, margin: 25});
+		super({height_request: 380, spacing: 10, margin: 20});
 		let label = null;
 
 		label = new Gtk.Label({
@@ -43,14 +43,15 @@ class StreamingNotification extends Gtk.VBox
 {
 	constructor()
 	{
-		super({height_request: 380, spacing: 10, margin: 25});
+		super({height_request: 420, spacing: 10, margin: 20});
 		let label = null;
 
 		label = new Gtk.Label({
 			label: '<span font="16"><b>' + _("Streaming in progress") + '</b></span>',
 			use_markup: true,
 			vexpand: true,
-			valign: Gtk.Align.END
+			valign: Gtk.Align.END,
+			margin_top: 20
 		});
 		this.pack_start(label, true, true, 0);
 
@@ -59,9 +60,13 @@ class StreamingNotification extends Gtk.VBox
 			label: '<span font="13">' + _("Stop media transfer before accessing extension settings") + '</span>',
 			use_markup: true,
 			vexpand: true,
-			valign: Gtk.Align.START
+			valign: Gtk.Align.START,
+			margin_bottom: 30
 		});
 		this.pack_start(label, true, true, 0);
+
+		let remoteWidget = new RemoteSettings();
+		this.pack_start(remoteWidget, true, true, 0);
 	}
 }
 
