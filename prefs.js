@@ -239,6 +239,28 @@ class RemoteSettings extends Gtk.Grid
 		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 4, 1, 1);
 		this.attach(widget, 1, 4, 1, 1);
+
+		/* Media Buttons Size */
+		label = new SettingLabel(_("Media control buttons size"));
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_range(8, 32);
+		widget.set_value(Settings.get_int('media-buttons-size'));
+		widget.set_increments(1, 2);
+		Settings.bind('media-buttons-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(widget, 1, 5, 1, 1);
+
+		/* Slider Icon Size */
+		label = new SettingLabel(_("Slider icon size"));
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_range(8, 32);
+		widget.set_value(Settings.get_int('slider-icon-size'));
+		widget.set_increments(1, 2);
+		Settings.bind('slider-icon-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(widget, 1, 6, 1, 1);
 	}
 
 	destroy()
