@@ -34,6 +34,14 @@
       <default>true</default>
       <summary>Show label next to remote controller</summary>
     </key>
+    <key name="media-buttons-size" type="i">
+      <default>20</default>
+      <summary>Icon size for widget media control buttons</summary>
+    </key>
+    <key name="slider-icon-size" type="i">
+      <default>16</default>
+      <summary>Icon size for widget slider</summary>
+    </key>
     <!-- Chromecast -->
     <key name="chromecast-name" type="s">
       <default>""</default>
