@@ -11,6 +11,7 @@ const _ = Gettext.gettext;
 const devicesPath = Local.path + '/config/devices.json';
 const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 const npmPath = GLib.find_program_in_path('npm');
+const fileManagers = ['nautilus', 'nemo'];
 
 let nodeDir;
 let nodeBin;
@@ -494,12 +495,29 @@ class OtherSettings extends Gtk.Grid
 		this.attach(label, 0, 8, 1, 1);
 		this.attach(widget, 1, 8, 1, 1);
 
-		/* Nautilus Integration */
-		label = new SettingLabel(_("Nautilus integration"));
+		/* Nautilus/Nemo Integration */
+		label = new SettingLabel(_("Nautilus/Nemo integration"));
 		this.nautilusSwitch = new Gtk.Switch({halign:Gtk.Align.END});
 		this.nautilusSwitch.set_sensitive(true);
-		this.nautilusSwitch.set_active(GLib.file_test(GLib.get_home_dir() +
-			'/.local/share/nautilus-python/extensions/nautilus-cast-to-tv.py', 16));
+
+		let isFmExtEnabled = () =>
+		{
+			let homeDir = GLib.get_home_dir();
+			if(!homeDir) return false;
+
+			for(var fm of fileManagers)
+			{
+				if(GLib.file_test(homeDir + '/.local/share/' + fm +
+					'-python/extensions/nautilus-cast-to-tv.py', 16)
+				) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		this.nautilusSwitch.set_active(isFmExtEnabled());
 
 		this.nautilusSignal = this.nautilusSwitch.connect('notify::active', () =>
 		{
@@ -879,19 +897,26 @@ function getHostIp()
 
 function enableNautilusExtension(enabled)
 {
-	let installPath = GLib.get_user_data_dir() + '/nautilus-python/extensions';
+	let userDataDir = GLib.get_user_data_dir();
 	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
-	let destFile = Gio.File.new_for_path(installPath).get_child('nautilus-cast-to-tv.py');
 
-	if(enabled && GLib.file_test(srcPath, 16) && !destFile.query_exists(null))
+	if((enabled && !GLib.file_test(srcPath, 16)) || !userDataDir) return;
+
+	fileManagers.forEach(fm =>
 	{
-		GLib.mkdir_with_parents(installPath, 493); // 755 in octal
-		destFile.make_symbolic_link(Local.path + '/nautilus/nautilus-cast-to-tv.py', null);
-	}
-	else if(!enabled && destFile.query_exists(null))
-	{
-		destFile.delete(null);
-	}
+		let installPath = userDataDir + '/' + fm + '-python/extensions';
+		let destFile = Gio.File.new_for_path(installPath).get_child('nautilus-cast-to-tv.py');
+
+		if(enabled && GLib.find_program_in_path(fm) && !destFile.query_exists(null))
+		{
+			GLib.mkdir_with_parents(installPath, 493); // 755 in octal
+			destFile.make_symbolic_link(Local.path + '/nautilus/nautilus-cast-to-tv.py', null);
+		}
+		else if(!enabled && destFile.query_exists(null))
+		{
+			destFile.delete(null);
+		}
+	});
 }
 
 function hashToColor(colorHash)
