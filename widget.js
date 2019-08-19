@@ -380,6 +380,24 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(icon) this.positionSlider.defaultIcon = icon;
 		}
+
+		this.setMediaButtonsSize = (size) =>
+		{
+			this.playButton.child.icon_size = size;
+			this.pauseButton.child.icon_size = size;
+			this.stopButton.child.icon_size = size;
+			this.seekBackwardButton.child.icon_size = size;
+			this.seekForwardButton.child.icon_size = size;
+			this.skipBackwardButton.child.icon_size = size;
+			this.skipForwardButton.child.icon_size = size;
+			this.repeatButton.child.icon_size = size;
+		}
+
+		this.setSlidersIconSize = (size) =>
+		{
+			this.positionSlider.setIconSize(size);
+			this.volumeSlider.setIconSize(size);
+		}
 	}
 
 	hide()
@@ -489,6 +507,12 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.button.style = 'margin-right: 2px;';
 
 		/* Functions */
+		this.setIconSize = (size) =>
+		{
+			if(this._toggle) this.button.child.icon_size = size;
+			else this.button.icon_size = size;
+		}
+
 		this.setValue = (value) => this._slider.setValue(value);
 		this.hide = () => this.actor.hide();
 		this.show = () => this.actor.show();

@@ -189,6 +189,16 @@ function changeSeekTime()
 	Widget.seekTime = Settings.get_int('seek-time');
 }
 
+function changeMediaButtonsSize()
+{
+	remoteMenu.setMediaButtonsSize(Settings.get_int('media-buttons-size'));
+}
+
+function changeSlidersIconSize()
+{
+	remoteMenu.setSlidersIconSize(Settings.get_int('slider-icon-size'));
+}
+
 function changeUnifiedSlider()
 {
 	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
@@ -209,7 +219,10 @@ function recreateRemote()
 	remoteMenu.destroy();
 	remoteMenu = new Widget.remoteMenu();
 
+	/* Restore remote settings */
 	changeLabelVisibility();
+	changeMediaButtonsSize();
+	changeSlidersIconSize();
 	setRemotePosition();
 }
 
@@ -281,6 +294,10 @@ function enable()
 	/* Set initial remote label visibility */
 	changeLabelVisibility();
 
+	/* Set initial remote buttons size */
+	changeMediaButtonsSize();
+	changeSlidersIconSize();
+
 	/* Clear signals array */
 	Signals = [];
 
@@ -298,6 +315,8 @@ function enable()
 	Signals.push(Settings.connect('changed::remote-position', recreateRemote.bind(this)));
 	Signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
 	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
+	Signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
+	Signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
 	Signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 	Signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));

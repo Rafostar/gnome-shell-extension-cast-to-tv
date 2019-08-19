@@ -25,7 +25,7 @@ class MissingNotification extends Gtk.VBox
 {
 	constructor(dependName)
 	{
-		super({height_request: 380, spacing: 10, margin: 25});
+		super({height_request: 380, spacing: 10, margin: 20});
 		let label = null;
 
 		label = new Gtk.Label({
@@ -44,14 +44,15 @@ class StreamingNotification extends Gtk.VBox
 {
 	constructor()
 	{
-		super({height_request: 380, spacing: 10, margin: 25});
+		super({height_request: 420, spacing: 10, margin: 20});
 		let label = null;
 
 		label = new Gtk.Label({
 			label: '<span font="16"><b>' + _("Streaming in progress") + '</b></span>',
 			use_markup: true,
 			vexpand: true,
-			valign: Gtk.Align.END
+			valign: Gtk.Align.END,
+			margin_top: 20
 		});
 		this.pack_start(label, true, true, 0);
 
@@ -60,9 +61,13 @@ class StreamingNotification extends Gtk.VBox
 			label: '<span font="13">' + _("Stop media transfer before accessing extension settings") + '</span>',
 			use_markup: true,
 			vexpand: true,
-			valign: Gtk.Align.START
+			valign: Gtk.Align.START,
+			margin_bottom: 30
 		});
 		this.pack_start(label, true, true, 0);
+
+		let remoteWidget = new RemoteSettings();
+		this.pack_start(remoteWidget, true, true, 0);
 	}
 }
 
@@ -223,14 +228,36 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(label, 0, 2, 1, 1);
 		this.attach(widget, 1, 2, 1, 1);
 
+		/* Media Buttons Size */
+		label = new SettingLabel(_("Media control buttons size"));
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_range(8, 32);
+		widget.set_value(Settings.get_int('media-buttons-size'));
+		widget.set_increments(1, 2);
+		Settings.bind('media-buttons-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 3, 1, 1);
+		this.attach(widget, 1, 3, 1, 1);
+
+		/* Slider Icon Size */
+		label = new SettingLabel(_("Slider icon size"));
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_range(8, 32);
+		widget.set_value(Settings.get_int('slider-icon-size'));
+		widget.set_increments(1, 2);
+		Settings.bind('slider-icon-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(widget, 1, 4, 1, 1);
+
 		/* Volume Slider */
 		label = new SettingLabel(_("Unify sliders"));
 		widget = new Gtk.Switch({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('unified-slider'));
 		Settings.bind('unified-slider', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(widget, 1, 3, 1, 1);
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(widget, 1, 5, 1, 1);
 
 		/* Remote Label */
 		label = new SettingLabel(_("Show remote label"));
@@ -238,8 +265,8 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('remote-label'));
 		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(widget, 1, 4, 1, 1);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(widget, 1, 6, 1, 1);
 	}
 
 	destroy()
