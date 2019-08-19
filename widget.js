@@ -233,18 +233,18 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
 
-		this.statusMonitor.connect('changed', () =>
+		this.updateRemote = () =>
 		{
 			if(this.mode == 'PICTURE') return;
 
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
-				if(isRepeatActive != statusContents.repeat)
-				{
+				if(isRepeatActive !== statusContents.repeat)
 					isRepeatActive = (statusContents.repeat === true) ? true : false;
+
+				if(this.repeatButton.turnedOn !== isRepeatActive)
 					this.repeatButton.turnOn(isRepeatActive);
-				}
 
 				this.checkPlaying(statusContents);
 
@@ -281,11 +281,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					this.setProgress(statusContents);
 				}
 			}
-		});
+		}
+
+		this.statusMonitor.connect('changed', () => this.updateRemote());
 
 		/* Functions */
-		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
-
 		this.setPlaying = (value) =>
 		{
 			if(value === true)

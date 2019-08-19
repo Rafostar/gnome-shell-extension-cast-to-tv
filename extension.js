@@ -56,9 +56,6 @@ function configCastRemote()
 
 		let listLastID = listContents.length;
 
-		/* Restore repeat button state */
-		remoteMenu.enableRepeat(Widget.isRepeatActive);
-
 		/* Disable skip backward if playing first file from list */
 		if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
 		else remoteMenu.skipBackwardButton.reactive = false;
@@ -110,13 +107,13 @@ function configCastRemote()
 			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.defaultIcon;
 		}
 
+		/* Restore widget buttons and sliders state */
+		remoteMenu.updateRemote();
+
 		remoteMenu.show();
 	}
 	else
-	{
-		Widget.isRepeatActive = false;
 		remoteMenu.hide();
-	}
 }
 
 function setRemotePosition()
