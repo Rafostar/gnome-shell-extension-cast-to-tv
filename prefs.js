@@ -502,10 +502,13 @@ class OtherSettings extends Gtk.Grid
 
 		let isFmExtEnabled = () =>
 		{
+			let homeDir = GLib.get_home_dir();
+			if(!homeDir) return false;
+
 			for(var fm of fileManagers)
 			{
-				if(GLib.file_test(GLib.get_home_dir() +
-					'/.local/share/' + fm + '-python/extensions/nautilus-cast-to-tv.py', 16)
+				if(GLib.file_test(homeDir + '/.local/share/' + fm +
+					'-python/extensions/nautilus-cast-to-tv.py', 16)
 				) {
 					return true;
 				}
@@ -894,15 +897,18 @@ function getHostIp()
 
 function enableNautilusExtension(enabled)
 {
+	let userDataDir = GLib.get_user_data_dir();
+	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
+
+	if((enabled && !GLib.file_test(srcPath, 16)) || !userDataDir) return;
+
 	fileManagers.forEach(fm =>
 	{
-		let installPath = GLib.get_user_data_dir() + '/' + fm + '-python/extensions';
-		let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
+		let installPath = userDataDir + '/' + fm + '-python/extensions';
 		let destFile = Gio.File.new_for_path(installPath).get_child('nautilus-cast-to-tv.py');
 
-		if(	enabled && GLib.find_program_in_path(fm)
-			&& GLib.file_test(srcPath, 16) && !destFile.query_exists(null)
-		) {
+		if(enabled && GLib.find_program_in_path(fm) && !destFile.query_exists(null))
+		{
 			GLib.mkdir_with_parents(installPath, 493); // 755 in octal
 			destFile.make_symbolic_link(Local.path + '/nautilus/nautilus-cast-to-tv.py', null);
 		}
