@@ -495,8 +495,8 @@ class OtherSettings extends Gtk.Grid
 		this.attach(label, 0, 8, 1, 1);
 		this.attach(widget, 1, 8, 1, 1);
 
-		/* Nautilus Integration */
-		label = new SettingLabel(_("Nautilus integration"));
+		/* Nautilus/Nemo Integration */
+		label = new SettingLabel(_("Nautilus/Nemo integration"));
 		this.nautilusSwitch = new Gtk.Switch({halign:Gtk.Align.END});
 		this.nautilusSwitch.set_sensitive(true);
 
