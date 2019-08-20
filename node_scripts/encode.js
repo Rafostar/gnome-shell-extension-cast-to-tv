@@ -6,7 +6,6 @@ var gnome = require('./gnome');
 var messages = require('./messages.js');
 var shared = require('../shared');
 
-var subsPathEscaped;
 var codecAudio = 'copy';
 
 var stdioConf = 'ignore';
@@ -21,18 +20,16 @@ String.prototype.replaceAt = function(index, replacement)
 
 function getSubsPath()
 {
-	if(bridge.selection.subsPath) subsPathEscaped = bridge.selection.subsPath;
-	else subsPathEscaped = bridge.selection.filePath;
+	var subsPathEscaped = (bridge.selection.subsPath) ? bridge.selection.subsPath : bridge.selection.filePath;
+	var index = subsPathEscaped.length;
 
-	var i = subsPathEscaped.length;
-
-	while(i--)
+	while(index--)
 	{
-		if(shared.escapeChars.indexOf(subsPathEscaped.charAt(i)) > -1)
-		{
-			subsPathEscaped = subsPathEscaped.replaceAt(i, '\\' + subsPathEscaped.charAt(i));
-		}
+		if(shared.escapeChars.includes(subsPathEscaped.charAt(index)))
+			subsPathEscaped = subsPathEscaped.replaceAt(index, '\\' + subsPathEscaped.charAt(index));
 	}
+
+	return subsPathEscaped;
 }
 
 exports.video = function()
@@ -51,10 +48,7 @@ exports.video = function()
 	];
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		getSubsPath();
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
-	}
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + getSubsPath(), '-sn');
 
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', stdioConf] });
@@ -94,10 +88,9 @@ exports.videoVaapi = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		getSubsPath();
 		encodeOpts.unshift('-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
-			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + getSubsPath() + ',hwmap', '-sn');
 	}
 	else
 	{
