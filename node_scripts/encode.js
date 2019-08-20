@@ -5,8 +5,6 @@ var extract = require('./extract');
 var gnome = require('./gnome');
 var messages = require('./messages.js');
 var shared = require('../shared');
-
-var subsPathEscaped;
 var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
@@ -18,18 +16,16 @@ String.prototype.replaceAt = function(index, replacement)
 
 function getSubsPath()
 {
-	if(bridge.selection.subsPath) subsPathEscaped = bridge.selection.subsPath;
-	else subsPathEscaped = bridge.selection.filePath;
+	var subsPathEscaped = (bridge.selection.subsPath) ? bridge.selection.subsPath : bridge.selection.filePath;
+	var index = subsPathEscaped.length;
 
-	var i = subsPathEscaped.length;
-
-	while(i--)
+	while(index--)
 	{
-		if(shared.escapeChars.indexOf(subsPathEscaped.charAt(i)) > -1)
-		{
-			subsPathEscaped = subsPathEscaped.replaceAt(i, '\\' + subsPathEscaped.charAt(i));
-		}
+		if(shared.escapeChars.includes(subsPathEscaped.charAt(index)))
+			subsPathEscaped = subsPathEscaped.replaceAt(index, '\\' + subsPathEscaped.charAt(index));
 	}
+
+	return subsPathEscaped;
 }
 
 function getAudioOptsArray()
@@ -78,10 +74,7 @@ exports.video = function()
 	];
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		getSubsPath();
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
-	}
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + getSubsPath(), '-sn');
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -101,10 +94,9 @@ exports.videoVaapi = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		getSubsPath();
 		encodeOpts.unshift('-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
-			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + getSubsPath() + ',hwmap', '-sn');
 	}
 	else
 	{
@@ -130,9 +122,8 @@ exports.videoNvenc = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		getSubsPath();
 		encodeOpts.splice(encodeOpts.indexOf('h264_nvenc') + 1, 0,
-			'-vf', 'subtitles=' + subsPathEscaped, '-sn');
+			'-vf', 'subtitles=' + getSubsPath(), '-sn');
 	}
 
 	return createEncodeProcess(encodeOpts);
