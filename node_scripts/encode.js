@@ -5,9 +5,7 @@ var extract = require('./extract');
 var gnome = require('./gnome');
 var messages = require('./messages.js');
 var shared = require('../shared');
-
-var codecAudio = 'copy';
-var stdioConf = (debug.enabled === true) ? 'inherit' : 'ignore';
+var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
 
@@ -28,6 +26,11 @@ function getSubsPath()
 	}
 
 	return subsPathEscaped;
+}
+
+function getAudioOptsArray()
+{
+	return (bridge.selection.transcodeAudio) ? ['flac', '-ac', '2'] : ['copy'];
 }
 
 function createEncodeProcess(encodeOpts)
@@ -64,17 +67,14 @@ exports.video = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-f', 'matroska',
 	'pipe:1'
 	];
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		getSubsPath();
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
-	}
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + getSubsPath(), '-sn');
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -86,7 +86,7 @@ exports.videoVaapi = function()
 	'-c:v', 'h264_vaapi',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-f', 'matroska',
 	'pipe:1'
@@ -114,7 +114,7 @@ exports.videoNvenc = function()
 	'-c:v', 'h264_nvenc',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
 	'-f', 'matroska',
 	'pipe:1'
@@ -122,9 +122,8 @@ exports.videoNvenc = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		getSubsPath();
 		encodeOpts.splice(encodeOpts.indexOf('h264_nvenc') + 1, 0,
-			'-vf', 'subtitles=' + subsPathEscaped, '-sn');
+			'-vf', 'subtitles=' + getSubsPath(), '-sn');
 	}
 
 	return createEncodeProcess(encodeOpts);
@@ -162,7 +161,7 @@ exports.musicVisualizer = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', 'copy',
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-f', 'matroska',
 	'pipe:1'

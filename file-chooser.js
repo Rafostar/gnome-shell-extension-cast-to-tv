@@ -38,6 +38,59 @@ class fileChooser
 		}
 	}
 
+	_getTranscodeBox()
+	{
+		let box = new Gtk.Box({ spacing: 2 });
+		this.buttonConvert = new Gtk.CheckButton({ label: _("Transcode:") });
+
+		this.comboBoxConvert = new Gtk.ComboBoxText();
+		this.comboBoxConvert.append('video', _("Video"));
+		//this.comboBoxConvert.append('audio', _("Audio"));
+		this.comboBoxConvert.append('video+audio', _("Video + Audio"));
+		this.comboBoxConvert.set_active(0);
+		this.comboBoxConvert.set_sensitive(false);
+
+		this.buttonConvert.connect('toggled', () =>
+		{
+			let isConvertActive = this.buttonConvert.get_active();
+			this.comboBoxConvert.set_sensitive(isConvertActive);
+		});
+
+		box.pack_start(this.buttonConvert, true, true, 0);
+		box.pack_start(this.comboBoxConvert, true, true, 0);
+		box.show_all();
+
+		return box;
+	}
+
+	_getEncodeTypeString(configContents)
+	{
+		if(this.comboBoxConvert && this.comboBoxConvert.active_id !== 'audio')
+		{
+			switch(configContents.videoAcceleration)
+			{
+				case 'vaapi':
+					return '_VAAPI';
+				case 'nvenc':
+					return '_NVENC';
+				default:
+					return '_ENCODE';
+			}
+		}
+
+		return '';
+	}
+
+	_getTranscodeAudioEnabled()
+	{
+		let isTranscodeAudioEnabled = false;
+
+		if(this.comboBoxConvert)
+			isTranscodeAudioEnabled = (this.comboBoxConvert.active_id !== 'video') ? true : false;
+
+		return isTranscodeAudioEnabled;
+	}
+
 	_openDialog()
 	{
 		let configContents = this._getConfig();
@@ -48,11 +101,6 @@ class fileChooser
 		if(!configContents || !selectionContents.streamType) return;
 
 		this.fileFilter = new Gtk.FileFilter();
-		let buttonConvert = new Gtk.CheckButton({ label: _("Transcode Video") });
-		let box = new Gtk.Box({ spacing: 10 });
-
-		box.pack_start(buttonConvert, true, true, 0);
-		box.show_all();
 
 		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
 		{
@@ -78,7 +126,7 @@ class fileChooser
 				this.buttonSubs = this.fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
 				this.fileChooser.set_title(_("Select Video"));
 				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
-				this.fileChooser.set_extra_widget(box);
+				this.fileChooser.set_extra_widget(this._getTranscodeBox());
 
 				this.fileFilter.set_name(_("Video Files"));
 				this.fileFilter.add_mime_type('video/*');
@@ -130,21 +178,13 @@ class fileChooser
 		}
 
 		/* Handle convert button */
-		if(buttonConvert.get_active())
+		if(this.buttonConvert && this.buttonConvert.get_active())
 		{
-			switch(configContents.videoAcceleration)
-			{
-				case 'vaapi':
-					selectionContents.streamType += '_VAAPI';
-					break;
-				case 'nvenc':
-					selectionContents.streamType += '_NVENC';
-					break;
-				default:
-					selectionContents.streamType += '_ENCODE';
-					break;
-			}
+			selectionContents.streamType += this._getEncodeTypeString(configContents);
+			selectionContents.transcodeAudio = this._getTranscodeAudioEnabled();
 		}
+		else
+			selectionContents.transcodeAudio = false;
 
 		this.fileChooser.destroy();
 
