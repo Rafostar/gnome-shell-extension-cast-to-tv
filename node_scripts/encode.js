@@ -128,6 +128,49 @@ exports.videoVaapi = function()
 	return exports.streamProcess.stdout;
 }
 
+exports.videoNvenc = function()
+{
+	var encodeOpts = [
+	'-i', bridge.selection.filePath,
+	'-c:v', 'h264_nvenc',
+	'-level:v', '4.1',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-c:a', codecAudio,
+	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
+	'-f', 'matroska',
+	'pipe:1'
+	];
+
+	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
+	{
+		getSubsPath();
+		encodeOpts.splice(encodeOpts.indexOf('h264_nvenc') + 1, 0,
+			'-vf', 'subtitles=' + subsPathEscaped, '-sn');
+	}
+
+	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
+	{ stdio: ['ignore', 'pipe', stdioConf] });
+
+	var notifyError = false;
+
+	exports.streamProcess.once('close', (code) =>
+	{
+		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
+		exports.streamProcess = null;
+	});
+
+	exports.streamProcess.once('error', (error) =>
+	{
+		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+		{
+			gnome.notify('Cast to TV', messages.ffmpegPath);
+			notifyError = true;
+		}
+	});
+
+	return exports.streamProcess.stdout;
+}
+
 exports.musicVisualizer = function()
 {
 	var encodeOpts = [
