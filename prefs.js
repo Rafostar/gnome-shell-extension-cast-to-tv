@@ -431,7 +431,7 @@ class OtherSettings extends Gtk.Grid
 		/* TRANSLATORS: Should remain as VAAPI unless you use different alphabet */
 		widget.append('vaapi', _("VAAPI"));
 		/* TRANSLATORS: Should remain as NVENC unless you use different alphabet */
-		widget.append('nvenc', _("NVENC"));
+		//widget.append('nvenc', _("NVENC"));
 		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 1, 1, 1);
 		this.attach(widget, 1, 1, 1, 1);
