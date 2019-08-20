@@ -22,7 +22,7 @@ let castMenu;
 let remoteMenu;
 let configContents;
 let serviceStarted;
-let Signals;
+let signals;
 
 function configCastRemote()
 {
@@ -54,6 +54,7 @@ function configCastRemote()
 		if(listContents && selectionContents) trackID = listContents.indexOf(selectionContents.filePath) + 1;
 		else return;
 
+		/* List items are counted from 1 */
 		let listLastID = listContents.length;
 
 		/* Disable skip backward if playing first file from list */
@@ -96,16 +97,11 @@ function configCastRemote()
 				break;
 		}
 
-		/* Set slider startup values */
+		/* Set slider icon */
 		if(remoteMenu.positionSlider.isVolume)
-		{
 			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.volumeIcon;
-		}
 		else
-		{
-			remoteMenu.positionSlider.setValue(0);
 			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.defaultIcon;
-		}
 
 		/* Restore widget buttons and sliders state */
 		remoteMenu.updateRemote();
@@ -118,30 +114,27 @@ function configCastRemote()
 
 function setRemotePosition()
 {
-	let children;
+	let itemIndex = 0;
 	let remotePosition = Settings.get_string('remote-position');
 
-	/* Place remote on top bar */
 	switch(remotePosition)
 	{
 		case 'left':
-			children = Main.panel._leftBox.get_children();
-			Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, children.length, remotePosition);
+			itemIndex = Main.panel._leftBox.get_children().length;
 			break;
 		case 'center-left':
 			remotePosition = 'center';
-			Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, 0, remotePosition);
 			break;
 		case 'center-right':
+			itemIndex = Main.panel._centerBox.get_children().length;
 			remotePosition = 'center';
-			children = Main.panel._centerBox.get_children();
-			Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, children.length, remotePosition);
 			break;
-		case 'right':
-			Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, 0, remotePosition);
+		default:
 			break;
 	}
 
+	/* Place remote on top bar */
+	Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, itemIndex, remotePosition);
 	configCastRemote();
 }
 
@@ -248,9 +241,7 @@ function enableService(enable)
 function setIndicator(enable)
 {
 	if(enable !== true && enable !== false)
-	{
 		enable = Settings.get_boolean('service-enabled');
-	}
 
 	let children = Indicator.get_children();
 	if(children && children.length)
@@ -296,27 +287,27 @@ function enable()
 	changeSlidersIconSize();
 
 	/* Clear signals array */
-	Signals = [];
+	signals = [];
 
 	/* Connect signals */
-	Signals.push(Settings.connect('changed::ffmpeg-path', updateTempConfig.bind(this, 'ffmpeg-path', 'string')));
-	Signals.push(Settings.connect('changed::ffprobe-path', updateTempConfig.bind(this, 'ffprobe-path', 'string')));
-	Signals.push(Settings.connect('changed::receiver-type', updateTempConfig.bind(this, 'receiver-type', 'string')));
-	Signals.push(Settings.connect('changed::listening-port', updateTempConfig.bind(this, 'listening-port', 'int')));
-	Signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
-	Signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
-	Signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
-	Signals.push(Settings.connect('changed::music-visualizer', updateTempConfig.bind(this, 'music-visualizer', 'boolean')));
-	Signals.push(Settings.connect('changed::chromecast-name', updateTempConfig.bind(this, 'chromecast-name', 'string')));
-	Signals.push(Settings.connect('changed::playercast-name', updateTempConfig.bind(this, 'playercast-name', 'string')));
-	Signals.push(Settings.connect('changed::remote-position', recreateRemote.bind(this)));
-	Signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
-	Signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
-	Signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
-	Signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
-	Signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
-	Signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
-	Signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
+	signals.push(Settings.connect('changed::ffmpeg-path', updateTempConfig.bind(this, 'ffmpeg-path', 'string')));
+	signals.push(Settings.connect('changed::ffprobe-path', updateTempConfig.bind(this, 'ffprobe-path', 'string')));
+	signals.push(Settings.connect('changed::receiver-type', updateTempConfig.bind(this, 'receiver-type', 'string')));
+	signals.push(Settings.connect('changed::listening-port', updateTempConfig.bind(this, 'listening-port', 'int')));
+	signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
+	signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
+	signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
+	signals.push(Settings.connect('changed::music-visualizer', updateTempConfig.bind(this, 'music-visualizer', 'boolean')));
+	signals.push(Settings.connect('changed::chromecast-name', updateTempConfig.bind(this, 'chromecast-name', 'string')));
+	signals.push(Settings.connect('changed::playercast-name', updateTempConfig.bind(this, 'playercast-name', 'string')));
+	signals.push(Settings.connect('changed::remote-position', recreateRemote.bind(this)));
+	signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
+	signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
+	signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
+	signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
+	signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
+	signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
+	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
 	castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
@@ -344,7 +335,7 @@ function enable()
 function disable()
 {
 	/* Disconnect signals from settings */
-	Signals.forEach(signal => Settings.disconnect(signal));
+	signals.forEach(signal => Settings.disconnect(signal));
 
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)
