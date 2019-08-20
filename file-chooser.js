@@ -146,6 +146,8 @@ class fileChooser
 			}
 		}
 
+		selectionContents.transcodeAudio = false;
+
 		this.fileChooser.destroy();
 
 		/* Set playback list */

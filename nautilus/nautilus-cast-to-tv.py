@@ -177,7 +177,8 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         selection = {
             "streamType": stream_type,
             "subsPath": self.subs_path,
-            "filePath": playlist[0]
+            "filePath": playlist[0],
+            "transcodeAudio": False
         }
 
         with open(TEMP_PATH + '/selection.json', 'w') as fp:

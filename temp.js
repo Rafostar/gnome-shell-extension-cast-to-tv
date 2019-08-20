@@ -72,7 +72,8 @@ function setSelectionFile()
 	let selectionContents = {
 		streamType: '',
 		filePath: '',
-		subsPath: ''
+		subsPath: '',
+		transcodeAudio: false
 	};
 
 	writeToFile(shared.selectionPath, selectionContents);
