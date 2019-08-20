@@ -8,9 +8,7 @@ var shared = require('../shared');
 
 var subsPathEscaped;
 var codecAudio = 'copy';
-
-var stdioConf = 'ignore';
-if(debug.enabled) stdioConf = 'inherit';
+var stdioConf = (debug.enabled === true) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
 
@@ -35,27 +33,8 @@ function getSubsPath()
 	}
 }
 
-exports.video = function()
+function createEncodeProcess(encodeOpts)
 {
-	var encodeOpts = [
-	'-i', bridge.selection.filePath,
-	'-c:v', 'libx264',
-	'-pix_fmt', 'yuv420p',
-	'-preset', 'superfast',
-	'-level:v', '4.1',
-	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
-	'-metadata', 'title=Cast to TV - Software Encoded Stream',
-	'-f', 'matroska',
-	'pipe:1'
-	];
-
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		getSubsPath();
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
-	}
-
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', stdioConf] });
 
@@ -77,6 +56,30 @@ exports.video = function()
 	});
 
 	return exports.streamProcess.stdout;
+}
+
+exports.video = function()
+{
+	var encodeOpts = [
+	'-i', bridge.selection.filePath,
+	'-c:v', 'libx264',
+	'-pix_fmt', 'yuv420p',
+	'-preset', 'superfast',
+	'-level:v', '4.1',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-c:a', codecAudio,
+	'-metadata', 'title=Cast to TV - Software Encoded Stream',
+	'-f', 'matroska',
+	'pipe:1'
+	];
+
+	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
+	{
+		getSubsPath();
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
+	}
+
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.videoVaapi = function()
@@ -105,27 +108,7 @@ exports.videoVaapi = function()
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'format=nv12,hwmap');
 	}
 
-	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', stdioConf] });
-
-	var notifyError = false;
-
-	exports.streamProcess.once('close', (code) =>
-	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
-		exports.streamProcess = null;
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
-
-	return exports.streamProcess.stdout;
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.videoNvenc = function()
@@ -148,27 +131,7 @@ exports.videoNvenc = function()
 			'-vf', 'subtitles=' + subsPathEscaped, '-sn');
 	}
 
-	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', stdioConf] });
-
-	var notifyError = false;
-
-	exports.streamProcess.once('close', (code) =>
-	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
-		exports.streamProcess = null;
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
-
-	return exports.streamProcess.stdout;
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.musicVisualizer = function()
@@ -209,27 +172,7 @@ exports.musicVisualizer = function()
 	'pipe:1'
 	];
 
-	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', stdioConf] });
-
-	var notifyError = false;
-
-	exports.streamProcess.once('close', (code) =>
-	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
-		exports.streamProcess = null;
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
-
-	return exports.streamProcess.stdout;
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.closeStreamProcess = function()
