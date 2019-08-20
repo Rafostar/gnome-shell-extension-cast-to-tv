@@ -233,18 +233,18 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
 
-		this.statusMonitor.connect('changed', () =>
+		this.updateRemote = () =>
 		{
 			if(this.mode == 'PICTURE') return;
 
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
-				if(isRepeatActive != statusContents.repeat)
-				{
+				if(isRepeatActive !== statusContents.repeat)
 					isRepeatActive = (statusContents.repeat === true) ? true : false;
+
+				if(this.repeatButton.turnedOn !== isRepeatActive)
 					this.repeatButton.turnOn(isRepeatActive);
-				}
 
 				this.checkPlaying(statusContents);
 
@@ -281,11 +281,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					this.setProgress(statusContents);
 				}
 			}
-		});
+		}
+
+		this.statusMonitor.connect('changed', () => this.updateRemote());
 
 		/* Functions */
-		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
-
 		this.setPlaying = (value) =>
 		{
 			if(value === true)
@@ -379,6 +379,24 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 
 			if(icon) this.positionSlider.defaultIcon = icon;
+		}
+
+		this.setMediaButtonsSize = (size) =>
+		{
+			this.playButton.child.icon_size = size;
+			this.pauseButton.child.icon_size = size;
+			this.stopButton.child.icon_size = size;
+			this.seekBackwardButton.child.icon_size = size;
+			this.seekForwardButton.child.icon_size = size;
+			this.skipBackwardButton.child.icon_size = size;
+			this.skipForwardButton.child.icon_size = size;
+			this.repeatButton.child.icon_size = size;
+		}
+
+		this.setSlidersIconSize = (size) =>
+		{
+			this.positionSlider.setIconSize(size);
+			this.volumeSlider.setIconSize(size);
 		}
 	}
 
@@ -489,6 +507,12 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		this.button.style = 'margin-right: 2px;';
 
 		/* Functions */
+		this.setIconSize = (size) =>
+		{
+			if(this._toggle) this.button.child.icon_size = size;
+			else this.button.icon_size = size;
+		}
+
 		this.setValue = (value) => this._slider.setValue(value);
 		this.hide = () => this.actor.hide();
 		this.show = () => this.actor.show();
