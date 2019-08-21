@@ -534,17 +534,29 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 				return this.actor.visible;
 			else
 				return this.visible;
-		};
+		}
+
 		this.getValue = () =>
 		{
 			return this._slider.value.toFixed(3);
-		};
-		this.setValue = (value) => this._slider.setValue(value);
+		}
+
+		this.setValue = (value) =>
+		{
+			if(	this._slider.hasOwnProperty('setValue')
+				&& typeof this._slider.setValue === 'function'
+			)
+				this._slider.setValue(value);
+			else
+				this._slider.value = value;
+		}
+
 		this.setIcon = (iconName) =>
 		{
 			if(this._toggle) this.button.child.icon_name = iconName;
 			else this.button.icon_name = iconName;
 		}
+
 		this.connect = (signal, callback) => this._slider.connect(signal, callback);
 	}
 }
