@@ -189,10 +189,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', () => this.positionSlider.delay = maxDelay);
-		this.positionSlider.connect('drag-begin', () => this.positionSlider.busy = true);
-		this.positionSlider.connect('drag-end', () => this.positionSliderAction());
-
 		this.positionSliderAction = () =>
 		{
 			this.positionSlider.delay = minDelay;
@@ -203,6 +199,23 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			Temp.setRemoteAction(action, this.positionSlider.getValue());
 			this.positionSlider.busy = false;
+		}
+
+		this.volumeSliderAction = () =>
+		{
+			this.volumeSlider.delay = minDelay;
+			Temp.setRemoteAction('VOLUME', this.volumeSlider.getValue());
+			this.volumeSlider.busy = false;
+		}
+
+		for(var sliderName of ['positionSlider', 'volumeSlider'])
+		{
+			/* GNOME 3.34+ workaround */
+			try { this[sliderName].connect('value-changed', () => this[sliderName].delay = maxDelay); }
+			catch(err) { this[sliderName].connect('notify::value', () => this[sliderName].delay = maxDelay); }
+
+			this[sliderName].connect('drag-begin', () => this[sliderName].busy = true);
+			this[sliderName].connect('drag-end', () => this[sliderName + 'Action']());
 		}
 
 		if(isUnifiedSlider)
@@ -225,17 +238,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					if(statusContents) this.setProgress(statusContents);
 				}
 			});
-		}
-
-		this.volumeSlider.connect('value-changed', () => this.volumeSlider.delay = maxDelay);
-		this.volumeSlider.connect('drag-begin', () => this.volumeSlider.busy = true);
-		this.volumeSlider.connect('drag-end', () => this.volumeSliderAction());
-
-		this.volumeSliderAction = () =>
-		{
-			this.volumeSlider.delay = minDelay;
-			Temp.setRemoteAction('VOLUME', this.volumeSlider.getValue());
-			this.volumeSlider.busy = false;
 		}
 
 		this.repeatButton.connect('clicked', () =>
