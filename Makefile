@@ -45,18 +45,24 @@ zip-file: _build
 	zip -qr $(UUID).zip $(ZIPFILES)
 
 # Build and install #
-install: _build
+install:
 	ifeq ($(CUSTOMPATH),)
-		mkdir -p $(INSTALLPATH)/$(UUID)
-		cp -r $(ZIPFILES) $(INSTALLPATH)/$(UUID)
+		_local-install
 	else
-		mkdir -p $(CUSTOMPATH)/$(UUID)
-		cp -r $(filter-out schemas locale, $(ZIPFILES)) $(CUSTOMPATH)/$(UUID)
-		mkdir -p /usr/share/glib-2.0/schemas
-		cp -r ./schemas/*.gschema.* /usr/share/glib-2.0/schemas/
-		mkdir -p /usr/share/locale
-		cp -r ./locale/* /usr/share/locale/
+		_global-install
 	endif
+
+_local-install: _build
+	mkdir -p $(INSTALLPATH)/$(UUID)
+	cp -r $(ZIPFILES) $(INSTALLPATH)/$(UUID)
+
+_global-install: compilemo
+	mkdir -p $(CUSTOMPATH)/$(UUID)
+	cp -r $(filter-out schemas locale, $(ZIPFILES)) $(CUSTOMPATH)/$(UUID)
+	mkdir -p /usr/share/glib-2.0/schemas
+	cp -r ./schemas/*.gschema.* /usr/share/glib-2.0/schemas/
+	mkdir -p /usr/share/locale
+	cp -r ./locale/* /usr/share/locale/
 
 _build: glib-schemas compilemo
 
