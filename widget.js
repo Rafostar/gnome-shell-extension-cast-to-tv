@@ -547,9 +547,7 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 
 		this.setValue = (value) =>
 		{
-			if(	this._slider.hasOwnProperty('setValue')
-				&& typeof this._slider.setValue === 'function'
-			)
+			if(this._slider.setValue && typeof this._slider.setValue === 'function')
 				this._slider.setValue(value);
 			else
 				this._slider.value = value;
