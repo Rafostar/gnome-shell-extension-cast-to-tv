@@ -208,11 +208,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.volumeSlider.busy = false;
 		}
 
-		for(var sliderName of ['positionSlider', 'volumeSlider'])
+		for(let sliderName of ['positionSlider', 'volumeSlider'])
 		{
-			/* GNOME 3.34+ workaround */
-			try { this[sliderName].connect('value-changed', () => this[sliderName].delay = maxDelay); }
-			catch(err) { this[sliderName].connect('notify::value', () => this[sliderName].delay = maxDelay); }
+			if(this[sliderName].hasOwnProperty('actor'))
+				this[sliderName].actor.connect('scroll-event', () => this[sliderName].delay = maxDelay);
+			else
+				this[sliderName].connect('scroll-event', () => this[sliderName].delay = maxDelay);
 
 			this[sliderName].connect('drag-begin', () => this[sliderName].busy = true);
 			this[sliderName].connect('drag-end', () => this[sliderName + 'Action']());
