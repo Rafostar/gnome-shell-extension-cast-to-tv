@@ -1,3 +1,6 @@
+imports.gi.versions.Gtk = '3.0';
+imports.gi.versions.Gdk = '3.0';
+
 const { Gio, Gtk, GLib, Gdk, Vte } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
