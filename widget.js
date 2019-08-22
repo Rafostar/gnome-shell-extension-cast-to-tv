@@ -208,7 +208,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.volumeSlider.busy = false;
 		}
 
-		for(let sliderName of ['positionSlider', 'volumeSlider'])
+		let connectSliderSignals = (sliderName) =>
 		{
 			if(this[sliderName].hasOwnProperty('actor'))
 				this[sliderName].actor.connect('scroll-event', () => this[sliderName].delay = maxDelay);
@@ -218,6 +218,9 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this[sliderName].connect('drag-begin', () => this[sliderName].busy = true);
 			this[sliderName].connect('drag-end', () => this[sliderName + 'Action']());
 		}
+
+		connectSliderSignals('positionSlider');
+		connectSliderSignals('volumeSlider');
 
 		if(isUnifiedSlider)
 		{
