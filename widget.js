@@ -146,8 +146,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider);
-		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false);
+		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider, false);
+		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false, true);
 		this.playButton = new MediaControlButton('media-playback-start-symbolic');
 		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
@@ -189,23 +189,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.playButton.hide();
 
 		/* Signals connections */
-		this.positionSliderAction = () =>
+		this.sliderAction = (sliderName) =>
 		{
-			this.positionSlider.delay = minDelay;
-			let action;
-
-			if(this.positionSlider.isVolume) action = 'VOLUME';
-			else action = 'SEEK';
-
-			Temp.setRemoteAction(action, this.positionSlider.getValue());
-			this.positionSlider.busy = false;
-		}
-
-		this.volumeSliderAction = () =>
-		{
-			this.volumeSlider.delay = minDelay;
-			Temp.setRemoteAction('VOLUME', this.volumeSlider.getValue());
-			this.volumeSlider.busy = false;
+			this[sliderName].delay = minDelay;
+			let action = (this[sliderName].isVolume) ? 'VOLUME' : 'SEEK';
+			Temp.setRemoteAction(action, this[sliderName].getValue());
+			this[sliderName].busy = false;
 		}
 
 		let connectSliderSignals = (sliderName) =>
@@ -216,7 +205,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this[sliderName].connect('scroll-event', () => this[sliderName].delay = maxDelay);
 
 			this[sliderName].connect('drag-begin', () => this[sliderName].busy = true);
-			this[sliderName].connect('drag-end', () => this[sliderName + 'Action']());
+			this[sliderName].connect('drag-end', this.sliderAction.bind(this, sliderName));
 		}
 
 		connectSliderSignals('positionSlider');
@@ -261,6 +250,13 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
 
+		let handleSliderDelay = (sliderName) =>
+		{
+			this[sliderName].delay--;
+			if(!this[sliderName].busy && this[sliderName].delay == minDelay)
+				this.sliderAction(sliderName);
+		}
+
 		this.statusMonitor.connect('changed', () =>
 		{
 			if(this.mode == 'PICTURE') return;
@@ -277,26 +273,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.checkPlaying(statusContents);
 
 				if(this.positionSlider.delay > 0)
-				{
-					this.positionSlider.delay--;
-					if(
-						!this.positionSlider.busy
-						&& this.positionSlider.delay == minDelay
-					) {
-						this.positionSliderAction();
-					}
-				}
+					handleSliderDelay('positionSlider');
 
 				if(this.volumeSlider.delay > 0)
-				{
-					this.volumeSlider.delay--;
-					if(
-						!this.volumeSlider.busy
-						&& this.volumeSlider.delay == minDelay
-					) {
-						this.volumeSliderAction();
-					}
-				}
+					handleSliderDelay('volumeSlider');
 
 				this.setVolume(statusContents);
 
@@ -495,7 +475,7 @@ class MediaControlButton extends St.Button
 
 class SliderItem extends PopupMenu.PopupBaseMenuItem
 {
-	constructor(icon, toggle)
+	constructor(icon, toggle, isVolume)
 	{
 		super({ hover: false, reactive: true });
 		this.defaultIcon = icon;
@@ -508,7 +488,7 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 
 		this.delay = 0;
 		this.busy = false;
-		this.isVolume = false;
+		this.isVolume = isVolume || false;
 
 		if(this.hasOwnProperty('actor'))
 		{
