@@ -199,10 +199,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		let connectSliderSignals = (sliderName) =>
 		{
-			if(this[sliderName].hasOwnProperty('actor'))
-				this[sliderName].actor.connect('scroll-event', () => this[sliderName].delay = maxDelay);
+			if(this[sliderName]._slider.hasOwnProperty('actor'))
+				this[sliderName]._slider.actor.connect('scroll-event', () => this[sliderName].delay = maxDelay);
 			else
-				this[sliderName].connect('scroll-event', () => this[sliderName].delay = maxDelay);
+				this[sliderName]._slider.connect('scroll-event', () => this[sliderName].delay = maxDelay);
 
 			this[sliderName].connect('drag-begin', () => this[sliderName].busy = true);
 			this[sliderName].connect('drag-end', this.sliderAction.bind(this, sliderName));
