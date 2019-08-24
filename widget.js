@@ -458,16 +458,10 @@ class MediaControlButton extends St.Button
 		/* Functions */
 		this.turnOn = (value) =>
 		{
-			if(value === true)
-			{
-				this.opacity = 255;
-				this.turnedOn = true;
-			}
-			else if(value === false)
-			{
-				this.opacity = 130;
-				this.turnedOn = false;
-			}
+			if(value) this.opacity = 255;
+			else this.opacity = 130;
+
+			this.turnedOn = value;
 		}
 
 		this.setIcon = (iconName) =>
