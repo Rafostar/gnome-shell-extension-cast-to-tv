@@ -148,8 +148,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.trackTitle = new trackTitleItem();
 		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider, false);
 		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false, true);
-		this.playButton = new MediaControlButton('media-playback-start-symbolic');
-		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
+		this.togglePlayButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
 		this.seekBackwardButton = new MediaControlButton('media-seek-backward-symbolic');
 		this.seekForwardButton = new MediaControlButton('media-seek-forward-symbolic');
@@ -158,7 +157,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
 
 		/* Items that might be shown or hidden depending on media content */
-		let changableItems = ['positionSlider', 'volumeSlider', 'playButton', 'pauseButton',
+		let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
 			'seekBackwardButton', 'seekForwardButton', 'repeatButton'];
 
 		/* Add space between stop and the remaining buttons */
@@ -169,8 +168,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.controlsButtonBox.add(this.stopButton);
 		this.controlsButtonBox.add(this.skipBackwardButton);
 		this.controlsButtonBox.add(this.seekBackwardButton);
-		this.controlsButtonBox.add(this.playButton);
-		this.controlsButtonBox.add(this.pauseButton);
+		this.controlsButtonBox.add(this.togglePlayButton);
 		this.controlsButtonBox.add(this.seekForwardButton);
 		this.controlsButtonBox.add(this.skipForwardButton);
 
@@ -185,8 +183,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.menu.addMenuItem(this.popupBase);
 
-		/* We do not want to display both play and pause buttons at once */
-		this.playButton.hide();
+		/* Toggle play button stores pause state */
+		this.togglePlayButton.isPause = true;
 
 		/* Signals connections */
 		this.sliderAction = (sliderName) =>
@@ -239,8 +237,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			isRepeatActive = this.repeatButton.turnedOn;
 		});
 
-		this.playButton.connect('clicked', () => Temp.setRemoteAction('PLAY'));
-		this.pauseButton.connect('clicked', () => Temp.setRemoteAction('PAUSE'));
+		this.togglePlayButton.connect('clicked', () =>
+		{
+			let toggleAction = (this.togglePlayButton.isPause) ? 'PAUSE' : 'PLAY';
+			Temp.setRemoteAction(toggleAction);
+		});
+
 		this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime));
 		this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime));
 		this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'));
@@ -296,15 +298,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.setPlaying = (value) =>
 		{
-			if(value === true)
+			if(this.togglePlayButton.isPause !== value)
 			{
-				this.playButton.hide();
-				this.pauseButton.show();
-			}
-			else if(value === false)
-			{
-				this.pauseButton.hide();
-				this.playButton.show();
+				if(value) this.togglePlayButton.setIcon('media-playback-pause-symbolic');
+				else this.togglePlayButton.setIcon('media-playback-start-symbolic');
+
+				this.togglePlayButton.isPause = value;
 			}
 		}
 
@@ -366,20 +365,20 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			switch(this.mode)
 			{
 				case 'DIRECT':
-					shownItems = ['positionSlider', 'repeatButton', 'pauseButton',
+					shownItems = ['positionSlider', 'repeatButton', 'togglePlayButton',
 						'seekBackwardButton', 'seekForwardButton'];
 					if(!isUnifiedSlider) shownItems.push('volumeSlider');
 					this.setShownRemoteItems(shownItems);
 					break;
 				case 'ENCODE':
-					shownItems = ['volumeSlider', 'repeatButton', 'pauseButton'];
+					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];
 					this.setShownRemoteItems(shownItems);
 					break;
 				case 'PICTURE':
 					this.setShownRemoteItems(shownItems);
 					break;
 				case 'LIVE':
-					shownItems = ['volumeSlider', 'pauseButton'];
+					shownItems = ['volumeSlider', 'togglePlayButton'];
 					this.setShownRemoteItems(shownItems);
 					break;
 				default:
@@ -469,6 +468,11 @@ class MediaControlButton extends St.Button
 				this.opacity = 130;
 				this.turnedOn = false;
 			}
+		}
+
+		this.setIcon = (iconName) =>
+		{
+			this.child.icon_name = iconName;
 		}
 	}
 }
