@@ -160,7 +160,8 @@ function updatePlaylist()
 	exports.list = getContents(shared.listPath);
 	if(exports.list) debug(`New playlist contents: ${JSON.stringify(exports.list)}`);
 
-	gnome.showRemote(false);
+	/* Update remote widget with new playlist items */
+	if(gnome.isRemote()) gnome.showRemote(true);
 }
 
 function updateSelection()
