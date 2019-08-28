@@ -6,6 +6,7 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
@@ -139,6 +140,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
 		this.skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
+		this.playlist = new Playlist.CastPlaylist();
 
 		/* Items that might be shown or hidden depending on media content */
 		let changableItems = ['positionSlider', 'volumeSlider', 'playButton', 'pauseButton',
@@ -162,6 +164,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.menu.addMenuItem(this.volumeSlider);
 		this.popupBase.actor.add(this.controlsButtonBox);
 		this.menu.addMenuItem(this.popupBase);
+		this.menu.addMenuItem(this.playlist.subMenu);
 
 		/* We do not want to display both play and pause buttons at once */
 		this.playButton.hide();

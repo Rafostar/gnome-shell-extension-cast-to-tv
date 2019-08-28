@@ -76,6 +76,9 @@ function configCastRemote()
 			else remoteMenu.trackTitle.text = "";
 		}
 
+		/* Update widget playlist */
+		remoteMenu.playlist.loadPlaylist(listContents);
+
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
 		{
