@@ -210,6 +210,8 @@ var CastPlaylist = class
 			let newPlaylistItem = new CastPlaylistItem(meta.text, meta.filepath);
 			this._connectDragSigals(newPlaylistItem);
 
+			if(meta.active) newPlaylistItem.setPlaying(true);
+
 			this.subMenu.menu.addMenuItem(newPlaylistItem, menuItems.indexOf(this.tempMenuItem));
 			this.updatePlaylistFile();
 		}
@@ -293,7 +295,7 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 			/* When clicked active track seeking to zero is faster than reloading file */
 			if(this.isPlaying)
 			{
-				if(seekingAllowed)
+				if(seekAllowed)
 					Temp.setRemoteAction('SEEK', 0);
 			}
 			else
@@ -338,8 +340,13 @@ class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
 		{
 			let dragItem = (actor.hasOwnProperty('_delegate')) ? actor._delegate : actor;
 
-			dragItem.drag.emit('drag-end', 0, true,
-				{ text: dragItem.label.text, filepath: dragItem.filepath });
+			let meta = {
+				text: dragItem.label.text,
+				filepath: dragItem.filepath,
+				active: dragItem.isPlaying
+			};
+
+			dragItem.drag.emit('drag-end', 0, true, meta);
 
 			actor.destroy();
 		}
