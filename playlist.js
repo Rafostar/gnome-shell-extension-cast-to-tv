@@ -4,13 +4,14 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const Temp = Local.imports.temp;
+const shared = Local.imports.shared.module.exports;
 
 const PLAYLIST_MENU_ICON = 'view-list-symbolic';
 const PLAYLIST_ITEM_INACTIVE_ICON = 'open-menu-symbolic';
 const PLAYLIST_ITEM_ACTIVE_ICON = 'go-next-symbolic';
 const TEMP_INSERT_ICON = 'insert-object-symbolic';
 
-var allowSeeking = true;
+var seekAllowed = true;
 
 var CastPlaylist = class
 {
@@ -286,6 +287,27 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 
 			this.isPlaying = activate;
 		}
+
+		let onItemClicked = () =>
+		{
+			/* When clicked active track seeking to zero is faster than reloading file */
+			if(this.isPlaying)
+			{
+				if(seekingAllowed)
+					Temp.setRemoteAction('SEEK', 0);
+			}
+			else
+			{
+				let selectionContents = Temp.readFromFile(shared.selectionPath);
+				if(selectionContents)
+				{
+					selectionContents.filePath = this.filepath;
+					Temp.writeToFile(shared.selectionPath, selectionContents);
+				}
+			}
+		}
+
+		this.connect('activate', onItemClicked.bind(this));
 	}
 
 	destroy()
