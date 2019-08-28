@@ -258,6 +258,27 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 		super(_("Playlist"), true);
 
 		this.icon.icon_name = PLAYLIST_MENU_ICON;
+
+		let callback = () =>
+		{
+			if(this.hasOwnProperty('actor'))
+				this.actor.opacity = (this.actor.hover) ? 255 : (this.menu.isOpen) ? 255 : 130;
+			else
+				this.opacity = (this.hover) ? 255 : (this.menu.isOpen) ? 255 : 130;
+		}
+
+		this.menu.connect('open-state-changed', callback);
+
+		if(this.hasOwnProperty('actor'))
+		{
+			this.actor.opacity = 130;
+			this.actor.connect('notify::hover', callback);
+		}
+		else
+		{
+			this.opacity = 130;
+			this.connect('notify::hover', callback);
+		}
 	}
 
 	destroy()
