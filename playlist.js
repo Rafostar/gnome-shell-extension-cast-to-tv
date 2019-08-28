@@ -14,6 +14,7 @@ var CastPlaylist = class
 	constructor()
 	{
 		this.subMenu = new CastPlaylistSubMenu();
+		this.tempMenuItem = null;
 
 		this._addMenuInsertItem();
 
@@ -219,7 +220,7 @@ var CastPlaylist = class
 
 			this.tempMenuItem.show();
 		}
-		else if(!this._getHoverItem(targetItem, 'isTempPlaylistItem'))
+		else if(menuItems.length > 1 && !this._getHoverItem(targetItem, 'isTempPlaylistItem'))
 		{
 			this.tempMenuItem.hide();
 		}
