@@ -6,8 +6,11 @@ const _ = Gettext.gettext;
 const Temp = Local.imports.temp;
 
 const PLAYLIST_MENU_ICON = 'view-list-symbolic';
-const PLAYLIST_ITEM_ICON = 'open-menu-symbolic';
+const PLAYLIST_ITEM_INACTIVE_ICON = 'open-menu-symbolic';
+const PLAYLIST_ITEM_ACTIVE_ICON = 'go-next-symbolic';
 const TEMP_INSERT_ICON = 'insert-object-symbolic';
+
+var allowSeeking = true;
 
 var CastPlaylist = class
 {
@@ -25,7 +28,7 @@ var CastPlaylist = class
 		DND.addDragMonitor(this._dragMonitor);
 	}
 
-	loadPlaylist(playlistArray)
+	loadPlaylist(playlistArray, activeTrackPath)
 	{
 		/* Remove non-playlist items to make sorting easier */
 		this.tempMenuItem.destroy();
@@ -37,13 +40,19 @@ var CastPlaylist = class
 		{
 			if(!playlistArray.includes(menuItem.filepath))
 				menuItem.destroy();
+			else if(menuItem.isPlaying && menuItem.filepath !== activeTrackPath)
+				menuItem.setPlaying(false);
+			else if(!menuItem.isPlaying && menuItem.filepath === activeTrackPath)
+				menuItem.setPlaying(true);
 		}
 
 		/* Add new items to playlist */
-		for(let listItem of playlistArray)
+		for(let filepath of playlistArray)
 		{
-			if(!this._isPathInMenu(listItem))
-				this.addPlaylistItem(listItem);
+			let isActive = (filepath === activeTrackPath) ? true : false;
+
+			if(!this._isPathInMenu(filepath))
+				this.addPlaylistItem(filepath, isActive);
 		}
 
 		/* Sort playlist */
@@ -53,13 +62,15 @@ var CastPlaylist = class
 		this._addMenuInsertItem();
 	}
 
-	addPlaylistItem(filepath, position)
+	addPlaylistItem(filepath, isActive, position)
 	{
 		let filename = filepath.substring(filepath.lastIndexOf('/') + 1);
 		let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
 
 		let playlistItem = new CastPlaylistItem(title, filepath);
 		this._connectDragSigals(playlistItem);
+
+		if(isActive) playlistItem.setPlaying(true);
 
 		this.subMenu.menu.addMenuItem(playlistItem, position);
 	}
@@ -255,15 +266,26 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 {
 	constructor(title, filepath)
 	{
-		super(title, PLAYLIST_ITEM_ICON);
+		super(title, PLAYLIST_ITEM_INACTIVE_ICON);
 
 		this.isPlaylistItem = true;
+		this.isPlaying = false;
 		this.filepath = filepath;
 
 		if(this.hasOwnProperty('actor'))
 			this.drag = DND.makeDraggable(this.actor);
 		else
 			this.drag = DND.makeDraggable(this);
+
+		this.setPlaying = (isPlaying) =>
+		{
+			let activate = (isPlaying === true) ? true : false;
+
+			if(activate) this._icon.icon_name = PLAYLIST_ITEM_ACTIVE_ICON;
+			else this._icon.icon_name = PLAYLIST_ITEM_INACTIVE_ICON;
+
+			this.isPlaying = activate;
+		}
 	}
 
 	destroy()

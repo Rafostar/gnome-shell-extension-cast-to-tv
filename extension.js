@@ -77,7 +77,7 @@ function configCastRemote()
 		}
 
 		/* Update widget playlist */
-		remoteMenu.playlist.loadPlaylist(listContents);
+		remoteMenu.playlist.loadPlaylist(listContents, selectionContents.filePath);
 
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
