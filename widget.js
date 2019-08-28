@@ -382,6 +382,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 
 			if(icon) this.positionSlider.defaultIcon = icon;
+
+			Playlist.seekAllowed = (this.mode === 'DIRECT') ? true : false;
 		}
 
 		this.setMediaButtonsSize = (size) =>
