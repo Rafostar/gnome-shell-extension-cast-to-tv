@@ -129,16 +129,7 @@ var CastPlaylist = class
 		return false;
 	}
 
-	_recreatePlaylist(playlistArray)
-	{
-		this.subMenu.menu.removeAll();
-
-		playlistArray.forEach(filepath => this.addPlaylistItem(filepath));
-
-		this._addMenuInsertItem();
-	}
-
-	_getHoverItem(targetItem, searchValue)
+	_getParentWithValue(targetItem, searchValue)
 	{
 		if(targetItem && typeof targetItem === 'object')
 		{
@@ -192,9 +183,7 @@ var CastPlaylist = class
 
 	_onDragCancelled(menuItem)
 	{
-		let menuItems = this.subMenu.menu._getMenuItems();
-
-		if(menuItems.length > 1)
+		if(!menuItem.isPlaying)
 		{
 			menuItem.destroy();
 			this.tempMenuItem.hide();
@@ -214,9 +203,13 @@ var CastPlaylist = class
 			if(meta.active) newPlaylistItem.setPlaying(true);
 
 			this.subMenu.menu.addMenuItem(newPlaylistItem, menuItems.indexOf(this.tempMenuItem));
-			this.updatePlaylistFile();
+		}
+		else
+		{
+			this.subMenu.menu.moveMenuItem(obj, 0);
 		}
 
+		this.updatePlaylistFile();
 		this.tempMenuItem.hide();
 	}
 
@@ -226,7 +219,7 @@ var CastPlaylist = class
 			dragEvent.targetActor._delegate : dragEvent.targetActor;
 
 		let menuItems = this.subMenu.menu._getMenuItems();
-		let hoverItem = this._getHoverItem(targetItem, 'isPlaylistItem');
+		let hoverItem = this._getParentWithValue(targetItem, 'isPlaylistItem');
 
 		if(hoverItem)
 		{
@@ -235,7 +228,7 @@ var CastPlaylist = class
 
 			this.tempMenuItem.show();
 		}
-		else if(menuItems.length > 1 && !this._getHoverItem(targetItem, 'isTempPlaylistItem'))
+		else if(menuItems.length > 1 && !this._getParentWithValue(targetItem, 'isTempPlaylistItem'))
 		{
 			this.tempMenuItem.hide();
 		}
