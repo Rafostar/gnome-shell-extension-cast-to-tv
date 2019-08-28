@@ -240,8 +240,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
-				if(isRepeatActive !== statusContents.repeat)
+				if(	statusContents.hasOwnProperty('repeat')
+					&& isRepeatActive !== statusContents.repeat
+				) {
 					isRepeatActive = (statusContents.repeat === true) ? true : false;
+				}
 
 				if(this.repeatButton.turnedOn !== isRepeatActive)
 					this.repeatButton.turnOn(isRepeatActive);
