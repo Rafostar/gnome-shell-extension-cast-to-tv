@@ -1,3 +1,4 @@
+const { Clutter } = imports.gi;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
@@ -309,7 +310,14 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 			}
 		}
 
-		this.connect('activate', onItemClicked.bind(this));
+		this.connect('button-release-event', onItemClicked.bind(this));
+	}
+
+	_onButtonReleaseEvent(actor, event)
+	{
+		actor.remove_style_pseudo_class('active');
+		this.emit('button-release-event');
+		return Clutter.EVENT_STOP;
 	}
 
 	destroy()
