@@ -9,7 +9,7 @@ const shared = Local.imports.shared.module.exports;
 
 const PLAYLIST_MENU_ICON = 'view-list-symbolic';
 const PLAYLIST_ITEM_INACTIVE_ICON = 'open-menu-symbolic';
-const PLAYLIST_ITEM_ACTIVE_ICON = 'go-next-symbolic';
+const PLAYLIST_ITEM_ACTIVE_ICON = 'media-playback-start-symbolic';
 const TEMP_INSERT_ICON = 'insert-object-symbolic';
 
 var seekAllowed = true;
