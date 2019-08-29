@@ -33,10 +33,20 @@ var CastPlaylist = class
 
 	loadPlaylist(playlistArray, activeTrackPath)
 	{
-		/* Remove non-playlist items to make sorting easier */
-		this.tempMenuItem.destroy();
-
+		let insertItemIndex = 0;
+		let showInsert = false;
 		let menuItems = this.subMenu.menu._getMenuItems();
+
+		if(this.tempMenuItem)
+		{
+			showInsert = this.tempMenuItem.getVisible();
+
+			if(menuItems.includes(this.tempMenuItem))
+				insertItemIndex = menuItems.indexOf(this.tempMenuItem);
+
+			/* Remove non-playlist items to make sorting easier */
+			this.tempMenuItem.destroy();
+		}
 
 		/* Remove old items no longer in playlist */
 		for(let menuItem of menuItems)
@@ -72,7 +82,7 @@ var CastPlaylist = class
 		this._sortMenuItems(playlistArray);
 
 		/* Restore non-playlist items */
-		this._addMenuInsertItem();
+		this._addMenuInsertItem(showInsert, insertItemIndex);
 	}
 
 	addPlaylistItem(filepath, isActive, position)
@@ -105,10 +115,10 @@ var CastPlaylist = class
 		Temp.setListFile(filePlaylist);
 	}
 
-	_addMenuInsertItem()
+	_addMenuInsertItem(isShown, position)
 	{
-		this.tempMenuItem = new CastTempPlaylistItem();
-		this.subMenu.menu.addMenuItem(this.tempMenuItem);
+		this.tempMenuItem = new CastTempPlaylistItem(isShown);
+		this.subMenu.menu.addMenuItem(this.tempMenuItem, position);
 	}
 
 	_sortMenuItems(playlist)
@@ -368,7 +378,7 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 
 class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
 {
-	constructor()
+	constructor(isShown)
 	{
 		super('', TEMP_INSERT_ICON);
 
@@ -376,12 +386,17 @@ class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
 
 		if(this.hasOwnProperty('actor'))
 		{
+			this.actor.visible = true;
+
 			this.show = () => this.actor.show();
 			this.hide = () => this.actor.hide();
 		}
+		else
+		{
+			this.visible = true;
+		}
 
-		/* Hidden by default */
-		this.hide();
+		if(!isShown) this.hide();
 
 		/* This function is called by DND */
 		this.acceptDrop = (source, actor, x, y, time) =>
@@ -397,6 +412,14 @@ class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
 			dragItem.drag.emit('drag-end', 0, true, meta);
 
 			actor.destroy();
+		}
+
+		this.getVisible = () =>
+		{
+			if(this.hasOwnProperty('actor'))
+				return this.actor.visible;
+			else
+				return this.visible;
 		}
 	}
 
