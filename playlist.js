@@ -38,15 +38,16 @@ var CastPlaylist = class
 		let showInsert = false;
 		let menuItems = this.subMenu.menu._getMenuItems();
 
-		if(this.tempMenuItem)
+		if(this.tempMenuItem && menuItems.includes(this.tempMenuItem))
 		{
 			showInsert = this.tempMenuItem.getVisible();
-
-			if(menuItems.includes(this.tempMenuItem))
-				insertItemIndex = menuItems.indexOf(this.tempMenuItem);
+			insertItemIndex = menuItems.indexOf(this.tempMenuItem);
 
 			/* Remove non-playlist items to make sorting easier */
 			this.tempMenuItem.destroy();
+
+			/* Refresh menu items after destroying */
+			menuItems = this.subMenu.menu._getMenuItems();
 		}
 
 		/* Remove old items no longer in playlist */
