@@ -20,6 +20,7 @@ var CastPlaylist = class
 	{
 		this.subMenu = new CastPlaylistSubMenu();
 		this.tempMenuItem = null;
+		this.draggedItem = null;
 
 		this._addMenuInsertItem();
 
@@ -54,7 +55,17 @@ var CastPlaylist = class
 			let isActive = (filepath === activeTrackPath) ? true : false;
 
 			if(!this._isPathInMenu(filepath))
-				this.addPlaylistItem(filepath, isActive);
+			{
+				if(this.draggedItem && this.draggedItem.filepath === filepath)
+				{
+					if(!this.draggedItem.isPlaying && isActive)
+						this.draggedItem.setPlaying(true);
+					else if(this.draggedItem.isPlaying && !isActive)
+						this.draggedItem.setPlaying(false);
+				}
+				else
+					this.addPlaylistItem(filepath, isActive);
+			}
 		}
 
 		/* Sort playlist */
@@ -167,7 +178,7 @@ var CastPlaylist = class
 		menuItem.drag.connect('drag-begin', () => this._onDragBegin(menuItem));
 
 		/* Remove item when dragged anywhere besides playlist */
-		menuItem.drag.connect('drag-cancelled', () => this._onDragCancelled(menuItem));
+		menuItem.drag.connect('drag-cancelled', this._onDragCancelled.bind(this));
 
 		/* Handle drop item response */
 		menuItem.drag.connect('drag-end', this._onDragEnd.bind(this));
@@ -175,17 +186,21 @@ var CastPlaylist = class
 
 	_onDragBegin(menuItem)
 	{
+		this.draggedItem = menuItem;
+
 		let menuItems = this.subMenu.menu._getMenuItems();
 
 		this.subMenu.menu.moveMenuItem(this.tempMenuItem, menuItems.indexOf(menuItem));
 		this.tempMenuItem.show();
 	}
 
-	_onDragCancelled(menuItem)
+	_onDragCancelled()
 	{
-		if(!menuItem.isPlaying)
+		if(this.draggedItem && !this.draggedItem.isPlaying)
 		{
-			menuItem.destroy();
+			this.draggedItem.destroy();
+			this.draggedItem = null;
+
 			this.tempMenuItem.hide();
 			this.updatePlaylistFile();
 		}
@@ -193,6 +208,9 @@ var CastPlaylist = class
 
 	_onDragEnd(obj, time, res, meta)
 	{
+		/* DND automatically destroys or restores item depending on drag success */
+		this.draggedItem = null;
+
 		let menuItems = this.subMenu.menu._getMenuItems();
 
 		if(res && typeof meta === 'object')
@@ -238,8 +256,16 @@ var CastPlaylist = class
 
 	destroy()
 	{
+		/* Nullify draggedItem so app won't try to destroy it elsewhere */
+		if(this.draggedItem)
+		{
+			this.draggedItem.destroy();
+			this.draggedItem = null;
+		}
+
 		DND.removeDragMonitor(this._dragMonitor);
 
+		/* tempMenuItem is a subMenu item so it will be destroyed with it */
 		this.subMenu.destroy();
 	}
 }
