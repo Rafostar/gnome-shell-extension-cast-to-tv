@@ -23,7 +23,7 @@ var CastPlaylist = class
 		this.draggedItem = null;
 		this.remoteActive = false;
 
-		this._addMenuInsertItem();
+		this._addMenuInsertItem(false, 0);
 
 		this._dragMonitor = {
 			dragMotion: this._onDragMotion.bind(this)
@@ -122,17 +122,21 @@ var CastPlaylist = class
 		this.subMenu.menu.addMenuItem(this.tempMenuItem, position);
 	}
 
-	_sortMenuItems(playlist)
+	_sortMenuItems(playlistArray)
 	{
 		let menuItems = this.subMenu.menu._getMenuItems();
 
-		for(let i = 0; i < menuItems.length; i++)
+		for(let i = 0; i < playlistArray.length; i++)
 		{
-			if(	menuItems[i].filepath
-				&& menuItems[i].filepath !== playlist[i]
-				&& playlist.includes(menuItems[i].filepath)
-			)
-				this.subMenu.menu.moveMenuItem(menuItems[i], playlist.indexOf(menuItems[i].filepath));
+			if(menuItems[i].filepath && menuItems[i].filepath !== playlistArray[i])
+			{
+				let foundItem = menuItems.find(obj => { return obj.filepath === playlistArray[i] });
+				if(foundItem)
+				{
+					this.subMenu.menu.moveMenuItem(foundItem, i);
+					menuItems = this.subMenu.menu._getMenuItems();
+				}
+			}
 		}
 	}
 
