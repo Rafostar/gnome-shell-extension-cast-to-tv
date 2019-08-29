@@ -21,6 +21,7 @@ var CastPlaylist = class
 		this.subMenu = new CastPlaylistSubMenu();
 		this.tempMenuItem = null;
 		this.draggedItem = null;
+		this.remoteActive = false;
 
 		this._addMenuInsertItem();
 
@@ -206,13 +207,18 @@ var CastPlaylist = class
 
 	_onDragCancelled()
 	{
-		if(this.draggedItem && !this.draggedItem.isPlaying)
+		if(this.draggedItem)
 		{
-			this.draggedItem.destroy();
-			this.draggedItem = null;
+			if(!this.draggedItem.isPlaying || !this.remoteActive)
+			{
+				this.draggedItem.destroy();
+				this.draggedItem = null;
 
-			this.tempMenuItem.hide();
-			this.updatePlaylistFile();
+				this.tempMenuItem.hide();
+
+				if(this.remoteActive)
+					this.updatePlaylistFile();
+			}
 		}
 	}
 
@@ -392,9 +398,7 @@ class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
 			this.hide = () => this.actor.hide();
 		}
 		else
-		{
 			this.visible = true;
-		}
 
 		if(!isShown) this.hide();
 

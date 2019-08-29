@@ -43,6 +43,7 @@ function configCastRemote()
 	}
 
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+	remoteMenu.playlist.remoteActive = chromecastPlaying;
 
 	if(chromecastPlaying)
 	{
