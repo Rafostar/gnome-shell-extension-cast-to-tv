@@ -34,31 +34,20 @@ var CastPlaylist = class
 
 	loadPlaylist(playlistArray, activeTrackPath)
 	{
-		let insertItemIndex = 0;
-		let showInsert = false;
 		let menuItems = this.subMenu.menu._getMenuItems();
-
-		if(this.tempMenuItem && menuItems.includes(this.tempMenuItem))
-		{
-			showInsert = this.tempMenuItem.getVisible();
-			insertItemIndex = menuItems.indexOf(this.tempMenuItem);
-
-			/* Remove non-playlist items to make sorting easier */
-			this.tempMenuItem.destroy();
-
-			/* Refresh menu items after destroying */
-			menuItems = this.subMenu.menu._getMenuItems();
-		}
 
 		/* Remove old items no longer in playlist */
 		for(let menuItem of menuItems)
 		{
-			if(!playlistArray.includes(menuItem.filepath))
-				menuItem.destroy();
-			else if(menuItem.isPlaying && menuItem.filepath !== activeTrackPath)
-				menuItem.setPlaying(false);
-			else if(!menuItem.isPlaying && menuItem.filepath === activeTrackPath)
-				menuItem.setPlaying(true);
+			if(menuItem.isPlaylistItem && menuItem.filepath)
+			{
+				if(!playlistArray.includes(menuItem.filepath))
+					menuItem.destroy();
+				else if(menuItem.isPlaying && menuItem.filepath !== activeTrackPath)
+					menuItem.setPlaying(false);
+				else if(!menuItem.isPlaying && menuItem.filepath === activeTrackPath)
+					menuItem.setPlaying(true);
+			}
 		}
 
 		/* Add new items to playlist */
@@ -76,18 +65,15 @@ var CastPlaylist = class
 						this.draggedItem.setPlaying(false);
 				}
 				else
-					this.addPlaylistItem(filepath, isActive);
+					this.addMenuPlaylistItem(filepath, isActive);
 			}
 		}
 
 		/* Sort playlist */
-		this._sortMenuItems(playlistArray);
-
-		/* Restore non-playlist items */
-		this._addMenuInsertItem(showInsert, insertItemIndex);
+		this.sortMenuItems(playlistArray);
 	}
 
-	addPlaylistItem(filepath, isActive, position)
+	addMenuPlaylistItem(filepath, isActive, position)
 	{
 		let filename = filepath.substring(filepath.lastIndexOf('/') + 1);
 		let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
@@ -98,6 +84,42 @@ var CastPlaylist = class
 		if(isActive) playlistItem.setPlaying(true);
 
 		this.subMenu.menu.addMenuItem(playlistItem, position);
+	}
+
+	sortMenuItems(playlistArray)
+	{
+		let menuItems = this.subMenu.menu._getMenuItems();
+		let isInsert = (this.tempMenuItem && menuItems.includes(this.tempMenuItem));
+		let lastItemIndex = menuItems.length - 1;
+		let insertItemIndex = 0;
+
+		if(isInsert)
+		{
+			/* Get insert item index so it can be restored to the same place */
+			insertItemIndex = menuItems.indexOf(this.tempMenuItem);
+
+			/* If menu includes insert item, move it to the end and sort without it */
+			this.subMenu.menu.moveMenuItem(this.tempMenuItem, lastItemIndex);
+			menuItems = this.subMenu.menu._getMenuItems();
+
+			lastItemIndex--;
+		}
+
+		for(let i = 0; i <= lastItemIndex; i++)
+		{
+			if(menuItems[i].filepath && menuItems[i].filepath !== playlistArray[i])
+			{
+				let foundItem = menuItems.find(obj => { return obj.filepath === playlistArray[i] });
+				if(foundItem)
+				{
+					this.subMenu.menu.moveMenuItem(foundItem, i);
+					menuItems = this.subMenu.menu._getMenuItems();
+				}
+			}
+		}
+
+		/* Restore non-playlist item position */
+		if(isInsert) this.subMenu.menu.moveMenuItem(this.tempMenuItem, insertItemIndex);
 	}
 
 	updatePlaylistFile()
@@ -121,24 +143,6 @@ var CastPlaylist = class
 	{
 		this.tempMenuItem = new CastTempPlaylistItem(isShown);
 		this.subMenu.menu.addMenuItem(this.tempMenuItem, position);
-	}
-
-	_sortMenuItems(playlistArray)
-	{
-		let menuItems = this.subMenu.menu._getMenuItems();
-
-		for(let i = 0; i < playlistArray.length; i++)
-		{
-			if(menuItems[i].filepath && menuItems[i].filepath !== playlistArray[i])
-			{
-				let foundItem = menuItems.find(obj => { return obj.filepath === playlistArray[i] });
-				if(foundItem)
-				{
-					this.subMenu.menu.moveMenuItem(foundItem, i);
-					menuItems = this.subMenu.menu._getMenuItems();
-				}
-			}
-		}
 	}
 
 	_isPathInMenu(searchPath)
