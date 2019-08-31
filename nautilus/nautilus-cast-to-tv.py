@@ -78,10 +78,14 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         sub_menuitem_1.connect('activate', self.cast_files_cb, files, stream_type, False)
         submenu.append_item(sub_menuitem_1)
 
+        sub_menuitem_2 = FileManager.MenuItem(name = 'CastToTVMenu::AddToPlaylist', label=_("Add to Playlist"))
+        sub_menuitem_2.connect('activate', self.add_to_playlist_cb, files)
+        submenu.append_item(sub_menuitem_2)
+
         if stream_type == 'VIDEO':
-            sub_menuitem_2 = FileManager.MenuItem(name='CastTranscodeMenu::Transcode', label=_("Transcode"))
+            sub_menuitem_3 = FileManager.MenuItem(name='CastTranscodeMenu::Transcode', label=_("Transcode"))
             submenu_2 = FileManager.Menu()
-            sub_menuitem_2.set_submenu(submenu_2)
+            sub_menuitem_3.set_submenu(submenu_2)
 
             sub_sub_menuitem_1 = FileManager.MenuItem(name='CastTranscodeMenu::Video', label=_("Video"))
             sub_sub_menuitem_1.connect('activate', self.transcode_files_cb, files, stream_type, False)
@@ -95,7 +99,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             sub_sub_menuitem_3.connect('activate', self.transcode_files_cb, files, stream_type, True)
             submenu_2.append_item(sub_sub_menuitem_3)
 
-            submenu.append_item(sub_menuitem_2)
+            submenu.append_item(sub_menuitem_3)
 
         return top_menuitem
 
@@ -184,12 +188,17 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return True
 
-    def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
-        playlist = [
+    def parse_playlist_files(self, files):
+        parsed_files = [
             unquote(self.get_file_uri(file))
             for file in files
             if not self.is_subtitles_file(file)
         ]
+
+        return parsed_files
+
+    def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
+        playlist = self.parse_playlist_files(files)
 
         # Playlist must be updated before selection file
         with open(TEMP_PATH + '/playlist.json', 'w') as fp:
@@ -204,6 +213,18 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         with open(TEMP_PATH + '/selection.json', 'w') as fp:
             json.dump(selection, fp, indent=1, ensure_ascii=False)
+
+    def add_to_playlist_cb(self, menu, files):
+        playlist = self.parse_playlist_files(files)
+
+        with open(TEMP_PATH + '/playlist.json', 'r') as fp:
+            playlist_file = json.load(fp)
+            for filepath in playlist:
+                if filepath not in playlist_file:
+                    playlist_file.append(filepath)
+
+        with open(TEMP_PATH + '/playlist.json', 'w') as fp:
+            json.dump(playlist_file, fp, indent=1, ensure_ascii=False)
 
     def transcode_files_cb(self, menu, files, stream_type, is_transcode_audio):
         if self.config['videoAcceleration'] == 'vaapi':
