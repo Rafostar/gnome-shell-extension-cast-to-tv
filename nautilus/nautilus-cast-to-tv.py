@@ -1,7 +1,7 @@
 # Cast to TV Nautilus/Nemo Extension
 # Developers: Rafostar, rendyanthony
 
-import os, sys, json, gettext, locale, gi
+import os, sys, codecs, json, gettext, locale, gi
 gi.require_version('Nautilus', '3.0')
 gi.require_version('GObject', '2.0')
 gi.require_version('Gio', '2.0')
@@ -122,7 +122,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if self.config['chromecastName'] == self.current_name['name']:
             return self.current_name['fn']
 
-        with open(EXTENSION_PATH + '/config/devices.json') as devices:
+        with codecs.open(EXTENSION_PATH + '/config/devices.json', encoding='utf-8') as devices:
             for device in json.load(devices):
                 if device['name'] == self.config['chromecastName']:
                     self.current_name['name'] = device['name']
@@ -202,7 +202,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         playlist = self.parse_playlist_files(files)
 
         # Playlist must be updated before selection file
-        with open(TEMP_PATH + '/playlist.json', 'w') as fp:
+        with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
             json.dump(playlist, fp, indent=1, ensure_ascii=False)
 
         selection = {
@@ -212,23 +212,25 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             "transcodeAudio": is_transcode_audio
         }
 
-        with open(TEMP_PATH + '/selection.json', 'w') as fp:
+        with codecs.open(TEMP_PATH + '/selection.json', 'w', encoding='utf-8') as fp:
             json.dump(selection, fp, indent=1, ensure_ascii=False)
 
     def add_to_playlist_cb(self, menu, files, stream_type, is_transcode_audio):
         # Check if Chromecast did not stop playing before option select
         playlist_allowed = self.get_playlist_allowed(stream_type)
         if playlist_allowed:
-            playlist = self.parse_playlist_files(files)
+            parsed_playlist = self.parse_playlist_files(files)
 
-            with open(TEMP_PATH + '/playlist.json', 'r') as fp:
-                playlist_file = json.load(fp)
-                for filepath in playlist:
-                    if filepath not in playlist_file:
-                        playlist_file.append(filepath)
+            with codecs.open(TEMP_PATH + '/playlist.json', 'r', encoding='utf-8') as fp:
+                playlist = json.load(fp)
+                for filepath in parsed_playlist:
+                    if type(filepath) != 'unicode':
+                        filepath = filepath.decode('utf-8')
+                    if filepath not in playlist:
+                        playlist.append(filepath)
 
-            with open(TEMP_PATH + '/playlist.json', 'w') as fp:
-                json.dump(playlist_file, fp, indent=1, ensure_ascii=False)
+            with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
+                json.dump(playlist, fp, indent=1, ensure_ascii=False)
         else:
             self.cast_files_cb(menu, files, stream_type, is_transcode_audio)
 
@@ -245,7 +247,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def get_playlist_allowed(self, stream_type):
         chromecast_playing = self.ext_settings.get_boolean('chromecast-playing')
         if chromecast_playing:
-            with open(TEMP_PATH + '/selection.json', 'r') as fp:
+            with codecs.open(TEMP_PATH + '/selection.json', 'r', encoding='utf-8') as fp:
                 selection = json.load(fp)
                 if (selection['streamType'] == stream_type and not selection['transcodeAudio']):
                     return True
@@ -268,7 +270,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         stream_type = None
         is_video_and_subs = False
 
-        with open(TEMP_PATH + '/config.json', 'r') as config:
+        with codecs.open(TEMP_PATH + '/config.json', 'r', encoding='utf-8') as config:
             self.config = json.load(config)
 
         if len(files) == 2:
