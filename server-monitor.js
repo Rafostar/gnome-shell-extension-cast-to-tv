@@ -27,7 +27,7 @@ class ServerMonitor
 		let canStart = (this._isExtensionEnabled() && !this._isServerRunning());
 		if(!canStart) return;
 
-		if(!this._checkModules())
+		if(!this._checkModules() || !this._checkAddons())
 		{
 			castSettings.set_boolean('service-enabled', false);
 			return;
@@ -52,7 +52,7 @@ class ServerMonitor
 		}
 
 		let proc = Gio.Subprocess.new([nodePath, localPath + '/node_scripts/server'], Gio.SubprocessFlags.NONE);
-		print('Started Cast to TV service');
+		print('Cast to TV: service started');
 
 		proc.wait_async(null, () =>
 		{
@@ -60,17 +60,19 @@ class ServerMonitor
 
 			if(persistent)
 			{
-				print('Restarting Cast to TV server');
+				print('Cast to TV: restarting server');
 
 				let modulesInstalled = this._checkModules();
-				if(modulesInstalled)
+				let addonsInstalled = this._checkAddons();
+
+				if(modulesInstalled && addonsInstalled)
 				{
 					this.startServer();
 
 					restartCount++;
 					if(restartCount >= 3)
 					{
-						print('Cast to TV server crashed too many times! Service stopped.');
+						print('Cast to TV: server crashed too many times!');
 						this.stopServer();
 						return;
 					}
@@ -80,6 +82,10 @@ class ServerMonitor
 					loop.run();
 				}
 			}
+			else
+			{
+				print('Cast to TV: service stopped');
+			}
 		});
 	}
 
@@ -87,7 +93,6 @@ class ServerMonitor
 	{
 		persistent = false;
 		GLib.spawn_command_line_sync(`pkill -SIGINT -f ${localPath}/node_scripts/server`);
-		print('Stopped Cast to TV service');
 	}
 
 	_isExtensionEnabled()
@@ -102,7 +107,7 @@ class ServerMonitor
 			}
 		}
 
-		print('Cast to TV extension is disabled');
+		print('Cast to TV: extension is disabled');
 		return false;
 	}
 
@@ -118,26 +123,28 @@ class ServerMonitor
 		else return false;
 	}
 
-	_checkModules()
+	_checkModules(sourceDir)
 	{
-		let modulesPath = localPath  + '/node_modules';
+		sourceDir = sourceDir || localPath;
+
+		let modulesPath = sourceDir + '/node_modules';
 
 		let folderExists = GLib.file_test(modulesPath, 16);
 		if(!folderExists)
 		{
-			print('Cast to TV node modules not installed');
+			print('Cast to TV: npm modules not installed!');
 			return false;
 		}
 
-		let dependencies = this._readDependencies(localPath);
+		let dependencies = this._getDependencies(sourceDir);
 		if(dependencies)
 		{
-			for(var module in dependencies)
+			for(let module in dependencies)
 			{
 				let moduleExists = GLib.file_test(modulesPath + '/' + module, 16);
 				if(!moduleExists)
 				{
-					print(`Missing Cast to TV node module: ${module}`);
+					print(`Cast to TV: missing npm module: ${module}`);
 					return false;
 				}
 			}
@@ -148,9 +155,36 @@ class ServerMonitor
 		return false;
 	}
 
-	_readDependencies()
+	_checkAddons()
 	{
-		let packagePath = localPath  + '/package.json';
+		let extPath = localPath.substring(0, localPath.lastIndexOf('/'));
+		let extDir = Gio.File.new_for_path(extPath);
+		let dirEnum = extDir.enumerate_children('standard::name,standard::type', 0, null);
+		let addons = [];
+
+		let info;
+		while((info = dirEnum.next_file(null)))
+		{
+			let dirName = info.get_name();
+
+			if(dirName.includes('cast-to-tv') && dirName.includes('addon'))
+			{
+				addons.push(extPath + '/' + dirName);
+			}
+		}
+
+		for(let addonDir of addons)
+		{
+			let addonModulesInstalled = this._checkModules(addonDir);
+			if(!addonModulesInstalled) return false;
+		}
+
+		return true;
+	}
+
+	_getDependencies(readPath)
+	{
+		let packagePath = readPath + '/package.json';
 
 		let fileExists = GLib.file_test(packagePath, 16);
 		if(fileExists)
@@ -179,7 +213,7 @@ class ServerMonitor
 			}
 		}
 
-		print('Cast to TV could not read node dependencies!');
+		print('Cast to TV: could not read npm dependencies!');
 		return null;
 	}
 
