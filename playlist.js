@@ -266,8 +266,11 @@ var CastPlaylist = class
 
 		if(hoverItem)
 		{
-			if(menuItems.indexOf(hoverItem) !== menuItems.indexOf(this.tempMenuItem))
-				this.subMenu.menu.moveMenuItem(this.tempMenuItem, menuItems.indexOf(hoverItem));
+			let hoverItemIndex = menuItems.indexOf(hoverItem);
+			let tempItemIndex = menuItems.indexOf(this.tempMenuItem);
+
+			if(hoverItemIndex !== tempItemIndex)
+				this.subMenu.menu.moveMenuItem(this.tempMenuItem, hoverItemIndex);
 
 			this.tempMenuItem.show();
 		}
