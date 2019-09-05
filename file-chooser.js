@@ -26,12 +26,6 @@ class fileChooser
 {
 	constructor()
 	{
-		this.isSubsDialog = false;
-
-		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
-		this.playlistAllowed = this._getAddPlaylistAllowed();
-		this.playlistSignal = Settings.connect('changed::chromecast-playing', () => this._onChromecastPlayingChange());
-
 		GLib.set_prgname('Cast to TV');
 		this.application = new Gtk.Application();
 		this.application.connect('activate', () => this._openDialog());
@@ -114,12 +108,14 @@ class fileChooser
 	_openDialog()
 	{
 		let configContents = this._readFromFile(shared.configPath);
-		let selectionContents = {};
-		selectionContents.streamType = streamType;
-		selectionContents.subsPath = '';
+		if(!configContents || !streamType) return;
 
-		if(!configContents || !selectionContents.streamType) return;
+		let selectionContents = {
+			streamType: streamType,
+			subsPath: ''
+		};
 
+		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
 
 		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
@@ -133,6 +129,10 @@ class fileChooser
 
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
+
+		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
+		this.playlistAllowed = this._getAddPlaylistAllowed();
+		this.playlistSignal = Settings.connect('changed::chromecast-playing', () => this._onChromecastPlayingChange());
 
 		let castButtonText = (this.playlistAllowed) ? ADD_PLAYLIST_LABEL : CAST_LABEL_SINGLE;
 		this.buttonCast = this.fileChooser.add_button(castButtonText, Gtk.ResponseType.OK);
@@ -186,9 +186,7 @@ class fileChooser
 		{
 			if(DialogResponse === Gtk.ResponseType.APPLY)
 			{
-				this.fileChooser.disconnect(this.fileSelectionChanged);
 				selectionContents.subsPath = this._selectSubtitles();
-
 				if(!selectionContents.subsPath) return;
 			}
 			else
@@ -196,6 +194,8 @@ class fileChooser
 				return;
 			}
 		}
+
+		this.fileChooser.disconnect(this.fileSelectionChanged);
 
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
