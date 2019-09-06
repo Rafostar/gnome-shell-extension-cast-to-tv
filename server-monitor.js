@@ -84,6 +84,7 @@ class ServerMonitor
 			}
 			else
 			{
+				castSettings.set_boolean('service-enabled', false);
 				print('Cast to TV: service stopped');
 			}
 		});
