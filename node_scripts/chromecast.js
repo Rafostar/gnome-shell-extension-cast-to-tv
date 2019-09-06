@@ -543,13 +543,14 @@ function checkRemoteAction(action, value)
 					if(err) debug(err);
 
 					closeCast(action);
+					unsetBusy();
 				});
 			}
 			else
 			{
 				closeCast(action);
+				unsetBusy();
 			}
-			unsetBusy();
 		case 'VOLUME':
 			player.setVolume(parseFloat(value), (err, volume) =>
 			{
