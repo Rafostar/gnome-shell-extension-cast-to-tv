@@ -88,7 +88,7 @@ sudo pacman -S npm nodejs ffmpeg
 ```
 Nautilus integration (optional):
 ```
-sudo pacman -S install python-nautilus 
+sudo pacman -S python-nautilus 
 ```
 
 ## Install npm dependencies
