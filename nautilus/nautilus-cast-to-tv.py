@@ -2,7 +2,6 @@
 # Developers: Rafostar, rendyanthony
 
 import os, sys, codecs, json, gettext, locale, gi
-gi.require_version('Nautilus', '3.0')
 gi.require_version('GObject', '2.0')
 gi.require_version('Gio', '2.0')
 from gi.repository import GObject, Gio
@@ -35,11 +34,11 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
 
-        Gio_SSS = Gio.SettingsSchemaSource;
+        Gio_SSS = Gio.SettingsSchemaSource
         schema_source = Gio_SSS.new_from_directory(
-            EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False);
-        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True);
-        self.ext_settings = Gio.Settings.new_full(schema_obj);
+            EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False)
+        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True)
+        self.ext_settings = Gio.Settings.new_full(schema_obj)
 
         try:
             locale.setlocale(locale.LC_ALL, '')
@@ -152,7 +151,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if file.is_mime_type('text/*'):
             filename = self.get_file_uri(file)
             if filename:
-                basename = os.path.basename(filename)
                 ext = os.path.splitext(filename)[1][1:].lower()
                 if ext in SUBS_FORMATS:
                     return True
