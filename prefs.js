@@ -668,7 +668,8 @@ class ModulesSettings extends Gtk.VBox
 			try {
 				TermWidget.spawn_async(
 					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
-					null, 0, null, null, null, 120000, null, () => installCallback());
+					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null, (res, pid) =>
+						GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback()));
 			}
 			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
