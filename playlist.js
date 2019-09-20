@@ -359,7 +359,7 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 			this.isPlaying = activate;
 		}
 
-		let onItemClicked = () =>
+		this._onItemClicked = () =>
 		{
 			/* When clicked active track seeking to zero is faster than reloading file */
 			if(this.isPlaying)
@@ -377,14 +377,12 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 				}
 			}
 		}
-
-		this.connect('button-release-event', onItemClicked.bind(this));
 	}
 
 	_onButtonReleaseEvent(actor, event)
 	{
 		actor.remove_style_pseudo_class('active');
-		this.emit('button-release-event');
+		this._onItemClicked();
 		return Clutter.EVENT_STOP;
 	}
 
