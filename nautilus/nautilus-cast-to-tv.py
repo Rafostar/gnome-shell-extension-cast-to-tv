@@ -1,11 +1,18 @@
-# Cast to TV Nautilus Extension
+# Cast to TV Nautilus/Nemo Extension
 # Developers: Rafostar, rendyanthony
 
-import os, json, gettext, locale, gi
+import os, sys, json, gettext, locale, gi
 gi.require_version('Nautilus', '3.0')
 gi.require_version('GObject', '2.0')
 gi.require_version('Gio', '2.0')
-from gi.repository import Nautilus, GObject, Gio
+from gi.repository import GObject, Gio
+
+if 'nemo' in sys.argv[0].lower():
+    gi.require_version('Nemo', '3.0')
+    from gi.repository import Nemo as FileManager
+else:
+    gi.require_version('Nautilus', '3.0')
+    from gi.repository import Nautilus as FileManager
 
 # A way to get unquote working with python 2 and 3
 try:
@@ -20,7 +27,7 @@ EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/' + E
 TEMP_PATH = '/tmp/.cast-to-tv'
 SUBS_FORMATS = ['srt', 'ass', 'vtt']
 
-class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
+class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def __init__(self):
         GObject.Object.__init__(self)
         self.subs_path = ""
@@ -62,18 +69,32 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         if not menu_label:
             return None
 
-        top_menuitem = Nautilus.MenuItem(name='CastToTVMenu::CastMenu', label=menu_label)
+        top_menuitem = FileManager.MenuItem(name='CastToTVMenu::CastMenu', label=menu_label)
 
-        submenu = Nautilus.Menu()
+        submenu = FileManager.Menu()
         top_menuitem.set_submenu(submenu)
 
-        sub_menuitem_1 = Nautilus.MenuItem(name = 'CastToTVMenu::CastFile', label=_(cast_label))
-        sub_menuitem_1.connect('activate', self.cast_files_cb, files, stream_type)
+        sub_menuitem_1 = FileManager.MenuItem(name = 'CastToTVMenu::CastFile', label=_(cast_label))
+        sub_menuitem_1.connect('activate', self.cast_files_cb, files, stream_type, False)
         submenu.append_item(sub_menuitem_1)
 
         if stream_type == 'VIDEO':
-            sub_menuitem_2 = Nautilus.MenuItem(name='CastToTVMenu::TranscodeVideo', label=_("Transcode Video"))
-            sub_menuitem_2.connect('activate', self.transcode_files_cb, files, stream_type)
+            sub_menuitem_2 = FileManager.MenuItem(name='CastTranscodeMenu::Transcode', label=_("Transcode"))
+            submenu_2 = FileManager.Menu()
+            sub_menuitem_2.set_submenu(submenu_2)
+
+            sub_sub_menuitem_1 = FileManager.MenuItem(name='CastTranscodeMenu::Video', label=_("Video"))
+            sub_sub_menuitem_1.connect('activate', self.transcode_files_cb, files, stream_type, False)
+            submenu_2.append_item(sub_sub_menuitem_1)
+
+            #sub_sub_menuitem_2 = FileManager.MenuItem(name='CastTranscodeMenu::Audio', label=_("Audio"))
+            #sub_sub_menuitem_2.connect('activate', self.cast_files_cb, files, stream_type, True)
+            #submenu_2.append_item(sub_sub_menuitem_2)
+
+            sub_sub_menuitem_3 = FileManager.MenuItem(name='CastTranscodeMenu::Video+Audio', label=_("Video + Audio"))
+            sub_sub_menuitem_3.connect('activate', self.transcode_files_cb, files, stream_type, True)
+            submenu_2.append_item(sub_sub_menuitem_3)
+
             submenu.append_item(sub_menuitem_2)
 
         return top_menuitem
@@ -163,7 +184,7 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
 
         return True
 
-    def cast_files_cb(self, menu, files, stream_type):
+    def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
         playlist = [
             unquote(self.get_file_uri(file))
             for file in files
@@ -177,13 +198,14 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         selection = {
             "streamType": stream_type,
             "subsPath": self.subs_path,
-            "filePath": playlist[0]
+            "filePath": playlist[0],
+            "transcodeAudio": is_transcode_audio
         }
 
         with open(TEMP_PATH + '/selection.json', 'w') as fp:
             json.dump(selection, fp, indent=1, ensure_ascii=False)
 
-    def transcode_files_cb(self, menu, files, stream_type):
+    def transcode_files_cb(self, menu, files, stream_type, is_transcode_audio):
         if self.config['videoAcceleration'] == 'vaapi':
             stream_type += '_VAAPI'
         elif self.config['videoAcceleration'] == 'nvenc':
@@ -191,7 +213,7 @@ class CastToTVMenu(GObject.Object, Nautilus.MenuProvider):
         else:
             stream_type += '_ENCODE'
 
-        self.cast_files_cb(menu, files, stream_type)
+        self.cast_files_cb(menu, files, stream_type, is_transcode_audio)
 
     def get_file_items(self, window, files):
         if not self.ext_settings.get_boolean('service-enabled'):

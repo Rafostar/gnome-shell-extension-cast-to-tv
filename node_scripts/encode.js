@@ -5,12 +5,7 @@ var extract = require('./extract');
 var gnome = require('./gnome');
 var messages = require('./messages.js');
 var shared = require('../shared');
-
-var subsPathEscaped;
-var codecAudio = 'copy';
-
-var stdioConf = 'ignore';
-if(debug.enabled) stdioConf = 'inherit';
+var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
 
@@ -21,18 +16,46 @@ String.prototype.replaceAt = function(index, replacement)
 
 function getSubsPath()
 {
-	if(bridge.selection.subsPath) subsPathEscaped = bridge.selection.subsPath;
-	else subsPathEscaped = bridge.selection.filePath;
+	var subsPathEscaped = (bridge.selection.subsPath) ? bridge.selection.subsPath : bridge.selection.filePath;
+	var index = subsPathEscaped.length;
 
-	var i = subsPathEscaped.length;
-
-	while(i--)
+	while(index--)
 	{
-		if(shared.escapeChars.indexOf(subsPathEscaped.charAt(i)) > -1)
-		{
-			subsPathEscaped = subsPathEscaped.replaceAt(i, '\\' + subsPathEscaped.charAt(i));
-		}
+		if(shared.escapeChars.includes(subsPathEscaped.charAt(index)))
+			subsPathEscaped = subsPathEscaped.replaceAt(index, '\\' + subsPathEscaped.charAt(index));
 	}
+
+	return subsPathEscaped;
+}
+
+function getAudioOptsArray()
+{
+	return (bridge.selection.transcodeAudio) ? ['flac', '-ac', '2'] : ['copy'];
+}
+
+function createEncodeProcess(encodeOpts)
+{
+	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
+	{ stdio: ['ignore', 'pipe', stdioConf] });
+
+	var notifyError = false;
+
+	exports.streamProcess.once('close', (code) =>
+	{
+		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
+		exports.streamProcess = null;
+	});
+
+	exports.streamProcess.once('error', (error) =>
+	{
+		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+		{
+			gnome.notify('Cast to TV', messages.ffmpegPath);
+			notifyError = true;
+		}
+	});
+
+	return exports.streamProcess.stdout;
 }
 
 exports.video = function()
@@ -44,39 +67,16 @@ exports.video = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-f', 'matroska',
 	'pipe:1'
 	];
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		getSubsPath();
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + subsPathEscaped, '-sn');
-	}
+		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + getSubsPath(), '-sn');
 
-	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', stdioConf] });
-
-	var notifyError = false;
-
-	exports.streamProcess.once('close', (code) =>
-	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
-		exports.streamProcess = null;
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
-
-	return exports.streamProcess.stdout;
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.videoVaapi = function()
@@ -86,7 +86,7 @@ exports.videoVaapi = function()
 	'-c:v', 'h264_vaapi',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-f', 'matroska',
 	'pipe:1'
@@ -94,10 +94,9 @@ exports.videoVaapi = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		getSubsPath();
 		encodeOpts.unshift('-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
-			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + subsPathEscaped + ',hwmap', '-sn');
+			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + getSubsPath() + ',hwmap', '-sn');
 	}
 	else
 	{
@@ -105,27 +104,29 @@ exports.videoVaapi = function()
 		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0, '-vf', 'format=nv12,hwmap');
 	}
 
-	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', stdioConf] });
+	return createEncodeProcess(encodeOpts);
+}
 
-	var notifyError = false;
+exports.videoNvenc = function()
+{
+	var encodeOpts = [
+	'-i', bridge.selection.filePath,
+	'-c:v', 'h264_nvenc',
+	'-level:v', '4.1',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-c:a', ...getAudioOptsArray(),
+	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
+	'-f', 'matroska',
+	'pipe:1'
+	];
 
-	exports.streamProcess.once('close', (code) =>
+	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
-		exports.streamProcess = null;
-	});
+		encodeOpts.splice(encodeOpts.indexOf('h264_nvenc') + 1, 0,
+			'-vf', 'subtitles=' + getSubsPath(), '-sn');
+	}
 
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
-
-	return exports.streamProcess.stdout;
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.musicVisualizer = function()
@@ -160,33 +161,13 @@ exports.musicVisualizer = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', codecAudio,
+	'-c:a', 'copy',
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-f', 'matroska',
 	'pipe:1'
 	];
 
-	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
-	{ stdio: ['ignore', 'pipe', stdioConf] });
-
-	var notifyError = false;
-
-	exports.streamProcess.once('close', (code) =>
-	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
-		exports.streamProcess = null;
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
-
-	return exports.streamProcess.stdout;
+	return createEncodeProcess(encodeOpts);
 }
 
 exports.closeStreamProcess = function()

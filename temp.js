@@ -72,7 +72,8 @@ function setSelectionFile()
 	let selectionContents = {
 		streamType: '',
 		filePath: '',
-		subsPath: ''
+		subsPath: '',
+		transcodeAudio: false
 	};
 
 	writeToFile(shared.selectionPath, selectionContents);
@@ -100,7 +101,8 @@ function setStatusFile()
 		playerState: 'UNAVAILABLE',
 		currentTime: 0,
 		mediaDuration: 0,
-		volume: 0
+		volume: 0,
+		repeat: false
 	};
 
 	writeToFile(shared.statusPath, statusContents);

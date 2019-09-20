@@ -82,6 +82,15 @@ Nautilus integration (optional):
 sudo dnf install nautilus-python pygobject3 python3-gobject
 ```
 
+### Arch Linux
+```
+sudo pacman -S npm nodejs ffmpeg
+```
+Nautilus integration (optional):
+```
+sudo pacman -S python-nautilus python-gobject2 python-gobject
+```
+
 ## Install npm dependencies
 **Before using extension** you also **must** install some additional npm packages.
 

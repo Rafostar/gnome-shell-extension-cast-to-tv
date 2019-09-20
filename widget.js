@@ -259,18 +259,21 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.statusMonitor.connect('changed', () =>
+		this.updateRemote = () =>
 		{
 			if(this.mode == 'PICTURE') return;
 
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
-				if(isRepeatActive != statusContents.repeat)
-				{
+				if(	statusContents.hasOwnProperty('repeat')
+					&& isRepeatActive !== statusContents.repeat
+				) {
 					isRepeatActive = (statusContents.repeat === true) ? true : false;
-					this.repeatButton.turnOn(isRepeatActive);
 				}
+
+				if(this.repeatButton.turnedOn !== isRepeatActive)
+					this.repeatButton.turnOn(isRepeatActive);
 
 				this.checkPlaying(statusContents);
 
@@ -291,11 +294,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					this.setProgress(statusContents);
 				}
 			}
-		});
+		}
+
+		this.statusMonitor.connect('changed', () => this.updateRemote());
 
 		/* Functions */
-		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
-
 		this.setPlaying = (value) =>
 		{
 			if(this.togglePlayButton.isPause !== value)
@@ -386,6 +389,24 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 
 			if(icon) this.positionSlider.defaultIcon = icon;
+		}
+
+		this.setMediaButtonsSize = (size) =>
+		{
+			this.playButton.child.icon_size = size;
+			this.pauseButton.child.icon_size = size;
+			this.stopButton.child.icon_size = size;
+			this.seekBackwardButton.child.icon_size = size;
+			this.seekForwardButton.child.icon_size = size;
+			this.skipBackwardButton.child.icon_size = size;
+			this.skipForwardButton.child.icon_size = size;
+			this.repeatButton.child.icon_size = size;
+		}
+
+		this.setSlidersIconSize = (size) =>
+		{
+			this.positionSlider.setIconSize(size);
+			this.volumeSlider.setIconSize(size);
 		}
 
 		/* Only need to be added when used with actor */
@@ -516,6 +537,12 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 				return this.actor.visible;
 			else
 				return this.visible;
+		}
+
+		this.setIconSize = (size) =>
+		{
+			if(this._toggle) this.button.child.icon_size = size;
+			else this.button.icon_size = size;
 		}
 
 		this.getValue = () =>
