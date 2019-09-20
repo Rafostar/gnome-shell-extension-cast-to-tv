@@ -4,9 +4,9 @@ const Config = imports.misc.config;
 
 const GNOME_MINOR_VER = Object.assign(Config.PACKAGE_VERSION).split('.')[1];
 
-var PopupBase = (GNOME_MINOR_VER >= 31) ?
+var AltPopupBase = (GNOME_MINOR_VER >= 31) ?
 	GObject.registerClass(
-	class extends PopupMenu.PopupBaseMenuItem
+	class AltPopupBase extends PopupMenu.PopupBaseMenuItem
 	{
 		_init()
 		{
@@ -18,7 +18,7 @@ var PopupBase = (GNOME_MINOR_VER >= 31) ?
 				this.add_style_pseudo_class = () => { return null };
 		}
 	}) :
-	class extends PopupMenu.PopupBaseMenuItem
+	class AltPopupBase extends PopupMenu.PopupBaseMenuItem
 	{
 		constructor()
 		{
@@ -27,7 +27,34 @@ var PopupBase = (GNOME_MINOR_VER >= 31) ?
 		}
 	}
 
-PopupBase.prototype._onButtonReleaseEvent = function(actor, event)
+AltPopupBase.prototype._onButtonReleaseEvent = function(actor, event)
 {
+	return Clutter.EVENT_STOP;
+}
+
+var AltPopupImage = (GNOME_MINOR_VER >= 31) ?
+	GObject.registerClass(
+	class AltPopupImage extends PopupMenu.PopupImageMenuItem
+	{
+		_init(text, icon)
+		{
+			super._init(text, icon);
+			/* Default temporary action to override */
+			this._onItemClicked = () => { return null };
+		}
+	}) :
+	class AltPopupImage extends PopupMenu.PopupImageMenuItem
+	{
+		constructor(text, icon)
+		{
+			super(text, icon);
+			this._onItemClicked = () => { return null };
+		}
+	}
+
+AltPopupImage.prototype._onButtonReleaseEvent = function(actor, event)
+{
+	actor.remove_style_pseudo_class('active');
+	this._onItemClicked();
 	return Clutter.EVENT_STOP;
 }

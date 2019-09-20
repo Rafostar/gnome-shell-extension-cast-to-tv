@@ -4,6 +4,7 @@ const DND = imports.ui.dnd;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const { AltPopupImage } = Local.imports.compat;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 
@@ -334,7 +335,7 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 	}
 }
 
-class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
+class CastPlaylistItem extends AltPopupImage
 {
 	constructor(title, filepath)
 	{
@@ -378,21 +379,9 @@ class CastPlaylistItem extends PopupMenu.PopupImageMenuItem
 			}
 		}
 	}
-
-	_onButtonReleaseEvent(actor, event)
-	{
-		actor.remove_style_pseudo_class('active');
-		this._onItemClicked();
-		return Clutter.EVENT_STOP;
-	}
-
-	destroy()
-	{
-		super.destroy();
-	}
 }
 
-class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
+class CastTempPlaylistItem extends AltPopupImage
 {
 	constructor(isShown)
 	{
@@ -435,10 +424,5 @@ class CastTempPlaylistItem extends PopupMenu.PopupImageMenuItem
 			else
 				return this.visible;
 		}
-	}
-
-	destroy()
-	{
-		super.destroy();
 	}
 }

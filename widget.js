@@ -6,7 +6,7 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const { PopupBase } = Local.imports.compat;
+const { AltPopupBase } = Local.imports.compat;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
@@ -141,7 +141,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.add_child(this.box);
 
 		/* Create base for media control buttons */
-		this.popupBase = new PopupBase();
+		this.popupBase = new AltPopupBase();
 
 		this.controlsButtonBox = new St.BoxLayout({
 			x_align: Clutter.ActorAlign.CENTER,
@@ -485,7 +485,7 @@ class MediaControlButton extends St.Button
 	}
 }
 
-class SliderItem extends PopupBase
+class SliderItem extends AltPopupBase
 {
 	constructor(icon, toggle, isVolume)
 	{
@@ -559,7 +559,7 @@ class SliderItem extends PopupBase
 	}
 }
 
-class trackTitleItem extends PopupBase
+class trackTitleItem extends AltPopupBase
 {
 	constructor()
 	{
