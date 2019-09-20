@@ -385,7 +385,7 @@ class CastTempPlaylistItem extends AltPopupImage
 {
 	constructor(isShown)
 	{
-		super('', TEMP_INSERT_ICON);
+		super(' ', TEMP_INSERT_ICON);
 
 		this.isTempPlaylistItem = true;
 
