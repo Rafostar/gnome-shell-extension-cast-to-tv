@@ -10,16 +10,17 @@ const { PopupBase } = Local.imports.compat;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
-const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
-const iconName = 'tv-symbolic';
-const maxDelay = 16;
-const minDelay = 8;
+
+const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
+const ICON_NAME = 'tv-symbolic';
+const MAX_DELAY = 16;
+const MIN_DELAY = 8;
 
 var isRepeatActive = false;
 var isUnifiedSlider = true;
 var seekTime = 10;
 
-var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
+var statusIcon = new St.Icon({ icon_name: ICON_NAME, style_class: 'system-status-icon' });
 
 var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 {
@@ -28,7 +29,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		super();
 		this.extensionId = Local.metadata['extension-id'];
 		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
-		this.castSubMenu.icon.icon_name = iconName;
+		this.castSubMenu.icon.icon_name = ICON_NAME;
 		this.isServiceEnabled = true;
 
 		/* Expandable menu */
@@ -56,7 +57,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		{
 			/* Close other possible opened windows */
 			GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path + '/file-chooser|' +
-				extensionsPath + '/cast-to-tv-.*-addon@rafostar.github.com/app');
+				EXTENSIONS_PATH + '/cast-to-tv-.*-addon@rafostar.github.com/app');
 
 			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
 			GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/file-chooser.js', streamType], null, 0, null);
@@ -193,7 +194,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		/* Signals connections */
 		this.sliderAction = (sliderName) =>
 		{
-			this[sliderName].delay = minDelay;
+			this[sliderName].delay = MIN_DELAY;
 			let action = (this[sliderName].isVolume) ? 'VOLUME' : 'SEEK';
 			Temp.setRemoteAction(action, this[sliderName].getValue());
 			this[sliderName].busy = false;
@@ -202,9 +203,9 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		let connectSliderSignals = (sliderName) =>
 		{
 			if(this[sliderName]._slider.hasOwnProperty('actor'))
-				this[sliderName]._slider.actor.connect('scroll-event', () => this[sliderName].delay = maxDelay);
+				this[sliderName]._slider.actor.connect('scroll-event', () => this[sliderName].delay = MAX_DELAY);
 			else
-				this[sliderName]._slider.connect('scroll-event', () => this[sliderName].delay = maxDelay);
+				this[sliderName]._slider.connect('scroll-event', () => this[sliderName].delay = MAX_DELAY);
 
 			this[sliderName].connect('drag-begin', () => this[sliderName].busy = true);
 			this[sliderName].connect('drag-end', this.sliderAction.bind(this, sliderName));
@@ -259,7 +260,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		let handleSliderDelay = (sliderName) =>
 		{
 			this[sliderName].delay--;
-			if(!this[sliderName].busy && this[sliderName].delay == minDelay)
+			if(!this[sliderName].busy && this[sliderName].delay === MIN_DELAY)
 				this.sliderAction(sliderName);
 		}
 
