@@ -3,7 +3,7 @@
 UUID = cast-to-tv@rafostar.github.com
 GETTEXT = cast-to-tv
 PACKAGE = "Cast to TV"
-TOLOCALIZE = extension.js widget.js file-chooser.js prefs.js node_scripts/messages.js
+TOLOCALIZE = extension.js widget.js playlist.js file-chooser.js prefs.js node_scripts/messages.js
 MSGSRC = $(wildcard ./po/cast-to-tv/*.po)
 POTFILE = ./po/cast-to-tv/cast-to-tv.pot
 ZIPFILES = *.js *.json node_scripts webplayer schemas locale appIcon nautilus COPYING README.md

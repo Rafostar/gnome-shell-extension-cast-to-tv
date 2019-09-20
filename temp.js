@@ -79,9 +79,9 @@ function setSelectionFile()
 	writeToFile(shared.selectionPath, selectionContents);
 }
 
-function setListFile()
+function setListFile(list)
 {
-	let listContents = [''];
+	let listContents = (list && Array.isArray(list)) ? list : [''];
 	writeToFile(shared.listPath, listContents);
 }
 

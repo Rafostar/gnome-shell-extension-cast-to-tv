@@ -43,6 +43,7 @@ function configCastRemote()
 	}
 
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+	remoteMenu.playlist.remoteActive = chromecastPlaying;
 
 	if(chromecastPlaying)
 	{
@@ -75,6 +76,9 @@ function configCastRemote()
 			if(title) remoteMenu.trackTitle.setText(title);
 			else remoteMenu.trackTitle.setText("");
 		}
+
+		/* Update widget playlist */
+		remoteMenu.playlist.loadPlaylist(listContents, selectionContents.filePath);
 
 		/* Choose remote to create */
 		switch(selectionContents.streamType)

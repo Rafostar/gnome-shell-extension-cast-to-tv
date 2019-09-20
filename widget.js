@@ -6,6 +6,7 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
@@ -155,6 +156,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
 		this.skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
+		this.playlist = new Playlist.CastPlaylist();
 
 		/* Items that might be shown or hidden depending on media content */
 		let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
@@ -182,6 +184,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.popupBase.add(this.controlsButtonBox);
 
 		this.menu.addMenuItem(this.popupBase);
+		this.menu.addMenuItem(this.playlist.subMenu);
 
 		/* Toggle play button stores pause state */
 		this.togglePlayButton.isPause = true;
@@ -389,6 +392,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 
 			if(icon) this.positionSlider.defaultIcon = icon;
+
+			Playlist.seekAllowed = (this.mode === 'DIRECT') ? true : false;
 		}
 
 		this.setMediaButtonsSize = (size) =>
