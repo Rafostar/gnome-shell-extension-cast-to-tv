@@ -197,11 +197,20 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         return parsed_files
 
     def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
-        playlist = self.parse_playlist_files(files)
+        parsed_playlist = self.parse_playlist_files(files)
+        playlist = []
+
+        for filepath in parsed_playlist:
+            if type(filepath) != 'unicode':
+                filepath = filepath.decode('utf-8')
+                playlist.append(filepath)
 
         # Playlist must be updated before selection file
         with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
             json.dump(playlist, fp, indent=1, ensure_ascii=False)
+
+        if type(self.subs_path) != 'unicode':
+            self.subs_path = self.subs_path.decode('utf-8')
 
         selection = {
             "streamType": stream_type,
