@@ -6,6 +6,7 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const { PopupBase } = Local.imports.compat;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
@@ -427,19 +428,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	}
 }
 
-class PopupBase extends PopupMenu.PopupBaseMenuItem
-{
-	constructor()
-	{
-		super({ hover: false, reactive: true });
-
-		if(this.hasOwnProperty('actor'))
-			this.actor.add_style_pseudo_class = () => { return null };
-		else
-			this.add_style_pseudo_class = () => { return null };
-	}
-}
-
 class MediaControlButton extends St.Button
 {
 	constructor(icon, toggle, size)
@@ -496,11 +484,11 @@ class MediaControlButton extends St.Button
 	}
 }
 
-class SliderItem extends PopupMenu.PopupBaseMenuItem
+class SliderItem extends PopupBase
 {
 	constructor(icon, toggle, isVolume)
 	{
-		super({ hover: false, reactive: true });
+		super();
 		this.defaultIcon = icon;
 		this.volumeIcon = 'audio-volume-high-symbolic';
 		this._toggle = toggle;
@@ -517,7 +505,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		{
 			this.actor.add(this.button);
 			this.actor.add(this._slider.actor, { expand: true });
-			this.actor.add_style_pseudo_class = () => { return null };
 			this.actor.visible = true;
 
 			/* Available by default when without actor */
@@ -528,7 +515,6 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 		{
 			this.add(this.button);
 			this.add(this._slider, { expand: true });
-			this.add_style_pseudo_class = () => { return null };
 			this.visible = true;
 		}
 
@@ -572,23 +558,17 @@ class SliderItem extends PopupMenu.PopupBaseMenuItem
 	}
 }
 
-class trackTitleItem extends PopupMenu.PopupBaseMenuItem
+class trackTitleItem extends PopupBase
 {
 	constructor()
 	{
-		super({ hover: false, reactive: true });
+		super();
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
 
 		if(this.hasOwnProperty('actor'))
-		{
 			this.actor.add(this._title);
-			this.actor.add_style_pseudo_class = () => { return null };
-		}
 		else
-		{
 			this.add(this._title);
-			this.add_style_pseudo_class = () => { return null };
-		}
 
 		/* Functions */
 		this.setText = (text) => this._title.text = text;
