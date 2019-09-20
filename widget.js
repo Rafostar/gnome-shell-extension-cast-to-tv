@@ -398,8 +398,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.setMediaButtonsSize = (size) =>
 		{
-			this.playButton.child.icon_size = size;
-			this.pauseButton.child.icon_size = size;
+			this.togglePlayButton.child.icon_size = size;
 			this.stopButton.child.icon_size = size;
 			this.seekBackwardButton.child.icon_size = size;
 			this.seekForwardButton.child.icon_size = size;
