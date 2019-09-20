@@ -3,7 +3,6 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
-const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const { AltPopupBase } = Local.imports.compat;
@@ -111,11 +110,6 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		}
 
 		this.addMenuItem(this.castSubMenu);
-	}
-
-	destroy()
-	{
-		super.destroy();
 	}
 }
 
@@ -271,7 +265,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
-				if(	statusContents.hasOwnProperty('repeat')
+				if(
+					statusContents.hasOwnProperty('repeat')
 					&& isRepeatActive !== statusContents.repeat
 				) {
 					isRepeatActive = (statusContents.repeat === true) ? true : false;
@@ -301,7 +296,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
-		this.statusMonitor.connect('changed', () => this.updateRemote());
+		this.monitorSignal = this.statusMonitor.connect('changed', this.updateRemote.bind(this));
 
 		/* Functions */
 		this.setPlaying = (value) =>
@@ -421,11 +416,13 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.hide = () => this.actor.hide();
 			this.show = () => this.actor.show();
 		}
-	}
 
-	destroy()
-	{
-		super.destroy();
+		this.destroy = () =>
+		{
+			this.statusMonitor.disconnect(this.monitorSignal);
+
+			super.destroy();
+		}
 	}
 }
 
