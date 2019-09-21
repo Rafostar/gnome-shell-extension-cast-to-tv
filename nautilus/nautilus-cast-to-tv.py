@@ -203,8 +203,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
             json.dump(playlist, fp, indent=1, ensure_ascii=False)
 
-        if type(self.subs_path) != 'unicode':
+        try:
             self.subs_path = self.subs_path.decode('utf-8')
+        except UnicodeError:
+            pass
 
         selection = {
             "streamType": stream_type,
@@ -244,8 +246,11 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         parsed_playlist = self.parse_playlist_files(files)
 
         for filepath in parsed_playlist:
-            if type(filepath) != 'unicode':
+            try:
                 filepath = filepath.decode('utf-8')
+            except UnicodeError:
+                pass
+
             if filepath not in playlist:
                 playlist.append(filepath)
 
