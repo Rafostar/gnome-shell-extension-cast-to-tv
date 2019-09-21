@@ -81,7 +81,7 @@ exports.shutDown = function(err)
 	if(err) console.error(err);
 	else process.stdout.write('\n');
 
-	console.log('Closing Cast to TV...');
+	console.log('Cast to TV: closing node app...');
 
 	debug('Closing node server');
 	closeAddon();
@@ -99,7 +99,7 @@ exports.shutDown = function(err)
 
 		debug('Cleaned selection temp file');
 
-		console.log('Cast to TV closed successfully');
+		console.log('Cast to TV: closed successfully');
 		process.exit();
 	}
 
