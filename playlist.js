@@ -152,7 +152,8 @@ var CastPlaylist = class
 
 		for(let menuItem of menuItems)
 		{
-			if(	menuItem.hasOwnProperty('filepath')
+			if(
+				menuItem.hasOwnProperty('filepath')
 				&& menuItem.filepath === searchPath
 			)
 				return true;
@@ -195,6 +196,8 @@ var CastPlaylist = class
 
 	_connectDragSigals(menuItem)
 	{
+		/* Drag signals are disconnected on actor destroy via DND disconnectAll() */
+
 		/* Show placeholder item when dragging started */
 		menuItem.drag.connect('drag-begin', () => this._onDragBegin(menuItem));
 
@@ -232,19 +235,19 @@ var CastPlaylist = class
 		}
 	}
 
-	_onDragEnd(obj, time, res, meta)
+	_onDragEnd(obj, time, res)
 	{
 		/* DND automatically destroys or restores item depending on drag success */
 		this.draggedItem = null;
 
 		let menuItems = this.subMenu.menu._getMenuItems();
 
-		if(res && typeof meta === 'object')
+		if(res && obj.meta && typeof obj.meta === 'object')
 		{
-			let newPlaylistItem = new CastPlaylistItem(meta.text, meta.filepath);
+			let newPlaylistItem = new CastPlaylistItem(obj.meta.text, obj.meta.filepath);
 			this._connectDragSigals(newPlaylistItem);
 
-			if(meta.active) newPlaylistItem.setPlaying(true);
+			if(obj.meta.active) newPlaylistItem.setPlaying(true);
 
 			this.subMenu.menu.addMenuItem(newPlaylistItem, menuItems.indexOf(this.tempMenuItem));
 		}
@@ -253,8 +256,8 @@ var CastPlaylist = class
 			this.subMenu.menu.moveMenuItem(obj, 0);
 		}
 
-		this.updatePlaylistFile();
 		this.tempMenuItem.hide();
+		this.updatePlaylistFile();
 	}
 
 	_onDragMotion(dragEvent)
@@ -315,23 +318,30 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 				this.opacity = (this.hover) ? 255 : (this.menu.isOpen) ? 255 : 130;
 		}
 
-		this.menu.connect('open-state-changed', callback);
+		this._openChangedSignal = this.menu.connect('open-state-changed', callback);
 
 		if(this.hasOwnProperty('actor'))
 		{
 			this.actor.opacity = 130;
-			this.actor.connect('notify::hover', callback);
+			this.hoverSignal = this.actor.connect('notify::hover', callback);
 		}
 		else
 		{
 			this.opacity = 130;
-			this.connect('notify::hover', callback);
+			this.hoverSignal = this.connect('notify::hover', callback);
 		}
-	}
 
-	destroy()
-	{
-		super.destroy();
+		this.destroy = () =>
+		{
+			this.menu.disconnect(this._openChangedSignal);
+
+			if(this.hasOwnProperty('actor'))
+				this.actor.disconnect(this.hoverSignal);
+			else
+				this.disconnect(this.hoverSignal);
+
+			super.destroy();
+		}
 	}
 }
 
@@ -404,16 +414,13 @@ class CastTempPlaylistItem extends AltPopupImage
 		/* This function is called by DND */
 		this.acceptDrop = (source, actor, x, y, time) =>
 		{
-			let dragItem = (actor.hasOwnProperty('_delegate')) ? actor._delegate : actor;
-
-			let meta = {
-				text: dragItem.label.text,
-				filepath: dragItem.filepath,
-				active: dragItem.isPlaying
+			source.drag.meta = {
+				text: source.label.text,
+				filepath: source.filepath,
+				active: source.isPlaying
 			};
 
-			dragItem.drag.emit('drag-end', 0, true, meta);
-
+			source.drag.emit('drag-end', time, true);
 			actor.destroy();
 		}
 

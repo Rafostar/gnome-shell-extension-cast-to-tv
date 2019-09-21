@@ -23,6 +23,7 @@ let remoteMenu;
 let configContents;
 let serviceStarted;
 let signals;
+let serviceSignal;
 
 function configCastRemote()
 {
@@ -314,7 +315,7 @@ function enable()
 	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
-	castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
+	serviceSignal = castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
 
 	/* Set insert position after network menu items */
 	let menuItems = AggregateMenu.menu._getMenuItems();
@@ -340,6 +341,10 @@ function disable()
 {
 	/* Disconnect signals from settings */
 	signals.forEach(signal => Settings.disconnect(signal));
+
+	/* Disconnect other signals */
+	castMenu.serviceMenuItem.disconnect(serviceSignal);
+	serviceSignal = null;
 
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)
