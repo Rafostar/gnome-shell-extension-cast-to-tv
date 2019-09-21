@@ -147,16 +147,16 @@ function getTempFiles()
 {
 	if(!configContents) configContents = Temp.setConfigFile();
 
-	let selectionExists = GLib.file_test(shared.selectionPath, 16);
+	let selectionExists = GLib.file_test(shared.selectionPath, GLib.FileTest.EXISTS);
 	if(!selectionExists) Temp.setSelectionFile();
 
-	let listExists = GLib.file_test(shared.listPath, 16);
+	let listExists = GLib.file_test(shared.listPath, GLib.FileTest.EXISTS);
 	if(!listExists) Temp.setListFile();
 
-	let remoteExists = GLib.file_test(shared.remotePath, 16);
+	let remoteExists = GLib.file_test(shared.remotePath, GLib.FileTest.EXISTS);
 	if(!remoteExists) Temp.setRemoteFile();
 
-	let statusExists = GLib.file_test(shared.statusPath, 16);
+	let statusExists = GLib.file_test(shared.statusPath, GLib.FileTest.EXISTS);
 	if(!statusExists) Temp.setStatusFile();
 }
 

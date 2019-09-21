@@ -13,7 +13,7 @@ function writeToFile(path, contents)
 function readFromFile(path)
 {
 	/* Check if file exists (EXISTS = 16) */
-	let fileExists = GLib.file_test(path, 16);
+	let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);
 
 	if(fileExists)
 	{

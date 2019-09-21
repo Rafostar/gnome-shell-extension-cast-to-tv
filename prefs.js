@@ -535,10 +535,11 @@ class OtherSettings extends Gtk.Grid
 			let homeDir = GLib.get_home_dir();
 			if(!homeDir) return false;
 
-			for(var fm of fileManagers)
+			for(let fm of fileManagers)
 			{
-				if(GLib.file_test(homeDir + '/.local/share/' + fm +
-					'-python/extensions/nautilus-cast-to-tv.py', 16)
+				if(
+					GLib.file_test(homeDir + '/.local/share/' + fm +
+						'-python/extensions/nautilus-cast-to-tv.py', GLib.FileTest.EXISTS)
 				) {
 					return true;
 				}
@@ -594,7 +595,7 @@ class AddonsSettings extends Gtk.Notebook
 		{
 			let addonPath = extPath + '/' + addonDir;
 			let addonName = addonDir.substring(11, addonDir.lastIndexOf('-'));
-			let isPrefs = GLib.file_test(addonPath + '/' + addonName + '_prefs.js', 16);
+			let isPrefs = GLib.file_test(addonPath + '/' + addonName + '_prefs.js', GLib.FileTest.EXISTS);
 
 			if(isPrefs)
 			{
@@ -931,7 +932,12 @@ function enableNautilusExtension(enabled)
 	let userDataDir = GLib.get_user_data_dir();
 	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
 
-	if((enabled && !GLib.file_test(srcPath, 16)) || !userDataDir) return;
+	if(
+		(enabled && !GLib.file_test(srcPath, GLib.FileTest.EXISTS))
+		|| !userDataDir
+	) {
+		return;
+	}
 
 	fileManagers.forEach(fm =>
 	{

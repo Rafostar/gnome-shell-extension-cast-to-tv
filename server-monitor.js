@@ -130,7 +130,7 @@ class ServerMonitor
 
 		let modulesPath = sourceDir + '/node_modules';
 
-		let folderExists = GLib.file_test(modulesPath, 16);
+		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
 		if(!folderExists)
 		{
 			print('Cast to TV: npm modules not installed!');
@@ -142,7 +142,7 @@ class ServerMonitor
 		{
 			for(let module in dependencies)
 			{
-				let moduleExists = GLib.file_test(modulesPath + '/' + module, 16);
+				let moduleExists = GLib.file_test(modulesPath + '/' + module, GLib.FileTest.EXISTS);
 				if(!moduleExists)
 				{
 					print(`Cast to TV: missing npm module: ${module}`);
@@ -187,7 +187,7 @@ class ServerMonitor
 	{
 		let packagePath = readPath + '/package.json';
 
-		let fileExists = GLib.file_test(packagePath, 16);
+		let fileExists = GLib.file_test(packagePath, GLib.FileTest.EXISTS);
 		if(fileExists)
 		{
 			let [readOk, readFile] = GLib.file_get_contents(packagePath);
