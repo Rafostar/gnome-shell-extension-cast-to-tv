@@ -19,12 +19,12 @@ try:
 except ImportError:
     from urllib.parse import unquote
 
-_ = gettext.gettext
-
+PY3 = sys.version_info > (3,)
 EXTENSION_NAME = 'cast-to-tv@rafostar.github.com'
 EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/' + EXTENSION_NAME)
 TEMP_PATH = '/tmp/.cast-to-tv'
 SUBS_FORMATS = ['srt', 'ass', 'vtt']
+_ = gettext.gettext
 
 class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def __init__(self):
@@ -203,10 +203,8 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
             json.dump(playlist, fp, indent=1, ensure_ascii=False)
 
-        try:
+        if not PY3:
             self.subs_path = self.subs_path.decode('utf-8')
-        except UnicodeError:
-            pass
 
         selection = {
             "streamType": stream_type,
@@ -246,11 +244,8 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         parsed_playlist = self.parse_playlist_files(files)
 
         for filepath in parsed_playlist:
-            try:
+            if not PY3:
                 filepath = filepath.decode('utf-8')
-            except UnicodeError:
-                pass
-
             if filepath not in playlist:
                 playlist.append(filepath)
 
