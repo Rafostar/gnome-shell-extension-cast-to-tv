@@ -197,13 +197,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         return parsed_files
 
     def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
-        parsed_playlist = self.parse_playlist_files(files)
-        playlist = []
-
-        for filepath in parsed_playlist:
-            if type(filepath) != 'unicode':
-                filepath = filepath.decode('utf-8')
-                playlist.append(filepath)
+        playlist = self.get_updated_playlist(files, [])
 
         # Playlist must be updated before selection file
         with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
@@ -229,12 +223,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             parsed_playlist = self.parse_playlist_files(files)
 
             with codecs.open(TEMP_PATH + '/playlist.json', 'r', encoding='utf-8') as fp:
-                playlist = json.load(fp)
-                for filepath in parsed_playlist:
-                    if type(filepath) != 'unicode':
-                        filepath = filepath.decode('utf-8')
-                    if filepath not in playlist:
-                        playlist.append(filepath)
+                playlist = self.get_updated_playlist(files, json.load(fp))
 
             with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
                 json.dump(playlist, fp, indent=1, ensure_ascii=False)
@@ -250,6 +239,17 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             stream_type += '_ENCODE'
 
         self.cast_files_cb(menu, files, stream_type, is_transcode_audio)
+
+    def get_updated_playlist(self, files, playlist):
+        parsed_playlist = self.parse_playlist_files(files)
+
+        for filepath in parsed_playlist:
+            if type(filepath) != 'unicode':
+                filepath = filepath.decode('utf-8')
+            if filepath not in playlist:
+                playlist.append(filepath)
+
+        return playlist
 
     def get_playlist_allowed(self, stream_type):
         chromecast_playing = self.ext_settings.get_boolean('chromecast-playing')
