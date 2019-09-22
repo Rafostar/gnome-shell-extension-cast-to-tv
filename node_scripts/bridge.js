@@ -81,7 +81,7 @@ exports.shutDown = function(err)
 	if(err) console.error(err);
 	else process.stdout.write('\n');
 
-	console.log('Closing Cast to TV...');
+	console.log('Cast to TV: closing node app...');
 
 	debug('Closing node server');
 	closeAddon();
@@ -99,7 +99,7 @@ exports.shutDown = function(err)
 
 		debug('Cleaned selection temp file');
 
-		console.log('Cast to TV closed successfully');
+		console.log('Cast to TV: closed successfully');
 		process.exit();
 	}
 
@@ -160,7 +160,8 @@ function updatePlaylist()
 	exports.list = getContents(shared.listPath);
 	if(exports.list) debug(`New playlist contents: ${JSON.stringify(exports.list)}`);
 
-	gnome.showRemote(false);
+	/* Update remote widget with new playlist items */
+	if(gnome.isRemote()) gnome.showRemote(true);
 }
 
 function updateSelection()

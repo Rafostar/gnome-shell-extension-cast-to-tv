@@ -13,7 +13,7 @@ function writeToFile(path, contents)
 function readFromFile(path)
 {
 	/* Check if file exists (EXISTS = 16) */
-	let fileExists = GLib.file_test(path, 16);
+	let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);
 
 	if(fileExists)
 	{
@@ -72,15 +72,16 @@ function setSelectionFile()
 	let selectionContents = {
 		streamType: '',
 		filePath: '',
-		subsPath: ''
+		subsPath: '',
+		transcodeAudio: false
 	};
 
 	writeToFile(shared.selectionPath, selectionContents);
 }
 
-function setListFile()
+function setListFile(list)
 {
-	let listContents = [''];
+	let listContents = (list && Array.isArray(list)) ? list : [''];
 	writeToFile(shared.listPath, listContents);
 }
 
@@ -100,7 +101,8 @@ function setStatusFile()
 		playerState: 'UNAVAILABLE',
 		currentTime: 0,
 		mediaDuration: 0,
-		volume: 0
+		volume: 0,
+		repeat: false
 	};
 
 	writeToFile(shared.statusPath, statusContents);

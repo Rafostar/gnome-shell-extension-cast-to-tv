@@ -28,9 +28,7 @@ var gnome =
 		var gsettings = spawnSync('gsettings', args);
 		var outStr = String(gsettings.stdout).replace(/\'/g, '').replace(/\n/, '');
 
-		if(outStr == 'true') return true;
-		else if(outStr == 'false') return false;
-		else return outStr;
+		return (outStr === 'true' || outStr === true) ? true : false;
 	},
 
 	showRemote: (enable) =>

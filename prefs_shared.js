@@ -1,3 +1,5 @@
+imports.gi.versions.Gtk = '3.0';
+
 const { Gtk } = imports.gi;
 
 var SettingLabel = class SharedSettingLabel

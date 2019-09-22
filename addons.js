@@ -57,7 +57,10 @@ function enableAddon(addonName, Widget, delay)
 				if(	castMenu.hasOwnProperty('isServiceEnabled')
 					&& castMenu.isServiceEnabled === false
 				) {
-					addonMenuItems[addonName].actor.hide();
+					if(addonMenuItems[addonName].hasOwnProperty('actor'))
+						addonMenuItems[addonName].actor.hide();
+					else
+						addonMenuItems[addonName].hide();
 				}
 
 				if(castMenu.hasOwnProperty('serviceMenuItem'))

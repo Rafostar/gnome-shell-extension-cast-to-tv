@@ -3,21 +3,23 @@ const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
-const Util = imports.misc.util;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
+const { AltPopupBase } = Local.imports.compat;
+const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
-const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
-const iconName = 'tv-symbolic';
-const maxDelay = 16;
-const minDelay = 8;
+
+const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
+const ICON_NAME = 'tv-symbolic';
+const MIN_DELAY = 3;
+const MAX_DELAY = 5;
 
 var isRepeatActive = false;
 var isUnifiedSlider = true;
 var seekTime = 10;
 
-var statusIcon = new St.Icon({ icon_name: iconName, style_class: 'system-status-icon' });
+var statusIcon = new St.Icon({ icon_name: ICON_NAME, style_class: 'system-status-icon' });
 
 var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 {
@@ -26,7 +28,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		super();
 		this.extensionId = Local.metadata['extension-id'];
 		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
-		this.castSubMenu.icon.icon_name = iconName;
+		this.castSubMenu.icon.icon_name = ICON_NAME;
 		this.isServiceEnabled = true;
 
 		/* Expandable menu */
@@ -43,18 +45,12 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		this.castSubMenu.menu.addMenuItem(this.serviceMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.settingsMenuItem);
 
-		/* Signals connections */
-		this.videoMenuItem.connect('activate', () => this.spawnFileChooser('VIDEO'));
-		this.musicMenuItem.connect('activate', () => this.spawnFileChooser('MUSIC'));
-		this.pictureMenuItem.connect('activate', () => this.spawnFileChooser('PICTURE'));
-		this.settingsMenuItem.connect('activate', () => this.spawnExtensionPrefs());
-
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>
 		{
 			/* Close other possible opened windows */
 			GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path + '/file-chooser|' +
-				extensionsPath + '/cast-to-tv-.*-addon@rafostar.github.com/app');
+				EXTENSIONS_PATH + '/cast-to-tv-.*-addon@rafostar.github.com/app');
 
 			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
 			GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/file-chooser.js', streamType], null, 0, null);
@@ -76,15 +72,30 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 			if(enable)
 			{
-				menuItems.forEach(item => item.actor.show());
+				menuItems.forEach(item =>
+				{
+					if(item.hasOwnProperty('actor'))
+						item.actor.show();
+					else
+						item.show();
+				});
 				this.serviceMenuItem.label.text = _("Turn Off");
 				this.castSubMenu.label.text = _("Cast Media");
 			}
 			else
 			{
-				menuItems.forEach(item => item.actor.hide());
-				this.serviceMenuItem.actor.show();
-				this.settingsMenuItem.actor.show();
+				menuItems.forEach(item =>
+				{
+					if(
+						item !== this.serviceMenuItem
+						&& item !== this.settingsMenuItem
+					) {
+						if(item.hasOwnProperty('actor'))
+							item.actor.hide();
+						else
+							item.hide();
+					}
+				});
 				this.serviceMenuItem.label.text = _("Turn On");
 				/* TRANSLATORS: When "Cast Media" service is turned off */
 				this.castSubMenu.label.text = _("Cast Off");
@@ -93,12 +104,24 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 			this.isServiceEnabled = enable;
 		}
 
-		this.addMenuItem(this.castSubMenu);
-	}
+		/* Signals connections */
+		this.videoSignal = this.videoMenuItem.connect('activate', this.spawnFileChooser.bind(this, 'VIDEO'));
+		this.musicSignal = this.musicMenuItem.connect('activate', this.spawnFileChooser.bind(this, 'MUSIC'));
+		this.pictureSignal = this.pictureMenuItem.connect('activate', this.spawnFileChooser.bind(this, 'PICTURE'));
+		this.settingsSignal = this.settingsMenuItem.connect('activate', this.spawnExtensionPrefs.bind(this));
 
-	destroy()
-	{
-		super.destroy();
+		/* Add menu item */
+		this.addMenuItem(this.castSubMenu);
+
+		this.destroy = () =>
+		{
+			this.videoMenuItem.disconnect(this.videoSignal);
+			this.musicMenuItem.disconnect(this.musicSignal);
+			this.pictureMenuItem.disconnect(this.pictureSignal);
+			this.settingsMenuItem.disconnect(this.settingsSignal);
+
+			super.destroy();
+		}
 	}
 }
 
@@ -106,7 +129,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
 	constructor()
 	{
-		super(0.5, _("Chromecast Remote"), false);
+		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
 
 		this.box = new St.BoxLayout();
@@ -118,10 +141,13 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.box.add(this.toplabel);
 		this.box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
-		this.actor.add_child(this.box);
+		if(this.hasOwnProperty('actor'))
+			this.actor.add_child(this.box);
+		else
+			this.add_child(this.box);
 
 		/* Create base for media control buttons */
-		this.popupBase = new PopupBase();
+		this.popupBase = new AltPopupBase();
 
 		this.controlsButtonBox = new St.BoxLayout({
 			x_align: Clutter.ActorAlign.CENTER,
@@ -129,19 +155,19 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider);
-		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false);
-		this.playButton = new MediaControlButton('media-playback-start-symbolic');
-		this.pauseButton = new MediaControlButton('media-playback-pause-symbolic');
+		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider, false);
+		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false, true);
+		this.togglePlayButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
 		this.seekBackwardButton = new MediaControlButton('media-seek-backward-symbolic');
 		this.seekForwardButton = new MediaControlButton('media-seek-forward-symbolic');
 		this.skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
 		this.skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
+		this.playlist = new Playlist.CastPlaylist();
 
 		/* Items that might be shown or hidden depending on media content */
-		let changableItems = ['positionSlider', 'volumeSlider', 'playButton', 'pauseButton',
+		let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
 			'seekBackwardButton', 'seekForwardButton', 'repeatButton'];
 
 		/* Add space between stop and the remaining buttons */
@@ -152,128 +178,166 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.controlsButtonBox.add(this.stopButton);
 		this.controlsButtonBox.add(this.skipBackwardButton);
 		this.controlsButtonBox.add(this.seekBackwardButton);
-		this.controlsButtonBox.add(this.playButton);
-		this.controlsButtonBox.add(this.pauseButton);
+		this.controlsButtonBox.add(this.togglePlayButton);
 		this.controlsButtonBox.add(this.seekForwardButton);
 		this.controlsButtonBox.add(this.skipForwardButton);
 
 		this.menu.addMenuItem(this.trackTitle);
 		this.menu.addMenuItem(this.positionSlider);
 		this.menu.addMenuItem(this.volumeSlider);
-		this.popupBase.actor.add(this.controlsButtonBox);
-		this.menu.addMenuItem(this.popupBase);
 
-		/* We do not want to display both play and pause buttons at once */
-		this.playButton.hide();
+		if(this.popupBase.hasOwnProperty('actor'))
+			this.popupBase.actor.add(this.controlsButtonBox);
+		else
+			this.popupBase.add(this.controlsButtonBox);
+
+		this.menu.addMenuItem(this.popupBase);
+		this.menu.addMenuItem(this.playlist.subMenu);
+
+		/* Toggle play button stores pause state */
+		this.togglePlayButton.isPause = true;
+
+		this.sliderAction = (sliderName) =>
+		{
+			this[sliderName].delay = MIN_DELAY;
+			let action = (this[sliderName].isVolume) ? 'VOLUME' : 'SEEK';
+			Temp.setRemoteAction(action, this[sliderName].getValue());
+			this[sliderName].busy = false;
+		}
+
+		this.sliderButtonAction = () =>
+		{
+			this.positionSlider.delay = 0;
+			this.positionSlider.isVolume ^= true;
+
+			let statusContents = Temp.readFromFile(shared.statusPath);
+
+			if(this.positionSlider.isVolume)
+			{
+				this.positionSlider.setIcon(this.positionSlider.volumeIcon);
+				if(statusContents) this.setVolume(statusContents);
+			}
+			else
+			{
+				this.positionSlider.setIcon(this.positionSlider.defaultIcon);
+				if(statusContents) this.setProgress(statusContents);
+			}
+		}
 
 		/* Signals connections */
-		this.positionSlider.connect('value-changed', () => this.positionSlider.delay = maxDelay);
-		this.positionSlider.connect('drag-begin', () => this.positionSlider.busy = true);
-		this.positionSlider.connect('drag-end', () => this.positionSliderAction());
-
-		this.positionSliderAction = () =>
+		let connectSliderSignals = (sliderName) =>
 		{
-			this.positionSlider.delay = minDelay;
-			let action;
-
-			if(this.positionSlider.isVolume) action = 'VOLUME';
-			else action = 'SEEK';
-
-			Temp.setRemoteAction(action, this.positionSlider.value.toFixed(3));
-			this.positionSlider.busy = false;
-		}
-
-		if(isUnifiedSlider)
-		{
-			this.positionSlider.button.connect('clicked', () =>
+			if(this[sliderName]._slider.hasOwnProperty('actor'))
 			{
-				this.positionSlider.delay = 0;
-				this.positionSlider.isVolume ^= true;
+				this[sliderName]._actorSignalIds.push(
+					this[sliderName]._slider.actor.connect('scroll-event', () => {
+						this[sliderName].delay = MAX_DELAY
+					})
+				);
+			}
+			else
+			{
+				this[sliderName]._signalIds.push(
+					this[sliderName]._slider.connect('scroll-event', () => {
+						this[sliderName].delay = MAX_DELAY
+					})
+				);
+			}
 
-				let statusContents = Temp.readFromFile(shared.statusPath);
+			this[sliderName]._signalIds.push(
+				this[sliderName]._slider.connect('drag-begin', () => this[sliderName].busy = true)
+			);
+			this[sliderName]._signalIds.push(
+				this[sliderName]._slider.connect('drag-end', this.sliderAction.bind(this, sliderName))
+			);
 
-				if(this.positionSlider.isVolume)
-				{
-					this.positionSlider.icon = this.positionSlider.volumeIcon;
-					if(statusContents) this.setVolume(statusContents);
-				}
-				else
-				{
-					this.positionSlider.icon = this.positionSlider.defaultIcon;
-					if(statusContents) this.setProgress(statusContents);
-				}
-			});
+			if(isUnifiedSlider && sliderName === 'positionSlider')
+			{
+				this[sliderName].button._signalIds.push(
+					this[sliderName].button.connect('clicked', this.sliderButtonAction.bind(this))
+				);
+			}
 		}
 
-		this.volumeSlider.connect('value-changed', () => this.volumeSlider.delay = maxDelay);
-		this.volumeSlider.connect('drag-begin', () => this.volumeSlider.busy = true);
-		this.volumeSlider.connect('drag-end', () => this.volumeSliderAction());
+		connectSliderSignals('positionSlider');
+		connectSliderSignals('volumeSlider');
 
-		this.volumeSliderAction = () =>
-		{
-			this.volumeSlider.delay = minDelay;
-			Temp.setRemoteAction('VOLUME', this.volumeSlider.value.toFixed(3));
-			this.volumeSlider.busy = false;
-		}
+		this.repeatButton._signalIds.push(
+			this.repeatButton.connect('clicked', () =>
+			{
+				Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
+				isRepeatActive = this.repeatButton.turnedOn;
+			})
+		)
 
-		this.repeatButton.connect('clicked', () =>
-		{
-			Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
-			isRepeatActive = this.repeatButton.turnedOn;
-		});
+		this.togglePlayButton._signalIds.push(
+			this.togglePlayButton.connect('clicked', () =>
+			{
+				let toggleAction = (this.togglePlayButton.isPause) ? 'PAUSE' : 'PLAY';
+				Temp.setRemoteAction(toggleAction);
+			})
+		)
 
-		this.playButton.connect('clicked', () => Temp.setRemoteAction('PLAY'));
-		this.pauseButton.connect('clicked', () => Temp.setRemoteAction('PAUSE'));
-		this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime));
-		this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime));
-		this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'));
-		this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'));
-		this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'));
+		this.seekForwardButton._signalIds.push(
+			this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime))
+		);
+		this.seekBackwardButton._signalIds.push(
+			this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime))
+		);
+		this.stopButton._signalIds.push(
+			this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'))
+		);
+		this.skipBackwardButton._signalIds.push(
+			this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'))
+		);
+		this.skipForwardButton._signalIds.push(
+			this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'))
+		);
 
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
-		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
+		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorFlags.NONE, null);
 
-		this.statusMonitor.connect('changed', () =>
+		let handleSliderDelay = (sliderName) =>
 		{
-			if(this.mode == 'PICTURE') return;
+			this[sliderName].delay--;
+			if(!this[sliderName].busy && this[sliderName].delay === MIN_DELAY)
+				this.sliderAction(sliderName);
+		}
+
+		this.updateRemote = (monitor, file, otherFile, event) =>
+		{
+			if(
+				event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT
+				|| this.mode === 'PICTURE'
+			) {
+				return;
+			}
 
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
-				if(isRepeatActive != statusContents.repeat)
-				{
+				if(
+					statusContents.hasOwnProperty('repeat')
+					&& isRepeatActive !== statusContents.repeat
+				) {
 					isRepeatActive = (statusContents.repeat === true) ? true : false;
-					this.repeatButton.turnOn(isRepeatActive);
 				}
+
+				if(this.repeatButton.turnedOn !== isRepeatActive)
+					this.repeatButton.turnOn(isRepeatActive);
 
 				this.checkPlaying(statusContents);
 
 				if(this.positionSlider.delay > 0)
-				{
-					this.positionSlider.delay--;
-					if(
-						!this.positionSlider.busy
-						&& this.positionSlider.delay == minDelay
-					) {
-						this.positionSliderAction();
-					}
-				}
+					handleSliderDelay('positionSlider');
 
 				if(this.volumeSlider.delay > 0)
-				{
-					this.volumeSlider.delay--;
-					if(
-						!this.volumeSlider.busy
-						&& this.volumeSlider.delay == minDelay
-					) {
-						this.volumeSliderAction();
-					}
-				}
+					handleSliderDelay('volumeSlider');
 
 				this.setVolume(statusContents);
 
 				if(
-					this.positionSlider.visible
+					this.positionSlider.getVisible()
 					&& !this.positionSlider.isVolume
 					&& this.positionSlider.delay == 0
 					&& !this.positionSlider.busy
@@ -281,22 +345,19 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					this.setProgress(statusContents);
 				}
 			}
-		});
+		}
+
+		this.monitorSignal = this.statusMonitor.connect('changed', this.updateRemote.bind(this));
 
 		/* Functions */
-		this.enableRepeat = (value) => this.repeatButton.turnOn(value);
-
 		this.setPlaying = (value) =>
 		{
-			if(value === true)
+			if(this.togglePlayButton.isPause !== value)
 			{
-				this.playButton.hide();
-				this.pauseButton.show();
-			}
-			else if(value === false)
-			{
-				this.pauseButton.hide();
-				this.playButton.show();
+				if(value) this.togglePlayButton.setIcon('media-playback-pause-symbolic');
+				else this.togglePlayButton.setIcon('media-playback-start-symbolic');
+
+				this.togglePlayButton.isPause = value;
 			}
 		}
 
@@ -320,7 +381,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(statusContents.volume >= 0 && statusContents.volume <= 1)
 			{
 				if(
-					this.volumeSlider.visible
+					this.volumeSlider.getVisible()
 					&& this.volumeSlider.delay == 0
 					&& !this.volumeSlider.busy
 				) {
@@ -358,20 +419,20 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			switch(this.mode)
 			{
 				case 'DIRECT':
-					shownItems = ['positionSlider', 'repeatButton', 'pauseButton',
+					shownItems = ['positionSlider', 'repeatButton', 'togglePlayButton',
 						'seekBackwardButton', 'seekForwardButton'];
 					if(!isUnifiedSlider) shownItems.push('volumeSlider');
 					this.setShownRemoteItems(shownItems);
 					break;
 				case 'ENCODE':
-					shownItems = ['volumeSlider', 'repeatButton', 'pauseButton'];
+					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];
 					this.setShownRemoteItems(shownItems);
 					break;
 				case 'PICTURE':
 					this.setShownRemoteItems(shownItems);
 					break;
 				case 'LIVE':
-					shownItems = ['volumeSlider', 'pauseButton'];
+					shownItems = ['volumeSlider', 'togglePlayButton'];
 					this.setShownRemoteItems(shownItems);
 					break;
 				default:
@@ -379,31 +440,42 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 
 			if(icon) this.positionSlider.defaultIcon = icon;
+
+			Playlist.seekAllowed = (this.mode === 'DIRECT') ? true : false;
 		}
-	}
 
-	hide()
-	{
-		this.actor.hide();
-	}
+		this.setMediaButtonsSize = (size) =>
+		{
+			this.togglePlayButton.child.icon_size = size;
+			this.stopButton.child.icon_size = size;
+			this.seekBackwardButton.child.icon_size = size;
+			this.seekForwardButton.child.icon_size = size;
+			this.skipBackwardButton.child.icon_size = size;
+			this.skipForwardButton.child.icon_size = size;
+			this.repeatButton.child.icon_size = size;
+		}
 
-	show()
-	{
-		this.actor.show();
-	}
+		this.setSlidersIconSize = (size) =>
+		{
+			this.positionSlider.setIconSize(size);
+			this.volumeSlider.setIconSize(size);
+		}
 
-	destroy()
-	{
-		super.destroy();
-	}
-}
+		/* Only need to be added when used with actor */
+		if(this.hasOwnProperty('actor'))
+		{
+			this.hide = () => this.actor.hide();
+			this.show = () => this.actor.show();
+		}
 
-class PopupBase extends PopupMenu.PopupBaseMenuItem
-{
-	constructor()
-	{
-		super({ hover: false, reactive: true });
-		this.actor.add_style_pseudo_class = () => { return null };
+		this.destroy = () =>
+		{
+			this.statusMonitor.disconnect(this.monitorSignal);
+			this.statusMonitor.cancel();
+			this.playlist.destroy();
+
+			super.destroy();
+		}
 	}
 }
 
@@ -437,12 +509,12 @@ class MediaControlButton extends St.Button
 			}
 		}
 
-		let signalIds = [
+		this._signalIds = [
 			this.connect('notify::hover', callback),
 			this.connect('notify::reactive', callback),
 			this.connect('clicked', changeState),
 			this.connect('destroy', () => {
-				signalIds.forEach(signalId => this.disconnect(signalId));
+				this._signalIds.forEach(signalId => this.disconnect(signalId));
 				this.turnedOn = null;
 			})
 		];
@@ -450,81 +522,121 @@ class MediaControlButton extends St.Button
 		/* Functions */
 		this.turnOn = (value) =>
 		{
-			if(value === true)
-			{
-				this.opacity = 255;
-				this.turnedOn = true;
-			}
-			else if(value === false)
-			{
-				this.opacity = 130;
-				this.turnedOn = false;
-			}
+			if(value) this.opacity = 255;
+			else this.opacity = 130;
+
+			this.turnedOn = value;
+		}
+
+		this.setIcon = (iconName) =>
+		{
+			this.child.icon_name = iconName;
 		}
 	}
 }
 
-class SliderItem extends PopupMenu.PopupBaseMenuItem
+class SliderItem extends AltPopupBase
 {
-	constructor(icon, toggle)
+	constructor(icon, toggle, isVolume)
 	{
-		super({ hover: false, reactive: true });
+		super();
 		this.defaultIcon = icon;
 		this.volumeIcon = 'audio-volume-high-symbolic';
 		this._toggle = toggle;
 		this._slider = new Slider.Slider(0);
 
-		if(this._toggle) this.button = new MediaControlButton(this.defaultIcon, false, 16);
-		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
+		this.button = (this._toggle) ?
+			new MediaControlButton(this.defaultIcon, false, 16) :
+			new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
 
 		this.delay = 0;
 		this.busy = false;
-		this.isVolume = false;
+		this.isVolume = isVolume || false;
 
-		this.actor.add(this.button);
-		this.actor.add(this._slider.actor, { expand: true });
-		this.actor.add_style_pseudo_class = () => { return null };
-		this.actor.visible = true;
+		if(this.hasOwnProperty('actor'))
+		{
+			this.actor.add(this.button);
+			this.actor.add(this._slider.actor, { expand: true });
+			this.actor.visible = true;
+
+			/* Available by default when without actor */
+			this.hide = () => this.actor.hide();
+			this.show = () => this.actor.show();
+		}
+		else
+		{
+			this.add(this.button);
+			this.add(this._slider, { expand: true });
+			this.visible = true;
+		}
 
 		this.button.style = 'margin-right: 2px;';
 
+		/* Actor signals for backward compatibility */
+		this._actorSignalIds = [];
+
+		/* Slider signals */
+		this._signalIds = [];
+
+		this.destroySignal = this.connect('destroy', () => {
+			this.disconnect(this.destroySignal);
+			this._signalIds.forEach(signalId => this._slider.disconnect(signalId));
+			this._actorSignalIds.forEach(signalId => {
+				if(this._slider.hasOwnProperty('actor'))
+					this._slider.actor.disconnect(signalId);
+			});
+			this.turnedOn = null;
+		});
+
 		/* Functions */
-		this.setValue = (value) => this._slider.setValue(value);
-		this.hide = () => this.actor.hide();
-		this.show = () => this.actor.show();
-		this.connect = (signal, callback) => this._slider.connect(signal, callback);
-	}
+		this.getVisible = () =>
+		{
+			if(this.hasOwnProperty('actor'))
+				return this.actor.visible;
+			else
+				return this.visible;
+		}
 
-	get value()
-	{
-		return this._slider.value;
-	}
+		this.setIconSize = (size) =>
+		{
+			if(this._toggle) this.button.child.icon_size = size;
+			else this.button.icon_size = size;
+		}
 
-	get visible()
-	{
-		return this.actor.visible;
-	}
+		this.getValue = () =>
+		{
+			return this._slider.value.toFixed(3);
+		}
 
-	set icon(value)
-	{
-		if(this._toggle) this.button.child.icon_name = value;
-		else this.button.icon_name = value;
+		this.setValue = (value) =>
+		{
+			if(this._slider.setValue && typeof this._slider.setValue === 'function')
+				this._slider.setValue(value);
+			else
+				this._slider.value = value;
+		}
+
+		this.setIcon = (iconName) =>
+		{
+			if(this._toggle) this.button.child.icon_name = iconName;
+			else this.button.icon_name = iconName;
+		}
 	}
 }
 
-class trackTitleItem extends PopupMenu.PopupBaseMenuItem
+class trackTitleItem extends AltPopupBase
 {
 	constructor()
 	{
-		super({ hover: false, reactive: true });
+		super();
 		this._title = new St.Label({ text: "", x_align: Clutter.ActorAlign.CENTER, x_expand: true });
 
-		this.actor.add(this._title);
-		this.actor.add_style_pseudo_class = () => { return null };
-	}
+		if(this.hasOwnProperty('actor'))
+			this.actor.add(this._title);
+		else
+			this.add(this._title);
 
-	set text(value)
-	{
-		this._title.text = value;
+		/* Functions */
+		this.setText = (text) => this._title.text = text;
 	}
 }

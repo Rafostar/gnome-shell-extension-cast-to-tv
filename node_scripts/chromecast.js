@@ -536,8 +536,22 @@ function checkRemoteAction(action, value)
 			break;
 		case 'STOP':
 			controller.repeat = false;
-			unsetBusy();
-			return closeCast(action);
+			if(player && player.session)
+			{
+				player.stop((err) =>
+				{
+					if(err) debug(err);
+
+					closeCast(action);
+					unsetBusy();
+				});
+			}
+			else
+			{
+				closeCast(action);
+				unsetBusy();
+			}
+			break;
 		case 'VOLUME':
 			player.setVolume(parseFloat(value), (err, volume) =>
 			{
