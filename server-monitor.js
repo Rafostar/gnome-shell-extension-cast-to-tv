@@ -3,22 +3,17 @@ const ByteArray = imports.byteArray;
 const extensionName = 'cast-to-tv@rafostar.github.com';
 const localPath = GLib.get_current_dir();
 const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
-const castSettings = getSettings();
+
+imports.searchPath.unshift(localPath);
+const castSettings = imports.helper.getSettings(
+	localPath, 'org.gnome.shell.extensions.cast-to-tv'
+);
+imports.searchPath.shift();
 
 let statusTimer;
 let restartCount = 0;
 let persistent = true;
 let loop = GLib.MainLoop.new(null, false);
-
-function getSettings()
-{
-	const GioSSS = Gio.SettingsSchemaSource;
-	let schemaSource = GioSSS.new_from_directory(
-		localPath + '/schemas', GioSSS.get_default(), false);
-	let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.cast-to-tv', true);
-
-	return new Gio.Settings({ settings_schema: schemaObj });
-}
 
 class ServerMonitor
 {
