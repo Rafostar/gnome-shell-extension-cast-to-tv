@@ -3,7 +3,8 @@ var path = require('path');
 var Gettext = require('node-gettext');
 var moParser = require('gettext-parser').mo;
 
-const translationsDir = path.join(__dirname + '/../locale');
+const extLocaleDir = path.join(__dirname + '/../locale');
+const translationsDir = (fs.existsSync(extLocaleDir)) ? extLocaleDir : '/usr/share/locale';
 const domain = 'cast-to-tv';
 
 var gt = new Gettext();
@@ -15,13 +16,21 @@ exports.initTranslations = function()
 
 	exports.locales = fs.readdirSync(translationsDir);
 
-	exports.locales.forEach((locale) => {
-		var fileName = domain + '.mo';
-		var translationsFilePath = path.join(translationsDir, locale, 'LC_MESSAGES', fileName);
-		var translationsContent = fs.readFileSync(translationsFilePath);
+	exports.locales.forEach(locale =>
+	{
+		var translationsFilePath = path.join(translationsDir, locale, 'LC_MESSAGES', domain + '.mo');
+		fs.access(translationsFilePath, fs.constants.F_OK, (err) =>
+		{
+			if(err) return;
 
-		var parsedTranslations = moParser.parse(translationsContent);
-		gt.addTranslations(locale, domain, parsedTranslations);
+			fs.readFile(translationsFilePath, (err, data) =>
+			{
+				if(err) return console.log(`Cast to TV: error reading node ${locale} translation`);
+
+				var parsedTranslations = moParser.parse(data);
+				gt.addTranslations(locale, domain, parsedTranslations);
+			});
+		});
 	});
 
 	exports.locales.unshift('en');
