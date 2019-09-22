@@ -1,3 +1,4 @@
+var fs = require('fs');
 var path = require('path');
 var { spawn, spawnSync } = require('child_process');
 var gettext = require('./gettext');
@@ -5,7 +6,9 @@ var schemaDir = path.join(__dirname + '/../schemas');
 var sysLang = process.env.LANG.substring(0, 2);
 
 if(!fs.existsSync(`${schemaDir}/gschemas.compiled`))
+{
 	schemaDir = null;
+}
 
 var gnome =
 {
