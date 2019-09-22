@@ -1,31 +1,44 @@
+var fs = require('fs');
 var path = require('path');
 var { spawn, spawnSync } = require('child_process');
 var gettext = require('./gettext');
 var schemaDir = path.join(__dirname + '/../schemas');
 var sysLang = process.env.LANG.substring(0, 2);
 
+if(!fs.existsSync(`${schemaDir}/gschemas.compiled`))
+{
+	schemaDir = null;
+}
+
 var gnome =
 {
-	showRemote: (enable) =>
+	setSetting: (setting, value) =>
 	{
-		spawn('gsettings', ['--schemadir', schemaDir,
-			'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
-	},
+		var args = ['set', 'org.gnome.shell.extensions.cast-to-tv', setting, value];
+		if(schemaDir) args.unshift('--schemadir', schemaDir);
 
-	showMenu: (enable) =>
-	{
-		spawn('gsettings', ['--schemadir', schemaDir,
-			'set', 'org.gnome.shell.extensions.cast-to-tv', 'service-enabled', enable]);
+		spawn('gsettings', args);
 	},
 
 	getSetting: (setting) =>
 	{
-		var gsettings = spawnSync('gsettings', ['--schemadir', schemaDir,
-			'get', 'org.gnome.shell.extensions.cast-to-tv', setting]);
+		var args = ['get', 'org.gnome.shell.extensions.cast-to-tv', setting];
+		if(schemaDir) args.unshift('--schemadir', schemaDir);
 
+		var gsettings = spawnSync('gsettings', args);
 		var outStr = String(gsettings.stdout).replace(/\'/g, '').replace(/\n/, '');
 
 		return (outStr === 'true' || outStr === true) ? true : false;
+	},
+
+	showRemote: (enable) =>
+	{
+		gnome.setSetting('chromecast-playing', enable);
+	},
+
+	showMenu: (enable) =>
+	{
+		gnome.setSetting('service-enabled', enable);
 	},
 
 	isRemote: () =>

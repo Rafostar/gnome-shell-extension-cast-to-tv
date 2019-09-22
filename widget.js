@@ -53,7 +53,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 				EXTENSIONS_PATH + '/cast-to-tv-.*-addon@rafostar.github.com/app');
 
 			/* To not freeze gnome shell FileChooserDialog needs to be run as separate process */
-			GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/file-chooser.js', streamType], null, 0, null);
+			GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/file-chooser.js', streamType], null, 0, null);
 		}
 
 		this.spawnExtensionPrefs = () =>

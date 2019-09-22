@@ -233,7 +233,7 @@ function enableService(enable)
 	if(enable)
 	{
 		/* Start server monitoring service */
-		GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
+		GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/server-monitor.js'], null, 0, null);
 	}
 	else
 	{
