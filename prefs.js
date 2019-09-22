@@ -186,14 +186,14 @@ class MainSettings extends Gtk.VBox
 		}
 
 		this.serviceSignal = Settings.connect('changed::service-enabled', () => this.checkService());
-	}
 
-	destroy()
-	{
-		Settings.disconnect(this.serviceSignal);
-		this.portWidget.disconnect(this.linkSignal);
+		this.destroy = () =>
+		{
+			Settings.disconnect(this.serviceSignal);
+			this.portWidget.disconnect(this.linkSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -270,11 +270,6 @@ class RemoteSettings extends Gtk.Grid
 		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(widget, 1, 6, 1, 1);
-	}
-
-	destroy()
-	{
-		super.destroy();
 	}
 }
 
@@ -426,20 +421,20 @@ class ChromecastSettings extends Gtk.Grid
 		});
 		this.attach(label, 0, 8, 1, 1);
 		this.attach(this.bgColor, 1, 8, 1, 1);
-	}
 
-	destroy()
-	{
-		this.scanButton.disconnect(this.scanSignal);
-		this.fontFamily.disconnect(this.familySignal);
-		this.fontStyle.disconnect(this.styleSignal);
-		this.scaleButton.disconnect(this.scaleSignal);
-		this.fontColor.disconnect(this.fontColorSignal);
-		this.outlineSignal.disconnect(this.outlineSignal);
-		this.edgeColor.disconnect(this.edgeSignal);
-		this.bgColor.disconnect(this.bgSignal);
+		this.destroy = () =>
+		{
+			this.scanButton.disconnect(this.scanSignal);
+			this.fontFamily.disconnect(this.familySignal);
+			this.fontStyle.disconnect(this.styleSignal);
+			this.scaleButton.disconnect(this.scaleSignal);
+			this.fontColor.disconnect(this.fontColorSignal);
+			this.outlineSignal.disconnect(this.outlineSignal);
+			this.edgeColor.disconnect(this.edgeSignal);
+			this.bgColor.disconnect(this.bgSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -557,13 +552,13 @@ class OtherSettings extends Gtk.Grid
 
 		this.attach(label, 0, 9, 1, 1);
 		this.attach(this.nautilusSwitch, 1, 9, 1, 1);
-	}
 
-	destroy()
-	{
-		this.nautilusSwitch.disconnect(this.nautilusSignal);
+		this.destroy = () =>
+		{
+			this.nautilusSwitch.disconnect(this.nautilusSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -601,19 +596,13 @@ class AddonsSettings extends Gtk.Notebook
 			{
 				imports.searchPath.unshift(addonPath);
 				let addonPrefs = imports[addonName + '_prefs'];
+				imports.searchPath.shift();
 
 				addonPrefs.init();
 				let widget = addonPrefs.buildPrefsWidget();
 				this.append_page(widget, widget.title);
 			}
 		});
-
-		imports.searchPath.unshift(extPath);
-	}
-
-	destroy()
-	{
-		super.destroy();
 	}
 }
 
@@ -682,13 +671,13 @@ class ModulesSettings extends Gtk.VBox
 		}
 
 		this.installSignal = this.installButton.connect('clicked', installModules.bind(this));
-	}
 
-	destroy()
-	{
-		this.installButton.disconnect(this.installSignal);
+		this.destroy = () =>
+		{
+			this.installButton.disconnect(this.installSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -751,11 +740,6 @@ class AboutPage extends Gtk.VBox
 		});
 		this.pack_start(linkButton, false, false, 20);
 	}
-
-	destroy()
-	{
-		super.destroy();
-	}
 }
 
 class CastNotebook extends Gtk.Notebook
@@ -785,11 +769,13 @@ class CastNotebook extends Gtk.Notebook
 		this.addonsWidget = new AddonsSettings();
 		let addonsNumber = this.addonsWidget.get_n_pages();
 
-		if(addonsNumber == 0) {
+		if(addonsNumber == 0)
+		{
 			this.addonsWidget.destroy();
 			this.addonsWidget = null;
 		}
-		else {
+		else
+		{
 			label = new Gtk.Label({ label: _("Add-ons") });
 			this.append_page(this.addonsWidget, label);
 		}
@@ -801,19 +787,19 @@ class CastNotebook extends Gtk.Notebook
 		this.aboutWidget = new AboutPage();
 		label = new Gtk.Label({ label: _("About") });
 		this.append_page(this.aboutWidget, label);
-	}
 
-	destroy()
-	{
-		this.mainWidget.destroy();
-		this.otherWidget.destroy();
-		this.remoteWidget.destroy();
-		this.chromecastWidget.destroy();
-		this.modulesWidget.destroy();
-		this.aboutWidget.destroy();
-		if(this.addonsWidget) this.addonsWidget.destroy();
+		this.destroy = () =>
+		{
+			this.mainWidget.destroy();
+			this.otherWidget.destroy();
+			this.remoteWidget.destroy();
+			this.chromecastWidget.destroy();
+			this.modulesWidget.destroy();
+			this.aboutWidget.destroy();
+			if(this.addonsWidget) this.addonsWidget.destroy();
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -844,16 +830,16 @@ class CastToTvSettings extends Gtk.VBox
 				this.notebook.show();
 			}
 		});
-	}
 
-	destroy()
-	{
-		Settings.disconnect(this.streamingSignal);
+		this.destroy = () =>
+		{
+			Settings.disconnect(this.streamingSignal);
 
-		this.notebook.destroy();
-		this.notification.destroy();
+			this.notebook.destroy();
+			this.notification.destroy();
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
