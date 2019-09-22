@@ -16,7 +16,8 @@ function getSettings(localPath, schemaName)
 
 	if(schemaDir.query_exists(null))
 		schemaSource = GioSSS.new_from_directory(
-			localPath + '/schemas', GioSSS.get_default(), false);
+			localPath + '/schemas', GioSSS.get_default(), false
+		);
 	else
 		schemaSource = GioSSS.get_default();
 

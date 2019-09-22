@@ -56,6 +56,7 @@ else
 	cp -r $(filter-out schemas locale README.md COPYING, $(ZIPFILES)) $(CUSTOMPATH)/$(UUID)
 	mkdir -p /usr/share/glib-2.0/schemas
 	cp -r ./schemas/*.gschema.* /usr/share/glib-2.0/schemas/
+	glib-compile-schemas /usr/share/glib-2.0/schemas 2>/dev/null
 	mkdir -p /usr/share/locale
 	cp -r ./locale/* /usr/share/locale/
 	mkdir -p /usr/share/doc/$(EXTNAME)
