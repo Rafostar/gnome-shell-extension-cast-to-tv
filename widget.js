@@ -12,8 +12,8 @@ const shared = Local.imports.shared.module.exports;
 
 const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
 const ICON_NAME = 'tv-symbolic';
-const MAX_DELAY = 16;
-const MIN_DELAY = 8;
+const MIN_DELAY = 3;
+const MAX_DELAY = 5;
 
 var isRepeatActive = false;
 var isUnifiedSlider = true;
@@ -129,7 +129,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
 	constructor()
 	{
-		super(0.5, _("Chromecast Remote"), false);
+		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
 
 		this.box = new St.BoxLayout();
@@ -295,7 +295,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		);
 
 		this.statusFile = Gio.file_new_for_path(shared.statusPath);
-		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorEvent.CHANGED, null);
+		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorFlags.NONE, null);
 
 		let handleSliderDelay = (sliderName) =>
 		{
@@ -304,9 +304,14 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.updateRemote = () =>
+		this.updateRemote = (monitor, file, otherFile, event) =>
 		{
-			if(this.mode == 'PICTURE') return;
+			if(
+				event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT
+				|| this.mode === 'PICTURE'
+			) {
+				return;
+			}
 
 			let statusContents = Temp.readFromFile(shared.statusPath);
 			if(statusContents)
@@ -466,6 +471,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.destroy = () =>
 		{
 			this.statusMonitor.disconnect(this.monitorSignal);
+			this.statusMonitor.cancel();
 			this.playlist.destroy();
 
 			super.destroy();
@@ -539,8 +545,9 @@ class SliderItem extends AltPopupBase
 		this._toggle = toggle;
 		this._slider = new Slider.Slider(0);
 
-		if(this._toggle) this.button = new MediaControlButton(this.defaultIcon, false, 16);
-		else this.button = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
+		this.button = (this._toggle) ?
+			new MediaControlButton(this.defaultIcon, false, 16) :
+			new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
 
 		this.delay = 0;
 		this.busy = false;
