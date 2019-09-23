@@ -26,9 +26,19 @@ var gnome =
 		if(schemaDir) args.unshift('--schemadir', schemaDir);
 
 		var gsettings = spawnSync('gsettings', args);
-		var outStr = String(gsettings.stdout).replace(/\'/g, '').replace(/\n/, '');
+		return String(gsettings.stdout).replace(/\n/, '');
+	},
 
-		return (outStr === 'true' || outStr === true) ? true : false;
+	getBoolean: (setting) =>
+	{
+		var value = gnome.getSetting(setting).replace(/\'/g, '');
+		return (value === 'true' || value === true) ? true : false;
+	},
+
+	getJSON: (setting) =>
+	{
+		var value = gnome.getSetting(setting);
+		return JSON.parse(value);
 	},
 
 	showRemote: (enable) =>
@@ -43,7 +53,7 @@ var gnome =
 
 	isRemote: () =>
 	{
-		return gnome.getSetting('chromecast-playing');
+		return gnome.getBoolean('chromecast-playing');
 	},
 
 	notify: (summary, body) =>

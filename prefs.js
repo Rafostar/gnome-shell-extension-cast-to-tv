@@ -284,12 +284,17 @@ class ChromecastSettings extends Gtk.Grid
 		let button = null;
 		let rgba = new Gdk.RGBA();
 
-		let subsConfig = Temp.readFromFile(Local.path + '/config/subtitles.json');
-		if(!subsConfig)
+		let subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles'));
+		let sharedSubsConfig = shared.chromecast.subsStyle;
+
+		let getSubsConfig = (confName) =>
 		{
-			subsConfig = shared.chromecast.subsStyle;
-			GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			return subsConfig[confName] || sharedSubsConfig[confName];
+		}
+
+		let setSubsConfig = () =>
+		{
+			Settings.set_string('chromecast-subtitles', JSON.stringify(subsConfig));
 		}
 
 		/* Label: Chromecast Options */
@@ -323,12 +328,12 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontFamily.append('CASUAL', "Short Stack");
 		this.fontFamily.append('CURSIVE', "Quintessential");
 		this.fontFamily.append('SMALL_CAPITALS', "Alegreya Sans SC");
-		this.fontFamily.active_id = subsConfig.fontGenericFamily;
+		this.fontFamily.active_id = getSubsConfig('fontGenericFamily');
 		this.familySignal = this.fontFamily.connect('changed', () =>
 		{
 			subsConfig.fontFamily = this.fontFamily.get_active_text();
 			subsConfig.fontGenericFamily = this.fontFamily.active_id;
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 3, 1, 1);
 		this.attach(this.fontFamily, 1, 3, 1, 1);
@@ -340,11 +345,11 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontStyle.append('BOLD', _("Bold"));
 		this.fontStyle.append('ITALIC', _("Italic"));
 		this.fontStyle.append('BOLD_ITALIC', _("Bold italic"));
-		this.fontStyle.active_id = subsConfig.fontStyle;
+		this.fontStyle.active_id = getSubsConfig('fontStyle');
 		this.styleSignal = this.fontStyle.connect('changed', () =>
 		{
 			subsConfig.fontStyle = this.fontStyle.active_id;
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 4, 1, 1);
 		this.attach(this.fontStyle, 1, 4, 1, 1);
@@ -354,25 +359,25 @@ class ChromecastSettings extends Gtk.Grid
 		this.scaleButton = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
 		this.scaleButton.set_sensitive(true);
 		this.scaleButton.set_range(0.1, 5.0);
-		this.scaleButton.set_value(subsConfig.fontScale);
+		this.scaleButton.set_value(getSubsConfig('fontScale'));
 		this.scaleButton.set_increments(0.1, 0.2);
 		this.scaleSignal = this.scaleButton.connect('value-changed', () =>
 		{
 			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 5, 1, 1);
 		this.attach(this.scaleButton, 1, 5, 1, 1);
 
 		/* Font Color */
 		label = new SettingLabel(_("Font color"));
-		rgba.parse(hashToColor(subsConfig.foregroundColor));
+		rgba.parse(hashToColor(getSubsConfig('foregroundColor')));
 		this.fontColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.fontColor.set_sensitive(true);
 		this.fontColorSignal = this.fontColor.connect('color-set', () =>
 		{
 			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(this.fontColor, 1, 6, 1, 1);
@@ -384,8 +389,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.outlineSwitch.set_sensitive(true);
 		this.checkActive = () =>
 		{
-			if(subsConfig.edgeType == "OUTLINE") return true;
-			else return false;
+			return (getSubsConfig('edgeType') === "OUTLINE") ? true : false;
 		}
 		this.outlineSwitch.set_active(this.checkActive());
 		this.outlineSignal = this.outlineSwitch.connect('notify::active', () =>
@@ -393,16 +397,16 @@ class ChromecastSettings extends Gtk.Grid
 			if(this.outlineSwitch.active) subsConfig.edgeType = "OUTLINE";
 			else subsConfig.edgeType = "NONE";
 
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 
-		rgba.parse(hashToColor(subsConfig.edgeColor));
+		rgba.parse(hashToColor(getSubsConfig('edgeColor')));
 		this.edgeColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.edgeColor.set_sensitive(true);
 		this.edgeSignal = this.edgeColor.connect('color-set', () =>
 		{
 			subsConfig.edgeColor = colorToHash(this.edgeColor.rgba.to_string());
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		box.pack_end(this.edgeColor, false, false, 0);
 		box.pack_end(this.outlineSwitch, false, false, 8);
@@ -411,13 +415,13 @@ class ChromecastSettings extends Gtk.Grid
 
 		/* Background color */
 		label = new SettingLabel(_("Background color"));
-		rgba.parse(hashToColor(subsConfig.backgroundColor));
+		rgba.parse(hashToColor(getSubsConfig('backgroundColor')));
 		this.bgColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true, use_alpha: true});
 		this.bgColor.set_sensitive(true);
 		this.bgSignal = this.bgColor.connect('color-set', () =>
 		{
 			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 8, 1, 1);
 		this.attach(this.bgColor, 1, 8, 1, 1);

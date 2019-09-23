@@ -47,6 +47,10 @@
       <default>""</default>
       <summary>Chromecast device name</summary>
     </key>
+    <key name="chromecast-subtitles" type="s">
+      <default>"{}"</default>
+      <summary>Custom Chromecast subtitles config</summary>
+    </key>
     <!-- Playercast -->
     <key name="playercast-name" type="s">
       <default>""</default>
