@@ -45,11 +45,15 @@
     <!-- Chromecast -->
     <key name="chromecast-name" type="s">
       <default>""</default>
-      <summary>Chromecast device name</summary>
+      <summary>Selected Chromecast device name</summary>
     </key>
     <key name="chromecast-subtitles" type="s">
       <default>"{}"</default>
       <summary>Custom Chromecast subtitles config</summary>
+    </key>
+    <key name="chromecast-devices" type="s">
+      <default>"[]"</default>
+      <summary>Scanned Chromecast devices list</summary>
     </key>
     <!-- Playercast -->
     <key name="playercast-name" type="s">

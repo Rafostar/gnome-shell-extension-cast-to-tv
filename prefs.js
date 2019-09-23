@@ -11,10 +11,10 @@ const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const devicesPath = Local.path + '/config/devices.json';
-const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
-const npmPath = GLib.find_program_in_path('npm');
-const fileManagers = ['nautilus', 'nemo'];
+
+const NODE_PATH = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
+const NPM_PATH = GLib.find_program_in_path('npm');
+const FILE_MANAGERS = ['nautilus', 'nemo'];
 
 let nodeDir;
 let nodeBin;
@@ -100,7 +100,8 @@ class MainSettings extends Gtk.VBox
 		widget.append('chromecast', "Chromecast");
 		/* TRANSLATORS: "Playercast" is a name of an app, so do not change it */
 		widget.append('playercast', _("Playercast app"));
-		/* TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player". */
+		/* TRANSLATORS: Web browser or Media player app selection.
+		This should be as short as possible e.g. "Browser | Player". */
 		widget.append('other', _("Web browser | Media player"));
 		Settings.bind('receiver-type', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		grid.attach(label, 0, 1, 1, 1);
@@ -534,7 +535,7 @@ class OtherSettings extends Gtk.Grid
 			let homeDir = GLib.get_home_dir();
 			if(!homeDir) return false;
 
-			for(let fm of fileManagers)
+			for(let fm of FILE_MANAGERS)
 			{
 				if(
 					GLib.file_test(homeDir + '/.local/share/' + fm +
@@ -661,13 +662,13 @@ class ModulesSettings extends Gtk.VBox
 
 			try {
 				TermWidget.spawn_async(
-					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
+					Vte.PtyFlags.DEFAULT, Local.path, [NPM_PATH, 'install'],
 					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null, (res, pid) =>
 						GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback()));
 			}
 			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
-					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
+					Vte.PtyFlags.DEFAULT, Local.path, [NPM_PATH, 'install'],
 					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
 
 				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback());
@@ -857,8 +858,6 @@ function scanDevices(widget, button)
 	/* Show Scanning label */
 	widget.set_active(0);
 
-	GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
-
 	let [res, pid] = GLib.spawn_async(
 		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/scanner'],
 		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
@@ -876,9 +875,13 @@ function setDevices(widget, filePath)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
+	let devices = [];
 
-	filePath = (typeof filePath === 'string') ? filePath: devicesPath;
-	let devices = Temp.readFromFile(filePath);
+	if(filePath && typeof filePath === 'string')
+		devices = Temp.readFromFile(filePath);
+	else
+		devices = JSON.parse(Settings.get_string('chromecast-devices'));
+
 	if(Array.isArray(devices))
 	{
 		devices.forEach(device =>
@@ -929,7 +932,7 @@ function enableNautilusExtension(enabled)
 		return;
 	}
 
-	fileManagers.forEach(fm =>
+	FILE_MANAGERS.forEach(fm =>
 	{
 		let installPath = userDataDir + '/' + fm + '-python/extensions';
 		let destFile = Gio.File.new_for_path(installPath).get_child('nautilus-cast-to-tv.py');
@@ -982,11 +985,11 @@ function buildPrefsWidget()
 {
 	let widget = null;
 
-	if(!nodePath) return widget = new MissingNotification('nodejs');
-	else if(!npmPath) return widget = new MissingNotification('npm');
+	if(!NODE_PATH) return widget = new MissingNotification('nodejs');
+	else if(!NPM_PATH) return widget = new MissingNotification('npm');
 
-	nodeDir = nodePath.substring(0, nodePath.lastIndexOf('/'));
-	nodeBin = nodePath.substring(nodePath.lastIndexOf('/') + 1);
+	nodeDir = NODE_PATH.substring(0, NODE_PATH.lastIndexOf('/'));
+	nodeBin = NODE_PATH.substring(NODE_PATH.lastIndexOf('/') + 1);
 
 	widget = new CastToTvSettings();
 	widget.show_all();
