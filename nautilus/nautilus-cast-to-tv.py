@@ -19,12 +19,12 @@ try:
 except ImportError:
     from urllib.parse import unquote
 
+_ = gettext.gettext
 PY3 = sys.version_info > (3,)
 EXTENSION_NAME = 'cast-to-tv@rafostar.github.com'
 EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/' + EXTENSION_NAME)
 TEMP_PATH = '/tmp/.cast-to-tv'
 SUBS_FORMATS = ['srt', 'ass', 'vtt']
-_ = gettext.gettext
 
 class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def __init__(self):
@@ -33,19 +33,25 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.config = {}
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
+        self.ext_settings = None
 
         Gio_SSS = Gio.SettingsSchemaSource
-        schema_source = Gio_SSS.new_from_directory(
-            EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False)
-        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True)
-        self.ext_settings = Gio.Settings.new_full(schema_obj)
+        if os.path.isfile(EXTENSION_PATH + '/schemas/gschemas.compiled'):
+            schema_source = Gio_SSS.new_from_directory(
+                EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False)
+        else:
+            schema_source = Gio_SSS.get_default()
 
-        try:
-            locale.setlocale(locale.LC_ALL, '')
+        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True)
+        if schema_obj:
+            self.ext_settings = Gio.Settings.new_full(schema_obj)
+
+        locale.setlocale(locale.LC_ALL, '')
+        if os.path.exists(EXTENSION_PATH + '/locale'):
             gettext.bindtextdomain('cast-to-tv', EXTENSION_PATH + '/locale')
-            gettext.textdomain('cast-to-tv')
-        except:
-            pass
+        else:
+            gettext.bindtextdomain('cast-to-tv', None)
+        gettext.textdomain('cast-to-tv')
 
     def check_extension_enabled(self):
         all_extensions_disabled = self.settings.get_boolean('disable-user-extensions')
@@ -105,9 +111,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def get_menu_name(self):
         if ((self.config['receiverType'] == 'chromecast' and
-            not self.config['chromecastName']) or
-            (self.config['receiverType'] == 'chromecast' and
-            not os.path.isfile(EXTENSION_PATH + '/config/devices.json'))):
+            not self.config['chromecastName'])):
                 return "Chromecast"
         elif self.config['receiverType'] == 'playercast':
             if self.config['playercastName']:
@@ -117,16 +121,15 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         elif self.config['receiverType'] == 'other':
             return _("Web browser | Media player")
 
-        # Reduce disk reads when selecting files
+        # Reduce extension settings reads (and below loop runs) when selecting files
         if self.config['chromecastName'] == self.current_name['name']:
             return self.current_name['fn']
 
-        with codecs.open(EXTENSION_PATH + '/config/devices.json', encoding='utf-8') as devices:
-            for device in json.load(devices):
-                if device['name'] == self.config['chromecastName']:
-                    self.current_name['name'] = device['name']
-                    self.current_name['fn'] = device['friendlyName']
-                    return self.current_name['fn']
+        for device in json.loads(self.ext_settings.get_string('chromecast-devices')):
+            if device['name'] == self.config['chromecastName']:
+                self.current_name['name'] = device['name']
+                self.current_name['fn'] = device['friendlyName']
+                return self.current_name['fn']
 
         return None
 
@@ -262,6 +265,9 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         return False
 
     def get_file_items(self, window, files):
+        if not self.settings or not self.ext_settings:
+            return
+
         if not self.ext_settings.get_boolean('service-enabled'):
             return
 
