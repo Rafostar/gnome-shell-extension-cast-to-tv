@@ -1,11 +1,11 @@
 var fs = require('fs');
 var path = require('path');
-var spawn = require('child_process').spawn;
+var { spawn } = require('child_process');
 var jschardet = require('jschardet');
 var bridge = require('./bridge');
 var ffprobe = require('./ffprobe');
 var remove = require('./remove');
-var gnome = require('./gnome');
+var notify = require('./notify');
 var messages = require('./messages.js');
 var shared = require('../shared');
 
@@ -52,8 +52,11 @@ exports.analyzeFile = function()
 			else checkBuiltInSubs(value);
 		})
 		.catch(err => {
-			if(err.message == 'FFprobe process error') gnome.notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', messages.ffprobePath);
+			if(err.message == 'FFprobe process error')
+				notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
+			else if(err.message == 'FFprobe exec error')
+				notify('Cast to TV', messages.ffprobePath);
+
 			exports.subsProcess = null;
 			exports.coverProcess = null;
 		});
@@ -74,8 +77,10 @@ exports.checkCoverIncluded = function(cb)
 			cb(false);
 		})
 		.catch(err => {
-			if(err.message == 'FFprobe process error') gnome.notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error') gnome.notify('Cast to TV', messages.ffprobePath);
+			if(err.message == 'FFprobe process error')
+				notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
+			else if(err.message == 'FFprobe exec error')
+				notify('Cast to TV', messages.ffprobePath);
 
 			cb(false);
 		});
@@ -83,15 +88,19 @@ exports.checkCoverIncluded = function(cb)
 
 function convertSubsToVtt(subsFile, subsEnc)
 {
-	exports.subsProcess = spawn(bridge.config.ffmpegPath, ['-sub_charenc', subsEnc, '-i', subsFile, shared.vttSubsPath, '-y']);
-	exports.subsProcess.on('close', function(){ exports.subsProcess = null; });
+	exports.subsProcess = spawn(bridge.config.ffmpegPath, [
+		'-sub_charenc', subsEnc, '-i', subsFile, shared.vttSubsPath, '-y'
+	]);
+	exports.subsProcess.on('close', () => exports.subsProcess = null);
 }
 
 function extractCoverArt(extension)
 {
 	exports.coverPath = shared.coverDefault + extension;
-	exports.coverProcess = spawn(bridge.config.ffmpegPath, ['-i', bridge.selection.filePath, '-c', 'copy', exports.coverPath, '-y']);
-	exports.coverProcess.on('close', function(){ exports.coverProcess = null; });
+	exports.coverProcess = spawn(bridge.config.ffmpegPath, [
+		'-i', bridge.selection.filePath, '-c', 'copy', exports.coverPath, '-y'
+	]);
+	exports.coverProcess.on('close', () => exports.coverProcess = null);
 }
 
 function checkBuiltInSubs(ffprobeData)
@@ -167,9 +176,22 @@ function checkCombinedCover(i,j)
 
 	for(var k = 1; k <= 3; k++)
 	{
-		if(k == 1) coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined;
-		else if(k == 2) coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
-		else if(k == 3) coverFile = path.dirname(bridge.selection.filePath) + '/' + shared.coverNames[i].toUpperCase() + shared.coverExtensions[j];
+		switch(k)
+		{
+			case 1:
+				coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined;
+				break
+			case 2:
+				coverFile = path.dirname(bridge.selection.filePath) + '/' +
+					coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
+				break;
+			case 3:
+				coverFile = path.dirname(bridge.selection.filePath) + '/' +
+					shared.coverNames[i].toUpperCase() + shared.coverExtensions[j];
+				break;
+			default:
+				break;
+		}
 
 		if(fs.existsSync(coverFile))
 		{
