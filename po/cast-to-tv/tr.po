@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-07-27 19:09+0200\n"
-"PO-Revision-Date: 2019-07-27 18:06\n"
+"PO-Revision-Date: 2019-09-24 18:47\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -48,7 +48,7 @@ msgstr "Resim"
 
 #: widget.js:35 widget.js:79
 msgid "Turn Off"
-msgstr ""
+msgstr "Kapat"
 
 #: widget.js:36
 msgid "Cast Settings"
@@ -56,7 +56,7 @@ msgstr "Oynatıcı Ayarları"
 
 #: widget.js:87
 msgid "Turn On"
-msgstr ""
+msgstr "Aç"
 
 #. TRANSLATORS: When "Cast Media" service is turned off
 #: widget.js:89
@@ -120,7 +120,7 @@ msgstr "Altyazı Dosyaları"
 #. TRANSLATORS: Will contain dependency name at the beginning (e.g. Node.js is not installed)
 #: prefs.js:59
 msgid "is not installed"
-msgstr ""
+msgstr "kurulu değil"
 
 #: prefs.js:77
 msgid "Streaming in progress"
