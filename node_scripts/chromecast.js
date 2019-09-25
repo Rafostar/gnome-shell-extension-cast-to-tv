@@ -22,6 +22,12 @@ exports.cast = function()
 {
 	stopCastInterval();
 
+	if(chromecast._player)
+	{
+		chromecast._player.removeListener('close', finishCast);
+		chromecast._player.removeListener('status', handleChromecastStatus);
+	}
+
 	debug('NEW SELECTION');
 
 	if(!extract.subsProcess && !extract.coverProcess)
