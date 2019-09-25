@@ -16,10 +16,12 @@ var playerStatus = {};
 var playerVolume = 1;
 var remoteBusy = false;
 var castInterval;
+var playTimeout;
 var initType;
 
 exports.cast = function()
 {
+	clearPlayTimeout();
 	stopCastInterval();
 
 	if(chromecast._player)
@@ -327,7 +329,6 @@ function launchCast(media, castOpts)
 
 			debug('Cast started');
 
-			startCastInterval();
 			startPlayback(media.contentType);
 		}
 	});
@@ -350,6 +351,17 @@ function stopCastInterval()
 		castInterval = null;
 
 		debug('Stopped status interval');
+	}
+}
+
+function clearPlayTimeout()
+{
+	if(playTimeout)
+	{
+		clearTimeout(playTimeout);
+		playTimeout = null;
+
+		debug('Stopped delayed playback');
 	}
 }
 
@@ -380,17 +392,20 @@ function startPlayback(mimeType)
 	{
 		var play = () =>
 		{
+			playTimeout = null;
+
 			chromecast.play(err =>
 			{
 				if(!err)
 				{
 					debug('Playback started');
+					startCastInterval();
 					gnome.showRemote(true);
 				}
 				else
 				{
 					debug('Could not play!');
-					closeCast();
+					return closeCast();
 				}
 			});
 		}
@@ -399,10 +414,10 @@ function startPlayback(mimeType)
 
 		/* mimeType video + streamType music = music with visualizer */
 		/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
-		if(bridge.selection.streamType === 'MUSIC')
-			setTimeout(() => play(), shared.chromecast.visualizerBuffer);
-		else
-			setTimeout(() => play(), shared.chromecast.videoBuffer);
+		var delay = (bridge.selection.streamType === 'MUSIC') ?
+			shared.chromecast.visualizerBuffer : shared.chromecast.videoBuffer;
+
+			playTimeout = setTimeout(() => play(), delay);
 	}
 	else
 	{
@@ -411,6 +426,7 @@ function startPlayback(mimeType)
 		else
 			debug('Playback autostart');
 
+		startCastInterval();
 		gnome.showRemote(true);
 	}
 }
@@ -493,6 +509,7 @@ function showTranslatedError(err)
 /* Normal close from app */
 function closeCast(action)
 {
+	clearPlayTimeout();
 	stopCastInterval();
 
 	chromecast._player.removeListener('close', finishCast);
@@ -524,6 +541,7 @@ function closeCast(action)
 /* Close by external event */
 function finishCast()
 {
+	clearPlayTimeout();
 	stopCastInterval();
 
 	/* 'close' listener is auto removed as it is a 'once' event performed here */
