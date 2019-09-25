@@ -2,9 +2,17 @@ const { Clutter, GObject } = imports.gi;
 const PopupMenu = imports.ui.popupMenu;
 const Config = imports.misc.config;
 
-const GNOME_MINOR_VER = Object.assign(Config.PACKAGE_VERSION).split('.')[1];
+const IS_OLD_SHELL = (Config.PACKAGE_VERSION.split('.')[1] < 31);
 
-var AltPopupBase = (GNOME_MINOR_VER >= 31) ?
+var AltPopupBase = (IS_OLD_SHELL) ?
+	class AltPopupBase extends PopupMenu.PopupBaseMenuItem
+	{
+		constructor()
+		{
+			super({ hover: false });
+			this.actor.add_style_pseudo_class = () => { return null };
+		}
+	} :
 	GObject.registerClass(
 	class AltPopupBase extends PopupMenu.PopupBaseMenuItem
 	{
@@ -17,40 +25,32 @@ var AltPopupBase = (GNOME_MINOR_VER >= 31) ?
 			else
 				this.add_style_pseudo_class = () => { return null };
 		}
-	}) :
-	class AltPopupBase extends PopupMenu.PopupBaseMenuItem
-	{
-		constructor()
-		{
-			super({ hover: false });
-			this.actor.add_style_pseudo_class = () => { return null };
-		}
-	}
+	});
 
 AltPopupBase.prototype._onButtonReleaseEvent = function(actor, event)
 {
 	return Clutter.EVENT_STOP;
 }
 
-var AltPopupImage = (GNOME_MINOR_VER >= 31) ?
+var AltPopupImage = (IS_OLD_SHELL) ?
+	class AltPopupImage extends PopupMenu.PopupImageMenuItem
+	{
+		constructor(text, icon)
+		{
+			super(text, icon);
+			/* Default temporary action for override */
+			this._onItemClicked = () => { return null };
+		}
+	} :
 	GObject.registerClass(
 	class AltPopupImage extends PopupMenu.PopupImageMenuItem
 	{
 		_init(text, icon)
 		{
 			super._init(text, icon);
-			/* Default temporary action to override */
 			this._onItemClicked = () => { return null };
 		}
-	}) :
-	class AltPopupImage extends PopupMenu.PopupImageMenuItem
-	{
-		constructor(text, icon)
-		{
-			super(text, icon);
-			this._onItemClicked = () => { return null };
-		}
-	}
+	});
 
 AltPopupImage.prototype._onButtonReleaseEvent = function(actor, event)
 {
