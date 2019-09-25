@@ -21,12 +21,12 @@ var gnome =
 		if(isSchema) args.unshift('--schemadir', schemaDir);
 
 		var gsettings = spawnSync('gsettings', args);
-		return String(gsettings.stdout).replace(/\n/, '');
+		return String(gsettings.stdout).replace(/\n/, '').replace(/\'/g, '');
 	},
 
 	getBoolean: function(setting)
 	{
-		var value = this.getSetting(setting).replace(/\'/g, '');
+		var value = this.getSetting(setting);
 		return (value === 'true' || value === true) ? true : false;
 	},
 
