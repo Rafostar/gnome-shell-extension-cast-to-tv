@@ -1,9 +1,11 @@
 var fs = require('fs');
 var path = require('path');
 var { spawn, spawnSync } = require('child_process');
+var debug = require('debug')('gnome');
 
 const schemaDir = path.join(__dirname + '/../schemas');
 const isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
+debug(`Local setting schema available: ${isSchema}`);
 
 var gnome =
 {
@@ -12,6 +14,7 @@ var gnome =
 		var args = ['set', 'org.gnome.shell.extensions.cast-to-tv', setting, value];
 		if(isSchema) args.unshift('--schemadir', schemaDir);
 
+		debug(`Set ${setting}: ${value}`);
 		spawn('gsettings', args);
 	},
 
@@ -21,7 +24,10 @@ var gnome =
 		if(isSchema) args.unshift('--schemadir', schemaDir);
 
 		var gsettings = spawnSync('gsettings', args);
-		return String(gsettings.stdout).replace(/\n/, '').replace(/\'/g, '');
+		var value = String(gsettings.stdout).replace(/\n/, '').replace(/\'/g, '');
+		debug(`Get ${setting}: ${value}`);
+
+		return value;
 	},
 
 	getBoolean: function(setting)
