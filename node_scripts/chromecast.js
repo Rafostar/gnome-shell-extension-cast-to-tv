@@ -400,7 +400,8 @@ function startPlayback(mimeType)
 				{
 					debug('Playback started');
 					startCastInterval();
-					gnome.showRemote(true);
+					/* Show on refresh is handled in bridge.js */
+					if(!gnome.isRemote()) gnome.showRemote(true);
 				}
 				else
 				{
@@ -427,7 +428,9 @@ function startPlayback(mimeType)
 			debug('Playback autostart');
 
 		startCastInterval();
-		gnome.showRemote(true);
+
+		/* Show on refresh is handled in bridge.js */
+		if(!gnome.isRemote()) gnome.showRemote(true);
 	}
 }
 
