@@ -7,6 +7,8 @@ const schemaDir = path.join(__dirname + '/../schemas');
 const isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
 debug(`Local setting schema available: ${isSchema}`);
 
+var isRemoteVisible = null;
+
 var gnome =
 {
 	setSetting: function(setting, value)
@@ -45,6 +47,7 @@ var gnome =
 	showRemote: function(enable)
 	{
 		this.setSetting('chromecast-playing', enable);
+		isRemoteVisible = enable;
 	},
 
 	showMenu: function(enable)
@@ -54,7 +57,10 @@ var gnome =
 
 	isRemote: function()
 	{
-		return this.getBoolean('chromecast-playing');
+		isRemoteVisible = (isRemoteVisible === true || isRemoteVisible === false) ?
+			isRemoteVisible : this.getBoolean('chromecast-playing');
+
+		return isRemoteVisible;
 	}
 }
 
