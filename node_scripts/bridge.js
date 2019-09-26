@@ -138,7 +138,9 @@ exports.writePlayercasts = function()
 			if(err)
 			{
 				var nextRetry = 60000;
-				console.error(`Could not write Playercasts to temp file! Next retry in ${nextRetry/1000} seconds.`);
+				console.error('Could not write Playercasts to temp file! ' +
+					`Next retry in ${nextRetry/1000} seconds.`
+				);
 				setTimeout(() => exports.writePlayercasts(), nextRetry);
 			}
 		});
@@ -158,7 +160,9 @@ function updateConfig()
 function updatePlaylist()
 {
 	exports.list = getContents(shared.listPath);
-	if(exports.list) debug(`New playlist contents: ${JSON.stringify(exports.list)}`);
+
+	if(exports.list)
+		debug(`New playlist contents: ${JSON.stringify(exports.list)}`);
 
 	/* Update remote widget with new playlist items */
 	if(gnome.isRemote()) gnome.showRemote(true);
@@ -166,7 +170,7 @@ function updatePlaylist()
 
 function updateSelection()
 {
-	/* Prevent from updating selection while playlist is still read */
+	/* Prevent updating selection while playlist is still being read */
 	if(playlistTimeout)
 	{
 		setTimeout(() => updateSelection(), 150);
@@ -185,7 +189,9 @@ function updateSelection()
 	if(exports.selection.addon)
 	{
 		exports.addon = addons(exports.selection.addon.toLowerCase());
-		if(exports.addon) exports.addon.handleSelection(exports.selection, exports.config);
+
+		if(exports.addon)
+			exports.addon.handleSelection(exports.selection, exports.config);
 
 		remove.covers();
 		remove.file(shared.vttSubsPath);
@@ -197,6 +203,9 @@ function updateSelection()
 
 	if(exports.selection.filePath)
 	{
+		/* Refresh already visible remote widget to mark new playing item */
+		if(gnome.isRemote()) gnome.showRemote(true);
+
 		switch(exports.config.receiverType)
 		{
 			case 'chromecast':
@@ -211,17 +220,27 @@ function updateSelection()
 					var playercastName = (exports.config.playercastName) ?
 						exports.config.playercastName : socket.playercasts[0];
 
-					if(exports.selection.streamType == 'MUSIC' && !exports.config.musicVisualizer)
-					{
-						extract.checkCoverIncluded((isIncluded) =>
+					if(
+						exports.selection.streamType == 'MUSIC'
+						&& !exports.config.musicVisualizer
+					) {
+						extract.checkCoverIncluded(isIncluded =>
 						{
 							if(!isIncluded) extract.findCoverFile();
 
-							socket.emit('playercast', { name: playercastName, ...exports.selection });
+							socket.emit('playercast', {
+								name: playercastName,
+								...exports.selection
+							});
 						});
 					}
 					else
-						socket.emit('playercast', { name: playercastName, ...exports.selection });
+					{
+						socket.emit('playercast', {
+							name: playercastName,
+							...exports.selection
+						});
+					}
 				}
 				break;
 			case 'other':
@@ -290,8 +309,10 @@ function setProcesses()
 			break;
 		default:
 			extract.subsProcess = true;
-			if(exports.selection.subsPath) extract.detectSubsEncoding(exports.selection.subsPath);
-			else extract.analyzeFile();
+			if(exports.selection.subsPath)
+				extract.detectSubsEncoding(exports.selection.subsPath);
+			else
+				extract.analyzeFile();
 			remove.covers();
 			break;
 	}
