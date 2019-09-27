@@ -54,7 +54,7 @@ exports.remote = function(action, value)
 {
 	if(remoteBusy) return;
 
-	if(value || typeof value == 'boolean')
+	if(!isNaN(value) || typeof value == 'boolean')
 		debug(`Signal from remote. ACTION: ${action}, VALUE: ${value}`);
 	else
 		debug(`Signal from remote. ACTION: ${action}`);
