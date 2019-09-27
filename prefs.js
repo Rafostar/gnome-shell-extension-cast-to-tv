@@ -1,7 +1,7 @@
 imports.gi.versions.Gtk = '3.0';
 imports.gi.versions.Gdk = '3.0';
 
-const { Gio, Gtk, GLib, Gdk, Vte } = imports.gi;
+const { Gio, Gtk, GLib, Gdk, Vte, Pango, GObject } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel } = Local.imports.prefs_shared;
@@ -307,17 +307,22 @@ class ChromecastSettings extends Gtk.Grid
 		box = new Gtk.HBox({halign:Gtk.Align.END});
 		widget = new Gtk.ComboBoxText();
 		this.scanButton = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
-		box.pack_end(this.scanButton, false, false, 0);
-		box.pack_end(widget, false, false, 8);
+		this.ipConfButton = Gtk.Button.new_from_icon_name('emblem-system-symbolic', 4);
+		box.pack_end(this.ipConfButton, false, false, 0);
+		box.pack_end(this.scanButton, false, false, 4);
+		box.pack_end(widget, false, false, 0);
 		setDevices(widget);
 		this.scanSignal = this.scanButton.connect('clicked', scanDevices.bind(this, widget, this.scanButton));
+		this.ipConfButton = this.ipConfButton.connect('clicked', () => {
+			let castIp = new ChromecastIpSettings(this);
+		});
 		Settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 1, 1, 1);
 		this.attach(box, 1, 1, 1, 1);
 
 		/* Label: Subtitles */
 		label = new SettingLabel(_("Subtitles"), true, true);
-		this.attach(label, 0, 2, 1, 1);
+		this.attach(label, 0, 3, 1, 1);
 
 		/* Font Family */
 		label = new SettingLabel(_("Font family"));
@@ -336,8 +341,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontGenericFamily = this.fontFamily.active_id;
 			setSubsConfig();
 		});
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(this.fontFamily, 1, 3, 1, 1);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(this.fontFamily, 1, 4, 1, 1);
 
 		/* Font Style */
 		label = new SettingLabel(_("Font style"));
@@ -352,8 +357,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontStyle = this.fontStyle.active_id;
 			setSubsConfig();
 		});
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(this.fontStyle, 1, 4, 1, 1);
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(this.fontStyle, 1, 5, 1, 1);
 
 		/* Subtitles Scale */
 		label = new SettingLabel(_("Scale factor"));
@@ -367,8 +372,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
 			setSubsConfig();
 		});
-		this.attach(label, 0, 5, 1, 1);
-		this.attach(this.scaleButton, 1, 5, 1, 1);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(this.scaleButton, 1, 6, 1, 1);
 
 		/* Font Color */
 		label = new SettingLabel(_("Font color"));
@@ -380,8 +385,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
 			setSubsConfig();
 		});
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(this.fontColor, 1, 6, 1, 1);
+		this.attach(label, 0, 7, 1, 1);
+		this.attach(this.fontColor, 1, 7, 1, 1);
 
 		/* Font Outline */
 		label = new SettingLabel(_("Font outline"));
@@ -411,8 +416,8 @@ class ChromecastSettings extends Gtk.Grid
 		});
 		box.pack_end(this.edgeColor, false, false, 0);
 		box.pack_end(this.outlineSwitch, false, false, 8);
-		this.attach(label, 0, 7, 1, 1);
-		this.attach(box, 1, 7, 1, 1);
+		this.attach(label, 0, 8, 1, 1);
+		this.attach(box, 1, 8, 1, 1);
 
 		/* Background color */
 		label = new SettingLabel(_("Background color"));
@@ -424,8 +429,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
 			setSubsConfig();
 		});
-		this.attach(label, 0, 8, 1, 1);
-		this.attach(this.bgColor, 1, 8, 1, 1);
+		this.attach(label, 0, 9, 1, 1);
+		this.attach(this.bgColor, 1, 9, 1, 1);
 
 		this.destroy = () =>
 		{
@@ -845,6 +850,142 @@ class CastToTvSettings extends Gtk.VBox
 
 			super.destroy();
 		}
+	}
+}
+
+class ListBoxRowData extends Gtk.ListBoxRow
+{
+	constructor(data)
+	{
+		super();
+
+		let label = new Gtk.Label({
+			label: '<span font="12">' + data + '</span>',
+			use_markup: true,
+			halign: Gtk.Align.START,
+			margin_left: 5
+		});
+
+		this.add(label);
+	}
+}
+
+class ChromecastIpSettings extends Gtk.Dialog
+{
+	constructor(parent)
+	{
+		super({
+			title: _("Manual IP Config"),
+			transient_for: parent.get_toplevel(),
+			default_width: 360,
+			default_height: 300,
+			use_header_bar: true,
+			modal: true
+		});
+
+		let label = null;
+		let widget = null;
+
+		let box = new Gtk.VBox({
+			margin: 5,
+			expand: true
+		});
+/*
+		let scrollWindow = new Gtk.ScrolledWindow({
+			margin_top: 0,
+			margin_bottom: 0,
+			expand: true
+		});
+
+		let _sortList = (row1, row2) =>
+		{
+			return row1.data.toLowerCase() > row2.data.toLowerCase();
+		}
+
+		let devicesListBox = new Gtk.ListBox();
+		devicesListBox.set_sort_func(_sortList);
+
+		devicesListBox.connect('row-selected', (box, row) =>
+		{
+			if(row)
+			{
+				//this.castButton.set_sensitive(true);
+				//this.filename = row.data;
+			}
+			else
+			{
+				//this.castButton.set_sensitive(false);
+			}
+		});
+
+		let devices = JSON.parse(Settings.get_string('chromecast-devices'));
+
+		devices.forEach(device =>
+		{
+			if(device.hasOwnProperty('name'))
+				devicesListBox.add(new ListBoxRowData(device.name));
+		});
+
+		scrollWindow.add(devicesListBox);
+		box.pack_start(scrollWindow, true, true, 0);
+*/
+		let listStore = new Gtk.ListStore();
+		listStore.set_column_types([
+			GObject.TYPE_STRING,
+			GObject.TYPE_STRING
+		]);
+
+		let devices = JSON.parse(Settings.get_string('chromecast-devices'));
+
+		devices.forEach(device =>
+		{
+			listStore.set(listStore.append(),
+				[0, 1], [device.friendlyName, device.ip || '']
+			);
+		});
+
+		let treeView = new Gtk.TreeView({
+			expand: true,
+			model: listStore
+		});
+
+		let friendlyName = new Gtk.TreeViewColumn({title: "Name"});
+		let Ip = new Gtk.TreeViewColumn({title: "IP"});
+
+		let bold = new Gtk.CellRendererText({
+			weight: Pango.Weight.BOLD
+		});
+
+		let normal = new Gtk.CellRendererText({
+			editable: true
+		});
+
+		friendlyName.pack_start(bold, true);
+		Ip.pack_start(normal, true);
+
+		friendlyName.add_attribute(bold, "text", 0);
+		Ip.add_attribute(normal, "text", 1);
+
+		treeView.insert_column(friendlyName, 0);
+		treeView.insert_column(Ip, 1);
+
+		//let selection = treeView.get_selection();
+		//selection.connect('changed', this._onSelectionChanged.bind(this));
+
+		box.pack_start(treeView, true, true, 0);
+
+		//let grid = new Gtk.Grid({margin: 5, row_spacing: 6});
+
+		//label = new SettingLabel(_("Device IP"));
+		//widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
+		//widget.set_placeholder_text(_("Automatic"));
+
+		//grid.attach(label, 0, 1, 1, 1);
+		//grid.attach(widget, 1, 1, 1, 1);
+		//box.pack_start(grid, false, false, 0);
+
+		this.get_content_area().add(box);
+		this.show_all();
 	}
 }
 
