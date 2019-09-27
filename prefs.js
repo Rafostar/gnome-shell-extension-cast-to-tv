@@ -853,23 +853,6 @@ class CastToTvSettings extends Gtk.VBox
 	}
 }
 
-class ListBoxRowData extends Gtk.ListBoxRow
-{
-	constructor(data)
-	{
-		super();
-
-		let label = new Gtk.Label({
-			label: '<span font="12">' + data + '</span>',
-			use_markup: true,
-			halign: Gtk.Align.START,
-			margin_left: 5
-		});
-
-		this.add(label);
-	}
-}
-
 class ChromecastIpSettings extends Gtk.Dialog
 {
 	constructor(parent)
@@ -890,74 +873,62 @@ class ChromecastIpSettings extends Gtk.Dialog
 			margin: 5,
 			expand: true
 		});
-/*
-		let scrollWindow = new Gtk.ScrolledWindow({
-			margin_top: 0,
-			margin_bottom: 0,
-			expand: true
-		});
 
-		let _sortList = (row1, row2) =>
-		{
-			return row1.data.toLowerCase() > row2.data.toLowerCase();
-		}
-
-		let devicesListBox = new Gtk.ListBox();
-		devicesListBox.set_sort_func(_sortList);
-
-		devicesListBox.connect('row-selected', (box, row) =>
-		{
-			if(row)
-			{
-				//this.castButton.set_sensitive(true);
-				//this.filename = row.data;
-			}
-			else
-			{
-				//this.castButton.set_sensitive(false);
-			}
-		});
-
-		let devices = JSON.parse(Settings.get_string('chromecast-devices'));
-
-		devices.forEach(device =>
-		{
-			if(device.hasOwnProperty('name'))
-				devicesListBox.add(new ListBoxRowData(device.name));
-		});
-
-		scrollWindow.add(devicesListBox);
-		box.pack_start(scrollWindow, true, true, 0);
-*/
 		let listStore = new Gtk.ListStore();
 		listStore.set_column_types([
 			GObject.TYPE_STRING,
 			GObject.TYPE_STRING
 		]);
 
-		let devices = JSON.parse(Settings.get_string('chromecast-devices'));
+		let devices = [];
+		let devIndex = -1;
 
-		devices.forEach(device =>
+		let loadStoreList = () =>
 		{
-			listStore.set(listStore.append(),
-				[0, 1], [device.friendlyName, device.ip || '']
-			);
-		});
+			devices = JSON.parse(Settings.get_string('chromecast-devices'));
+			listStore.clear();
+
+			devices.forEach(device =>
+			{
+				listStore.set(listStore.append(),
+					[0, 1], [device.friendlyName, device.ip || '']
+				);
+			});
+		}
+
+		loadStoreList();
 
 		let treeView = new Gtk.TreeView({
 			expand: true,
+			enable_search: false,
 			model: listStore
 		});
 
-		let friendlyName = new Gtk.TreeViewColumn({title: "Name"});
+		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 180});
 		let Ip = new Gtk.TreeViewColumn({title: "IP"});
 
 		let bold = new Gtk.CellRendererText({
+			editable: true,
 			weight: Pango.Weight.BOLD
 		});
 
 		let normal = new Gtk.CellRendererText({
-			editable: true
+			editable: true,
+			placeholder_text: _("Automatic")
+		});
+
+		normal.connect('edited', (cell, path, newText) =>
+		{
+			devices[path].ip = newText;
+			Settings.set_string('chromecast-devices', JSON.stringify(devices));
+			loadStoreList();
+		});
+
+		bold.connect('edited', (cell, path, newText) =>
+		{
+			devices[path].friendlyName = newText;
+			Settings.set_string('chromecast-devices', JSON.stringify(devices));
+			loadStoreList();
 		});
 
 		friendlyName.pack_start(bold, true);
@@ -969,20 +940,54 @@ class ChromecastIpSettings extends Gtk.Dialog
 		treeView.insert_column(friendlyName, 0);
 		treeView.insert_column(Ip, 1);
 
-		//let selection = treeView.get_selection();
-		//selection.connect('changed', this._onSelectionChanged.bind(this));
-
 		box.pack_start(treeView, true, true, 0);
 
-		//let grid = new Gtk.Grid({margin: 5, row_spacing: 6});
+		let selection = treeView.get_selection();
+		selection.connect('changed', () =>
+		{
+			let [isSelected, model, iter] = selection.get_selected();
+			devIndex = -1;
 
-		//label = new SettingLabel(_("Device IP"));
-		//widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
-		//widget.set_placeholder_text(_("Automatic"));
+			if(isSelected)
+			{
+				devIndex = listStore.get_string_from_iter(iter);
+				if(devIndex >= 0)
+				{
+					this.removeButton.set_sensitive(true);
+					return;
+				}
+			}
 
-		//grid.attach(label, 0, 1, 1, 1);
-		//grid.attach(widget, 1, 1, 1, 1);
-		//box.pack_start(grid, false, false, 0);
+			this.removeButton.set_sensitive(false);
+		});
+
+		let grid = new Gtk.Grid({
+			valign: Gtk.Align.CENTER,
+			halign: Gtk.Align.END,
+			margin: 5,
+			row_spacing: 6,
+			column_spacing: 4
+		});
+
+		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
+		this.addSignal = this.addButton.connect('clicked', () =>
+		{
+			devices.push({ name: "Custom Device", friendlyName: _('New device') });
+			Settings.set_string('chromecast-devices', JSON.stringify(devices));
+			loadStoreList();
+		});
+
+		this.removeButton = Gtk.Button.new_from_icon_name('list-remove-symbolic', 4);
+		this.removeSignal = this.removeButton.connect('clicked', () =>
+		{
+			devices.splice(devIndex, 1);
+			Settings.set_string('chromecast-devices', JSON.stringify(devices));
+			loadStoreList();
+		});
+
+		grid.attach(this.removeButton, 0, 0, 1, 1);
+		grid.attach(this.addButton, 1, 0, 1, 1);
+		box.pack_start(grid, false, false, 0);
 
 		this.get_content_area().add(box);
 		this.show_all();
