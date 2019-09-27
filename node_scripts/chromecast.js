@@ -229,13 +229,14 @@ function initChromecast()
 				textTrackStyle: getTextTrackStyle(),
 				tracks: shared.chromecast.tracks,
 				metadata: {
-					metadataType: 1
+					metadataType: 1,
+					images: [{url: ''}]
 				}
 			};
 			mediaTracks.tracks[0].trackContentId = `http://${ip}:${port}/subswebplayer?session=${sessionID}`;
 			break;
 		case 'audio/*':
-			trackIds = null;
+			trackIds = [];
 			mediaTracks = {
 				metadata: {
 					metadataType: 3,
@@ -244,16 +245,16 @@ function initChromecast()
 			};
 			break;
 		case 'image/*':
-			trackIds = null;
+			trackIds = [];
 			mediaTracks = {
 				metadata: {
-					metadataType: 4
+					metadataType: 4,
+					images: [{url: ''}]
 				}
 			};
 			break;
 	}
 
-	mediaTracks.metadata.type = 0;
 	mediaTracks.metadata.title = getTitle();
 	debug(`Media title: ${mediaTracks.metadata.title}`);
 
