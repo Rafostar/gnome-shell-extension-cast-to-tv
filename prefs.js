@@ -312,7 +312,17 @@ class ChromecastSettings extends Gtk.Grid
 		box.pack_end(this.scanButton, false, false, 4);
 		box.pack_end(widget, false, false, 0);
 		setDevices(widget);
-		this.scanSignal = this.scanButton.connect('clicked', scanDevices.bind(this, widget, this.scanButton));
+
+		let onDevEdit = (widget) =>
+		{
+			let activeText = widget.get_active_text();
+			setDevices(widget, null, activeText);
+		}
+
+		this.devChangeSignal = Settings.connect('changed::chromecast-devices', onDevEdit.bind(this, widget));
+		this.scanSignal = this.scanButton.connect('clicked',
+			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton])
+		);
 		this.ipConfButton = this.ipConfButton.connect('clicked', () => {
 			let castIp = new ChromecastIpSettings(this);
 		});
@@ -860,7 +870,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		super({
 			title: _("Manual IP Config"),
 			transient_for: parent.get_toplevel(),
-			default_width: 360,
+			default_width: 400,
 			default_height: 300,
 			use_header_bar: true,
 			modal: true
@@ -876,6 +886,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		let listStore = new Gtk.ListStore();
 		listStore.set_column_types([
+			GObject.TYPE_BOOLEAN,
 			GObject.TYPE_STRING,
 			GObject.TYPE_STRING
 		]);
@@ -890,8 +901,12 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 			devices.forEach(device =>
 			{
-				listStore.set(listStore.append(),
-					[0, 1], [device.friendlyName, device.ip || '']
+				let devIp = device.ip || '';
+				let isAuto = device.hasOwnProperty('name');
+
+				listStore.set(
+					listStore.append(),
+					[0, 1, 2], [isAuto, device.friendlyName, devIp]
 				);
 			});
 		}
@@ -904,17 +919,23 @@ class ChromecastIpSettings extends Gtk.Dialog
 			model: listStore
 		});
 
+		let local = new Gtk.TreeViewColumn({title: _("Auto")});
 		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 180});
-		let Ip = new Gtk.TreeViewColumn({title: "IP"});
+		let ip = new Gtk.TreeViewColumn({title: "IP", min_width: 140});
 
 		let bold = new Gtk.CellRendererText({
 			editable: true,
-			weight: Pango.Weight.BOLD
+			weight: Pango.Weight.BOLD,
+			placeholder_text: _("Insert name")
 		});
 
 		let normal = new Gtk.CellRendererText({
 			editable: true,
-			placeholder_text: _("Automatic")
+			placeholder_text: _("None")
+		});
+
+		let active = new Gtk.CellRendererToggle({
+			activatable: false
 		});
 
 		normal.connect('edited', (cell, path, newText) =>
@@ -931,14 +952,17 @@ class ChromecastIpSettings extends Gtk.Dialog
 			loadStoreList();
 		});
 
+		local.pack_start(active, true);
 		friendlyName.pack_start(bold, true);
-		Ip.pack_start(normal, true);
+		ip.pack_start(normal, true);
 
-		friendlyName.add_attribute(bold, "text", 0);
-		Ip.add_attribute(normal, "text", 1);
+		local.add_attribute(active, "active", 0);
+		friendlyName.add_attribute(bold, "text", 1);
+		ip.add_attribute(normal, "text", 2);
 
-		treeView.insert_column(friendlyName, 0);
-		treeView.insert_column(Ip, 1);
+		treeView.insert_column(local, 0);
+		treeView.insert_column(friendlyName, 1);
+		treeView.insert_column(ip, 2);
 
 		box.pack_start(treeView, true, true, 0);
 
@@ -972,12 +996,13 @@ class ChromecastIpSettings extends Gtk.Dialog
 		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
 		this.addSignal = this.addButton.connect('clicked', () =>
 		{
-			devices.push({ name: "Custom Device", friendlyName: _('New device') });
+			devices.push({ friendlyName: '' });
 			Settings.set_string('chromecast-devices', JSON.stringify(devices));
 			loadStoreList();
 		});
 
 		this.removeButton = Gtk.Button.new_from_icon_name('list-remove-symbolic', 4);
+		this.removeButton.set_sensitive(false);
 		this.removeSignal = this.removeButton.connect('clicked', () =>
 		{
 			devices.splice(devIndex, 1);
@@ -994,9 +1019,9 @@ class ChromecastIpSettings extends Gtk.Dialog
 	}
 }
 
-function scanDevices(widget, button)
+function scanDevices(widget, buttons)
 {
-	button.set_sensitive(false);
+	buttons.forEach(button => button.set_sensitive(false));
 
 	widget.remove_all();
 	/* TRANSLATORS: Shown when scan for Chromecast devices is running */
@@ -1013,11 +1038,11 @@ function scanDevices(widget, button)
 		setDevices(widget);
 		/* Set Automatic as active */
 		widget.set_active(0);
-		button.set_sensitive(true);
+		buttons.forEach(button => button.set_sensitive(true));
 	});
 }
 
-function setDevices(widget, filePath)
+function setDevices(widget, filePath, activeText)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
@@ -1030,12 +1055,36 @@ function setDevices(widget, filePath)
 
 	if(Array.isArray(devices))
 	{
+		let foundActive = false;
+		let index = 0;
+
 		devices.forEach(device =>
 		{
-			let value = (device.name) ? device.name : device;
-			let text = (device.friendlyName) ? device.friendlyName : device;
-			widget.append(value, text);
+			if(typeof device === 'object')
+			{
+				let value = (device.name) ? device.name : null;
+				let text = (device.friendlyName) ? device.friendlyName : null;
+
+				if(text && value || text && device.ip)
+				{
+					widget.append(value || '', text);
+					index++;
+
+					if(activeText && !foundActive && activeText === text)
+					{
+						widget.set_active(index);
+						foundActive = true;
+					}
+				}
+			}
+			else
+			{
+				widget.append(device, device);
+			}
 		});
+
+		if(activeText && !foundActive)
+			widget.set_active(0);
 	}
 }
 
