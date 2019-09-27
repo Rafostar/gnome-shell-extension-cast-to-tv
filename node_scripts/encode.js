@@ -2,7 +2,7 @@ var { spawn } = require('child_process');
 var debug = require('debug')('ffmpeg');
 var bridge = require('./bridge');
 var extract = require('./extract');
-var gnome = require('./gnome');
+var notify = require('./notify');
 var messages = require('./messages.js');
 var shared = require('../shared');
 var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
@@ -42,7 +42,9 @@ function createEncodeProcess(encodeOpts)
 
 	exports.streamProcess.once('close', (code) =>
 	{
-		if(code && !notifyError) gnome.notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
+		if(code && !notifyError)
+			notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
+
 		exports.streamProcess = null;
 	});
 
@@ -50,7 +52,7 @@ function createEncodeProcess(encodeOpts)
 	{
 		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
 		{
-			gnome.notify('Cast to TV', messages.ffmpegPath);
+			notify('Cast to TV', messages.ffmpegPath);
 			notifyError = true;
 		}
 	});

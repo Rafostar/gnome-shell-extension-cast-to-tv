@@ -1,44 +1,66 @@
+var fs = require('fs');
 var path = require('path');
 var { spawn, spawnSync } = require('child_process');
-var gettext = require('./gettext');
-var schemaDir = path.join(__dirname + '/../schemas');
-var sysLang = process.env.LANG.substring(0, 2);
+var debug = require('debug')('gnome');
+
+const schemaDir = path.join(__dirname + '/../schemas');
+const isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
+debug(`Local setting schema available: ${isSchema}`);
+
+var isRemoteVisible = null;
 
 var gnome =
 {
-	showRemote: (enable) =>
+	setSetting: function(setting, value)
 	{
-		spawn('gsettings', ['--schemadir', schemaDir,
-			'set', 'org.gnome.shell.extensions.cast-to-tv', 'chromecast-playing', enable]);
+		var args = ['set', 'org.gnome.shell.extensions.cast-to-tv', setting, value];
+		if(isSchema) args.unshift('--schemadir', schemaDir);
+
+		debug(`Set ${setting}: ${value}`);
+		spawn('gsettings', args);
 	},
 
-	showMenu: (enable) =>
+	getSetting: function(setting)
 	{
-		spawn('gsettings', ['--schemadir', schemaDir,
-			'set', 'org.gnome.shell.extensions.cast-to-tv', 'service-enabled', enable]);
+		var args = ['get', 'org.gnome.shell.extensions.cast-to-tv', setting];
+		if(isSchema) args.unshift('--schemadir', schemaDir);
+
+		var gsettings = spawnSync('gsettings', args);
+		var value = String(gsettings.stdout).replace(/\n/, '').replace(/\'/g, '');
+		debug(`Get ${setting}: ${value}`);
+
+		return value;
 	},
 
-	getSetting: (setting) =>
+	getBoolean: function(setting)
 	{
-		var gsettings = spawnSync('gsettings', ['--schemadir', schemaDir,
-			'get', 'org.gnome.shell.extensions.cast-to-tv', setting]);
-
-		var outStr = String(gsettings.stdout).replace(/\'/g, '').replace(/\n/, '');
-
-		if(outStr == 'true') return true;
-		else if(outStr == 'false') return false;
-		else return outStr;
+		var value = this.getSetting(setting);
+		return (value === 'true' || value === true) ? true : false;
 	},
 
-	isRemote: () =>
+	getJSON: function(setting)
 	{
-		return gnome.getSetting('chromecast-playing');
+		var value = this.getSetting(setting);
+		return JSON.parse(value);
 	},
 
-	notify: (summary, body) =>
+	showRemote: function(enable)
 	{
-		gettext.setLocale(sysLang);
-		spawn('notify-send', [summary, gettext.translate(body)]);
+		this.setSetting('chromecast-playing', enable);
+		isRemoteVisible = enable;
+	},
+
+	showMenu: function(enable)
+	{
+		this.setSetting('service-enabled', enable);
+	},
+
+	isRemote: function()
+	{
+		isRemoteVisible = (isRemoteVisible === true || isRemoteVisible === false) ?
+			isRemoteVisible : this.getBoolean('chromecast-playing');
+
+		return isRemoteVisible;
 	}
 }
 

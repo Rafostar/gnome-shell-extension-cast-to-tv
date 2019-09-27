@@ -67,7 +67,7 @@ if(typeof player !== 'undefined')
 	{
 		statusContents.currentTime = player.currentTime;
 		websocket.emit('status-update', statusContents);
-	}, 500);
+	}, 1000);
 
 	websocket.on('remote-signal', msg =>
 	{

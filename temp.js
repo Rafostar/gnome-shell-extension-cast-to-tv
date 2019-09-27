@@ -13,7 +13,7 @@ function writeToFile(path, contents)
 function readFromFile(path)
 {
 	/* Check if file exists (EXISTS = 16) */
-	let fileExists = GLib.file_test(path, 16);
+	let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);
 
 	if(fileExists)
 	{
@@ -79,9 +79,9 @@ function setSelectionFile()
 	writeToFile(shared.selectionPath, selectionContents);
 }
 
-function setListFile()
+function setListFile(list)
 {
-	let listContents = [''];
+	let listContents = (list && Array.isArray(list)) ? list : [''];
 	writeToFile(shared.listPath, listContents);
 }
 

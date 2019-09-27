@@ -23,6 +23,7 @@ let remoteMenu;
 let configContents;
 let serviceStarted;
 let signals;
+let serviceSignal;
 
 function configCastRemote()
 {
@@ -43,6 +44,7 @@ function configCastRemote()
 	}
 
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+	remoteMenu.playlist.remoteActive = chromecastPlaying;
 
 	if(chromecastPlaying)
 	{
@@ -66,15 +68,18 @@ function configCastRemote()
 		else remoteMenu.skipForwardButton.reactive = false;
 
 		/* Update track title */
-		if(selectionContents.title) remoteMenu.trackTitle.text = selectionContents.title;
+		if(selectionContents.title) remoteMenu.trackTitle.setText(selectionContents.title);
 		else
 		{
 			let filename = selectionContents.filePath.substring(selectionContents.filePath.lastIndexOf('/') + 1);
 			let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
 
-			if(title) remoteMenu.trackTitle.text = title;
-			else remoteMenu.trackTitle.text = "";
+			if(title) remoteMenu.trackTitle.setText(title);
+			else remoteMenu.trackTitle.setText("");
 		}
+
+		/* Update widget playlist */
+		remoteMenu.playlist.loadPlaylist(listContents, selectionContents.filePath);
 
 		/* Choose remote to create */
 		switch(selectionContents.streamType)
@@ -99,9 +104,9 @@ function configCastRemote()
 
 		/* Set slider icon */
 		if(remoteMenu.positionSlider.isVolume)
-			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.volumeIcon;
+			remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.volumeIcon);
 		else
-			remoteMenu.positionSlider.icon = remoteMenu.positionSlider.defaultIcon;
+			remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
 
 		/* Restore widget buttons and sliders state */
 		remoteMenu.updateRemote();
@@ -142,16 +147,16 @@ function getTempFiles()
 {
 	if(!configContents) configContents = Temp.setConfigFile();
 
-	let selectionExists = GLib.file_test(shared.selectionPath, 16);
+	let selectionExists = GLib.file_test(shared.selectionPath, GLib.FileTest.EXISTS);
 	if(!selectionExists) Temp.setSelectionFile();
 
-	let listExists = GLib.file_test(shared.listPath, 16);
+	let listExists = GLib.file_test(shared.listPath, GLib.FileTest.EXISTS);
 	if(!listExists) Temp.setListFile();
 
-	let remoteExists = GLib.file_test(shared.remotePath, 16);
+	let remoteExists = GLib.file_test(shared.remotePath, GLib.FileTest.EXISTS);
 	if(!remoteExists) Temp.setRemoteFile();
 
-	let statusExists = GLib.file_test(shared.statusPath, 16);
+	let statusExists = GLib.file_test(shared.statusPath, GLib.FileTest.EXISTS);
 	if(!statusExists) Temp.setStatusFile();
 }
 
@@ -228,7 +233,7 @@ function enableService(enable)
 	if(enable)
 	{
 		/* Start server monitoring service */
-		GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
+		GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/server-monitor.js'], null, 0, null);
 	}
 	else
 	{
@@ -310,7 +315,7 @@ function enable()
 	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
-	castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
+	serviceSignal = castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
 
 	/* Set insert position after network menu items */
 	let menuItems = AggregateMenu.menu._getMenuItems();
@@ -336,6 +341,10 @@ function disable()
 {
 	/* Disconnect signals from settings */
 	signals.forEach(signal => Settings.disconnect(signal));
+
+	/* Disconnect other signals */
+	castMenu.serviceMenuItem.disconnect(serviceSignal);
+	serviceSignal = null;
 
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)

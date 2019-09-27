@@ -1,8 +1,7 @@
 # Cast to TV Nautilus/Nemo Extension
 # Developers: Rafostar, rendyanthony
 
-import os, sys, json, gettext, locale, gi
-gi.require_version('Nautilus', '3.0')
+import os, sys, codecs, json, gettext, locale, gi
 gi.require_version('GObject', '2.0')
 gi.require_version('Gio', '2.0')
 from gi.repository import GObject, Gio
@@ -21,7 +20,7 @@ except ImportError:
     from urllib.parse import unquote
 
 _ = gettext.gettext
-
+PY3 = sys.version_info > (3,)
 EXTENSION_NAME = 'cast-to-tv@rafostar.github.com'
 EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/' + EXTENSION_NAME)
 TEMP_PATH = '/tmp/.cast-to-tv'
@@ -34,19 +33,25 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.config = {}
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
+        self.ext_settings = None
 
-        Gio_SSS = Gio.SettingsSchemaSource;
-        schema_source = Gio_SSS.new_from_directory(
-            EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False);
-        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True);
-        self.ext_settings = Gio.Settings.new_full(schema_obj);
+        Gio_SSS = Gio.SettingsSchemaSource
+        if os.path.isfile(EXTENSION_PATH + '/schemas/gschemas.compiled'):
+            schema_source = Gio_SSS.new_from_directory(
+                EXTENSION_PATH + '/schemas', Gio_SSS.get_default(), False)
+        else:
+            schema_source = Gio_SSS.get_default()
 
-        try:
-            locale.setlocale(locale.LC_ALL, '')
+        schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True)
+        if schema_obj:
+            self.ext_settings = Gio.Settings.new_full(schema_obj)
+
+        locale.setlocale(locale.LC_ALL, '')
+        if os.path.exists(EXTENSION_PATH + '/locale'):
             gettext.bindtextdomain('cast-to-tv', EXTENSION_PATH + '/locale')
-            gettext.textdomain('cast-to-tv')
-        except:
-            pass
+        else:
+            gettext.bindtextdomain('cast-to-tv', None)
+        gettext.textdomain('cast-to-tv')
 
     def check_extension_enabled(self):
         all_extensions_disabled = self.settings.get_boolean('disable-user-extensions')
@@ -58,7 +63,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return False
 
-    def create_menu_item(self, stream_type, files):
+    def create_menu_item(self, stream_type, files, playlist_allowed):
         cast_label="Cast Selected File"
 
         if len(files) > 1:
@@ -74,14 +79,19 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         submenu = FileManager.Menu()
         top_menuitem.set_submenu(submenu)
 
-        sub_menuitem_1 = FileManager.MenuItem(name = 'CastToTVMenu::CastFile', label=_(cast_label))
+        sub_menuitem_1 = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=_(cast_label))
         sub_menuitem_1.connect('activate', self.cast_files_cb, files, stream_type, False)
         submenu.append_item(sub_menuitem_1)
 
+        if playlist_allowed:
+            sub_menuitem_2 = FileManager.MenuItem(name='CastToTVMenu::AddToPlaylist', label=_("Add to Playlist"))
+            sub_menuitem_2.connect('activate', self.add_to_playlist_cb, files, stream_type, False)
+            submenu.append_item(sub_menuitem_2)
+
         if stream_type == 'VIDEO':
-            sub_menuitem_2 = FileManager.MenuItem(name='CastTranscodeMenu::Transcode', label=_("Transcode"))
+            sub_menuitem_3 = FileManager.MenuItem(name='CastTranscodeMenu::Transcode', label=_("Transcode"))
             submenu_2 = FileManager.Menu()
-            sub_menuitem_2.set_submenu(submenu_2)
+            sub_menuitem_3.set_submenu(submenu_2)
 
             sub_sub_menuitem_1 = FileManager.MenuItem(name='CastTranscodeMenu::Video', label=_("Video"))
             sub_sub_menuitem_1.connect('activate', self.transcode_files_cb, files, stream_type, False)
@@ -95,15 +105,13 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             sub_sub_menuitem_3.connect('activate', self.transcode_files_cb, files, stream_type, True)
             submenu_2.append_item(sub_sub_menuitem_3)
 
-            submenu.append_item(sub_menuitem_2)
+            submenu.append_item(sub_menuitem_3)
 
         return top_menuitem
 
     def get_menu_name(self):
         if ((self.config['receiverType'] == 'chromecast' and
-            not self.config['chromecastName']) or
-            (self.config['receiverType'] == 'chromecast' and
-            not os.path.isfile(EXTENSION_PATH + '/config/devices.json'))):
+            not self.config['chromecastName'])):
                 return "Chromecast"
         elif self.config['receiverType'] == 'playercast':
             if self.config['playercastName']:
@@ -113,16 +121,15 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         elif self.config['receiverType'] == 'other':
             return _("Web browser | Media player")
 
-        # Reduce disk reads when selecting files
+        # Reduce extension settings reads (and below loop runs) when selecting files
         if self.config['chromecastName'] == self.current_name['name']:
             return self.current_name['fn']
 
-        with open(EXTENSION_PATH + '/config/devices.json') as devices:
-            for device in json.load(devices):
-                if device['name'] == self.config['chromecastName']:
-                    self.current_name['name'] = device['name']
-                    self.current_name['fn'] = device['friendlyName']
-                    return self.current_name['fn']
+        for device in json.loads(self.ext_settings.get_string('chromecast-devices')):
+            if device['name'] == self.config['chromecastName']:
+                self.current_name['name'] = device['name']
+                self.current_name['fn'] = device['friendlyName']
+                return self.current_name['fn']
 
         return None
 
@@ -147,7 +154,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if file.is_mime_type('text/*'):
             filename = self.get_file_uri(file)
             if filename:
-                basename = os.path.basename(filename)
                 ext = os.path.splitext(filename)[1][1:].lower()
                 if ext in SUBS_FORMATS:
                     return True
@@ -184,16 +190,24 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return True
 
-    def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
-        playlist = [
+    def parse_playlist_files(self, files):
+        parsed_files = [
             unquote(self.get_file_uri(file))
             for file in files
             if not self.is_subtitles_file(file)
         ]
 
+        return parsed_files
+
+    def cast_files_cb(self, menu, files, stream_type, is_transcode_audio):
+        playlist = self.get_updated_playlist(files, [])
+
         # Playlist must be updated before selection file
-        with open(TEMP_PATH + '/playlist.json', 'w') as fp:
+        with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
             json.dump(playlist, fp, indent=1, ensure_ascii=False)
+
+        if not PY3:
+            self.subs_path = self.subs_path.decode('utf-8')
 
         selection = {
             "streamType": stream_type,
@@ -202,8 +216,22 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             "transcodeAudio": is_transcode_audio
         }
 
-        with open(TEMP_PATH + '/selection.json', 'w') as fp:
+        with codecs.open(TEMP_PATH + '/selection.json', 'w', encoding='utf-8') as fp:
             json.dump(selection, fp, indent=1, ensure_ascii=False)
+
+    def add_to_playlist_cb(self, menu, files, stream_type, is_transcode_audio):
+        # Check if Chromecast did not stop playing before option select
+        playlist_allowed = self.get_playlist_allowed(stream_type)
+        if playlist_allowed:
+            parsed_playlist = self.parse_playlist_files(files)
+
+            with codecs.open(TEMP_PATH + '/playlist.json', 'r', encoding='utf-8') as fp:
+                playlist = self.get_updated_playlist(files, json.load(fp))
+
+            with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
+                json.dump(playlist, fp, indent=1, ensure_ascii=False)
+        else:
+            self.cast_files_cb(menu, files, stream_type, is_transcode_audio)
 
     def transcode_files_cb(self, menu, files, stream_type, is_transcode_audio):
         if self.config['videoAcceleration'] == 'vaapi':
@@ -215,7 +243,31 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         self.cast_files_cb(menu, files, stream_type, is_transcode_audio)
 
+    def get_updated_playlist(self, files, playlist):
+        parsed_playlist = self.parse_playlist_files(files)
+
+        for filepath in parsed_playlist:
+            if not PY3:
+                filepath = filepath.decode('utf-8')
+            if filepath not in playlist:
+                playlist.append(filepath)
+
+        return playlist
+
+    def get_playlist_allowed(self, stream_type):
+        chromecast_playing = self.ext_settings.get_boolean('chromecast-playing')
+        if chromecast_playing:
+            with codecs.open(TEMP_PATH + '/selection.json', 'r', encoding='utf-8') as fp:
+                selection = json.load(fp)
+                if (selection['streamType'] == stream_type and not selection['transcodeAudio']):
+                    return True
+
+        return False
+
     def get_file_items(self, window, files):
+        if not self.settings or not self.ext_settings:
+            return
+
         if not self.ext_settings.get_boolean('service-enabled'):
             return
 
@@ -231,7 +283,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         stream_type = None
         is_video_and_subs = False
 
-        with open(TEMP_PATH + '/config.json') as config:
+        with codecs.open(TEMP_PATH + '/config.json', 'r', encoding='utf-8') as config:
             self.config = json.load(config)
 
         if len(files) == 2:
@@ -246,7 +298,8 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if not stream_type:
             return
 
-        cast_menu = self.create_menu_item(stream_type, files)
+        playlist_allowed = self.get_playlist_allowed(stream_type)
+        cast_menu = self.create_menu_item(stream_type, files, playlist_allowed)
 
         if not cast_menu:
             return

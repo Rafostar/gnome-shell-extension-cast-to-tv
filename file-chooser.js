@@ -6,11 +6,21 @@ const Gettext = imports.gettext;
 const MetadataDomain = 'cast-to-tv';
 const GettextDomain = Gettext.domain(MetadataDomain);
 const _ = GettextDomain.gettext;
-const localPath = GLib.get_home_dir() + '/.local/share/gnome-shell/extensions/cast-to-tv@rafostar.github.com';
+const localPath = GLib.get_current_dir();
 const streamType = ARGV[0];
 imports.searchPath.unshift(localPath);
+const Helper = imports.helper;
 const shared = imports.shared.module.exports;
-Gettext.bindtextdomain(MetadataDomain, localPath + '/locale');
+imports.searchPath.shift();
+
+let Settings = Helper.getSettings(localPath, 'org.gnome.shell.extensions.cast-to-tv');
+Helper.initTranslations(localPath, MetadataDomain);
+
+/* TRANSLATORS: Button text when selected SINGLE file */
+const CAST_LABEL_SINGLE = _("Cast Selected File");
+/* TRANSLATORS: Button text when selected MULTIPLE files */
+const CAST_LABEL_MULTI = _("Cast Selected Files");
+const ADD_PLAYLIST_LABEL = _("Add to Playlist");
 
 class fileChooser
 {
@@ -56,6 +66,8 @@ class fileChooser
 		{
 			let isConvertActive = this.buttonConvert.get_active();
 			this.comboBoxConvert.set_sensitive(isConvertActive);
+
+			this._checkPlaylistLabel();
 		});
 
 		box.pack_start(this.buttonConvert, true, true, 0);
@@ -95,13 +107,15 @@ class fileChooser
 
 	_openDialog()
 	{
-		let configContents = this._getConfig();
-		let selectionContents = {};
-		selectionContents.streamType = streamType;
-		selectionContents.subsPath = '';
+		let configContents = this._readFromFile(shared.configPath);
+		if(!configContents || !streamType) return;
 
-		if(!configContents || !selectionContents.streamType) return;
+		let selectionContents = {
+			streamType: streamType,
+			subsPath: ''
+		};
 
+		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
 
 		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
@@ -113,14 +127,15 @@ class fileChooser
 			this.fileChooser.set_select_multiple(true);
 		}
 
-		/* TRANSLATORS: Button text when selected SINGLE file */
-		this.castLabelSingle = _("Cast Selected File");
-		/* TRANSLATORS: Button text when selected MULTIPLE files */
-		this.castLabelMulti = _("Cast Selected Files");
-
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
-		this.buttonCast = this.fileChooser.add_button(_(this.castLabelSingle), Gtk.ResponseType.OK);
+
+		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
+		this.playlistAllowed = this._getAddPlaylistAllowed();
+		this.playlistSignal = Settings.connect('changed::chromecast-playing', () => this._onChromecastPlayingChange());
+
+		let castButtonText = (this.playlistAllowed) ? ADD_PLAYLIST_LABEL : CAST_LABEL_SINGLE;
+		this.buttonCast = this.fileChooser.add_button(castButtonText, Gtk.ResponseType.OK);
 
 		switch(selectionContents.streamType)
 		{
@@ -161,16 +176,17 @@ class fileChooser
 		this.fileChooser.connect('response', () => this._onResponse());
 
 		let DialogResponse = this.fileChooser.run();
+
+		Settings.disconnect(this.playlistSignal);
+
 		let filesList = this.filePathChosen.sort();
 		selectionContents.filePath = filesList[0];
 
-		if(DialogResponse != Gtk.ResponseType.OK)
+		if(DialogResponse !== Gtk.ResponseType.OK)
 		{
-			if(DialogResponse == Gtk.ResponseType.APPLY)
+			if(DialogResponse === Gtk.ResponseType.APPLY)
 			{
-				this.fileChooser.disconnect(this.fileSelectionChanged);
 				selectionContents.subsPath = this._selectSubtitles();
-
 				if(!selectionContents.subsPath) return;
 			}
 			else
@@ -178,6 +194,8 @@ class fileChooser
 				return;
 			}
 		}
+
+		this.fileChooser.disconnect(this.fileSelectionChanged);
 
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
@@ -190,30 +208,38 @@ class fileChooser
 
 		this.fileChooser.destroy();
 
-		/* Set playback list */
-		GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
-
-		/* Save selection to file */
-		GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
-	}
-
-	_getConfig()
-	{
-		let [readOk, configFile] = GLib.file_get_contents(shared.configPath);
-
-		if(readOk)
+		let setTempFiles = () =>
 		{
-			if(configFile instanceof Uint8Array) return JSON.parse(ByteArray.toString(configFile));
-			else return JSON.parse(configFile);
+			/* Set playback list */
+			GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
+
+			/* Save selection to file */
+			GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
+		}
+
+		/* Playlist does not support external subtitles */
+		if(this.playlistAllowed)
+		{
+			let playlist = this._readFromFile(shared.listPath);
+			if(!playlist) return setTempFiles();
+
+			filesList.forEach(filepath =>
+			{
+				if(!playlist.includes(filepath))
+					playlist.push(filepath);
+			});
+
+			GLib.file_set_contents(shared.listPath, JSON.stringify(playlist, null, 1));
 		}
 		else
-		{
-			return null;
-		}
+			setTempFiles();
 	}
 
 	_selectSubtitles()
 	{
+		this.isSubsDialog = true;
+		this._checkPlaylistLabel();
+
 		let subsFilter = new Gtk.FileFilter();
 
 		this.fileChooser.set_title(_("Select Subtitles"));
@@ -235,33 +261,115 @@ class fileChooser
 		else return null;
 	}
 
+	_readFromFile(path)
+	{
+		/* Check if file exists (EXISTS = 16) */
+		let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);
+
+		if(fileExists)
+		{
+			/* Read config data from temp file */
+			let [readOk, readFile] = GLib.file_get_contents(path);
+
+			if(readOk)
+			{
+				let data;
+
+				if(readFile instanceof Uint8Array)
+				{
+					try { data = JSON.parse(ByteArray.toString(readFile)); }
+					catch(err) { data = null; }
+				}
+				else
+				{
+					try { data = JSON.parse(readFile); }
+					catch(err) { data = null; }
+				}
+
+				return data;
+			}
+		}
+
+		return null;
+	}
+
+	_getAddPlaylistAllowed()
+	{
+		let allowed = false;
+
+		if(this.chromecastPlaying)
+		{
+			if(this.isSubsDialog || (this.buttonConvert && this.buttonConvert.get_active()))
+			{
+				allowed = false;
+			}
+			else
+			{
+				let preSelection = this._readFromFile(shared.selectionPath);
+
+				if(	preSelection
+					&& preSelection.streamType === streamType
+					&& !preSelection.transcodeAudio
+				)
+					allowed = true;
+			}
+		}
+
+		return allowed;
+	}
+
+	_checkPlaylistLabel()
+	{
+		let allowed = this._getAddPlaylistAllowed();
+
+		if(this.playlistAllowed !== allowed)
+		{
+			this.playlistAllowed = allowed;
+
+			if(this.playlistAllowed && this.buttonCast)
+				this.buttonCast.label = ADD_PLAYLIST_LABEL;
+			else
+				this.fileChooser.emit('selection-changed');
+		}
+	}
+
 	_onVideoSel()
 	{
+		if(this.playlistAllowed) return;
+
 		let selectedNumber = this.fileChooser.get_filenames().length;
 
 		if(selectedNumber > 1)
 		{
-			this.buttonCast.label = _(this.castLabelMulti);
+			this.buttonCast.label = CAST_LABEL_MULTI;
 			this.buttonSubs.hide();
 		}
 		else
 		{
-			this.buttonCast.label = _(this.castLabelSingle);
+			this.buttonCast.label = CAST_LABEL_SINGLE;
 			this.buttonSubs.show();
 		}
 	}
 
 	_onMusicAndPicSel()
 	{
+		if(this.playlistAllowed) return;
+
 		let selectedNumber = this.fileChooser.get_filenames().length;
 
-		if(selectedNumber > 1) this.buttonCast.label = _(this.castLabelMulti);
-		else this.buttonCast.label = _(this.castLabelSingle);
+		if(selectedNumber > 1) this.buttonCast.label = CAST_LABEL_MULTI;
+		else this.buttonCast.label = CAST_LABEL_SINGLE;
 	}
 
 	_onResponse()
 	{
 		this.filePathChosen = this.fileChooser.get_filenames();
+	}
+
+	_onChromecastPlayingChange()
+	{
+		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
+		this._checkPlaylistLabel();
 	}
 }
 

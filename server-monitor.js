@@ -1,24 +1,19 @@
 const { Gio, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 const extensionName = 'cast-to-tv@rafostar.github.com';
-const localPath = `${GLib.get_home_dir()}/.local/share/gnome-shell/extensions/${extensionName}`;
+const localPath = GLib.get_current_dir();
 const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
-const castSettings = getSettings();
+
+imports.searchPath.unshift(localPath);
+const castSettings = imports.helper.getSettings(
+	localPath, 'org.gnome.shell.extensions.cast-to-tv'
+);
+imports.searchPath.shift();
 
 let statusTimer;
 let restartCount = 0;
 let persistent = true;
 let loop = GLib.MainLoop.new(null, false);
-
-function getSettings()
-{
-	const GioSSS = Gio.SettingsSchemaSource;
-	let schemaSource = GioSSS.new_from_directory(
-		localPath + '/schemas', GioSSS.get_default(), false);
-	let schemaObj = schemaSource.lookup('org.gnome.shell.extensions.cast-to-tv', true);
-
-	return new Gio.Settings({ settings_schema: schemaObj });
-}
 
 class ServerMonitor
 {
@@ -130,7 +125,7 @@ class ServerMonitor
 
 		let modulesPath = sourceDir + '/node_modules';
 
-		let folderExists = GLib.file_test(modulesPath, 16);
+		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
 		if(!folderExists)
 		{
 			print('Cast to TV: npm modules not installed!');
@@ -142,7 +137,7 @@ class ServerMonitor
 		{
 			for(let module in dependencies)
 			{
-				let moduleExists = GLib.file_test(modulesPath + '/' + module, 16);
+				let moduleExists = GLib.file_test(modulesPath + '/' + module, GLib.FileTest.EXISTS);
 				if(!moduleExists)
 				{
 					print(`Cast to TV: missing npm module: ${module}`);
@@ -187,7 +182,7 @@ class ServerMonitor
 	{
 		let packagePath = readPath + '/package.json';
 
-		let fileExists = GLib.file_test(packagePath, 16);
+		let fileExists = GLib.file_test(packagePath, GLib.FileTest.EXISTS);
 		if(fileExists)
 		{
 			let [readOk, readFile] = GLib.file_get_contents(packagePath);

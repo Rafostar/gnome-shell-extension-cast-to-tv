@@ -11,10 +11,10 @@ const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
-const devicesPath = Local.path + '/config/devices.json';
-const nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
-const npmPath = GLib.find_program_in_path('npm');
-const fileManagers = ['nautilus', 'nemo'];
+
+const NODE_PATH = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
+const NPM_PATH = GLib.find_program_in_path('npm');
+const FILE_MANAGERS = ['nautilus', 'nemo'];
 
 let nodeDir;
 let nodeBin;
@@ -100,7 +100,8 @@ class MainSettings extends Gtk.VBox
 		widget.append('chromecast', "Chromecast");
 		/* TRANSLATORS: "Playercast" is a name of an app, so do not change it */
 		widget.append('playercast', _("Playercast app"));
-		/* TRANSLATORS: Web browser or Media player app selection. This should be as short as possible e.g. "Browser | Player". */
+		/* TRANSLATORS: Web browser or Media player app selection.
+		This should be as short as possible e.g. "Browser | Player". */
 		widget.append('other', _("Web browser | Media player"));
 		Settings.bind('receiver-type', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		grid.attach(label, 0, 1, 1, 1);
@@ -186,14 +187,14 @@ class MainSettings extends Gtk.VBox
 		}
 
 		this.serviceSignal = Settings.connect('changed::service-enabled', () => this.checkService());
-	}
 
-	destroy()
-	{
-		Settings.disconnect(this.serviceSignal);
-		this.portWidget.disconnect(this.linkSignal);
+		this.destroy = () =>
+		{
+			Settings.disconnect(this.serviceSignal);
+			this.portWidget.disconnect(this.linkSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -271,11 +272,6 @@ class RemoteSettings extends Gtk.Grid
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(widget, 1, 6, 1, 1);
 	}
-
-	destroy()
-	{
-		super.destroy();
-	}
 }
 
 class ChromecastSettings extends Gtk.Grid
@@ -289,12 +285,17 @@ class ChromecastSettings extends Gtk.Grid
 		let button = null;
 		let rgba = new Gdk.RGBA();
 
-		let subsConfig = Temp.readFromFile(Local.path + '/config/subtitles.json');
-		if(!subsConfig)
+		let subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles'));
+		let sharedSubsConfig = shared.chromecast.subsStyle;
+
+		let getSubsConfig = (confName) =>
 		{
-			subsConfig = shared.chromecast.subsStyle;
-			GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			return subsConfig[confName] || sharedSubsConfig[confName];
+		}
+
+		let setSubsConfig = () =>
+		{
+			Settings.set_string('chromecast-subtitles', JSON.stringify(subsConfig));
 		}
 
 		/* Label: Chromecast Options */
@@ -328,12 +329,12 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontFamily.append('CASUAL', "Short Stack");
 		this.fontFamily.append('CURSIVE', "Quintessential");
 		this.fontFamily.append('SMALL_CAPITALS', "Alegreya Sans SC");
-		this.fontFamily.active_id = subsConfig.fontGenericFamily;
+		this.fontFamily.active_id = getSubsConfig('fontGenericFamily');
 		this.familySignal = this.fontFamily.connect('changed', () =>
 		{
 			subsConfig.fontFamily = this.fontFamily.get_active_text();
 			subsConfig.fontGenericFamily = this.fontFamily.active_id;
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 3, 1, 1);
 		this.attach(this.fontFamily, 1, 3, 1, 1);
@@ -345,11 +346,11 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontStyle.append('BOLD', _("Bold"));
 		this.fontStyle.append('ITALIC', _("Italic"));
 		this.fontStyle.append('BOLD_ITALIC', _("Bold italic"));
-		this.fontStyle.active_id = subsConfig.fontStyle;
+		this.fontStyle.active_id = getSubsConfig('fontStyle');
 		this.styleSignal = this.fontStyle.connect('changed', () =>
 		{
 			subsConfig.fontStyle = this.fontStyle.active_id;
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 4, 1, 1);
 		this.attach(this.fontStyle, 1, 4, 1, 1);
@@ -359,25 +360,25 @@ class ChromecastSettings extends Gtk.Grid
 		this.scaleButton = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
 		this.scaleButton.set_sensitive(true);
 		this.scaleButton.set_range(0.1, 5.0);
-		this.scaleButton.set_value(subsConfig.fontScale);
+		this.scaleButton.set_value(getSubsConfig('fontScale'));
 		this.scaleButton.set_increments(0.1, 0.2);
 		this.scaleSignal = this.scaleButton.connect('value-changed', () =>
 		{
 			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 5, 1, 1);
 		this.attach(this.scaleButton, 1, 5, 1, 1);
 
 		/* Font Color */
 		label = new SettingLabel(_("Font color"));
-		rgba.parse(hashToColor(subsConfig.foregroundColor));
+		rgba.parse(hashToColor(getSubsConfig('foregroundColor')));
 		this.fontColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.fontColor.set_sensitive(true);
 		this.fontColorSignal = this.fontColor.connect('color-set', () =>
 		{
 			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 6, 1, 1);
 		this.attach(this.fontColor, 1, 6, 1, 1);
@@ -389,8 +390,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.outlineSwitch.set_sensitive(true);
 		this.checkActive = () =>
 		{
-			if(subsConfig.edgeType == "OUTLINE") return true;
-			else return false;
+			return (getSubsConfig('edgeType') === "OUTLINE") ? true : false;
 		}
 		this.outlineSwitch.set_active(this.checkActive());
 		this.outlineSignal = this.outlineSwitch.connect('notify::active', () =>
@@ -398,16 +398,16 @@ class ChromecastSettings extends Gtk.Grid
 			if(this.outlineSwitch.active) subsConfig.edgeType = "OUTLINE";
 			else subsConfig.edgeType = "NONE";
 
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 
-		rgba.parse(hashToColor(subsConfig.edgeColor));
+		rgba.parse(hashToColor(getSubsConfig('edgeColor')));
 		this.edgeColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.edgeColor.set_sensitive(true);
 		this.edgeSignal = this.edgeColor.connect('color-set', () =>
 		{
 			subsConfig.edgeColor = colorToHash(this.edgeColor.rgba.to_string());
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		box.pack_end(this.edgeColor, false, false, 0);
 		box.pack_end(this.outlineSwitch, false, false, 8);
@@ -416,30 +416,30 @@ class ChromecastSettings extends Gtk.Grid
 
 		/* Background color */
 		label = new SettingLabel(_("Background color"));
-		rgba.parse(hashToColor(subsConfig.backgroundColor));
+		rgba.parse(hashToColor(getSubsConfig('backgroundColor')));
 		this.bgColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true, use_alpha: true});
 		this.bgColor.set_sensitive(true);
 		this.bgSignal = this.bgColor.connect('color-set', () =>
 		{
 			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
-			Temp.writeToFile(Local.path + '/config/subtitles.json', subsConfig);
+			setSubsConfig();
 		});
 		this.attach(label, 0, 8, 1, 1);
 		this.attach(this.bgColor, 1, 8, 1, 1);
-	}
 
-	destroy()
-	{
-		this.scanButton.disconnect(this.scanSignal);
-		this.fontFamily.disconnect(this.familySignal);
-		this.fontStyle.disconnect(this.styleSignal);
-		this.scaleButton.disconnect(this.scaleSignal);
-		this.fontColor.disconnect(this.fontColorSignal);
-		this.outlineSignal.disconnect(this.outlineSignal);
-		this.edgeColor.disconnect(this.edgeSignal);
-		this.bgColor.disconnect(this.bgSignal);
+		this.destroy = () =>
+		{
+			this.scanButton.disconnect(this.scanSignal);
+			this.fontFamily.disconnect(this.familySignal);
+			this.fontStyle.disconnect(this.styleSignal);
+			this.scaleButton.disconnect(this.scaleSignal);
+			this.fontColor.disconnect(this.fontColorSignal);
+			this.outlineSignal.disconnect(this.outlineSignal);
+			this.edgeColor.disconnect(this.edgeSignal);
+			this.bgColor.disconnect(this.bgSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -535,10 +535,11 @@ class OtherSettings extends Gtk.Grid
 			let homeDir = GLib.get_home_dir();
 			if(!homeDir) return false;
 
-			for(var fm of fileManagers)
+			for(let fm of FILE_MANAGERS)
 			{
-				if(GLib.file_test(homeDir + '/.local/share/' + fm +
-					'-python/extensions/nautilus-cast-to-tv.py', 16)
+				if(
+					GLib.file_test(homeDir + '/.local/share/' + fm +
+						'-python/extensions/nautilus-cast-to-tv.py', GLib.FileTest.EXISTS)
 				) {
 					return true;
 				}
@@ -556,13 +557,13 @@ class OtherSettings extends Gtk.Grid
 
 		this.attach(label, 0, 9, 1, 1);
 		this.attach(this.nautilusSwitch, 1, 9, 1, 1);
-	}
 
-	destroy()
-	{
-		this.nautilusSwitch.disconnect(this.nautilusSignal);
+		this.destroy = () =>
+		{
+			this.nautilusSwitch.disconnect(this.nautilusSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -594,25 +595,19 @@ class AddonsSettings extends Gtk.Notebook
 		{
 			let addonPath = extPath + '/' + addonDir;
 			let addonName = addonDir.substring(11, addonDir.lastIndexOf('-'));
-			let isPrefs = GLib.file_test(addonPath + '/' + addonName + '_prefs.js', 16);
+			let isPrefs = GLib.file_test(addonPath + '/' + addonName + '_prefs.js', GLib.FileTest.EXISTS);
 
 			if(isPrefs)
 			{
 				imports.searchPath.unshift(addonPath);
 				let addonPrefs = imports[addonName + '_prefs'];
+				imports.searchPath.shift();
 
 				addonPrefs.init();
 				let widget = addonPrefs.buildPrefsWidget();
 				this.append_page(widget, widget.title);
 			}
 		});
-
-		imports.searchPath.unshift(extPath);
-	}
-
-	destroy()
-	{
-		super.destroy();
 	}
 }
 
@@ -651,7 +646,7 @@ class ModulesSettings extends Gtk.VBox
 		let installCallback = () =>
 		{
 			if(Settings.get_boolean('service-wanted'))
-				GLib.spawn_async('/usr/bin', ['gjs', Local.path + '/server-monitor.js'], null, 0, null);
+				GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/server-monitor.js'], null, 0, null);
 
 			this.installButton.label = _(installLabel);
 			this.installButton.set_sensitive(true);
@@ -667,12 +662,13 @@ class ModulesSettings extends Gtk.VBox
 
 			try {
 				TermWidget.spawn_async(
-					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
-					null, 0, null, null, null, 120000, null, () => installCallback());
+					Vte.PtyFlags.DEFAULT, Local.path, [NPM_PATH, 'install'],
+					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null, (res, pid) =>
+						GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback()));
 			}
 			catch(err) {
 				let [res, pid] = TermWidget.spawn_sync(
-					Vte.PtyFlags.DEFAULT, Local.path, [npmPath, 'install'],
+					Vte.PtyFlags.DEFAULT, Local.path, [NPM_PATH, 'install'],
 					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
 
 				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback());
@@ -680,13 +676,13 @@ class ModulesSettings extends Gtk.VBox
 		}
 
 		this.installSignal = this.installButton.connect('clicked', installModules.bind(this));
-	}
 
-	destroy()
-	{
-		this.installButton.disconnect(this.installSignal);
+		this.destroy = () =>
+		{
+			this.installButton.disconnect(this.installSignal);
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -749,11 +745,6 @@ class AboutPage extends Gtk.VBox
 		});
 		this.pack_start(linkButton, false, false, 20);
 	}
-
-	destroy()
-	{
-		super.destroy();
-	}
 }
 
 class CastNotebook extends Gtk.Notebook
@@ -783,11 +774,13 @@ class CastNotebook extends Gtk.Notebook
 		this.addonsWidget = new AddonsSettings();
 		let addonsNumber = this.addonsWidget.get_n_pages();
 
-		if(addonsNumber == 0) {
+		if(addonsNumber == 0)
+		{
 			this.addonsWidget.destroy();
 			this.addonsWidget = null;
 		}
-		else {
+		else
+		{
 			label = new Gtk.Label({ label: _("Add-ons") });
 			this.append_page(this.addonsWidget, label);
 		}
@@ -799,19 +792,19 @@ class CastNotebook extends Gtk.Notebook
 		this.aboutWidget = new AboutPage();
 		label = new Gtk.Label({ label: _("About") });
 		this.append_page(this.aboutWidget, label);
-	}
 
-	destroy()
-	{
-		this.mainWidget.destroy();
-		this.otherWidget.destroy();
-		this.remoteWidget.destroy();
-		this.chromecastWidget.destroy();
-		this.modulesWidget.destroy();
-		this.aboutWidget.destroy();
-		if(this.addonsWidget) this.addonsWidget.destroy();
+		this.destroy = () =>
+		{
+			this.mainWidget.destroy();
+			this.otherWidget.destroy();
+			this.remoteWidget.destroy();
+			this.chromecastWidget.destroy();
+			this.modulesWidget.destroy();
+			this.aboutWidget.destroy();
+			if(this.addonsWidget) this.addonsWidget.destroy();
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -842,16 +835,16 @@ class CastToTvSettings extends Gtk.VBox
 				this.notebook.show();
 			}
 		});
-	}
 
-	destroy()
-	{
-		Settings.disconnect(this.streamingSignal);
+		this.destroy = () =>
+		{
+			Settings.disconnect(this.streamingSignal);
 
-		this.notebook.destroy();
-		this.notification.destroy();
+			this.notebook.destroy();
+			this.notification.destroy();
 
-		super.destroy();
+			super.destroy();
+		}
 	}
 }
 
@@ -864,8 +857,6 @@ function scanDevices(widget, button)
 	widget.append('', _("Scanning..."));
 	/* Show Scanning label */
 	widget.set_active(0);
-
-	GLib.mkdir_with_parents(Local.path + '/config', 509); // 775 in octal
 
 	let [res, pid] = GLib.spawn_async(
 		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/scanner'],
@@ -884,9 +875,13 @@ function setDevices(widget, filePath)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
+	let devices = [];
 
-	filePath = (typeof filePath === 'string') ? filePath: devicesPath;
-	let devices = Temp.readFromFile(filePath);
+	if(filePath && typeof filePath === 'string')
+		devices = Temp.readFromFile(filePath);
+	else
+		devices = JSON.parse(Settings.get_string('chromecast-devices'));
+
 	if(Array.isArray(devices))
 	{
 		devices.forEach(device =>
@@ -930,9 +925,14 @@ function enableNautilusExtension(enabled)
 	let userDataDir = GLib.get_user_data_dir();
 	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
 
-	if((enabled && !GLib.file_test(srcPath, 16)) || !userDataDir) return;
+	if(
+		(enabled && !GLib.file_test(srcPath, GLib.FileTest.EXISTS))
+		|| !userDataDir
+	) {
+		return;
+	}
 
-	fileManagers.forEach(fm =>
+	FILE_MANAGERS.forEach(fm =>
 	{
 		let installPath = userDataDir + '/' + fm + '-python/extensions';
 		let destFile = Gio.File.new_for_path(installPath).get_child('nautilus-cast-to-tv.py');
@@ -985,11 +985,11 @@ function buildPrefsWidget()
 {
 	let widget = null;
 
-	if(!nodePath) return widget = new MissingNotification('nodejs');
-	else if(!npmPath) return widget = new MissingNotification('npm');
+	if(!NODE_PATH) return widget = new MissingNotification('nodejs');
+	else if(!NPM_PATH) return widget = new MissingNotification('npm');
 
-	nodeDir = nodePath.substring(0, nodePath.lastIndexOf('/'));
-	nodeBin = nodePath.substring(nodePath.lastIndexOf('/') + 1);
+	nodeDir = NODE_PATH.substring(0, NODE_PATH.lastIndexOf('/'));
+	nodeBin = NODE_PATH.substring(NODE_PATH.lastIndexOf('/') + 1);
 
 	widget = new CastToTvSettings();
 	widget.show_all();
