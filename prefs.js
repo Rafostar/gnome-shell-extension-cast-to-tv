@@ -996,7 +996,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
 		this.addSignal = this.addButton.connect('clicked', () =>
 		{
-			devices.push({ friendlyName: '' });
+			devices.push({ friendlyName: '', ip: '' });
 			Settings.set_string('chromecast-devices', JSON.stringify(devices));
 			loadStoreList();
 		});
