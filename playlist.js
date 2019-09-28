@@ -179,7 +179,8 @@ var CastPlaylist = class
 				/* Limit loop by max children depth of PopupImageMenuItem */
 				let iterLimit = 2;
 
-				while(	iterLimit--
+				while(
+					iterLimit--
 					&& targetItem.get_parent
 					&& typeof targetItem.get_parent === 'function'
 				) {
@@ -276,6 +277,9 @@ var CastPlaylist = class
 
 	_onDragMotion(dragEvent)
 	{
+		/* Updating label before and after move fixes moveMenuItem() on GNOME 3.32 */
+		this.tempMenuItem.label.hide();
+
 		let targetItem = (dragEvent.targetActor.hasOwnProperty('_delegate')) ?
 			dragEvent.targetActor._delegate : dragEvent.targetActor;
 
@@ -302,6 +306,9 @@ var CastPlaylist = class
 			else
 				this.tempMenuItem.hide();
 		}
+
+		/* Must be here for GNOME 3.32 moveMenuItem() fix */
+		this.tempMenuItem.label.show();
 
 		return DND.DragMotionResult.CONTINUE;
 	}
@@ -439,7 +446,9 @@ class CastTempPlaylistItem extends AltPopupImage
 			};
 
 			source.drag.emit('drag-end', time, true);
-			actor.destroy();
+
+			if(actor) actor.destroy();
+			else source.destroy();
 		}
 
 		this.getVisible = () =>
