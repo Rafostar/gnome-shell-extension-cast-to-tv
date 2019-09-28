@@ -46,6 +46,8 @@ function configCastRemote()
 	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
 	remoteMenu.playlist.remoteActive = chromecastPlaying;
 
+	let isActor = (remoteMenu.hasOwnProperty('actor'));
+
 	if(chromecastPlaying)
 	{
 		/* Update selection and list data (needed for skipping tracks) */
@@ -111,10 +113,14 @@ function configCastRemote()
 		/* Restore widget buttons and sliders state */
 		remoteMenu.updateRemote();
 
-		remoteMenu.show();
+		if(isActor) remoteMenu.actor.show();
+		else remoteMenu.show();
 	}
 	else
-		remoteMenu.hide();
+	{
+		if(isActor) remoteMenu.actor.hide();
+		else remoteMenu.hide();
+	}
 }
 
 function setRemotePosition()

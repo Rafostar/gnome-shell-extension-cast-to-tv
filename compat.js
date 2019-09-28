@@ -2,7 +2,7 @@ const { Clutter, GObject } = imports.gi;
 const PopupMenu = imports.ui.popupMenu;
 const Config = imports.misc.config;
 
-const IS_OLD_SHELL = (Config.PACKAGE_VERSION.split('.')[1] < 31);
+const IS_OLD_SHELL = (Config.PACKAGE_VERSION.split('.')[1] < 33);
 
 var AltPopupBase = (IS_OLD_SHELL) ?
 	class AltPopupBase extends PopupMenu.PopupBaseMenuItem

@@ -110,7 +110,10 @@ var CastPlaylist = class
 		{
 			if(menuItems[i].filepath && menuItems[i].filepath !== playlistArray[i])
 			{
-				let foundItem = menuItems.find(obj => { return obj.filepath === playlistArray[i] });
+				let foundItem = menuItems.find(obj => {
+					return (obj.filepath && obj.filepath === playlistArray[i])
+				});
+
 				if(foundItem)
 				{
 					this.subMenu.menu.moveMenuItem(foundItem, i);
@@ -176,7 +179,8 @@ var CastPlaylist = class
 				/* Limit loop by max children depth of PopupImageMenuItem */
 				let iterLimit = 2;
 
-				while(	iterLimit--
+				while(
+					iterLimit--
 					&& targetItem.get_parent
 					&& typeof targetItem.get_parent === 'function'
 				) {
@@ -215,7 +219,11 @@ var CastPlaylist = class
 		let menuItems = this.subMenu.menu._getMenuItems();
 
 		this.subMenu.menu.moveMenuItem(this.tempMenuItem, menuItems.indexOf(menuItem));
-		this.tempMenuItem.show();
+
+		if(this.tempMenuItem.isActor)
+			this.tempMenuItem.actor.show();
+		else
+			this.tempMenuItem.show();
 	}
 
 	_onDragCancelled()
@@ -227,7 +235,10 @@ var CastPlaylist = class
 				this.draggedItem.destroy();
 				this.draggedItem = null;
 
-				this.tempMenuItem.hide();
+				if(this.tempMenuItem.isActor)
+					this.tempMenuItem.actor.hide();
+				else
+					this.tempMenuItem.hide();
 
 				if(this.remoteActive)
 					this.updatePlaylistFile();
@@ -256,12 +267,19 @@ var CastPlaylist = class
 			this.subMenu.menu.moveMenuItem(obj, 0);
 		}
 
-		this.tempMenuItem.hide();
+		if(this.tempMenuItem.isActor)
+			this.tempMenuItem.actor.hide();
+		else
+			this.tempMenuItem.hide();
+
 		this.updatePlaylistFile();
 	}
 
 	_onDragMotion(dragEvent)
 	{
+		/* Updating label before and after move fixes moveMenuItem() on GNOME 3.32 */
+		this.tempMenuItem.label.hide();
+
 		let targetItem = (dragEvent.targetActor.hasOwnProperty('_delegate')) ?
 			dragEvent.targetActor._delegate : dragEvent.targetActor;
 
@@ -276,12 +294,21 @@ var CastPlaylist = class
 			if(hoverItemIndex !== tempItemIndex)
 				this.subMenu.menu.moveMenuItem(this.tempMenuItem, hoverItemIndex);
 
-			this.tempMenuItem.show();
+			if(this.tempMenuItem.isActor)
+				this.tempMenuItem.actor.show();
+			else
+				this.tempMenuItem.show();
 		}
 		else if(menuItems.length > 1 && !this._getParentWithValue(targetItem, 'isTempPlaylistItem'))
 		{
-			this.tempMenuItem.hide();
+			if(this.tempMenuItem.isActor)
+				this.tempMenuItem.actor.hide();
+			else
+				this.tempMenuItem.hide();
 		}
+
+		/* Must be here for GNOME 3.32 moveMenuItem() fix */
+		this.tempMenuItem.label.show();
 
 		return DND.DragMotionResult.CONTINUE;
 	}
@@ -398,18 +425,16 @@ class CastTempPlaylistItem extends AltPopupImage
 		super(' ', TEMP_INSERT_ICON);
 
 		this.isTempPlaylistItem = true;
+		this.isActor = (this.hasOwnProperty('actor'));
 
-		if(this.hasOwnProperty('actor'))
+		if(this.isActor) this.actor.visible = true;
+		else this.visible = true;
+
+		if(!isShown)
 		{
-			this.actor.visible = true;
-
-			this.show = () => this.actor.show();
-			this.hide = () => this.actor.hide();
+			if(this.isActor) this.actor.hide();
+			else this.hide();
 		}
-		else
-			this.visible = true;
-
-		if(!isShown) this.hide();
 
 		/* This function is called by DND */
 		this.acceptDrop = (source, actor, x, y, time) =>
@@ -421,12 +446,14 @@ class CastTempPlaylistItem extends AltPopupImage
 			};
 
 			source.drag.emit('drag-end', time, true);
-			actor.destroy();
+
+			if(actor) actor.destroy();
+			else source.destroy();
 		}
 
 		this.getVisible = () =>
 		{
-			if(this.hasOwnProperty('actor'))
+			if(this.isActor)
 				return this.actor.visible;
 			else
 				return this.visible;

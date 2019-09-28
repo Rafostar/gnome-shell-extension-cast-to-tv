@@ -166,10 +166,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
 		this.playlist = new Playlist.CastPlaylist();
 
-		/* Items that might be shown or hidden depending on media content */
-		let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
-			'seekBackwardButton', 'seekForwardButton', 'repeatButton'];
-
 		/* Add space between stop and the remaining buttons */
 		this.stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
 
@@ -349,7 +345,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.monitorSignal = this.statusMonitor.connect('changed', this.updateRemote.bind(this));
 
-		/* Functions */
 		this.setPlaying = (value) =>
 		{
 			if(this.togglePlayButton.isPause !== value)
@@ -397,24 +392,14 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
-		this.setShownRemoteItems = (itemsArray) =>
-		{
-			changableItems.forEach(item =>
-			{
-				if(this.hasOwnProperty(item))
-				{
-					if(itemsArray.includes(item))
-						this[item].show();
-					else
-						this[item].hide();
-				}
-			});
-		}
-
 		this.setMode = (value, icon) =>
 		{
 			this.mode = value;
 			let shownItems = [];
+
+			/* Items that might be shown or hidden depending on media content */
+			let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
+				'seekBackwardButton', 'seekForwardButton', 'repeatButton'];
 
 			switch(this.mode)
 			{
@@ -422,22 +407,34 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					shownItems = ['positionSlider', 'repeatButton', 'togglePlayButton',
 						'seekBackwardButton', 'seekForwardButton'];
 					if(!isUnifiedSlider) shownItems.push('volumeSlider');
-					this.setShownRemoteItems(shownItems);
 					break;
 				case 'ENCODE':
 					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];
-					this.setShownRemoteItems(shownItems);
 					break;
 				case 'PICTURE':
-					this.setShownRemoteItems(shownItems);
 					break;
 				case 'LIVE':
 					shownItems = ['volumeSlider', 'togglePlayButton'];
-					this.setShownRemoteItems(shownItems);
 					break;
 				default:
 					break;
 			}
+
+			changableItems.forEach(item =>
+			{
+				let isActor = (this[item].hasOwnProperty('actor'));
+
+				if(shownItems.includes(item))
+				{
+					if(isActor) this[item].actor.show();
+					else this[item].show();
+				}
+				else
+				{
+					if(isActor) this[item].actor.hide();
+					else this[item].hide();
+				}
+			});
 
 			if(icon) this.positionSlider.defaultIcon = icon;
 
@@ -459,13 +456,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		{
 			this.positionSlider.setIconSize(size);
 			this.volumeSlider.setIconSize(size);
-		}
-
-		/* Only need to be added when used with actor */
-		if(this.hasOwnProperty('actor'))
-		{
-			this.hide = () => this.actor.hide();
-			this.show = () => this.actor.show();
 		}
 
 		this.destroy = () =>
@@ -558,10 +548,6 @@ class SliderItem extends AltPopupBase
 			this.actor.add(this.button);
 			this.actor.add(this._slider.actor, { expand: true });
 			this.actor.visible = true;
-
-			/* Available by default when without actor */
-			this.hide = () => this.actor.hide();
-			this.show = () => this.actor.show();
 		}
 		else
 		{
