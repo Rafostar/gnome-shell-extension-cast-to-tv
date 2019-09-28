@@ -110,7 +110,10 @@ var CastPlaylist = class
 		{
 			if(menuItems[i].filepath && menuItems[i].filepath !== playlistArray[i])
 			{
-				let foundItem = menuItems.find(obj => { return obj.filepath === playlistArray[i] });
+				let foundItem = menuItems.find(obj => {
+					return (obj.filepath && obj.filepath === playlistArray[i])
+				});
+
 				if(foundItem)
 				{
 					this.subMenu.menu.moveMenuItem(foundItem, i);
