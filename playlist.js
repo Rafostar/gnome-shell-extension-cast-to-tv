@@ -215,7 +215,11 @@ var CastPlaylist = class
 		let menuItems = this.subMenu.menu._getMenuItems();
 
 		this.subMenu.menu.moveMenuItem(this.tempMenuItem, menuItems.indexOf(menuItem));
-		this.tempMenuItem.show();
+
+		if(this.tempMenuItem.isActor)
+			this.tempMenuItem.actor.show();
+		else
+			this.tempMenuItem.show();
 	}
 
 	_onDragCancelled()
@@ -227,7 +231,10 @@ var CastPlaylist = class
 				this.draggedItem.destroy();
 				this.draggedItem = null;
 
-				this.tempMenuItem.hide();
+				if(this.tempMenuItem.isActor)
+					this.tempMenuItem.actor.hide();
+				else
+					this.tempMenuItem.hide();
 
 				if(this.remoteActive)
 					this.updatePlaylistFile();
@@ -256,7 +263,11 @@ var CastPlaylist = class
 			this.subMenu.menu.moveMenuItem(obj, 0);
 		}
 
-		this.tempMenuItem.hide();
+		if(this.tempMenuItem.isActor)
+			this.tempMenuItem.actor.hide();
+		else
+			this.tempMenuItem.hide();
+
 		this.updatePlaylistFile();
 	}
 
@@ -276,11 +287,17 @@ var CastPlaylist = class
 			if(hoverItemIndex !== tempItemIndex)
 				this.subMenu.menu.moveMenuItem(this.tempMenuItem, hoverItemIndex);
 
-			this.tempMenuItem.show();
+			if(this.tempMenuItem.isActor)
+				this.tempMenuItem.actor.show();
+			else
+				this.tempMenuItem.show();
 		}
 		else if(menuItems.length > 1 && !this._getParentWithValue(targetItem, 'isTempPlaylistItem'))
 		{
-			this.tempMenuItem.hide();
+			if(this.tempMenuItem.isActor)
+				this.tempMenuItem.actor.hide();
+			else
+				this.tempMenuItem.hide();
 		}
 
 		return DND.DragMotionResult.CONTINUE;
@@ -398,18 +415,16 @@ class CastTempPlaylistItem extends AltPopupImage
 		super(' ', TEMP_INSERT_ICON);
 
 		this.isTempPlaylistItem = true;
+		this.isActor = (this.hasOwnProperty('actor'));
 
-		if(this.hasOwnProperty('actor'))
+		if(this.isActor) this.actor.visible = true;
+		else this.visible = true;
+
+		if(!isShown)
 		{
-			this.actor.visible = true;
-
-			this.show = () => this.actor.show();
-			this.hide = () => this.actor.hide();
+			if(this.isActor) this.actor.hide();
+			else this.hide();
 		}
-		else
-			this.visible = true;
-
-		if(!isShown) this.hide();
 
 		/* This function is called by DND */
 		this.acceptDrop = (source, actor, x, y, time) =>
@@ -426,7 +441,7 @@ class CastTempPlaylistItem extends AltPopupImage
 
 		this.getVisible = () =>
 		{
-			if(this.hasOwnProperty('actor'))
+			if(this.isActor)
 				return this.actor.visible;
 			else
 				return this.visible;

@@ -422,10 +422,18 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			changableItems.forEach(item =>
 			{
+				let isActor = (this[item].hasOwnProperty('actor'));
+
 				if(shownItems.includes(item))
-					this[item].show();
+				{
+					if(isActor) this[item].actor.show();
+					else this[item].show();
+				}
 				else
-					this[item].hide();
+				{
+					if(isActor) this[item].actor.hide();
+					else this[item].hide();
+				}
 			});
 
 			if(icon) this.positionSlider.defaultIcon = icon;
@@ -448,13 +456,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		{
 			this.positionSlider.setIconSize(size);
 			this.volumeSlider.setIconSize(size);
-		}
-
-		/* Only need to be added when used with actor */
-		if(this.hasOwnProperty('actor'))
-		{
-			this.hide = () => this.actor.hide();
-			this.show = () => this.actor.show();
 		}
 
 		this.destroy = () =>
@@ -547,10 +548,6 @@ class SliderItem extends AltPopupBase
 			this.actor.add(this.button);
 			this.actor.add(this._slider.actor, { expand: true });
 			this.actor.visible = true;
-
-			/* Available by default when without actor */
-			this.hide = () => this.actor.hide();
-			this.show = () => this.actor.show();
 		}
 		else
 		{
