@@ -285,8 +285,12 @@ class ChromecastSettings extends Gtk.Grid
 		let button = null;
 		let rgba = new Gdk.RGBA();
 
-		let subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles'));
+		let subsConfig = {};
 		let sharedSubsConfig = shared.chromecast.subsStyle;
+
+		/* Restore default subtitles values if someone messed them externally */
+		try { subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles')); }
+		catch(err) { Settings.set_string('chromecast-subtitles', "{}"); }
 
 		let getSubsConfig = (confName) =>
 		{
@@ -896,7 +900,13 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		let loadStoreList = () =>
 		{
-			devices = JSON.parse(Settings.get_string('chromecast-devices'));
+			/* Restore empty devices list if someone messed it externally */
+			try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
+			catch(err) {
+				devices = [];
+				Settings.set_string('chromecast-devices', "[]");
+			}
+
 			listStore.clear();
 
 			devices.forEach(device =>
@@ -1058,7 +1068,11 @@ function setDevices(widget, filePath, activeText)
 	if(filePath && typeof filePath === 'string')
 		devices = Temp.readFromFile(filePath);
 	else
-		devices = JSON.parse(Settings.get_string('chromecast-devices'));
+	{
+		/* Restore empty devices list if someone messed it externally */
+		try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
+		catch(err) { Settings.set_string('chromecast-devices', "[]"); }
+	}
 
 	if(Array.isArray(devices))
 	{
