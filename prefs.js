@@ -327,7 +327,7 @@ class ChromecastSettings extends Gtk.Grid
 		this.scanSignal = this.scanButton.connect('clicked',
 			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton])
 		);
-		this.ipConfButton = this.ipConfButton.connect('clicked', () => {
+		this.ipConfSignal = this.ipConfButton.connect('clicked', () => {
 			let castIp = new ChromecastIpSettings(this);
 		});
 		Settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
@@ -448,7 +448,10 @@ class ChromecastSettings extends Gtk.Grid
 
 		this.destroy = () =>
 		{
+			Settings.disconnect(this.devChangeSignal);
+
 			this.scanButton.disconnect(this.scanSignal);
+			this.ipConfButton.disconnect(this.ipConfSignal);
 			this.fontFamily.disconnect(this.familySignal);
 			this.fontStyle.disconnect(this.styleSignal);
 			this.scaleButton.disconnect(this.scaleSignal);
@@ -933,22 +936,22 @@ class ChromecastIpSettings extends Gtk.Dialog
 		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 220});
 		let ip = new Gtk.TreeViewColumn({title: "IP", min_width: 140});
 
-		let bold = new Gtk.CellRendererText({
+		this.activeCell = new Gtk.CellRendererToggle({
+			activatable: false
+		});
+
+		this.normalCell = new Gtk.CellRendererText({
+			editable: true,
+			placeholder_text: _("None")
+		});
+
+		this.boldCell = new Gtk.CellRendererText({
 			editable: true,
 			weight: Pango.Weight.BOLD,
 			placeholder_text: _("Insert name")
 		});
 
-		let normal = new Gtk.CellRendererText({
-			editable: true,
-			placeholder_text: _("None")
-		});
-
-		let active = new Gtk.CellRendererToggle({
-			activatable: false
-		});
-
-		normal.connect('edited', (cell, path, newText) =>
+		this.normalCellSignal = this.normalCell.connect('edited', (cell, path, newText) =>
 		{
 			if(devices[path].ip !== newText)
 			{
@@ -958,7 +961,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 			}
 		});
 
-		bold.connect('edited', (cell, path, newText) =>
+		this.boldCellSignal = this.boldCell.connect('edited', (cell, path, newText) =>
 		{
 			if(devices[path].friendlyName !== newText)
 			{
@@ -969,13 +972,13 @@ class ChromecastIpSettings extends Gtk.Dialog
 			}
 		});
 
-		local.pack_start(active, true);
-		friendlyName.pack_start(bold, true);
-		ip.pack_start(normal, true);
+		local.pack_start(this.activeCell, true);
+		friendlyName.pack_start(this.boldCell, true);
+		ip.pack_start(this.normalCell, true);
 
-		local.add_attribute(active, "active", 0);
-		friendlyName.add_attribute(bold, "text", 1);
-		ip.add_attribute(normal, "text", 2);
+		local.add_attribute(this.activeCell, "active", 0);
+		friendlyName.add_attribute(this.boldCell, "text", 1);
+		ip.add_attribute(this.normalCell, "text", 2);
 
 		treeView.insert_column(local, 0);
 		treeView.insert_column(friendlyName, 1);
@@ -983,10 +986,10 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		box.pack_start(treeView, true, true, 0);
 
-		let selection = treeView.get_selection();
-		selection.connect('changed', () =>
+		this.treeSelection = treeView.get_selection();
+		this.treeSelectionSignal = this.treeSelection.connect('changed', () =>
 		{
-			let [isSelected, model, iter] = selection.get_selected();
+			let [isSelected, model, iter] = this.treeSelection.get_selected();
 			devIndex = -1;
 
 			if(isSelected)
@@ -1011,7 +1014,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		});
 
 		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
-		this.addSignal = this.addButton.connect('clicked', () =>
+		this.addButtonSignal = this.addButton.connect('clicked', () =>
 		{
 			devices.push({ name: '', friendlyName: '', ip: '' });
 			Settings.set_string('chromecast-devices', JSON.stringify(devices));
@@ -1020,7 +1023,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		this.removeButton = Gtk.Button.new_from_icon_name('list-remove-symbolic', 4);
 		this.removeButton.set_sensitive(false);
-		this.removeSignal = this.removeButton.connect('clicked', () =>
+		this.removeButtonSignal = this.removeButton.connect('clicked', () =>
 		{
 			devices.splice(devIndex, 1);
 			Settings.set_string('chromecast-devices', JSON.stringify(devices));
@@ -1033,6 +1036,17 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		this.get_content_area().add(box);
 		this.show_all();
+
+		this.destroy = () =>
+		{
+			this.treeSelection.disconnect(this.treeSelectionSignal);
+			this.normalCell.disconnect(this.normalCellSignal);
+			this.boldCell.disconnect(this.boldCellSignal);
+			this.addButton.disconnect(this.addButtonSignal);
+			this.removeButton.disconnect(this.removeButtonSignal);
+
+			super.destroy();
+		}
 	}
 }
 
