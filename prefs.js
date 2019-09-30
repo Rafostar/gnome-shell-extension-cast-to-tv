@@ -953,6 +953,8 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		this.normalCellSignal = this.normalCell.connect('edited', (cell, path, newText) =>
 		{
+			newText = newText.trim();
+
 			if(devices[path].ip !== newText)
 			{
 				devices[path].ip = newText;
@@ -963,6 +965,8 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		this.boldCellSignal = this.boldCell.connect('edited', (cell, path, newText) =>
 		{
+			newText = newText.trim();
+
 			if(devices[path].friendlyName !== newText)
 			{
 				devices[path].name = newText;
