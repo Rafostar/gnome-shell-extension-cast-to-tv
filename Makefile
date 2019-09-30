@@ -63,8 +63,8 @@ else
 	cp ./README.md /usr/share/doc/$(EXTNAME)/
 	mkdir -p /usr/share/licenses/$(EXTNAME)
 	cp ./COPYING /usr/share/licenses/$(EXTNAME)/
-	mkdir -p $(CUSTOMPATH)/$(UUID)/node_modules $(CUSTOMPATH)/$(UUID)/config
-	chmod 777 $(CUSTOMPATH)/$(UUID)/node_modules $(CUSTOMPATH)/$(UUID)/config
+	mkdir -p $(CUSTOMPATH)/$(UUID)/node_modules
+	chmod 777 $(CUSTOMPATH)/$(UUID)/node_modules
 endif
 
 _build: glib-schemas compilemo

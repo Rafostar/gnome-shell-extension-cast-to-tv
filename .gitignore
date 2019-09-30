@@ -2,4 +2,3 @@ node_modules/
 locale/
 locale_addons/
 po/cast-to-tv*/*.po~
-config/*
