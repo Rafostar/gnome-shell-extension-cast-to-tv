@@ -1029,9 +1029,12 @@ class ChromecastIpSettings extends Gtk.Dialog
 		this.removeButton.set_sensitive(false);
 		this.removeButtonSignal = this.removeButton.connect('clicked', () =>
 		{
-			devices.splice(devIndex, 1);
-			Settings.set_string('chromecast-devices', JSON.stringify(devices));
-			loadStoreList();
+			if(devIndex >= 0)
+			{
+				devices.splice(devIndex, 1);
+				Settings.set_string('chromecast-devices', JSON.stringify(devices));
+				loadStoreList();
+			}
 		});
 
 		grid.attach(this.removeButton, 0, 0, 1, 1);
