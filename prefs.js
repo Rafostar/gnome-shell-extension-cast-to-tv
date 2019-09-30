@@ -870,7 +870,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		super({
 			title: _("Manual IP Config"),
 			transient_for: parent.get_toplevel(),
-			default_width: 400,
+			default_width: 420,
 			default_height: 300,
 			use_header_bar: true,
 			modal: true
@@ -902,7 +902,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 			devices.forEach(device =>
 			{
 				let devIp = device.ip || '';
-				let isAuto = device.hasOwnProperty('name');
+				let isAuto = (device.hasOwnProperty('name') && device.name.endsWith('.local'));
 
 				listStore.set(
 					listStore.append(),
@@ -920,7 +920,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		});
 
 		let local = new Gtk.TreeViewColumn({title: _("Auto")});
-		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 180});
+		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 220});
 		let ip = new Gtk.TreeViewColumn({title: "IP", min_width: 140});
 
 		let bold = new Gtk.CellRendererText({
@@ -940,16 +940,23 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		normal.connect('edited', (cell, path, newText) =>
 		{
-			devices[path].ip = newText;
-			Settings.set_string('chromecast-devices', JSON.stringify(devices));
-			loadStoreList();
+			if(devices[path].ip !== newText)
+			{
+				devices[path].ip = newText;
+				Settings.set_string('chromecast-devices', JSON.stringify(devices));
+				loadStoreList();
+			}
 		});
 
 		bold.connect('edited', (cell, path, newText) =>
 		{
-			devices[path].friendlyName = newText;
-			Settings.set_string('chromecast-devices', JSON.stringify(devices));
-			loadStoreList();
+			if(devices[path].friendlyName !== newText)
+			{
+				devices[path].name = newText;
+				devices[path].friendlyName = newText;
+				Settings.set_string('chromecast-devices', JSON.stringify(devices));
+				loadStoreList();
+			}
 		});
 
 		local.pack_start(active, true);
@@ -996,7 +1003,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
 		this.addSignal = this.addButton.connect('clicked', () =>
 		{
-			devices.push({ friendlyName: '', ip: '' });
+			devices.push({ name: '', friendlyName: '', ip: '' });
 			Settings.set_string('chromecast-devices', JSON.stringify(devices));
 			loadStoreList();
 		});
@@ -1056,7 +1063,8 @@ function setDevices(widget, filePath, activeText)
 	if(Array.isArray(devices))
 	{
 		let foundActive = false;
-		let index = 0;
+		let appendIndex = 0;
+		let appendArray = [];
 
 		devices.forEach(device =>
 		{
@@ -1065,14 +1073,18 @@ function setDevices(widget, filePath, activeText)
 				let value = (device.name) ? device.name : null;
 				let text = (device.friendlyName) ? device.friendlyName : null;
 
-				if(text && value || text && device.ip)
+				if(value && text && !appendArray.includes(value))
 				{
-					widget.append(value || '', text);
-					index++;
+					if(!device.name.endsWith('.local') && !device.ip)
+						return;
 
-					if(activeText && !foundActive && activeText === text)
+					widget.append(value, text);
+					appendArray.push(value);
+					appendIndex++;
+
+					if(!foundActive && activeText && activeText === text)
 					{
-						widget.set_active(index);
+						widget.set_active(appendIndex);
 						foundActive = true;
 					}
 				}

@@ -321,7 +321,7 @@ function launchCast(media, castOpts)
 		if(err)
 		{
 			debug(`Could not cast: ${err.message}`);
-			showTranslatedError(err);
+			showTranslatedError(err, castOpts);
 		}
 		else
 		{
@@ -488,13 +488,16 @@ function showIdleError()
 		notify('Chromecast', `${messages.chromecast.playError} ${bridge.selection.filePath}`);
 	else
 		notify('Chromecast', `${messages.chromecast.playError} ${bridge.selection.filePath}` +
-			'\n' + `${messages.chromecast.tryAgain}`);
+			'.\n' + `${messages.chromecast.tryAgain}`);
 }
 
-function showTranslatedError(err)
+function showTranslatedError(err, opts)
 {
 	var msg = err.message.toLowerCase();
+	var info = '';
 	debug(err);
+
+	opts = opts || {};
 
 	switch(msg)
 	{
@@ -503,6 +506,10 @@ function showTranslatedError(err)
 			break;
 		case 'load failed':
 			notify('Chromecast', messages.chromecast.loadFailed);
+			break;
+		case 'connection timeout!':
+			if(opts.ip) info = '.\n' + messages.chromecast.verifyIp;
+			notify('Chromecast', messages.chromecast.connectFailed + info);
 			break;
 		default:
 			debug(`Unhandled message: ${msg}`);
