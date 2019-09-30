@@ -7,14 +7,14 @@ var SettingLabel = class SharedSettingLabel
 	constructor(text, isTitle, isTopMargin)
 	{
 		let label = null;
-		let marginLeft = 0;
+		let marginLR = 0;
 		let marginTop = 0;
 
 		if(isTitle) label = '<span font="12.5"><b>' + text + '</b></span>';
 		else
 		{
 			label = text;
-			marginLeft = 12;
+			marginLR = 12;
 		}
 
 		if(isTopMargin) marginTop = 20;
@@ -25,7 +25,8 @@ var SettingLabel = class SharedSettingLabel
 			hexpand: true,
 			halign: Gtk.Align.START,
 			margin_top: marginTop,
-			margin_left: marginLeft
+			margin_left: marginLR,
+			margin_right: marginLR
 		});
 	}
 }

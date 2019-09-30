@@ -22,6 +22,8 @@ module.exports = {
 	chromecast: {
 		notFound: _("Device not found"),
 		loadFailed: _("Failed to load media"),
+		connectFailed: _("Could not connect to device"),
+		verifyIp: _("Verify device IP in extension preferences"),
 		/* TRANSLATORS: This sentence will contain file path after end */
 		playError: _("Could not play file:"),
 		tryAgain: _("Try again with transcoding enabled")

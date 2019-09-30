@@ -1,7 +1,7 @@
 imports.gi.versions.Gtk = '3.0';
 imports.gi.versions.Gdk = '3.0';
 
-const { Gio, Gtk, GLib, Gdk, Vte } = imports.gi;
+const { Gio, Gtk, GLib, Gdk, Vte, Pango, GObject } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel } = Local.imports.prefs_shared;
@@ -285,8 +285,12 @@ class ChromecastSettings extends Gtk.Grid
 		let button = null;
 		let rgba = new Gdk.RGBA();
 
-		let subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles'));
+		let subsConfig = {};
 		let sharedSubsConfig = shared.chromecast.subsStyle;
+
+		/* Restore default subtitles values if someone messed them externally */
+		try { subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles')); }
+		catch(err) { Settings.set_string('chromecast-subtitles', "{}"); }
 
 		let getSubsConfig = (confName) =>
 		{
@@ -307,10 +311,25 @@ class ChromecastSettings extends Gtk.Grid
 		box = new Gtk.HBox({halign:Gtk.Align.END});
 		widget = new Gtk.ComboBoxText();
 		this.scanButton = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
-		box.pack_end(this.scanButton, false, false, 0);
-		box.pack_end(widget, false, false, 8);
+		this.ipConfButton = Gtk.Button.new_from_icon_name('emblem-system-symbolic', 4);
+		box.pack_end(this.ipConfButton, false, false, 0);
+		box.pack_end(this.scanButton, false, false, 4);
+		box.pack_end(widget, false, false, 0);
 		setDevices(widget);
-		this.scanSignal = this.scanButton.connect('clicked', scanDevices.bind(this, widget, this.scanButton));
+
+		let onDevEdit = (widget) =>
+		{
+			let activeText = widget.get_active_text();
+			setDevices(widget, null, activeText);
+		}
+
+		this.devChangeSignal = Settings.connect('changed::chromecast-devices', onDevEdit.bind(this, widget));
+		this.scanSignal = this.scanButton.connect('clicked',
+			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton])
+		);
+		this.ipConfSignal = this.ipConfButton.connect('clicked', () => {
+			let castIp = new ChromecastIpSettings(this);
+		});
 		Settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 1, 1, 1);
 		this.attach(box, 1, 1, 1, 1);
@@ -429,7 +448,10 @@ class ChromecastSettings extends Gtk.Grid
 
 		this.destroy = () =>
 		{
+			Settings.disconnect(this.devChangeSignal);
+
 			this.scanButton.disconnect(this.scanSignal);
+			this.ipConfButton.disconnect(this.ipConfSignal);
 			this.fontFamily.disconnect(this.familySignal);
 			this.fontStyle.disconnect(this.styleSignal);
 			this.scaleButton.disconnect(this.scaleSignal);
@@ -848,9 +870,196 @@ class CastToTvSettings extends Gtk.VBox
 	}
 }
 
-function scanDevices(widget, button)
+class ChromecastIpSettings extends Gtk.Dialog
 {
-	button.set_sensitive(false);
+	constructor(parent)
+	{
+		super({
+			title: _("Manual IP Config"),
+			transient_for: parent.get_toplevel(),
+			default_width: 420,
+			default_height: 300,
+			use_header_bar: true,
+			modal: true
+		});
+
+		let label = null;
+		let widget = null;
+
+		let box = new Gtk.VBox({
+			margin: 5,
+			expand: true
+		});
+
+		let listStore = new Gtk.ListStore();
+		listStore.set_column_types([
+			GObject.TYPE_BOOLEAN,
+			GObject.TYPE_STRING,
+			GObject.TYPE_STRING
+		]);
+
+		let devices = [];
+		let devIndex = -1;
+
+		let loadStoreList = () =>
+		{
+			/* Restore empty devices list if someone messed it externally */
+			try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
+			catch(err) {
+				devices = [];
+				Settings.set_string('chromecast-devices', "[]");
+			}
+
+			listStore.clear();
+
+			devices.forEach(device =>
+			{
+				let devIp = device.ip || '';
+				let isAuto = (device.hasOwnProperty('name') && device.name.endsWith('.local'));
+
+				listStore.set(
+					listStore.append(),
+					[0, 1, 2], [isAuto, device.friendlyName, devIp]
+				);
+			});
+		}
+
+		loadStoreList();
+
+		let treeView = new Gtk.TreeView({
+			expand: true,
+			enable_search: false,
+			model: listStore
+		});
+
+		let local = new Gtk.TreeViewColumn({title: _("Auto")});
+		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 220});
+		let ip = new Gtk.TreeViewColumn({title: "IP", min_width: 140});
+
+		this.activeCell = new Gtk.CellRendererToggle({
+			activatable: false
+		});
+
+		this.normalCell = new Gtk.CellRendererText({
+			editable: true,
+			placeholder_text: _("None")
+		});
+
+		this.boldCell = new Gtk.CellRendererText({
+			editable: true,
+			weight: Pango.Weight.BOLD,
+			placeholder_text: _("Insert name")
+		});
+
+		this.normalCellSignal = this.normalCell.connect('edited', (cell, path, newText) =>
+		{
+			newText = newText.trim();
+
+			if(devices[path].ip !== newText)
+			{
+				devices[path].ip = newText;
+				Settings.set_string('chromecast-devices', JSON.stringify(devices));
+				loadStoreList();
+			}
+		});
+
+		this.boldCellSignal = this.boldCell.connect('edited', (cell, path, newText) =>
+		{
+			newText = newText.trim();
+
+			if(devices[path].friendlyName !== newText)
+			{
+				devices[path].name = newText;
+				devices[path].friendlyName = newText;
+				Settings.set_string('chromecast-devices', JSON.stringify(devices));
+				loadStoreList();
+			}
+		});
+
+		local.pack_start(this.activeCell, true);
+		friendlyName.pack_start(this.boldCell, true);
+		ip.pack_start(this.normalCell, true);
+
+		local.add_attribute(this.activeCell, "active", 0);
+		friendlyName.add_attribute(this.boldCell, "text", 1);
+		ip.add_attribute(this.normalCell, "text", 2);
+
+		treeView.insert_column(local, 0);
+		treeView.insert_column(friendlyName, 1);
+		treeView.insert_column(ip, 2);
+
+		box.pack_start(treeView, true, true, 0);
+
+		this.treeSelection = treeView.get_selection();
+		this.treeSelectionSignal = this.treeSelection.connect('changed', () =>
+		{
+			let [isSelected, model, iter] = this.treeSelection.get_selected();
+			devIndex = -1;
+
+			if(isSelected)
+			{
+				devIndex = listStore.get_string_from_iter(iter);
+				if(devIndex >= 0)
+				{
+					this.removeButton.set_sensitive(true);
+					return;
+				}
+			}
+
+			this.removeButton.set_sensitive(false);
+		});
+
+		let grid = new Gtk.Grid({
+			valign: Gtk.Align.CENTER,
+			halign: Gtk.Align.END,
+			margin: 5,
+			row_spacing: 6,
+			column_spacing: 4
+		});
+
+		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
+		this.addButtonSignal = this.addButton.connect('clicked', () =>
+		{
+			devices.push({ name: '', friendlyName: '', ip: '' });
+			Settings.set_string('chromecast-devices', JSON.stringify(devices));
+			loadStoreList();
+		});
+
+		this.removeButton = Gtk.Button.new_from_icon_name('list-remove-symbolic', 4);
+		this.removeButton.set_sensitive(false);
+		this.removeButtonSignal = this.removeButton.connect('clicked', () =>
+		{
+			if(devIndex >= 0)
+			{
+				devices.splice(devIndex, 1);
+				Settings.set_string('chromecast-devices', JSON.stringify(devices));
+				loadStoreList();
+			}
+		});
+
+		grid.attach(this.removeButton, 0, 0, 1, 1);
+		grid.attach(this.addButton, 1, 0, 1, 1);
+		box.pack_start(grid, false, false, 0);
+
+		this.get_content_area().add(box);
+		this.show_all();
+
+		this.destroy = () =>
+		{
+			this.treeSelection.disconnect(this.treeSelectionSignal);
+			this.normalCell.disconnect(this.normalCellSignal);
+			this.boldCell.disconnect(this.boldCellSignal);
+			this.addButton.disconnect(this.addButtonSignal);
+			this.removeButton.disconnect(this.removeButtonSignal);
+
+			super.destroy();
+		}
+	}
+}
+
+function scanDevices(widget, buttons)
+{
+	buttons.forEach(button => button.set_sensitive(false));
 
 	widget.remove_all();
 	/* TRANSLATORS: Shown when scan for Chromecast devices is running */
@@ -867,11 +1076,11 @@ function scanDevices(widget, button)
 		setDevices(widget);
 		/* Set Automatic as active */
 		widget.set_active(0);
-		button.set_sensitive(true);
+		buttons.forEach(button => button.set_sensitive(true));
 	});
 }
 
-function setDevices(widget, filePath)
+function setDevices(widget, filePath, activeText)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
@@ -880,16 +1089,49 @@ function setDevices(widget, filePath)
 	if(filePath && typeof filePath === 'string')
 		devices = Temp.readFromFile(filePath);
 	else
-		devices = JSON.parse(Settings.get_string('chromecast-devices'));
+	{
+		/* Restore empty devices list if someone messed it externally */
+		try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
+		catch(err) { Settings.set_string('chromecast-devices', "[]"); }
+	}
 
 	if(Array.isArray(devices))
 	{
+		let foundActive = false;
+		let appendIndex = 0;
+		let appendArray = [];
+
 		devices.forEach(device =>
 		{
-			let value = (device.name) ? device.name : device;
-			let text = (device.friendlyName) ? device.friendlyName : device;
-			widget.append(value, text);
+			if(typeof device === 'object')
+			{
+				let value = (device.name) ? device.name : null;
+				let text = (device.friendlyName) ? device.friendlyName : null;
+
+				if(value && text && !appendArray.includes(value))
+				{
+					if(!device.name.endsWith('.local') && !device.ip)
+						return;
+
+					widget.append(value, text);
+					appendArray.push(value);
+					appendIndex++;
+
+					if(!foundActive && activeText && activeText === text)
+					{
+						widget.set_active(appendIndex);
+						foundActive = true;
+					}
+				}
+			}
+			else
+			{
+				widget.append(device, device);
+			}
 		});
+
+		if(activeText && !foundActive)
+			widget.set_active(0);
 	}
 }
 
