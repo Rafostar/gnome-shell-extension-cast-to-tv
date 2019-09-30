@@ -481,10 +481,8 @@ class OtherSettings extends Gtk.Grid
 		label = new SettingLabel(_("Hardware acceleration"));
 		widget = new Gtk.ComboBoxText({halign:Gtk.Align.END});
 		widget.append('none', _("None"));
-		/* TRANSLATORS: Should remain as VAAPI unless you use different alphabet */
-		widget.append('vaapi', _("VAAPI"));
-		/* TRANSLATORS: Should remain as NVENC unless you use different alphabet */
-		widget.append('nvenc', _("NVENC"));
+		widget.append('vaapi', "VAAPI");
+		widget.append('nvenc', "NVENC");
 		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		this.attach(label, 0, 1, 1, 1);
 		this.attach(widget, 1, 1, 1, 1);
@@ -933,7 +931,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		});
 
 		let local = new Gtk.TreeViewColumn({title: _("Auto")});
-		let friendlyName = new Gtk.TreeViewColumn({title: "Name", min_width: 220});
+		let friendlyName = new Gtk.TreeViewColumn({title: _("Name"), min_width: 220});
 		let ip = new Gtk.TreeViewColumn({title: "IP", min_width: 140});
 
 		this.activeCell = new Gtk.CellRendererToggle({
@@ -948,6 +946,7 @@ class ChromecastIpSettings extends Gtk.Dialog
 		this.boldCell = new Gtk.CellRendererText({
 			editable: true,
 			weight: Pango.Weight.BOLD,
+			/* TRANSLATORS: Text field temporary text */
 			placeholder_text: _("Insert name")
 		});
 
