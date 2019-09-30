@@ -21,6 +21,8 @@ var initType;
 
 exports.cast = function()
 {
+	remoteBusy = true;
+
 	clearPlayTimeout();
 	stopCastInterval();
 
