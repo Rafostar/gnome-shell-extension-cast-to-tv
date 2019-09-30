@@ -336,7 +336,7 @@ class ChromecastSettings extends Gtk.Grid
 
 		/* Label: Subtitles */
 		label = new SettingLabel(_("Subtitles"), true, true);
-		this.attach(label, 0, 3, 1, 1);
+		this.attach(label, 0, 2, 1, 1);
 
 		/* Font Family */
 		label = new SettingLabel(_("Font family"));
@@ -355,8 +355,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontGenericFamily = this.fontFamily.active_id;
 			setSubsConfig();
 		});
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(this.fontFamily, 1, 4, 1, 1);
+		this.attach(label, 0, 3, 1, 1);
+		this.attach(this.fontFamily, 1, 3, 1, 1);
 
 		/* Font Style */
 		label = new SettingLabel(_("Font style"));
@@ -371,8 +371,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontStyle = this.fontStyle.active_id;
 			setSubsConfig();
 		});
-		this.attach(label, 0, 5, 1, 1);
-		this.attach(this.fontStyle, 1, 5, 1, 1);
+		this.attach(label, 0, 4, 1, 1);
+		this.attach(this.fontStyle, 1, 4, 1, 1);
 
 		/* Subtitles Scale */
 		label = new SettingLabel(_("Scale factor"));
@@ -386,8 +386,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
 			setSubsConfig();
 		});
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(this.scaleButton, 1, 6, 1, 1);
+		this.attach(label, 0, 5, 1, 1);
+		this.attach(this.scaleButton, 1, 5, 1, 1);
 
 		/* Font Color */
 		label = new SettingLabel(_("Font color"));
@@ -399,8 +399,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
 			setSubsConfig();
 		});
-		this.attach(label, 0, 7, 1, 1);
-		this.attach(this.fontColor, 1, 7, 1, 1);
+		this.attach(label, 0, 6, 1, 1);
+		this.attach(this.fontColor, 1, 6, 1, 1);
 
 		/* Font Outline */
 		label = new SettingLabel(_("Font outline"));
@@ -430,8 +430,8 @@ class ChromecastSettings extends Gtk.Grid
 		});
 		box.pack_end(this.edgeColor, false, false, 0);
 		box.pack_end(this.outlineSwitch, false, false, 8);
-		this.attach(label, 0, 8, 1, 1);
-		this.attach(box, 1, 8, 1, 1);
+		this.attach(label, 0, 7, 1, 1);
+		this.attach(box, 1, 7, 1, 1);
 
 		/* Background color */
 		label = new SettingLabel(_("Background color"));
@@ -443,8 +443,8 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
 			setSubsConfig();
 		});
-		this.attach(label, 0, 9, 1, 1);
-		this.attach(this.bgColor, 1, 9, 1, 1);
+		this.attach(label, 0, 8, 1, 1);
+		this.attach(this.bgColor, 1, 8, 1, 1);
 
 		this.destroy = () =>
 		{
