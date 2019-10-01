@@ -13,6 +13,9 @@ var addons = require('./addons-importer');
 var shared = require('../shared');
 var remote = require(shared.remotePath);
 
+var watcherReady = false;
+var watcherError = false;
+
 var configTimeout;
 var playlistTimeout;
 var selectionTimeout;
@@ -76,6 +79,15 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 	}
 });
 
+watcher.once('ready', () => watcherReady = true);
+watcher.once('error', onWatcherError);
+
+function onWatcherError(err)
+{
+	watcherError = true;
+	exports.shutDown(err);
+}
+
 exports.shutDown = function(err)
 {
 	if(err) console.error(err);
@@ -86,11 +98,11 @@ exports.shutDown = function(err)
 	debug('Closing node server');
 	closeAddon();
 
-	watcher.close();
-	debug('Closed file watcher');
-
 	var finish = () =>
 	{
+		watcher.close();
+		debug('Closed file watcher');
+
 		gnome.showMenu(false);
 		debug('Removed top bar indicator');
 
@@ -103,6 +115,12 @@ exports.shutDown = function(err)
 		process.exit();
 	}
 
+	var closeWatcher = () =>
+	{
+		if(watcherReady || watcherError) finish();
+		else watcher.once('ready', finish);
+	}
+
 	if(gnome.isRemote())
 	{
 		gnome.showRemote(false);
@@ -111,13 +129,13 @@ exports.shutDown = function(err)
 		setTimeout(() =>
 		{
 			/* Remote might be reshown before timeout executes */
-			if(gnome.isRemote()) gnome.showRemote(false);
-			finish();
+			gnome.showRemote(false);
+			closeWatcher();
 		}, 3000);
 	}
 	else
 	{
-		finish();
+		closeWatcher();
 	}
 }
 
