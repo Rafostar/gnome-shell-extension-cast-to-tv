@@ -3,17 +3,27 @@ var path = require('path');
 var { spawn, spawnSync } = require('child_process');
 var debug = require('debug')('gnome');
 
-const schemaDir = path.join(__dirname + '/../schemas');
-const isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
-debug(`Local setting schema available: ${isSchema}`);
+var schemaName = 'org.gnome.shell.extensions.cast-to-tv';
+var schemaDir = path.join(__dirname + '/../schemas');
+var isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
+debug(`Local settings schema available: ${isSchema}`);
 
 var isRemoteVisible = null;
 
 var gnome =
 {
+	loadSchema: function(customName, customPath)
+	{
+		schemaName = customName;
+		schemaDir = customPath;
+
+		isSchema = fs.existsSync(`${customPath}/gschemas.compiled`);
+		debug(`Custom settings schema available: ${isSchema}`);
+	},
+
 	setSetting: function(setting, value)
 	{
-		var args = ['set', 'org.gnome.shell.extensions.cast-to-tv', setting, value];
+		var args = ['set', schemaName, setting, value];
 		if(isSchema) args.unshift('--schemadir', schemaDir);
 
 		debug(`Set ${setting}: ${value}`);
@@ -22,7 +32,7 @@ var gnome =
 
 	getSetting: function(setting)
 	{
-		var args = ['get', 'org.gnome.shell.extensions.cast-to-tv', setting];
+		var args = ['get', schemaName, setting];
 		if(isSchema) args.unshift('--schemadir', schemaDir);
 
 		var gsettings = spawnSync('gsettings', args);
