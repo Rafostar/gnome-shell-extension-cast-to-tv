@@ -103,7 +103,9 @@ exports.shutDown = function(err)
 		watcher.close();
 		debug('Closed file watcher');
 
-		gnome.showMenu(false);
+		/* Hide top bar menu cast functions if user closed app (while extension enabled).
+		Otherwise app will retry and eventually hide it from server-monitor */
+		if(!err) gnome.showMenu(false);
 		debug('Removed top bar indicator');
 
 		fs.writeFileSync(shared.selectionPath,
