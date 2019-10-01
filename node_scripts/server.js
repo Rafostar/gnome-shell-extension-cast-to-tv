@@ -32,7 +32,8 @@ function checkMessagePage(req, res)
 {
 	var showMessage;
 
-	if(	bridge.config.receiverType != 'other'
+	if(
+		bridge.config.receiverType != 'other'
 		|| !bridge.selection.filePath
 		|| encode.streamProcess
 		|| socket.activeConnections > 0
@@ -105,12 +106,10 @@ app.get('/cast', function(req, res)
 				break;
 			default:
 				webcreator.encodedStream(req, res);
+				break;
 		}
 
-		req.on('close', function()
-		{
-			encode.closeStreamProcess();
-		});
+		req.once('close', encode.closeStreamProcess);
 	}
 });
 
