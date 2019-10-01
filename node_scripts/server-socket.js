@@ -159,11 +159,18 @@ function checkClients()
 
 function sendMessage()
 {
-	if(bridge.config.receiverType == 'chromecast') websocket.emit('message-refresh', gettext.translate(messages.receiverChromecast));
-	else if(bridge.config.receiverType == 'playercast') websocket.emit('message-refresh', gettext.translate(messages.receiverPlayercast));
-	else if(!bridge.selection.filePath) websocket.emit('message-refresh', gettext.translate(messages.noMedia));
-	else if(encode.streamProcess) websocket.emit('message-refresh', gettext.translate(messages.streamActive));
-	else if(exports.activeConnections > 1) websocket.emit('message-refresh', gettext.translate(messages.connectLimit));
-	else if(exports.activeConnections == 1) exports.activeConnections--;
-	else websocket.emit('message-clear');
+	if(bridge.config.receiverType == 'chromecast')
+		websocket.emit('message-refresh', gettext.translate(messages.receiverChromecast));
+	else if(bridge.config.receiverType == 'playercast')
+		websocket.emit('message-refresh', gettext.translate(messages.receiverPlayercast));
+	else if(!bridge.selection.filePath)
+		websocket.emit('message-refresh', gettext.translate(messages.noMedia));
+	else if(encode.streamProcess)
+		websocket.emit('message-refresh', gettext.translate(messages.streamActive));
+	else if(exports.activeConnections > 1)
+		websocket.emit('message-refresh', gettext.translate(messages.connectLimit));
+	else if(exports.activeConnections == 1)
+		exports.activeConnections--;
+	else
+		websocket.emit('message-clear');
 }

@@ -43,7 +43,7 @@ function createEncodeProcess(encodeOpts)
 	exports.streamProcess.once('close', (code) =>
 	{
 		if(code && !notifyError)
-			notify('Cast to TV', messages.ffmpegError + " " + bridge.selection.filePath);
+			notify('Cast to TV', messages.ffmpegError, bridge.selection.filePath);
 
 		exports.streamProcess = null;
 	});

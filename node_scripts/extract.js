@@ -53,7 +53,7 @@ exports.analyzeFile = function()
 		})
 		.catch(err => {
 			if(err.message == 'FFprobe process error')
-				notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
+				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
 			else if(err.message == 'FFprobe exec error')
 				notify('Cast to TV', messages.ffprobePath);
 
@@ -78,7 +78,7 @@ exports.checkCoverIncluded = function(cb)
 		})
 		.catch(err => {
 			if(err.message == 'FFprobe process error')
-				notify('Cast to TV', messages.ffprobeError + " " + bridge.selection.filePath);
+				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
 			else if(err.message == 'FFprobe exec error')
 				notify('Cast to TV', messages.ffprobePath);
 

@@ -8,7 +8,6 @@ var extract = require('./extract');
 var gnome = require('./gnome');
 var notify = require('./notify');
 var controller = require('./remote-controller');
-var gettext = require('./gettext');
 var messages = require('./messages');
 var shared = require('../shared');
 
@@ -486,17 +485,14 @@ function showIdleError()
 {
 	debug('Chromecast is IDLE due to ERROR!');
 
-	if(initType === 'LIVE')
-		notify('Chromecast', `${messages.chromecast.playError} ${bridge.selection.filePath}`);
-	else
-		notify('Chromecast', `${messages.chromecast.playError} ${bridge.selection.filePath}` +
-			'.\n' + `${messages.chromecast.tryAgain}`);
+	var info = (initType === 'LIVE') ? messages.chromecast.tryAgain : null;
+	notify('Chromecast', messages.chromecast.playError, bridge.selection.filePath, info);
 }
 
 function showTranslatedError(err, opts)
 {
 	var msg = err.message.toLowerCase();
-	var info = '';
+	var info = null;
 	debug(err);
 
 	opts = opts || {};
@@ -510,8 +506,8 @@ function showTranslatedError(err, opts)
 			notify('Chromecast', messages.chromecast.loadFailed);
 			break;
 		case 'connection timeout!':
-			if(opts.ip) info = '.\n' + messages.chromecast.verifyIp;
-			notify('Chromecast', messages.chromecast.connectFailed + info);
+			info = (opts.ip) ? messages.chromecast.verifyIp : null;
+			notify('Chromecast', messages.chromecast.connectFailed, null, info);
 			break;
 		default:
 			debug(`Unhandled message: ${msg}`);
