@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-10-02 12:50\n"
+"PO-Revision-Date: 2019-10-02 16:37\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -355,7 +355,7 @@ msgstr "Inne"
 
 #: prefs.js:804
 msgid "Add-ons"
-msgstr "Rozszerzenia"
+msgstr "Dodatki"
 
 #: prefs.js:809
 msgid "Modules"
