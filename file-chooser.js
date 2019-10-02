@@ -53,7 +53,7 @@ class fileChooser
 	_getTranscodeBox()
 	{
 		let box = new Gtk.Box({ spacing: 2 });
-		this.buttonConvert = new Gtk.CheckButton({ label: _("Transcode:") });
+		this.buttonConvert = new Gtk.CheckButton({ label: _("Transcode") + ':' });
 
 		this.comboBoxConvert = new Gtk.ComboBoxText();
 		this.comboBoxConvert.append('video', _("Video"));
