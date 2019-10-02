@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-10-02 11:49\n"
+"PO-Revision-Date: 2019-10-02 12:50\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -83,7 +83,7 @@ msgstr "Aggiungi a Playlist"
 
 #: file-chooser.js:56
 msgid "Transcode"
-msgstr ""
+msgstr "Transcodifica"
 
 #: file-chooser.js:61
 msgid "Video + Audio"
@@ -371,7 +371,7 @@ msgstr "Configurazione IP manuale"
 
 #: prefs.js:933
 msgid "Auto"
-msgstr "Automatico"
+msgstr "Auto"
 
 #: prefs.js:934
 msgid "Name"
