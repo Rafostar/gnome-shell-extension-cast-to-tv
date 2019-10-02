@@ -90,7 +90,8 @@ app.get('/cast', function(req, res)
 {
 	if(bridge.selection.addon)
 	{
-		bridge.addon.fileStream(req, res);
+		/* Send to add-on if available, otherwise ignore request */
+		if(bridge.addon) bridge.addon.fileStream(req, res);
 	}
 	else
 	{
