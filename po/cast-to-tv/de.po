@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-10-02 11:49\n"
+"PO-Revision-Date: 2019-10-02 12:50\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -65,7 +65,7 @@ msgstr "Cast aus"
 
 #: playlist.js:336
 msgid "Playlist"
-msgstr ""
+msgstr "Wiedergabeliste"
 
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:20
@@ -79,15 +79,15 @@ msgstr "Dateien wiedergeben"
 
 #: file-chooser.js:23
 msgid "Add to Playlist"
-msgstr ""
+msgstr "Zur Wiedergabeliste hinzufügen"
 
 #: file-chooser.js:56
 msgid "Transcode"
-msgstr ""
+msgstr "Umwandeln"
 
 #: file-chooser.js:61
 msgid "Video + Audio"
-msgstr ""
+msgstr "Video + Audio"
 
 #: file-chooser.js:131
 msgid "Cancel"
@@ -208,11 +208,11 @@ msgstr "Rückwärts/Vorwärts suchen (Sekunden)"
 
 #: prefs.js:236
 msgid "Media control buttons size"
-msgstr ""
+msgstr "Größe der Mediensteuerungs-Tasten"
 
 #: prefs.js:247
 msgid "Slider icon size"
-msgstr ""
+msgstr "Slider-Icon-Größe"
 
 #: prefs.js:258
 msgid "Unify sliders"
@@ -310,7 +310,7 @@ msgstr "Musikvisualisierung"
 
 #: prefs.js:549
 msgid "Nautilus/Nemo integration"
-msgstr ""
+msgstr "Nautilus/Nemo Integration"
 
 #: prefs.js:657
 msgid "Install npm modules"
@@ -367,20 +367,20 @@ msgstr "Über"
 
 #: prefs.js:876
 msgid "Manual IP Config"
-msgstr ""
+msgstr "Manuelle IP-Konfiguration"
 
 #: prefs.js:933
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 #: prefs.js:934
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #. TRANSLATORS: Text field temporary text
 #: prefs.js:950
 msgid "Insert name"
-msgstr ""
+msgstr "Neuen Namen eingeben"
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
 #: prefs.js:1065
@@ -448,11 +448,11 @@ msgstr "Fehler beim Laden der Datei"
 
 #: node_scripts/messages.js:25
 msgid "Could not connect to device"
-msgstr ""
+msgstr "Verbindung zum Server fehlgeschlagen"
 
 #: node_scripts/messages.js:26
 msgid "Verify device IP in extension preferences"
-msgstr ""
+msgstr "IP des Gerätes in Erweiterungseinstellungen überprüfen"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:28
