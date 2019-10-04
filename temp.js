@@ -1,46 +1,8 @@
 const GLib = imports.gi.GLib;
-const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Settings = Local.imports.helper.getSettings(Local.path, Local.metadata['settings-schema']);
 const shared = Local.imports.shared.module.exports;
-
-function writeToFile(path, contents)
-{
-	/* Write config data to temp file */
-	GLib.file_set_contents(path, JSON.stringify(contents, null, 1));
-}
-
-function readFromFile(path)
-{
-	/* Check if file exists (EXISTS = 16) */
-	let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);
-
-	if(fileExists)
-	{
-		/* Read config data from temp file */
-		let [readOk, readFile] = GLib.file_get_contents(path);
-
-		if(readOk)
-		{
-			let data;
-
-			if(readFile instanceof Uint8Array)
-			{
-				try { data = JSON.parse(ByteArray.toString(readFile)); }
-				catch(err) { data = null; }
-			}
-			else
-			{
-				try { data = JSON.parse(readFile); }
-				catch(err) { data = null; }
-			}
-
-			return data;
-		}
-	}
-
-	return null;
-}
+const { writeToFile } = Local.imports.helper;
 
 function setConfigFile()
 {

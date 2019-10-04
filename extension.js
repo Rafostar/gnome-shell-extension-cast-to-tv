@@ -51,8 +51,8 @@ function configCastRemote()
 	if(chromecastPlaying)
 	{
 		/* Update selection and list data (needed for skipping tracks) */
-		let selectionContents = Temp.readFromFile(shared.selectionPath);
-		let listContents = Temp.readFromFile(shared.listPath);
+		let selectionContents = Helper.readFromFile(shared.selectionPath);
+		let listContents = Helper.readFromFile(shared.listPath);
 		let trackID;
 
 		if(listContents && selectionContents) trackID = listContents.indexOf(selectionContents.filePath) + 1;
@@ -182,7 +182,7 @@ function updateTempConfig(schemaKey, valueType)
 	if(!configContents.ffprobePath)
 		configContents.ffprobePath = '/usr/bin/ffprobe';
 
-	Temp.writeToFile(shared.configPath, configContents);
+	Helper.writeToFile(shared.configPath, configContents);
 }
 
 function changeSeekTime()

@@ -6,6 +6,7 @@ const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 const { AltPopupImage } = Local.imports.compat;
 const Temp = Local.imports.temp;
+const Helper = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
 
 const PLAYLIST_MENU_ICON = 'view-list-symbolic';
@@ -407,11 +408,11 @@ class CastPlaylistItem extends AltPopupImage
 			}
 			else
 			{
-				let selectionContents = Temp.readFromFile(shared.selectionPath);
+				let selectionContents = Helper.readFromFile(shared.selectionPath);
 				if(selectionContents)
 				{
 					selectionContents.filePath = this.filepath;
-					Temp.writeToFile(shared.selectionPath, selectionContents);
+					Helper.writeToFile(shared.selectionPath, selectionContents);
 				}
 			}
 		}

@@ -7,7 +7,6 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel } = Local.imports.prefs_shared;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path, Local.metadata['settings-schema']);
-const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
@@ -1086,7 +1085,7 @@ function setDevices(widget, filePath, activeText)
 	let devices = [];
 
 	if(filePath && typeof filePath === 'string')
-		devices = Temp.readFromFile(filePath);
+		devices = Helper.readFromFile(filePath);
 	else
 	{
 		/* Restore empty devices list if someone messed it externally */

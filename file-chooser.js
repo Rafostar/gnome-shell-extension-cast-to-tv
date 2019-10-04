@@ -107,7 +107,7 @@ class fileChooser
 
 	_openDialog()
 	{
-		let configContents = this._readFromFile(shared.configPath);
+		let configContents = Helper.readFromFile(shared.configPath);
 		if(!configContents || !streamType) return;
 
 		let selectionContents = {
@@ -211,16 +211,16 @@ class fileChooser
 		let setTempFiles = () =>
 		{
 			/* Set playback list */
-			GLib.file_set_contents(shared.listPath, JSON.stringify(filesList, null, 1));
+			Helper.writeToFile(shared.listPath, filesList);
 
 			/* Save selection to file */
-			GLib.file_set_contents(shared.selectionPath, JSON.stringify(selectionContents, null, 1));
+			Helper.writeToFile(shared.selectionPath, selectionContents);
 		}
 
 		/* Playlist does not support external subtitles */
 		if(this.playlistAllowed)
 		{
-			let playlist = this._readFromFile(shared.listPath);
+			let playlist = Helper.readFromFile(shared.listPath);
 			if(!playlist) return setTempFiles();
 
 			filesList.forEach(filepath =>
@@ -229,7 +229,7 @@ class fileChooser
 					playlist.push(filepath);
 			});
 
-			GLib.file_set_contents(shared.listPath, JSON.stringify(playlist, null, 1));
+			Helper.writeToFile(shared.listPath, playlist);
 		}
 		else
 			setTempFiles();
@@ -261,38 +261,6 @@ class fileChooser
 		else return null;
 	}
 
-	_readFromFile(path)
-	{
-		/* Check if file exists (EXISTS = 16) */
-		let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);
-
-		if(fileExists)
-		{
-			/* Read config data from temp file */
-			let [readOk, readFile] = GLib.file_get_contents(path);
-
-			if(readOk)
-			{
-				let data;
-
-				if(readFile instanceof Uint8Array)
-				{
-					try { data = JSON.parse(ByteArray.toString(readFile)); }
-					catch(err) { data = null; }
-				}
-				else
-				{
-					try { data = JSON.parse(readFile); }
-					catch(err) { data = null; }
-				}
-
-				return data;
-			}
-		}
-
-		return null;
-	}
-
 	_getAddPlaylistAllowed()
 	{
 		let allowed = false;
@@ -305,9 +273,10 @@ class fileChooser
 			}
 			else
 			{
-				let preSelection = this._readFromFile(shared.selectionPath);
+				let preSelection = Helper.readFromFile(shared.selectionPath);
 
-				if(	preSelection
+				if(
+					preSelection
 					&& preSelection.streamType === streamType
 					&& !preSelection.transcodeAudio
 				)

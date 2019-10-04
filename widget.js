@@ -8,6 +8,7 @@ const _ = Gettext.gettext;
 const { AltPopupBase } = Local.imports.compat;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
+const Helper = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
 
 const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
@@ -206,7 +207,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.positionSlider.delay = 0;
 			this.positionSlider.isVolume ^= true;
 
-			let statusContents = Temp.readFromFile(shared.statusPath);
+			let statusContents = Helper.readFromFile(shared.statusPath);
 
 			if(this.positionSlider.isVolume)
 			{
@@ -309,7 +310,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				return;
 			}
 
-			let statusContents = Temp.readFromFile(shared.statusPath);
+			let statusContents = Helper.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
 				if(
