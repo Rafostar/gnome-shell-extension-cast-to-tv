@@ -241,8 +241,9 @@ function updateSelection()
 						exports.config.playercastName : socket.playercasts[0];
 
 					if(
-						exports.selection.streamType == 'MUSIC'
+						exports.selection.streamType === 'MUSIC'
 						&& !exports.config.musicVisualizer
+						&& !exports.addon
 					) {
 						extract.checkCoverIncluded(isIncluded =>
 						{
