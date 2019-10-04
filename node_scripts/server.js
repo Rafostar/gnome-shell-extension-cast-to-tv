@@ -91,15 +91,18 @@ app.get('/cast', function(req, res)
 	if(bridge.selection.addon)
 	{
 		/* Send to add-on if available, otherwise ignore request */
-		if(bridge.addon) bridge.addon.fileStream(req, res);
+		if(bridge.addon)
+			bridge.addon.fileStream(req, res, bridge.selection, bridge.config);
 	}
 	else
 	{
 		switch(bridge.selection.streamType)
 		{
 			case 'MUSIC':
-				if(bridge.config.musicVisualizer) webcreator.encodedStream(req, res);
-				else webcreator.fileStream(req, res);
+				if(bridge.config.musicVisualizer)
+					webcreator.encodedStream(req, res);
+				else
+					webcreator.fileStream(req, res);
 				break;
 			case 'VIDEO':
 			case 'PICTURE':
@@ -116,14 +119,18 @@ app.get('/cast', function(req, res)
 
 app.get('/subs(webplayer)?', function(req, res)
 {
-	if(bridge.selection.addon && bridge.selection.subsSrc) bridge.addon.subsStream(req, res);
-	else webcreator.subsStream(req, res);
+	if(bridge.selection.addon && bridge.selection.subsSrc)
+		bridge.addon.subsStream(req, res, bridge.selection, bridge.config);
+	else
+		webcreator.subsStream(req, res);
 });
 
 app.get('/cover', function(req, res)
 {
-	if(bridge.selection.addon && bridge.selection.coverSrc) bridge.addon.coverStream(req, res);
-	else webcreator.coverStream(req, res);
+	if(bridge.selection.addon && bridge.selection.coverSrc)
+		bridge.addon.coverStream(req, res, bridge.selection, bridge.config);
+	else
+		webcreator.coverStream(req, res);
 });
 
 app.get('/webplayer/webconfig.css', function(req, res)
