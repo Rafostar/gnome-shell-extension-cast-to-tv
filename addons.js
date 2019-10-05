@@ -13,7 +13,8 @@ function findCastToTv()
 
 	while(index < menuItems.length)
 	{
-		if(	menuItems[index].hasOwnProperty('extensionId')
+		if(
+			menuItems[index].hasOwnProperty('extensionId')
 			&& menuItems[index].extensionId === 'cast-to-tv'
 		) {
 			return menuItems[index];
@@ -38,8 +39,8 @@ function enableAddon(addonName, Widget, delay)
 {
 	if(!addonName || !Widget) return;
 
-	if(isNaN(delay))
-		delay = 1000;
+	if(!delay || isNaN(delay))
+		delay = 2500;
 
 	if(!timeouts[addonName])
 	{
@@ -54,7 +55,8 @@ function enableAddon(addonName, Widget, delay)
 				addonMenuItems[addonName] = new Widget.addonMenuItem();
 				castMenu.castSubMenu.menu.addMenuItem(addonMenuItems[addonName]);
 
-				if(	castMenu.hasOwnProperty('isServiceEnabled')
+				if(
+					castMenu.hasOwnProperty('isServiceEnabled')
 					&& castMenu.isServiceEnabled === false
 				) {
 					if(addonMenuItems[addonName].hasOwnProperty('actor'))
