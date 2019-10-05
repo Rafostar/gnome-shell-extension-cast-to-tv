@@ -6,7 +6,7 @@
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/Rafostar/gnome-shell-extension-cast-to-tv.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2FRafostar%2Fgnome-shell-extension-cast-to-tv)
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/Cast-to-TV.png" width="80%" height="80%">
+<img src="https://raw.githubusercontent.com/wiki/Rafostar/gnome-shell-extension-cast-to-tv/images/promo.gif">
 </p>
 
 ## Features
@@ -18,15 +18,16 @@
 * Chromecast remote controller (control playback from gnome top bar)
 * Play on other device using integrated web player and change content without refreshing web page
 * Transcode videos to supported format on the fly
-* Optional VAAPI video encoding for low cpu usage
+* Optional VAAPI/NVENC video encoding for low cpu usage
 * Stream music with visualizations (requires fast cpu)
 * Nautilus right click menu integration
+* Media playlist with "Drag and Drop" support
 
 [Playercast](https://rafostar.github.io/playercast) app turns your media player on any other Linux device (e.g. HTPC, Raspberry Pi) into a media receiver that works similarly to Chromecast.
 
-Expand extension functionality through Add-ons (experimental):
+Expand extension functionality through Add-ons:
 * [Links Add-on](https://github.com/Rafostar/cast-to-tv-links-addon) - cast media from web pages
-* [Desktop Add-on](https://github.com/Rafostar/cast-to-tv-desktop-addon) - desktop streaming (early development stage - testers are welcome)
+* [Desktop Add-on](https://github.com/Rafostar/cast-to-tv-desktop-addon) - desktop streaming (experimental on early development stage)
 
 ## Download
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
@@ -47,12 +48,10 @@ Please make sure you have all of the above installed.
 
 ### Optional:
 * [nautilus-python](https://github.com/GNOME/nautilus-python) (for nautilus integration)
-* [cast-to-tv-config](https://github.com/Rafostar/cast-to-tv-config) (manual Chromecast IP config tool - use when having problems with devices detection)
 
-Nautilus extension is included in Cast to TV (since version 9).<br>
-Alternatively you can manually install [nautilus-cast](https://github.com/rendyanthony/nautilus-cast) on which the included extension is based (please note that they are not the same).
+Nautilus extension is included in Cast to TV (since version 9).
 
-You can optionally use hardware VAAPI encoding. This of course requires working VAAPI drivers. More info and how to install VAAPI [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
+You can optionally use hardware VAAPI or NVENC encoding. This of course requires working drivers. More info and how to install hardware acceleration [here](https://wiki.archlinux.org/index.php/Hardware_video_acceleration).
 
 ## Installation
 
@@ -67,29 +66,24 @@ Update it and clear bash cache:
 sudo npm install -g npm
 hash -r
 ```
-Nautilus integration (optional):
-```
-sudo apt install python-nautilus python3-gi
-```
 
 ### Fedora
 Having enabled rpm fusion repos run:
 ```
 sudo dnf install npm nodejs ffmpeg
 ```
-Nautilus integration (optional):
-```
-sudo dnf install nautilus-python pygobject3 python3-gobject
-```
 
-### Arch Linux
+### Arch
 ```
 sudo pacman -S npm nodejs ffmpeg
 ```
-Nautilus integration (optional):
-```
-sudo pacman -S python-nautilus python-gobject2 python-gobject
-```
+
+### Nautilus integration (optional)
+* Ubuntu: `sudo apt install python-nautilus python3-gi`
+* Fedora: `sudo dnf install nautilus-python python3-gobject`
+* Arch: `sudo pacman -S python-nautilus python-gobject`
+
+Older Fedora releases also require `pygobject3`.
 
 ## Install npm dependencies
 **Before using extension** you also **must** install some additional npm packages.
