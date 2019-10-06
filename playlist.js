@@ -3,11 +3,11 @@ const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
-const _ = Gettext.gettext;
 const { AltPopupImage } = Local.imports.compat;
 const Temp = Local.imports.temp;
 const Helper = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
+const _ = Gettext.gettext;
 
 const PLAYLIST_MENU_ICON = 'view-list-symbolic';
 const PLAYLIST_ITEM_INACTIVE_ICON = 'open-menu-symbolic';

@@ -1,12 +1,13 @@
 const { Gio, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
-const extensionName = 'cast-to-tv@rafostar.github.com';
-const localPath = GLib.get_current_dir();
 const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
 
-imports.searchPath.unshift(localPath);
+const EXTENSION_NAME = 'cast-to-tv@rafostar.github.com';
+const LOCAL_PATH = GLib.get_current_dir();
+
+imports.searchPath.unshift(LOCAL_PATH);
 const castSettings = imports.helper.getSettings(
-	localPath, 'org.gnome.shell.extensions.cast-to-tv'
+	LOCAL_PATH, 'org.gnome.shell.extensions.cast-to-tv'
 );
 imports.searchPath.shift();
 
@@ -46,7 +47,7 @@ class ServerMonitor
 			return;
 		}
 
-		let proc = Gio.Subprocess.new([nodePath, localPath + '/node_scripts/server'], Gio.SubprocessFlags.NONE);
+		let proc = Gio.Subprocess.new([nodePath, LOCAL_PATH + '/node_scripts/server'], Gio.SubprocessFlags.NONE);
 		print('Cast to TV: service started');
 
 		proc.wait_async(null, () =>
@@ -88,7 +89,7 @@ class ServerMonitor
 	stopServer()
 	{
 		persistent = false;
-		GLib.spawn_command_line_sync(`pkill -SIGINT -f ${localPath}/node_scripts/server`);
+		GLib.spawn_command_line_sync(`pkill -SIGINT -f ${LOCAL_PATH}/node_scripts/server`);
 	}
 
 	_isExtensionEnabled()
@@ -97,7 +98,7 @@ class ServerMonitor
 		if(!allDisabled)
 		{
 			let enabledExtensions = Settings.get_strv('enabled-extensions');
-			if(enabledExtensions.includes(extensionName))
+			if(enabledExtensions.includes(EXTENSION_NAME))
 			{
 				return true;
 			}
@@ -115,13 +116,13 @@ class ServerMonitor
 		if(out_fd instanceof Uint8Array) outStr = ByteArray.toString(out_fd);
 		else outStr = out_fd.toString();
 
-		if(res && outStr.includes(extensionName) && outStr.includes('server')) return true;
+		if(res && outStr.includes(EXTENSION_NAME) && outStr.includes('server')) return true;
 		else return false;
 	}
 
 	_checkModules(sourceDir)
 	{
-		sourceDir = sourceDir || localPath;
+		sourceDir = sourceDir || LOCAL_PATH;
 
 		let modulesPath = sourceDir + '/node_modules';
 
@@ -153,7 +154,7 @@ class ServerMonitor
 
 	_checkAddons()
 	{
-		let extPath = localPath.substring(0, localPath.lastIndexOf('/'));
+		let extPath = LOCAL_PATH.substring(0, LOCAL_PATH.lastIndexOf('/'));
 		let extDir = Gio.File.new_for_path(extPath);
 		let dirEnum = extDir.enumerate_children('standard::name,standard::type', 0, null);
 		let addons = [];

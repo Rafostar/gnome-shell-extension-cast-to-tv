@@ -10,13 +10,14 @@ const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
-const _ = Gettext.gettext;
 const Widget = Local.imports.widget;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path, Local.metadata['settings-schema']);
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
-const extensionsPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
+const _ = Gettext.gettext;
+
+const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
 
 let castMenu;
 let remoteMenu;
@@ -245,7 +246,7 @@ function enableService(enable)
 	{
 		/* Stop all apps running inside extension and add-ons folders */
 		GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path + '|' +
-			extensionsPath + '/cast-to-tv-.*-addon@rafostar.github.com');
+			EXTENSIONS_PATH + '/cast-to-tv-.*-addon@rafostar.github.com');
 	}
 }
 

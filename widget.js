@@ -4,12 +4,12 @@ const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
-const _ = Gettext.gettext;
 const { AltPopupBase } = Local.imports.compat;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const Helper = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
+const _ = Gettext.gettext;
 
 const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
 const ICON_NAME = 'tv-symbolic';

@@ -1,8 +1,8 @@
 const GLib = imports.gi.GLib;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Settings = Local.imports.helper.getSettings(Local.path, Local.metadata['settings-schema']);
-const shared = Local.imports.shared.module.exports;
 const { writeToFile } = Local.imports.helper;
+const shared = Local.imports.shared.module.exports;
 
 function setConfigFile()
 {
