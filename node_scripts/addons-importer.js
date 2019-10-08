@@ -12,7 +12,7 @@ fs.readdir(extensionsPath, (err, exensions) =>
 {
 	exensions.forEach(folder =>
 	{
-		if(folder.includes('cast-to-tv') && folder.includes('addon'))
+		if(folder.startsWith('cast-to-tv') && folder.includes('addon@'))
 		{
 			var addonPath = path.join(extensionsPath, folder, 'node_scripts/addon');
 			var addonName = folder.substring(11, folder.lastIndexOf('-'));

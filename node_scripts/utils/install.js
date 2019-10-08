@@ -11,7 +11,7 @@ var extensions = fs.readdirSync(extensionsPath);
 
 extensions.forEach(folder =>
 {
-	if(folder.includes('cast-to-tv') && folder.includes('addon'))
+	if(folder.startsWith('cast-to-tv') && folder.includes('addon@'))
 	{
 		var addonFolder = path.join(extensionsPath, folder);
 		var addonName = folder.substring(11, folder.lastIndexOf('-'));

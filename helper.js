@@ -48,7 +48,7 @@ function closeOtherApps(mainPath, extPath, totalKill)
 
 	/* Close other possible opened extension windows */
 	GLib.spawn_command_line_async('pkill -SIGINT -f ' + mainPath + addKill + '|' +
-		extPath + '/cast-to-tv-.*-addon@rafostar.github.com/app');
+		extPath + '/cast-to-tv-.*-addon@.*/app');
 }
 
 function startApp(appPath, appName, args)

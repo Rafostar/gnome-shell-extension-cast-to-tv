@@ -603,7 +603,7 @@ class AddonsSettings extends Gtk.Notebook
 		{
 			let dirName = info.get_name();
 
-			if(dirName.includes('cast-to-tv') && dirName.includes('addon'))
+			if(dirName.startsWith('cast-to-tv') && dirName.includes('addon@'))
 			{
 				addons.push(dirName);
 			}
