@@ -42,6 +42,27 @@ function initTranslations(localPath, gettextDomain)
 	}
 }
 
+function closeOtherApps(mainPath, extPath, totalKill)
+{
+	let addKill = (totalKill) ? '' : '/file-chooser';
+
+	/* Close other possible opened extension windows */
+	GLib.spawn_command_line_async('pkill -SIGINT -f ' + mainPath + addKill + '|' +
+		extPath + '/cast-to-tv-.*-addon@rafostar.github.com/app');
+}
+
+function startApp(appPath, appName, args)
+{
+	appName = appName || 'app';
+	let spawnArgs = ['/usr/bin/gjs', appPath + '/' + appName + '.js'];
+
+	if(args && Array.isArray(args))
+		args.forEach(arg => spawnArgs.push(arg));
+
+	/* To not freeze gnome shell app needs to be run as separate process */
+	GLib.spawn_async(appPath, spawnArgs, null, 0, null);
+}
+
 function readFromFile(path)
 {
 	let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);

@@ -237,17 +237,8 @@ function changeServiceEnabled()
 
 function enableService(enable)
 {
-	if(enable)
-	{
-		/* Start server monitoring service */
-		GLib.spawn_async(Local.path, ['/usr/bin/gjs', Local.path + '/server-monitor.js'], null, 0, null);
-	}
-	else
-	{
-		/* Stop all apps running inside extension and add-ons folders */
-		GLib.spawn_command_line_async('pkill -SIGINT -f ' + Local.path + '|' +
-			EXTENSIONS_PATH + '/cast-to-tv-.*-addon@rafostar.github.com');
-	}
+	if(enable) Helper.startApp(Local.path, 'server-monitor');
+	else Helper.closeOtherApps(Local.path, EXTENSIONS_PATH, true);
 }
 
 function setIndicator(enable)
@@ -348,6 +339,7 @@ function disable()
 {
 	/* Disconnect signals from settings */
 	signals.forEach(signal => Settings.disconnect(signal));
+	signals = null;
 
 	/* Disconnect other signals */
 	castMenu.serviceMenuItem.disconnect(serviceSignal);
