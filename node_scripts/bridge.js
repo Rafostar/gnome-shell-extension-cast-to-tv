@@ -204,7 +204,7 @@ function updateSelection()
 	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
 
 	/* Close addon before selecting a new one */
-	closeAddon();
+	closeAddon(exports.selection, exports.config);
 
 	if(exports.selection.addon)
 	{
@@ -339,11 +339,11 @@ function setProcesses()
 	}
 }
 
-function closeAddon()
+function closeAddon(selection, config)
 {
 	if(exports.addon)
 	{
-		exports.addon.closeStream();
+		exports.addon.closeStream(selection, config);
 		exports.addon = null;
 		debug('Closed Add-on');
 	}
