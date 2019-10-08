@@ -35,17 +35,14 @@ function setLastMenuItem(extMenu, item, endOffset)
 	extMenu.castSubMenu.menu.moveMenuItem(item, lastItemIndex - endOffset);
 }
 
-function enableAddon(addonName, Widget, delay)
+function enableAddon(addonName, Widget)
 {
 	if(!addonName || !Widget) return;
-
-	if(!delay || isNaN(delay))
-		delay = 2500;
 
 	if(!timeouts[addonName])
 	{
 		/* Give main extension time to finish startup */
-		timeouts[addonName] = GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () =>
+		timeouts[addonName] = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2500, () =>
 		{
 			timeouts[addonName] = null;
 
@@ -53,7 +50,28 @@ function enableAddon(addonName, Widget, delay)
 			if(castMenu)
 			{
 				addonMenuItems[addonName] = new Widget.addonMenuItem();
-				castMenu.castSubMenu.menu.addMenuItem(addonMenuItems[addonName]);
+
+				let castMenuItems = castMenu.castSubMenu.menu._getMenuItems();
+				let insertIndex = castMenuItems.length - 1;
+
+				let prevMenuItem = castMenuItems.find(item =>
+				{
+					if(
+						item.hasOwnProperty('isDesktopStream')
+						|| (castMenuItems.indexOf(item) > 2
+						&& addonMenuItems[addonName].label.text < item.label.text)
+					) {
+						return true;
+					}
+
+					return false;
+				});
+
+				/* Desktop streaming should be last on the list (experimental feature) */
+				if(prevMenuItem && !addonMenuItems[addonName].hasOwnProperty('isDesktopStream'))
+					insertIndex = castMenuItems.indexOf(prevMenuItem);
+
+				castMenu.castSubMenu.menu.addMenuItem(addonMenuItems[addonName], insertIndex);
 
 				if(
 					castMenu.hasOwnProperty('isServiceEnabled')
