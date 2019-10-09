@@ -42,8 +42,9 @@ function initTranslations(localPath, gettextDomain)
 	}
 }
 
-function closeOtherApps(mainPath, extPath, totalKill)
+function closeOtherApps(mainPath, totalKill)
 {
+	let extPath = mainPath.substring(0, mainPath.lastIndexOf('/'));
 	let addKill = (totalKill) ? '' : '/file-chooser';
 
 	/* Close other possible opened extension windows */

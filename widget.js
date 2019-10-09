@@ -49,7 +49,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>
 		{
-			Helper.closeOtherApps(Local.path, EXTENSIONS_PATH);
+			Helper.closeOtherApps(Local.path);
 			Helper.startApp(Local.path, 'file-chooser', [streamType]);
 		}
 
