@@ -1,7 +1,6 @@
 imports.gi.versions.Gtk = '3.0';
 
 const { Gtk, GLib } = imports.gi;
-const ByteArray = imports.byteArray;
 const Gettext = imports.gettext.domain('cast-to-tv');
 
 const LOCAL_PATH = GLib.get_current_dir();
@@ -12,8 +11,8 @@ imports.searchPath.shift();
 
 const Settings = Helper.getSettings(LOCAL_PATH);
 const _ = Gettext.gettext;
-const streamType = ARGV[0];
 
+const STREAM_TYPE = ARGV[0];
 /* TRANSLATORS: Button text when selected SINGLE file */
 const CAST_LABEL_SINGLE = _("Cast Selected File");
 /* TRANSLATORS: Button text when selected MULTIPLE files */
@@ -107,10 +106,10 @@ class fileChooser
 	_openDialog()
 	{
 		let configContents = Helper.readFromFile(shared.configPath);
-		if(!configContents || !streamType) return;
+		if(!configContents || !STREAM_TYPE) return;
 
 		let selectionContents = {
-			streamType: streamType,
+			streamType: STREAM_TYPE,
 			subsPath: ''
 		};
 
@@ -277,7 +276,7 @@ class fileChooser
 				if(
 					preSelection
 					&& !preSelection.hasOwnProperty('addon')
-					&& preSelection.streamType === streamType
+					&& preSelection.streamType === STREAM_TYPE
 					&& preSelection.hasOwnProperty('transcodeAudio')
 					&& !preSelection.transcodeAudio
 				)

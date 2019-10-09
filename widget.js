@@ -11,7 +11,6 @@ const Helper = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
 const _ = Gettext.gettext;
 
-const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
 const ICON_NAME = 'tv-symbolic';
 const MIN_DELAY = 3;
 const MAX_DELAY = 5;

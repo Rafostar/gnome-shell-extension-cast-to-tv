@@ -17,8 +17,6 @@ const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const _ = Gettext.gettext;
 
-const EXTENSIONS_PATH = Local.path.substring(0, Local.path.lastIndexOf('/'));
-
 let castMenu;
 let remoteMenu;
 let configContents;
