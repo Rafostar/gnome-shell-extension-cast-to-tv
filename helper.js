@@ -9,7 +9,9 @@ const Gettext = imports.gettext;
 
 function getSettings(localPath, schemaName)
 {
-	if(!localPath || !schemaName) return null;
+	if(!localPath) return null;
+
+	schemaName = schemaName || 'org.gnome.shell.extensions.cast-to-tv';
 
 	const GioSSS = Gio.SettingsSchemaSource;
 	let schemaDir = Gio.File.new_for_path(localPath).get_child('schemas');
@@ -31,7 +33,9 @@ function getSettings(localPath, schemaName)
 
 function initTranslations(localPath, gettextDomain)
 {
-	if(localPath && gettextDomain)
+	gettextDomain = gettextDomain || 'cast-to-tv';
+
+	if(localPath)
 	{
 		let localeDir = Gio.File.new_for_path(localPath).get_child('locale');
 

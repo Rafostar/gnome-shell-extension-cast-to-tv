@@ -12,7 +12,7 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const Widget = Local.imports.widget;
 const Helper = Local.imports.helper;
-const Settings = Helper.getSettings(Local.path, Local.metadata['settings-schema']);
+const Settings = Helper.getSettings(Local.path);
 const Temp = Local.imports.temp;
 const shared = Local.imports.shared.module.exports;
 const _ = Gettext.gettext;
@@ -264,7 +264,7 @@ function setIndicator(enable)
 
 function init()
 {
-	Helper.initTranslations(Local.path, Local.metadata['gettext-domain']);
+	Helper.initTranslations(Local.path);
 }
 
 function enable()

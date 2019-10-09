@@ -2,19 +2,17 @@ imports.gi.versions.Gtk = '3.0';
 
 const { Gtk, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
-const Gettext = imports.gettext;
-const MetadataDomain = 'cast-to-tv';
-const GettextDomain = Gettext.domain(MetadataDomain);
-const _ = GettextDomain.gettext;
-const localPath = GLib.get_current_dir();
-const streamType = ARGV[0];
-imports.searchPath.unshift(localPath);
+const Gettext = imports.gettext.domain('cast-to-tv');
+
+const LOCAL_PATH = GLib.get_current_dir();
+imports.searchPath.unshift(LOCAL_PATH);
 const Helper = imports.helper;
 const shared = imports.shared.module.exports;
 imports.searchPath.shift();
 
-let Settings = Helper.getSettings(localPath, 'org.gnome.shell.extensions.cast-to-tv');
-Helper.initTranslations(localPath, MetadataDomain);
+const Settings = Helper.getSettings(LOCAL_PATH);
+const _ = Gettext.gettext;
+const streamType = ARGV[0];
 
 /* TRANSLATORS: Button text when selected SINGLE file */
 const CAST_LABEL_SINGLE = _("Cast Selected File");
@@ -27,6 +25,7 @@ class fileChooser
 	constructor()
 	{
 		GLib.set_prgname('Cast to TV');
+		Helper.initTranslations(LOCAL_PATH);
 		this.application = new Gtk.Application();
 		this.application.connect('activate', () => this._openDialog());
 		this.application.connect('startup', () => this._buildUI());
@@ -45,7 +44,7 @@ class fileChooser
 		let iconTheme = Gtk.IconTheme.get_default();
 		if(iconTheme.has_icon('cast-to-tv')) this.fileChooser.set_icon_name('cast-to-tv');
 		else {
-			try { this.fileChooser.set_icon_from_file(localPath + '/appIcon/cast-to-tv.svg'); }
+			try { this.fileChooser.set_icon_from_file(LOCAL_PATH + '/appIcon/cast-to-tv.svg'); }
 			catch(err) { this.fileChooser.set_icon_name('application-x-executable'); }
 		}
 	}

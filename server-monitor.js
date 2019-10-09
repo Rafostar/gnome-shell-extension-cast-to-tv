@@ -6,9 +6,7 @@ const EXTENSION_NAME = 'cast-to-tv@rafostar.github.com';
 const LOCAL_PATH = GLib.get_current_dir();
 
 imports.searchPath.unshift(LOCAL_PATH);
-const castSettings = imports.helper.getSettings(
-	LOCAL_PATH, 'org.gnome.shell.extensions.cast-to-tv'
-);
+const CastSettings = imports.helper.getSettings(LOCAL_PATH);
 imports.searchPath.shift();
 
 let statusTimer;
@@ -25,7 +23,7 @@ class ServerMonitor
 
 		if(!this._checkModules() || !this._checkAddons())
 		{
-			castSettings.set_boolean('service-enabled', false);
+			CastSettings.set_boolean('service-enabled', false);
 			return;
 		}
 
@@ -80,7 +78,7 @@ class ServerMonitor
 			}
 			else
 			{
-				castSettings.set_boolean('service-enabled', false);
+				CastSettings.set_boolean('service-enabled', false);
 				print('Cast to TV: service stopped');
 			}
 		});
