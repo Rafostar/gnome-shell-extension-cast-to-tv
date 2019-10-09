@@ -277,7 +277,9 @@ class fileChooser
 
 				if(
 					preSelection
+					&& !preSelection.hasOwnProperty('addon')
 					&& preSelection.streamType === streamType
+					&& preSelection.hasOwnProperty('transcodeAudio')
 					&& !preSelection.transcodeAudio
 				)
 					allowed = true;

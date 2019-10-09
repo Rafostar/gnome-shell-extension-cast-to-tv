@@ -259,8 +259,11 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if chromecast_playing:
             with codecs.open(TEMP_PATH + '/selection.json', 'r', encoding='utf-8') as fp:
                 selection = json.load(fp)
-                if (selection['streamType'] == stream_type and not selection['transcodeAudio']):
-                    return True
+                if (not 'addon' in selection and
+                    selection['streamType'] == stream_type and
+                    'transcodeAudio' in selection and
+                    not selection['transcodeAudio']):
+                        return True
 
         return False
 
