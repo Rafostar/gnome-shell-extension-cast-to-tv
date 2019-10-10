@@ -13,7 +13,7 @@ module.exports = function(summary, mainBody, data, infoBody)
 		mainBody += ` ${data}`;
 
 	if(infoBody && typeof infoBody === 'string')
-		mainBody += '.\n' + gettext.translate(infoBody);
+		mainBody += '.\n' + gettext.translate(infoBody) + '.';
 
 	spawn('notify-send', [summary, mainBody]);
 }
