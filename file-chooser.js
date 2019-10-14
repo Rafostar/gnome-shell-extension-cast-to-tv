@@ -37,7 +37,8 @@ class fileChooser
 
 		this.fileChooser = new Gtk.FileChooserDialog({
 			transient_for: this.window,
-			window_position: Gtk.WindowPosition.CENTER
+			window_position: Gtk.WindowPosition.CENTER,
+			local_only: false
 		});
 
 		let iconTheme = Gtk.IconTheme.get_default();

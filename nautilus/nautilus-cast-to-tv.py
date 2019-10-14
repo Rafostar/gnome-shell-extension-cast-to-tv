@@ -13,12 +13,6 @@ else:
     gi.require_version('Nautilus', '3.0')
     from gi.repository import Nautilus as FileManager
 
-# A way to get unquote working with python 2 and 3
-try:
-    from urllib import unquote
-except ImportError:
-    from urllib.parse import unquote
-
 _ = gettext.gettext
 PY3 = sys.version_info > (3,)
 EXTENSION_NAME = 'cast-to-tv@rafostar.github.com'
@@ -133,18 +127,20 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return None
 
-    def get_file_uri(self, file):
-        file_uri = file.get_activation_uri()
-        if file_uri.startswith('file://'):
-            return file_uri[7:]
+    def get_file_path(self, file):
+        file_location = file.get_location()
+        if file_location:
+            file_path = file_location.get_path()
+            if file_path:
+                return file_path
 
         return None
 
     def check_subtitles(self, files):
         if (self.is_subtitles_file(files[0]) and files[1].is_mime_type('video/*')):
-            self.subs_path = unquote(self.get_file_uri(files[0]))
+            self.subs_path = self.get_file_path(files[0])
         elif (files[0].is_mime_type('video/*') and self.is_subtitles_file(files[1])):
-            self.subs_path = unquote(self.get_file_uri(files[1]))
+            self.subs_path = self.get_file_path(files[1])
         else:
             return False
 
@@ -152,7 +148,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def is_subtitles_file(self, file):
         if file.is_mime_type('text/*'):
-            filename = self.get_file_uri(file)
+            filename = self.get_file_path(file)
             if filename:
                 ext = os.path.splitext(filename)[1][1:].lower()
                 if ext in SUBS_FORMATS:
@@ -164,7 +160,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         stream_type = None
 
         for file in files:
-            if not self.get_file_uri(file):
+            if not self.get_file_path(file):
                 return None
 
             if file.is_mime_type('video/*'):
@@ -192,7 +188,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def parse_playlist_files(self, files):
         parsed_files = [
-            unquote(self.get_file_uri(file))
+            self.get_file_path(file)
             for file in files
             if not self.is_subtitles_file(file)
         ]
