@@ -66,17 +66,16 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         cast_devices = []
         parsed_devices = []
 
-        if self.config['receiverType'] == 'chromecast':
-            cast_devices = json.loads(self.ext_settings.get_string('chromecast-devices'))
-        elif self.config['receiverType'] == 'playercast':
-            if os.path.isfile(TEMP_PATH + '/playercasts.json'):
-                with codecs.open(TEMP_PATH + '/playercasts.json', 'r', encoding='utf-8') as fp:
-                    parsed_devices = json.load(fp)
-
-        if len(cast_devices) > 1:
-            for device in cast_devices:
-                if (device['name'].endswith('.local') or device['ip']):
-                    parsed_devices.append(device)
+        if not self.ext_settings.get_boolean('chromecast-playing'):
+            if self.config['receiverType'] == 'chromecast':
+                cast_devices = json.loads(self.ext_settings.get_string('chromecast-devices'))
+                for device in cast_devices:
+                    if (device['name'].endswith('.local') or device['ip']):
+                        parsed_devices.append(device)
+            elif self.config['receiverType'] == 'playercast':
+                if os.path.isfile(TEMP_PATH + '/playercasts.json'):
+                    with codecs.open(TEMP_PATH + '/playercasts.json', 'r', encoding='utf-8') as fp:
+                        parsed_devices = json.load(fp)
 
         if len(parsed_devices) > 1:
             menu_label = self.get_menu_name(False)

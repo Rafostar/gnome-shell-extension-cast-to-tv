@@ -111,6 +111,13 @@ class fileChooser
 		let activeText = '';
 		let receiverType = Settings.get_string('receiver-type');
 
+		const hideDeviceSelection = () =>
+		{
+			this.deviceSelectLabel.hide();
+			this.playercastSelect.hide();
+			this.chromecastSelect.hide();
+		}
+
 		if(receiverType === 'chromecast')
 		{
 			this.deviceSelectLabel.label = 'Chromecast:';
@@ -132,9 +139,14 @@ class fileChooser
 				this.boundChromecastDevices = true;
 			}
 
-			this.deviceSelectLabel.show();
-			this.playercastSelect.hide();
-			this.chromecastSelect.show();
+			if(!this.chromecastPlaying)
+			{
+				this.deviceSelectLabel.show();
+				this.playercastSelect.hide();
+				this.chromecastSelect.show();
+			}
+			else
+				hideDeviceSelection();
 		}
 		else if(receiverType === 'playercast')
 		{
@@ -152,15 +164,18 @@ class fileChooser
 				this.boundPlayercastDevices = true;
 			}
 
-			this.deviceSelectLabel.show();
-			this.chromecastSelect.hide();
-			this.playercastSelect.show();
+			if(!this.chromecastPlaying)
+			{
+				this.deviceSelectLabel.show();
+				this.chromecastSelect.hide();
+				this.playercastSelect.show();
+			}
+			else
+				hideDeviceSelection();
 		}
 		else
 		{
-			this.deviceSelectLabel.hide();
-			this.chromecastSelect.hide();
-			this.playercastSelect.hide();
+			hideDeviceSelection();
 		}
 	}
 
@@ -427,6 +442,7 @@ class fileChooser
 	_onChromecastPlayingChange()
 	{
 		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
+		this._setDevices();
 		this._checkPlaylistLabel();
 	}
 }
