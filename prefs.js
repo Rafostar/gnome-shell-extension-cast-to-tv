@@ -95,7 +95,7 @@ class MainSettings extends Gtk.VBox
 
 		/* Receiver Type */
 		label = new SettingLabel(_("Receiver type"));
-		widget = new Gtk.ComboBoxText({width_request: 220, halign:Gtk.Align.END});
+		widget = new Gtk.ComboBoxText({width_request: 230, halign:Gtk.Align.END});
 		widget.append('chromecast', "Chromecast");
 		/* TRANSLATORS: "Playercast" is a name of an app, so do not change it */
 		widget.append('playercast', _("Playercast app"));
@@ -108,7 +108,7 @@ class MainSettings extends Gtk.VBox
 
 		/* FFmpeg Path */
 		label = new SettingLabel(_("FFmpeg path"));
-		widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
+		widget = new Gtk.Entry({width_request: 230, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffmpeg");
 		Settings.bind('ffmpeg-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
 		grid.attach(label, 0, 2, 1, 1);
@@ -116,7 +116,7 @@ class MainSettings extends Gtk.VBox
 
 		/* FFprobe Path */
 		label = new SettingLabel(_("FFprobe path"));
-		widget = new Gtk.Entry({width_request: 220, halign:Gtk.Align.END});
+		widget = new Gtk.Entry({width_request: 230, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffprobe");
 		Settings.bind('ffprobe-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
 		grid.attach(label, 0, 3, 1, 1);
