@@ -103,18 +103,18 @@ exports.shutDown = function(err)
 		watcher.close();
 		debug('Closed file watcher');
 
-		/* Hide top bar menu cast functions if user closed app (while extension enabled).
-		Otherwise app will retry and eventually hide it from server-monitor */
-		if(!err) gnome.showMenu(false);
-		debug('Removed top bar indicator');
+		gnome.showMenu(false, () =>
+		{
+			debug('Removed top bar indicator');
 
-		fs.writeFileSync(shared.selectionPath,
-			JSON.stringify({streamType: "", subsPath: "", filePath: ""}, null, 1));
+			fs.writeFileSync(shared.selectionPath,
+				JSON.stringify({streamType: "", subsPath: "", filePath: ""}, null, 1));
 
-		debug('Cleaned selection temp file');
+			debug('Cleaned selection temp file');
 
-		console.log('Cast to TV: closed successfully');
-		process.exit();
+			console.log('Cast to TV: closed successfully');
+			process.exit();
+		});
 	}
 
 	var closeWatcher = () =>

@@ -8,6 +8,7 @@ var schemaDir = path.join(__dirname + '/../schemas');
 var isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
 debug(`Local settings schema available: ${isSchema}`);
 
+const noop = () => {};
 var isRemoteVisible = null;
 
 var gnome =
@@ -21,13 +22,16 @@ var gnome =
 		debug(`Custom settings schema available: ${isSchema}`);
 	},
 
-	setSetting: function(setting, value)
+	setSetting: function(setting, value, cb)
 	{
+		cb = cb || noop;
+
 		var args = ['set', schemaName, setting, value];
 		if(isSchema) args.unshift('--schemadir', schemaDir);
 
 		debug(`Set ${setting}: ${value}`);
-		spawn('gsettings', args);
+		var gProcess = spawn('gsettings', args);
+		gProcess.once('exit', cb);
 	},
 
 	getSetting: function(setting)
@@ -54,15 +58,15 @@ var gnome =
 		return JSON.parse(value);
 	},
 
-	showRemote: function(enable)
+	showRemote: function(enable, cb)
 	{
-		this.setSetting('chromecast-playing', enable);
 		isRemoteVisible = enable;
+		this.setSetting('chromecast-playing', enable, cb);
 	},
 
-	showMenu: function(enable)
+	showMenu: function(enable, cb)
 	{
-		this.setSetting('service-enabled', enable);
+		this.setSetting('service-enabled', enable, cb);
 	},
 
 	isRemote: function()
