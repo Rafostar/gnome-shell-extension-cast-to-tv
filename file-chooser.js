@@ -1,6 +1,6 @@
 imports.gi.versions.Gtk = '3.0';
 
-const { Gtk, GLib } = imports.gi;
+const { Gio, Gtk, GLib } = imports.gi;
 const Gettext = imports.gettext.domain('cast-to-tv');
 
 const LOCAL_PATH = GLib.get_current_dir();
@@ -49,12 +49,24 @@ class fileChooser
 		}
 	}
 
-	_getTranscodeBox()
+	_getExtraWidget()
 	{
 		let box = new Gtk.Box({ spacing: 2 });
+
+		if(STREAM_TYPE === 'VIDEO')
+			this._addTranscodeWidget(box);
+
+		box.show_all();
+		this._addDeviceSelection(box);
+
+		return box;
+	}
+
+	_addTranscodeWidget(box)
+	{
 		this.buttonConvert = new Gtk.CheckButton({ label: _("Transcode") + ':' });
 
-		this.comboBoxConvert = new Gtk.ComboBoxText();
+		this.comboBoxConvert = new Gtk.ComboBoxText({ margin_right: 8 });
 		this.comboBoxConvert.append('video', _("Video"));
 		//this.comboBoxConvert.append('audio', _("Audio"));
 		this.comboBoxConvert.append('video+audio', _("Video + Audio"));
@@ -71,9 +83,85 @@ class fileChooser
 
 		box.pack_start(this.buttonConvert, true, true, 0);
 		box.pack_start(this.comboBoxConvert, true, true, 0);
-		box.show_all();
+	}
 
-		return box;
+	_addDeviceSelection(box)
+	{
+		this.deviceSelectLabel = new Gtk.Label({ margin_left: 4, margin_right: 4 });
+		this.chromecastSelect = new Gtk.ComboBoxText();
+		this.playercastSelect = new Gtk.ComboBoxText();
+
+		this._setDevices();
+		Settings.connect('changed::receiver-type', this._setDevices.bind(this));
+
+		box.pack_start(this.deviceSelectLabel, true, true, 0);
+		box.pack_start(this.chromecastSelect, true, true, 0);
+		box.pack_start(this.playercastSelect, true, true, 0);
+	}
+
+	_setDevices()
+	{
+		if(this.setDevicesSignal)
+		{
+			Settings.disconnect(this.setDevicesSignal);
+			this.setDevicesSignal = null;
+		}
+
+		let devices = [];
+		let activeText = '';
+		let receiverType = Settings.get_string('receiver-type');
+
+		if(receiverType === 'chromecast')
+		{
+			this.deviceSelectLabel.label = 'Chromecast:';
+			activeText = this.chromecastSelect.get_active_text();
+
+			/* Restore empty devices list if someone messed it externally */
+			try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
+			catch(err) { Settings.set_string('chromecast-devices', "[]"); }
+
+			this.chromecastSelect.remove_all();
+			this.chromecastSelect.append('', _("Automatic"));
+
+			this.setDevicesSignal = Settings.connect('changed::chromecast-devices', this._setDevices.bind(this));
+			Helper.setDevicesWidget(this.chromecastSelect, devices, activeText);
+
+			if(!this.boundChromecastDevices)
+			{
+				Settings.bind('chromecast-name', this.chromecastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+				this.boundChromecastDevices = true;
+			}
+
+			this.deviceSelectLabel.show();
+			this.playercastSelect.hide();
+			this.chromecastSelect.show();
+		}
+		else if(receiverType === 'playercast')
+		{
+			this.deviceSelectLabel.label = 'Playercast:';
+			activeText = this.playercastSelect.get_active_text();
+
+			devices = Helper.readFromFile(shared.playercastsPath);
+			this.playercastSelect.remove_all();
+			this.playercastSelect.append('', _("Automatic"));
+			Helper.setDevicesWidget(this.playercastSelect, devices, activeText);
+
+			if(!this.boundPlayercastDevices)
+			{
+				Settings.bind('playercast-name', this.playercastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+				this.boundPlayercastDevices = true;
+			}
+
+			this.deviceSelectLabel.show();
+			this.chromecastSelect.hide();
+			this.playercastSelect.show();
+		}
+		else
+		{
+			this.deviceSelectLabel.hide();
+			this.chromecastSelect.hide();
+			this.playercastSelect.hide();
+		}
 	}
 
 	_getEncodeTypeString(configContents)
@@ -142,7 +230,6 @@ class fileChooser
 				this.buttonSubs = this.fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
 				this.fileChooser.set_title(_("Select Video"));
 				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
-				this.fileChooser.set_extra_widget(this._getTranscodeBox());
 
 				this.fileFilter.set_name(_("Video Files"));
 				this.fileFilter.add_mime_type('video/*');
@@ -171,6 +258,7 @@ class fileChooser
 				return;
 		}
 
+		this.fileChooser.set_extra_widget(this._getExtraWidget());
 		this.fileChooser.add_filter(this.fileFilter);
 		this.fileChooser.connect('response', () => this._onResponse());
 

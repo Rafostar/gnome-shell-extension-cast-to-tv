@@ -68,6 +68,59 @@ function startApp(appPath, appName, args)
 	GLib.spawn_async(appPath, spawnArgs, null, 0, null);
 }
 
+function setDevicesWidget(widget, devices, activeText)
+{
+	if(Array.isArray(devices))
+	{
+		let foundActive = false;
+		let appendIndex = 0;
+		let appendArray = [];
+
+		devices.forEach(device =>
+		{
+			if(typeof device === 'object')
+			{
+				let value = (device.name) ? device.name : null;
+				let text = (device.friendlyName) ? device.friendlyName : null;
+
+				if(value && text && !appendArray.includes(value))
+				{
+					if(!device.name.endsWith('.local') && !device.ip)
+						return;
+
+					widget.append(value, text);
+					appendArray.push(value);
+					appendIndex++;
+
+					if(!foundActive && activeText && activeText === text)
+					{
+						widget.set_active(appendIndex);
+						foundActive = true;
+					}
+				}
+			}
+			else
+			{
+				widget.append(device, device);
+				appendIndex++;
+
+				if(!foundActive && activeText && activeText === device)
+				{
+					widget.set_active(appendIndex);
+					foundActive = true;
+				}
+			}
+		});
+
+		if(activeText && !foundActive)
+			widget.set_active(0);
+
+		return;
+	}
+
+	widget.set_active(0);
+}
+
 function readFromFile(path)
 {
 	let fileExists = GLib.file_test(path, GLib.FileTest.EXISTS);

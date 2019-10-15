@@ -1093,44 +1093,7 @@ function setDevices(widget, filePath, activeText)
 		catch(err) { Settings.set_string('chromecast-devices', "[]"); }
 	}
 
-	if(Array.isArray(devices))
-	{
-		let foundActive = false;
-		let appendIndex = 0;
-		let appendArray = [];
-
-		devices.forEach(device =>
-		{
-			if(typeof device === 'object')
-			{
-				let value = (device.name) ? device.name : null;
-				let text = (device.friendlyName) ? device.friendlyName : null;
-
-				if(value && text && !appendArray.includes(value))
-				{
-					if(!device.name.endsWith('.local') && !device.ip)
-						return;
-
-					widget.append(value, text);
-					appendArray.push(value);
-					appendIndex++;
-
-					if(!foundActive && activeText && activeText === text)
-					{
-						widget.set_active(appendIndex);
-						foundActive = true;
-					}
-				}
-			}
-			else
-			{
-				widget.append(device, device);
-			}
-		});
-
-		if(activeText && !foundActive)
-			widget.set_active(0);
-	}
+	Helper.setDevicesWidget(widget, devices, activeText);
 }
 
 function getHostIp()

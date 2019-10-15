@@ -50,24 +50,24 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 				if(configTimeout) clearTimeout(configTimeout);
 				configTimeout = setTimeout(() =>
 				{
-					updateConfig();
 					configTimeout = null;
-				}, 250);
+					updateConfig();
+				}, 125);
 				break;
 			case shared.listPath:
 				if(playlistTimeout) clearTimeout(playlistTimeout);
 				playlistTimeout = setTimeout(() =>
 				{
-					updatePlaylist();
 					playlistTimeout = null;
+					updatePlaylist();
 				}, 100);
 				break;
 			case shared.selectionPath:
 				if(selectionTimeout) clearTimeout(selectionTimeout);
 				selectionTimeout = setTimeout(() =>
 				{
-					updateSelection();
 					selectionTimeout = null;
+					updateSelection();
 				}, 150);
 				break;
 			case shared.remotePath:
