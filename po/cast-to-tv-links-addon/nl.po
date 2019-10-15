@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-15 20:55+0200\n"
-"PO-Revision-Date: 2019-10-15 19:12\n"
+"PO-Revision-Date: 2019-10-15 20:07\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Dutch\n"
 "Language: nl_NL\n"
@@ -79,7 +79,7 @@ msgstr "Beste kwaliteit"
 
 #: links_prefs.js:43
 msgid "(experimental)"
-msgstr ""
+msgstr "(experimenteel)"
 
 #: links_prefs.js:49
 msgid "Path to youtube-dl"
