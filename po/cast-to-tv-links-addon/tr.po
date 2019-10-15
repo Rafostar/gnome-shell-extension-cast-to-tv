@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-21 20:50+0200\n"
-"PO-Revision-Date: 2019-05-21 21:02\n"
+"POT-Creation-Date: 2019-10-15 20:55+0200\n"
+"PO-Revision-Date: 2019-10-15 20:07\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -17,92 +17,96 @@ msgstr ""
 "X-Crowdin-File: /master/po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
 
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
-#: app.js:104
+#: app.js:140
 msgid "No Image"
 msgstr "Görsel Yok"
 
-#: app.js:118
+#: app.js:152
 msgid "Title:"
 msgstr "Başlık:"
 
-#: app.js:137
+#: app.js:153
 msgid "Format:"
 msgstr "Biçim:"
 
-#: app.js:156
+#: app.js:154
 msgid "Resolution:"
 msgstr "Çözünürlük:"
 
-#: app.js:175
+#: app.js:155
 msgid "Video codec:"
 msgstr "Video çözücü:"
 
-#: app.js:194
+#: app.js:156
 msgid "Audio codec:"
 msgstr "Ses çözücü:"
 
-#: app.js:213
+#: app.js:157
 msgid "Subtitles:"
 msgstr "Altyazılar:"
 
-#: app.js:242
+#: app.js:173
 msgid "Enter or drop link here"
 msgstr "Bağlantıyı buraya gir veya sürükle"
 
-#: app.js:250
+#: app.js:182
 msgid "Cast link"
 msgstr "Akış bağlantısı"
 
-#: widget.js:13
+#: widget.js:18
 msgid "Link"
 msgstr "Bağlantı"
 
-#: links_prefs.js:59
+#: links_prefs.js:31
 msgid "Links"
 msgstr "Bağlantılar"
 
-#: links_prefs.js:64
+#: links_prefs.js:36
 msgid "Links Options"
 msgstr "Bağlantı Seçenekleri"
 
-#: links_prefs.js:68
+#: links_prefs.js:40
 msgid "Preferred format"
 msgstr "Tercih edilen biçim"
 
-#: links_prefs.js:70
+#: links_prefs.js:42
 msgid "Best seekable"
 msgstr "En iyi aranabilir"
 
-#: links_prefs.js:71
+#: links_prefs.js:43
 msgid "Best quality"
 msgstr "En iyi kalite"
 
-#: links_prefs.js:77
+#: links_prefs.js:43
+msgid "(experimental)"
+msgstr "(deneysel)"
+
+#: links_prefs.js:49
 msgid "Path to youtube-dl"
 msgstr "Eklenti yolu youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
-#: links_prefs.js:86
+#: links_prefs.js:58
 msgid "Max video quality"
 msgstr "En iyi video kalitesi"
 
-#: links_prefs.js:104
+#: links_prefs.js:76
 msgid "Allow VP9 codec"
 msgstr "VP9 çözücüye izin ver"
 
-#: links_prefs.js:112
+#: links_prefs.js:84
 msgid "Subtitles"
 msgstr "Altyazılar"
 
-#: links_prefs.js:116
+#: links_prefs.js:88
 msgid "Preferred language"
 msgstr "Tercih edilen dil"
 
-#: links_prefs.js:124
+#: links_prefs.js:96
 msgid "Fallback language"
 msgstr "İkincil dil"
 
-#: links_prefs.js:126
+#: links_prefs.js:98
 msgid "none"
 msgstr "hiçbiri"
 
