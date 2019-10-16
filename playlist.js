@@ -77,8 +77,15 @@ var CastPlaylist = class
 
 	addMenuPlaylistItem(filepath, isActive, position)
 	{
-		let filename = filepath.substring(filepath.lastIndexOf('/') + 1);
-		let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
+		let title;
+
+		if(filepath.startsWith('/'))
+		{
+			let filename = filepath.substring(filepath.lastIndexOf('/') + 1);
+			title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
+		}
+		else
+			title = filepath;
 
 		let playlistItem = new CastPlaylistItem(title, filepath);
 		this._connectDragSigals(playlistItem);
