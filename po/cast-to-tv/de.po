@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-10-02 12:50\n"
+"PO-Revision-Date: 2019-10-16 08:07\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -285,7 +285,7 @@ msgstr "Hardwarebeschleunigung"
 
 #: prefs.js:483 prefs.js:943
 msgid "None"
-msgstr "Nichts"
+msgstr "Keine"
 
 #: prefs.js:491
 msgid "Bitrate (Mbps)"

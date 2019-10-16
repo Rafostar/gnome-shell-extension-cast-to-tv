@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-15 20:55+0200\n"
-"PO-Revision-Date: 2019-10-15 20:07\n"
+"PO-Revision-Date: 2019-10-16 09:07\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -108,5 +108,5 @@ msgstr "Fallback-Sprache"
 
 #: links_prefs.js:98
 msgid "none"
-msgstr "nichts"
+msgstr "keine"
 
