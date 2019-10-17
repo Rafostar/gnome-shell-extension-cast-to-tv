@@ -303,12 +303,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.updateRemote = (monitor, file, otherFile, event) =>
 		{
-			if(
-				event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT
-				|| this.mode === 'PICTURE'
-			) {
-				return;
-			}
+			if(event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT) return;
 
 			let statusContents = Helper.readFromFile(shared.statusPath);
 			if(statusContents)
@@ -321,11 +316,15 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				}
 
 				if(
-					statusContents.hasOwnProperty('slideshow')
+					this.mode === 'PICTURE'
+					&& statusContents.hasOwnProperty('slideshow')
 					&& this.slideshowButton.turnedOn !== statusContents.slideshow
 				) {
 					this.slideshowButton.turnOn(statusContents.slideshow);
+					this.repeatButton.reactive = statusContents.slideshow;
 				}
+
+				if(this.mode === 'PICTURE') return;
 
 				this.checkPlaying(statusContents);
 
@@ -426,7 +425,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					break;
 			}
 
-			this.repeatButton.reactive = (this.mode === 'PICTURE') ? false : true;
+			this.repeatButton.reactive = (this.mode !== 'PICTURE') ? true
+				: (this.slideshowButton.turnedOn) ? true : false;
 
 			changableItems.forEach(item =>
 			{
