@@ -236,7 +236,7 @@ class fileChooser
 		this.playlistAllowed = this._getAddPlaylistAllowed();
 		this.playlistSignal = Settings.connect('changed::chromecast-playing', () => this._onChromecastPlayingChange());
 
-		let castButtonText = (this.playlistAllowed) ? ADD_PLAYLIST_LABEL : CAST_LABEL_SINGLE;
+		let castButtonText = (this.playlistAllowed) ? _(ADD_PLAYLIST_LABEL) : _(CAST_LABEL_SINGLE);
 		this.buttonCast = this.fileChooser.add_button(castButtonText, Gtk.ResponseType.OK);
 
 		switch(selectionContents.streamType)
@@ -400,7 +400,7 @@ class fileChooser
 			this.playlistAllowed = allowed;
 
 			if(this.playlistAllowed && this.buttonCast)
-				this.buttonCast.label = ADD_PLAYLIST_LABEL;
+				this.buttonCast.label = _(ADD_PLAYLIST_LABEL);
 			else
 				this.fileChooser.emit('selection-changed');
 		}
@@ -414,12 +414,12 @@ class fileChooser
 
 		if(selectedNumber > 1)
 		{
-			this.buttonCast.label = CAST_LABEL_MULTI;
+			this.buttonCast.label = _(CAST_LABEL_MULTI);
 			this.buttonSubs.hide();
 		}
 		else
 		{
-			this.buttonCast.label = CAST_LABEL_SINGLE;
+			this.buttonCast.label = _(CAST_LABEL_SINGLE);
 			this.buttonSubs.show();
 		}
 	}
@@ -430,8 +430,8 @@ class fileChooser
 
 		let selectedNumber = this.fileChooser.get_filenames().length;
 
-		if(selectedNumber > 1) this.buttonCast.label = CAST_LABEL_MULTI;
-		else this.buttonCast.label = CAST_LABEL_SINGLE;
+		if(selectedNumber > 1) this.buttonCast.label = _(CAST_LABEL_MULTI);
+		else this.buttonCast.label = _(CAST_LABEL_SINGLE);
 	}
 
 	_onResponse()
