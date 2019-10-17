@@ -41,6 +41,19 @@ exports.setStatusFile = function(status)
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 }
 
+exports.handleRemoteSignal = function(action, value)
+{
+	switch(exports.config.receiverType)
+	{
+		case 'chromecast':
+			chromecast.remote(action, value);
+			break;
+		default:
+			controller.webControl(action, value);
+			break;
+	}
+}
+
 var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 {
 	if(eventType == 'update')
@@ -127,7 +140,7 @@ exports.shutDown = function(err)
 	if(gnome.isRemote())
 	{
 		gnome.showRemote(false);
-		handleRemoteSignal('STOP');
+		exports.handleRemoteSignal('STOP');
 
 		setTimeout(() =>
 		{
@@ -282,20 +295,7 @@ function updateRemote()
 	debug(`New remote contents: ${JSON.stringify(remoteContents)}`);
 	remote = remoteContents;
 
-	handleRemoteSignal(remote.action, remote.value);
-}
-
-function handleRemoteSignal(action, value)
-{
-	switch(exports.config.receiverType)
-	{
-		case 'chromecast':
-			chromecast.remote(action, value);
-			break;
-		default:
-			controller.webControl(action, value);
-			break;
-	}
+	exports.handleRemoteSignal(remote.action, remote.value);
 }
 
 function getContents(path)

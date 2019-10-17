@@ -1,10 +1,13 @@
 var fs = require('fs');
 var bridge = require('./bridge');
 var socket = require('./server-socket');
+var gnome = require('./gnome');
 var shared = require('../shared');
 
 exports.repeat = false;
 exports.slideshow = false;
+
+var slideshowTimeout;
 
 exports.webControl = function(action, value)
 {
@@ -25,6 +28,11 @@ exports.webControl = function(action, value)
 		case 'REPEAT':
 			exports.repeat = value;
 			break;
+		case 'SLIDESHOW':
+			exports.slideshow = value;
+			if(value) exports.setSlideshow();
+			else exports.clearSlideshow();
+			break;
 		default:
 			socket.emit('remote-signal', { action, value });
 			break;
@@ -43,7 +51,7 @@ exports.checkNextTrack = function()
 	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
 	var listLastID = bridge.list.length;
 
-	if(exports.repeat && currentTrackID == listLastID)
+	if(exports.repeat && currentTrackID === listLastID)
 	{
 		exports.changeTrack(1);
 		return true;
@@ -55,4 +63,32 @@ exports.checkNextTrack = function()
 	}
 
 	return false;
+}
+
+exports.clearSlideshow = function()
+{
+	if(slideshowTimeout)
+	{
+		clearTimeout(slideshowTimeout);
+		slideshowTimeout = null;
+	}
+}
+
+exports.setSlideshow = function()
+{
+	exports.clearSlideshow();
+
+	if(exports.slideshow && bridge.selection.streamType === 'PICTURE')
+	{
+		var time = gnome.getSetting('slideshow-time') * 1000;
+
+		slideshowTimeout = setTimeout(() =>
+		{
+			slideshowTimeout = null;
+			var trackChanged = exports.checkNextTrack();
+
+			if(!trackChanged)
+				bridge.handleRemoteSignal('STOP');
+		}, time);
+	}
 }

@@ -161,6 +161,11 @@ exports.remote = function(action, value)
 				unsetBusy();
 			});
 			break;
+		case 'SLIDESHOW':
+			controller.slideshow = value;
+			if(value) controller.setSlideshow();
+			else controller.clearSlideshow();
+			break;
 		default:
 			unsetBusy();
 			break;
@@ -425,7 +430,14 @@ function startPlayback(mimeType)
 	else
 	{
 		if(mimeType === 'image/*')
+		{
 			debug('Showing image');
+			if(bridge.selection.slideshow)
+			{
+				controller.setSlideshow();
+				debug('Started slideshow timer');
+			}
+		}
 		else
 			debug('Playback autostart');
 
@@ -520,6 +532,7 @@ function closeCast(action)
 {
 	clearPlayTimeout();
 	stopCastInterval();
+	controller.clearSlideshow();
 
 	chromecast._player.removeListener('close', finishCast);
 	chromecast._player.removeListener('status', handleChromecastStatus);
