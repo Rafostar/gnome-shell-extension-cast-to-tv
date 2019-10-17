@@ -72,7 +72,7 @@ var CastPlaylist = class
 		}
 
 		/* Sort playlist */
-		this.sortMenuItems(playlistArray);
+		if(!this.draggedItem) this.sortMenuItems(playlistArray);
 	}
 
 	addMenuPlaylistItem(filepath, isActive, position)
