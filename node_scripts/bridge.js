@@ -34,7 +34,8 @@ exports.setStatusFile = function(status)
 		currentTime: status.currentTime,
 		mediaDuration: status.media.duration,
 		volume: status.volume,
-		repeat: controller.repeat
+		repeat: controller.repeat,
+		slideshow: controller.slideshow
 	};
 
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));

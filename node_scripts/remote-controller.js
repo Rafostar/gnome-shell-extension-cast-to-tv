@@ -4,6 +4,7 @@ var socket = require('./server-socket');
 var shared = require('../shared');
 
 exports.repeat = false;
+exports.slideshow = false;
 
 exports.webControl = function(action, value)
 {
