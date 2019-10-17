@@ -235,7 +235,7 @@ class RemoteSettings extends Gtk.Grid
 		label = new SettingLabel(_("Slideshow time per picture (seconds)"));
 		widget = new Gtk.SpinButton({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
-		widget.set_range(10, 999);
+		widget.set_range(5, 999);
 		widget.set_value(Settings.get_int('slideshow-time'));
 		widget.set_increments(1, 2);
 		Settings.bind('slideshow-time', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
