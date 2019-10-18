@@ -218,6 +218,12 @@ function updateSelection()
 	exports.selection = selectionContents;
 	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
 
+	if(exports.selection.streamType !== 'PICTURE')
+	{
+		controller.clearSlideshow();
+		debug('Cleared slideshow timeout due to non-picture selection');
+	}
+
 	/* Close addon before selecting a new one */
 	closeAddon(exports.selection, exports.config);
 

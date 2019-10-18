@@ -569,6 +569,7 @@ function finishCast()
 {
 	clearPlayTimeout();
 	stopCastInterval();
+	controller.clearSlideshow();
 
 	/* 'close' listener is auto removed as it is a 'once' event performed here */
 	chromecast._player.removeListener('status', handleChromecastStatus);
