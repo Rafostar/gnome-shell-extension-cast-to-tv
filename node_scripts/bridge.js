@@ -108,6 +108,7 @@ exports.shutDown = function(err)
 	else process.stdout.write('\n');
 
 	console.log('Cast to TV: closing node app...');
+	controller.clearSlideshow();
 
 	debug('Closing node server');
 	closeAddon();

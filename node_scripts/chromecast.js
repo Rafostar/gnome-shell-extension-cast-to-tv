@@ -163,8 +163,11 @@ exports.remote = function(action, value)
 			break;
 		case 'SLIDESHOW':
 			controller.slideshow = value;
-			if(value) controller.setSlideshow();
-			else controller.clearSlideshow();
+			if(value)
+				controller.setSlideshow();
+			else
+				controller.clearSlideshow();
+			unsetBusy();
 			break;
 		default:
 			unsetBusy();
@@ -432,7 +435,7 @@ function startPlayback(mimeType)
 		if(mimeType === 'image/*')
 		{
 			debug('Showing image');
-			if(bridge.selection.slideshow)
+			if(controller.slideshow)
 			{
 				controller.setSlideshow();
 				debug('Started slideshow timer');
