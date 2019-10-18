@@ -15,7 +15,6 @@ const ICON_NAME = 'tv-symbolic';
 const MIN_DELAY = 3;
 const MAX_DELAY = 5;
 
-var isRepeatActive = false;
 var isUnifiedSlider = true;
 var seekTime = 10;
 
@@ -160,12 +159,14 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.skipBackwardButton = new MediaControlButton('media-skip-backward-symbolic');
 		this.skipForwardButton = new MediaControlButton('media-skip-forward-symbolic');
 		this.repeatButton = new MediaControlButton('media-playlist-repeat-symbolic', true);
+		this.slideshowButton = new MediaControlButton('camera-photo-symbolic', true);
 		this.playlist = new Playlist.CastPlaylist();
 
 		/* Add space between stop and the remaining buttons */
 		this.stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
 
 		/* Assemble playback controls */
+		this.controlsButtonBox.add(this.slideshowButton);
 		this.controlsButtonBox.add(this.repeatButton);
 		this.controlsButtonBox.add(this.stopButton);
 		this.controlsButtonBox.add(this.skipBackwardButton);
@@ -254,22 +255,26 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		connectSliderSignals('positionSlider');
 		connectSliderSignals('volumeSlider');
 
+		this.slideshowButton._signalIds.push(
+			this.slideshowButton.connect('clicked', () =>
+			{
+				this.repeatButton.reactive = this.slideshowButton.turnedOn;
+				Temp.setRemoteAction('SLIDESHOW', this.slideshowButton.turnedOn);
+			})
+		);
 		this.repeatButton._signalIds.push(
 			this.repeatButton.connect('clicked', () =>
 			{
 				Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
-				isRepeatActive = this.repeatButton.turnedOn;
 			})
-		)
-
+		);
 		this.togglePlayButton._signalIds.push(
 			this.togglePlayButton.connect('clicked', () =>
 			{
 				let toggleAction = (this.togglePlayButton.isPause) ? 'PAUSE' : 'PLAY';
 				Temp.setRemoteAction(toggleAction);
 			})
-		)
-
+		);
 		this.seekForwardButton._signalIds.push(
 			this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime))
 		);
@@ -298,25 +303,28 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.updateRemote = (monitor, file, otherFile, event) =>
 		{
-			if(
-				event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT
-				|| this.mode === 'PICTURE'
-			) {
-				return;
-			}
+			if(event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT) return;
 
 			let statusContents = Helper.readFromFile(shared.statusPath);
 			if(statusContents)
 			{
 				if(
 					statusContents.hasOwnProperty('repeat')
-					&& isRepeatActive !== statusContents.repeat
+					&& this.repeatButton.turnedOn !== statusContents.repeat
 				) {
-					isRepeatActive = (statusContents.repeat === true) ? true : false;
+					this.repeatButton.turnOn(statusContents.repeat);
 				}
 
-				if(this.repeatButton.turnedOn !== isRepeatActive)
-					this.repeatButton.turnOn(isRepeatActive);
+				if(
+					this.mode === 'PICTURE'
+					&& statusContents.hasOwnProperty('slideshow')
+					&& this.slideshowButton.turnedOn !== statusContents.slideshow
+				) {
+					this.slideshowButton.turnOn(statusContents.slideshow);
+					this.repeatButton.reactive = statusContents.slideshow;
+				}
+
+				if(this.mode === 'PICTURE') return;
 
 				this.checkPlaying(statusContents);
 
@@ -395,7 +403,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			/* Items that might be shown or hidden depending on media content */
 			let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
-				'seekBackwardButton', 'seekForwardButton', 'repeatButton'];
+				'seekBackwardButton', 'seekForwardButton', 'repeatButton', 'slideshowButton'];
 
 			switch(this.mode)
 			{
@@ -408,6 +416,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];
 					break;
 				case 'PICTURE':
+					shownItems = ['slideshowButton', 'repeatButton'];
 					break;
 				case 'LIVE':
 					shownItems = ['volumeSlider', 'togglePlayButton'];
@@ -415,6 +424,9 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				default:
 					break;
 			}
+
+			this.repeatButton.reactive = (this.mode !== 'PICTURE') ? true
+				: (this.slideshowButton.turnedOn) ? true : false;
 
 			changableItems.forEach(item =>
 			{
@@ -446,6 +458,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.skipBackwardButton.child.icon_size = size;
 			this.skipForwardButton.child.icon_size = size;
 			this.repeatButton.child.icon_size = size;
+			this.slideshowButton.child.icon_size = size;
 		}
 
 		this.setSlidersIconSize = (size) =>
@@ -481,8 +494,8 @@ class MediaControlButton extends St.Button
 
 		let callback = () =>
 		{
-			if(!this.turnedOn) this.opacity = !this.reactive ? 30 : this.hover ? 255 : 130;
-			else this.opacity = 255;
+			this.opacity = (!this.reactive) ? 30 :
+				(this.turnedOn || this.hover) ? 255 : 130;
 		}
 
 		let changeState = () =>

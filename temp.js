@@ -64,7 +64,8 @@ function setStatusFile()
 		currentTime: 0,
 		mediaDuration: 0,
 		volume: 0,
-		repeat: false
+		repeat: false,
+		slideshow: false
 	};
 
 	writeToFile(shared.statusPath, statusContents);

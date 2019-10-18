@@ -43,6 +43,7 @@ function handleMessages(socket)
 			case 'webplayer-ask':
 				initWebPlayer();
 				gnome.showRemote(true);
+				controller.setSlideshow();
 				break;
 			case 'track-ended':
 				controller.checkNextTrack();
@@ -101,7 +102,17 @@ function handleMessages(socket)
 	});
 
 	socket.on('status-update', msg => bridge.setStatusFile(msg));
-	socket.on('show-remote', msg => gnome.showRemote(msg));
+	socket.on('show-remote', msg =>
+	{
+		if(msg) controller.setSlideshow();
+		else
+		{
+			controller.clearSlideshow();
+			controller.slideshow = false;
+		}
+
+		gnome.showRemote(msg)
+	});
 
 	socket.on('disconnect', msg =>
 	{
@@ -153,7 +164,11 @@ function checkClients()
 		clientTimeout = null;
 
 		if(exports.activeConnections == 0)
+		{
+			controller.clearSlideshow();
+			controller.slideshow = false;
 			gnome.showRemote(false);
+		}
 	}, 2500);
 }
 

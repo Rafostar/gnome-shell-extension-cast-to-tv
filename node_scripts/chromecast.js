@@ -141,6 +141,7 @@ exports.remote = function(action, value)
 			break;
 		case 'STOP':
 			controller.repeat = false;
+			controller.slideshow = false;
 			chromecast.stop((err) =>
 			{
 				if(err) debug(err);
@@ -160,6 +161,14 @@ exports.remote = function(action, value)
 				}
 				unsetBusy();
 			});
+			break;
+		case 'SLIDESHOW':
+			controller.slideshow = value;
+			if(value)
+				controller.setSlideshow();
+			else
+				controller.clearSlideshow();
+			unsetBusy();
 			break;
 		default:
 			unsetBusy();
@@ -425,7 +434,14 @@ function startPlayback(mimeType)
 	else
 	{
 		if(mimeType === 'image/*')
+		{
 			debug('Showing image');
+			if(controller.slideshow)
+			{
+				controller.setSlideshow();
+				debug('Started slideshow timer');
+			}
+		}
 		else
 			debug('Playback autostart');
 
@@ -520,6 +536,7 @@ function closeCast(action)
 {
 	clearPlayTimeout();
 	stopCastInterval();
+	controller.clearSlideshow();
 
 	chromecast._player.removeListener('close', finishCast);
 	chromecast._player.removeListener('status', handleChromecastStatus);
