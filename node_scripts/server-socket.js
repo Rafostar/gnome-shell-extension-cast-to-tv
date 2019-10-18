@@ -105,7 +105,11 @@ function handleMessages(socket)
 	socket.on('show-remote', msg =>
 	{
 		if(msg) controller.setSlideshow();
-		else controller.clearSlideshow();
+		else
+		{
+			controller.clearSlideshow();
+			controller.slideshow = false;
+		}
 
 		gnome.showRemote(msg)
 	});
@@ -162,6 +166,7 @@ function checkClients()
 		if(exports.activeConnections == 0)
 		{
 			controller.clearSlideshow();
+			controller.slideshow = false;
 			gnome.showRemote(false);
 		}
 	}, 2500);

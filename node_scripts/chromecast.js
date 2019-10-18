@@ -141,6 +141,7 @@ exports.remote = function(action, value)
 			break;
 		case 'STOP':
 			controller.repeat = false;
+			controller.slideshow = false;
 			chromecast.stop((err) =>
 			{
 				if(err) debug(err);
