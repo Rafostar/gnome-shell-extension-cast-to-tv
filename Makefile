@@ -47,6 +47,8 @@ zip-file: _build
 
 # Build and install #
 install: compilemo
+	LASTCOMMIT=$(shell git rev-parse --short HEAD); \
+	sed -i "/uuid/a \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json
 ifeq ($(CUSTOMPATH),)
 	glib-compile-schemas ./schemas/
 	mkdir -p $(INSTALLPATH)/$(UUID)

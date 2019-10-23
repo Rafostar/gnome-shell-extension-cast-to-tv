@@ -716,8 +716,9 @@ class AboutPage extends Gtk.VBox
 		this.pack_start(label, false, false, 0);
 
 		/* Extension version */
+		let buildVersion = Local.metadata.git || Local.metadata.version;
 		label = new Gtk.Label({
-			label: '<span font="12"><b>' + _("version:") + " " + Local.metadata['version'] + '</b></span>',
+			label: '<span font="12"><b>' + _("version:") + " " + buildVersion + '</b></span>',
 			use_markup: true
 		});
 		this.pack_start(label, false, false, 0);
