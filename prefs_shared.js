@@ -1,6 +1,7 @@
 imports.gi.versions.Gtk = '3.0';
 
 const { Gtk } = imports.gi;
+let gridIndex = 0;
 
 var SettingLabel = class SharedSettingLabel
 {
@@ -29,4 +30,13 @@ var SettingLabel = class SharedSettingLabel
 			margin_right: marginLR
 		});
 	}
+}
+
+function addToGrid(grid, leftWidget, rightWidget, resetIndex)
+{
+	if(resetIndex) gridIndex = 0;
+	if(leftWidget) grid.attach(leftWidget, 0, gridIndex, 1, 1);
+	if(rightWidget) grid.attach(rightWidget, 1, gridIndex, 1, 1);
+
+	gridIndex++;
 }

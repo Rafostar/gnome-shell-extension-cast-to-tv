@@ -4,7 +4,7 @@ imports.gi.versions.Gdk = '3.0';
 const { Gio, Gtk, GLib, Gdk, Vte, Pango, GObject } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
-const { SettingLabel } = Local.imports.prefs_shared;
+const { SettingLabel, addToGrid } = Local.imports.prefs_shared;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path);
 const shared = Local.imports.shared.module.exports;
@@ -91,7 +91,7 @@ class MainSettings extends Gtk.VBox
 
 		/* Label: Main Options */
 		label = new SettingLabel(_("Main Options"), true);
-		grid.attach(label, 0, 0, 1, 1);
+		addToGrid(grid, label, null, true);
 
 		/* Receiver Type */
 		label = new SettingLabel(_("Receiver type"));
@@ -103,24 +103,21 @@ class MainSettings extends Gtk.VBox
 		This should be as short as possible e.g. "Browser | Player". */
 		widget.append('other', _("Web browser | Media player"));
 		Settings.bind('receiver-type', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		grid.attach(label, 0, 1, 1, 1);
-		grid.attach(widget, 1, 1, 1, 1);
+		addToGrid(grid, label, widget);
 
 		/* FFmpeg Path */
 		label = new SettingLabel(_("FFmpeg path"));
 		widget = new Gtk.Entry({width_request: 230, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffmpeg");
 		Settings.bind('ffmpeg-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
-		grid.attach(label, 0, 2, 1, 1);
-		grid.attach(widget, 1, 2, 1, 1);
+		addToGrid(grid, label, widget);
 
 		/* FFprobe Path */
 		label = new SettingLabel(_("FFprobe path"));
 		widget = new Gtk.Entry({width_request: 230, halign:Gtk.Align.END});
 		widget.set_placeholder_text("/usr/bin/ffprobe");
 		Settings.bind('ffprobe-path', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
-		grid.attach(label, 0, 3, 1, 1);
-		grid.attach(widget, 1, 3, 1, 1);
+		addToGrid(grid, label, widget);
 
 		/* Listening Port */
 		label = new SettingLabel(_("Listening port"));
@@ -130,8 +127,7 @@ class MainSettings extends Gtk.VBox
 		this.portWidget.set_value(Settings.get_int('listening-port'));
 		this.portWidget.set_increments(1, 2);
 		Settings.bind('listening-port', this.portWidget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		grid.attach(label, 0, 4, 1, 1);
-		grid.attach(this.portWidget, 1, 4, 1, 1);
+		addToGrid(grid, label, this.portWidget);
 
 		/* Web player link */
 		this.linkButton = new Gtk.LinkButton({
@@ -207,7 +203,7 @@ class RemoteSettings extends Gtk.Grid
 
 		/* Label: Remote Controller */
 		label = new SettingLabel(_("Remote Controller"), true);
-		this.attach(label, 0, 0, 1, 1);
+		addToGrid(this, label, null, true);
 
 		/* Remote Position */
 		label = new SettingLabel(_("Remote position"));
@@ -217,8 +213,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.append('center-right', _("Center (right side)"));
 		widget.append('right', _("Right"));
 		Settings.bind('remote-position', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 1, 1, 1);
-		this.attach(widget, 1, 1, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Seek Backward/Forward */
 		label = new SettingLabel(_("Seek backward/forward (seconds)"));
@@ -228,8 +223,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_value(Settings.get_int('seek-time'));
 		widget.set_increments(1, 2);
 		Settings.bind('seek-time', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 2, 1, 1);
-		this.attach(widget, 1, 2, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Slideshow Timer */
 		label = new SettingLabel(_("Slideshow time per picture (seconds)"));
@@ -239,8 +233,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_value(Settings.get_int('slideshow-time'));
 		widget.set_increments(1, 2);
 		Settings.bind('slideshow-time', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(widget, 1, 3, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Media Buttons Size */
 		label = new SettingLabel(_("Media control buttons size"));
@@ -250,8 +243,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_value(Settings.get_int('media-buttons-size'));
 		widget.set_increments(1, 2);
 		Settings.bind('media-buttons-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(widget, 1, 4, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Slider Icon Size */
 		label = new SettingLabel(_("Slider icon size"));
@@ -261,8 +253,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_value(Settings.get_int('slider-icon-size'));
 		widget.set_increments(1, 2);
 		Settings.bind('slider-icon-size', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 5, 1, 1);
-		this.attach(widget, 1, 5, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Volume Slider */
 		label = new SettingLabel(_("Unify sliders"));
@@ -270,8 +261,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('unified-slider'));
 		Settings.bind('unified-slider', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(widget, 1, 6, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Remote Label */
 		label = new SettingLabel(_("Show remote label"));
@@ -279,8 +269,7 @@ class RemoteSettings extends Gtk.Grid
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('remote-label'));
 		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 7, 1, 1);
-		this.attach(widget, 1, 7, 1, 1);
+		addToGrid(this, label, widget);
 	}
 }
 
@@ -314,7 +303,7 @@ class ChromecastSettings extends Gtk.Grid
 
 		/* Label: Chromecast Options */
 		label = new SettingLabel(_("Chromecast Options"), true);
-		this.attach(label, 0, 0, 1, 1);
+		addToGrid(this, label, null, true);
 
 		/* Chromecast device name */
 		label = new SettingLabel(_("Device selection"));
@@ -341,16 +330,15 @@ class ChromecastSettings extends Gtk.Grid
 			let castIp = new ChromecastIpSettings(this);
 		});
 		Settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 1, 1, 1);
-		this.attach(box, 1, 1, 1, 1);
+		addToGrid(this, label, box);
 
 		/* Label: Subtitles */
 		label = new SettingLabel(_("Subtitles"), true, true);
-		this.attach(label, 0, 2, 1, 1);
+		addToGrid(this, label);
 
 		/* Font Family */
 		label = new SettingLabel(_("Font family"));
-		this.fontFamily = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+		this.fontFamily = new Gtk.ComboBoxText({width_request: 180, halign:Gtk.Align.END});
 		this.fontFamily.append('SANS_SERIF', "Droid Sans");
 		this.fontFamily.append('MONOSPACED_SANS_SERIF', "Droid Sans Mono");
 		this.fontFamily.append('SERIF', "Droid Serif Regular");
@@ -365,12 +353,11 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontGenericFamily = this.fontFamily.active_id;
 			setSubsConfig();
 		});
-		this.attach(label, 0, 3, 1, 1);
-		this.attach(this.fontFamily, 1, 3, 1, 1);
+		addToGrid(this, label, this.fontFamily);
 
 		/* Font Style */
 		label = new SettingLabel(_("Font style"));
-		this.fontStyle = new Gtk.ComboBoxText({halign:Gtk.Align.END});
+		this.fontStyle = new Gtk.ComboBoxText({width_request: 180, halign:Gtk.Align.END});
 		this.fontStyle.append('NORMAL', _("Normal"));
 		this.fontStyle.append('BOLD', _("Bold"));
 		this.fontStyle.append('ITALIC', _("Italic"));
@@ -381,8 +368,7 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontStyle = this.fontStyle.active_id;
 			setSubsConfig();
 		});
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(this.fontStyle, 1, 4, 1, 1);
+		addToGrid(this, label, this.fontStyle);
 
 		/* Subtitles Scale */
 		label = new SettingLabel(_("Scale factor"));
@@ -396,8 +382,7 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
 			setSubsConfig();
 		});
-		this.attach(label, 0, 5, 1, 1);
-		this.attach(this.scaleButton, 1, 5, 1, 1);
+		addToGrid(this, label, this.scaleButton);
 
 		/* Font Color */
 		label = new SettingLabel(_("Font color"));
@@ -409,8 +394,7 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
 			setSubsConfig();
 		});
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(this.fontColor, 1, 6, 1, 1);
+		addToGrid(this, label, this.fontColor);
 
 		/* Font Outline */
 		label = new SettingLabel(_("Font outline"));
@@ -440,8 +424,7 @@ class ChromecastSettings extends Gtk.Grid
 		});
 		box.pack_end(this.edgeColor, false, false, 0);
 		box.pack_end(this.outlineSwitch, false, false, 8);
-		this.attach(label, 0, 7, 1, 1);
-		this.attach(box, 1, 7, 1, 1);
+		addToGrid(this, label, box);
 
 		/* Background color */
 		label = new SettingLabel(_("Background color"));
@@ -453,8 +436,7 @@ class ChromecastSettings extends Gtk.Grid
 			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
 			setSubsConfig();
 		});
-		this.attach(label, 0, 8, 1, 1);
-		this.attach(this.bgColor, 1, 8, 1, 1);
+		addToGrid(this, label, this.bgColor);
 
 		this.destroy = () =>
 		{
@@ -485,7 +467,7 @@ class OtherSettings extends Gtk.Grid
 
 		/* Label: Media Encoding */
 		label = new SettingLabel(_("Media Encoding"), true);
-		this.attach(label, 0, 0, 1, 1);
+		addToGrid(this, label, null, true);
 
 		/* Hardware Acceleration */
 		label = new SettingLabel(_("Hardware acceleration"));
@@ -494,8 +476,7 @@ class OtherSettings extends Gtk.Grid
 		widget.append('vaapi', "VAAPI");
 		widget.append('nvenc', "NVENC");
 		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 1, 1, 1);
-		this.attach(widget, 1, 1, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Video Bitrate */
 		label = new SettingLabel(_("Bitrate (Mbps)"));
@@ -505,12 +486,11 @@ class OtherSettings extends Gtk.Grid
 		widget.set_value(Settings.get_double('video-bitrate'));
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 2, 1, 1);
-		this.attach(widget, 1, 2, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Label: Web Player */
 		label = new SettingLabel(_("Web Player"), true, true);
-		this.attach(label, 0, 3, 1, 1);
+		addToGrid(this, label);
 
 		/* Subtitles Scale */
 		label = new SettingLabel(_("Subtitles scale factor"));
@@ -520,12 +500,11 @@ class OtherSettings extends Gtk.Grid
 		widget.set_value(Settings.get_double('webplayer-subs'));
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 4, 1, 1);
-		this.attach(widget, 1, 4, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Label: Playercast */
 		label = new SettingLabel(_("Playercast app"), true, true);
-		this.attach(label, 0, 5, 1, 1);
+		addToGrid(this, label);
 
 		/* Playercast device name */
 		label = new SettingLabel(_("Device selection"));
@@ -538,13 +517,12 @@ class OtherSettings extends Gtk.Grid
 			widget.append(currentPlayercast, currentPlayercast);
 			widget.active_id = currentPlayercast;
 		}
-		this.attach(label, 0, 6, 1, 1);
-		this.attach(widget, 1, 6, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Label: Miscellaneous */
 		/* TRANSLATORS: The rest of extension settings */
 		label = new SettingLabel(_("Miscellaneous"), true, true);
-		this.attach(label, 0, 7, 1, 1);
+		addToGrid(this, label);
 
 		/* Music Visualizer */
 		label = new SettingLabel(_("Music visualizer"));
@@ -552,8 +530,7 @@ class OtherSettings extends Gtk.Grid
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('music-visualizer'));
 		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		this.attach(label, 0, 8, 1, 1);
-		this.attach(widget, 1, 8, 1, 1);
+		addToGrid(this, label, widget);
 
 		/* Nautilus/Nemo Integration */
 		label = new SettingLabel(_("Nautilus/Nemo integration"));
@@ -585,8 +562,7 @@ class OtherSettings extends Gtk.Grid
 			enableNautilusExtension(this.nautilusSwitch.active);
 		});
 
-		this.attach(label, 0, 9, 1, 1);
-		this.attach(this.nautilusSwitch, 1, 9, 1, 1);
+		addToGrid(this, label, this.nautilusSwitch);
 
 		this.destroy = () =>
 		{
