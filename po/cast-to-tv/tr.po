@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-10-02 11:49\n"
+"PO-Revision-Date: 2019-12-11 10:10\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -19,7 +19,7 @@ msgstr ""
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
 #: extension.js:35
 msgid "Playercast Remote"
-msgstr ""
+msgstr "Playercast Kumandası"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:39
@@ -61,11 +61,11 @@ msgstr "Aç"
 #. TRANSLATORS: When "Cast Media" service is turned off
 #: widget.js:101
 msgid "Cast Off"
-msgstr ""
+msgstr "Oynatma Kapalı"
 
 #: playlist.js:336
 msgid "Playlist"
-msgstr ""
+msgstr "Oynatma listesi"
 
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:20
@@ -79,15 +79,15 @@ msgstr "Oynatılacak Dosyaları Seç"
 
 #: file-chooser.js:23
 msgid "Add to Playlist"
-msgstr ""
+msgstr "Oynatma listesine ekle"
 
 #: file-chooser.js:56
 msgid "Transcode"
-msgstr ""
+msgstr "Dönüştür"
 
 #: file-chooser.js:61
 msgid "Video + Audio"
-msgstr ""
+msgstr "Video + Ses"
 
 #: file-chooser.js:131
 msgid "Cancel"
@@ -154,7 +154,7 @@ msgstr "Alıcı tipi"
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
 #: prefs.js:102 prefs.js:517
 msgid "Playercast app"
-msgstr ""
+msgstr "Playercast uygulaması"
 
 #. TRANSLATORS: Web browser or Media player app selection.
 #. This should be as short as possible e.g. "Browser | Player".
@@ -208,11 +208,11 @@ msgstr "İleri/geri atlama (saniye)"
 
 #: prefs.js:236
 msgid "Media control buttons size"
-msgstr ""
+msgstr "Medya kontrol butonları boyutu"
 
 #: prefs.js:247
 msgid "Slider icon size"
-msgstr ""
+msgstr "Kaydırıcı simgesi boyutu"
 
 #: prefs.js:258
 msgid "Unify sliders"
@@ -310,7 +310,7 @@ msgstr "Müzik görselleştirici"
 
 #: prefs.js:549
 msgid "Nautilus/Nemo integration"
-msgstr ""
+msgstr "Nautilus/Nemo bütünleşmesi"
 
 #: prefs.js:657
 msgid "Install npm modules"
@@ -334,7 +334,7 @@ msgstr "Eklenti Ana Sayfası"
 
 #: prefs.js:757
 msgid "Playercast Homepage"
-msgstr ""
+msgstr "Playercast Ana Sayfası"
 
 #: prefs.js:764
 msgid "Donate"
@@ -367,20 +367,20 @@ msgstr "Hakkında"
 
 #: prefs.js:876
 msgid "Manual IP Config"
-msgstr ""
+msgstr "Manuel IP Yapılandırması"
 
 #: prefs.js:933
 msgid "Auto"
-msgstr ""
+msgstr "Otomatik"
 
 #: prefs.js:934
 msgid "Name"
-msgstr ""
+msgstr "İsim"
 
 #. TRANSLATORS: Text field temporary text
 #: prefs.js:950
 msgid "Insert name"
-msgstr ""
+msgstr "İsim ekle"
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
 #: prefs.js:1065
@@ -405,7 +405,7 @@ msgstr "Alıcı tipi Chromecast’e ayarlandı"
 
 #: node_scripts/messages.js:7
 msgid "Receiver type is set to Playercast app"
-msgstr ""
+msgstr "Alıcı tipi Playercast uygulaması olarak ayarlandı"
 
 #: node_scripts/messages.js:8
 msgid "Streaming process is still active"
@@ -448,11 +448,11 @@ msgstr "Medya yüklenemedi"
 
 #: node_scripts/messages.js:25
 msgid "Could not connect to device"
-msgstr ""
+msgstr "Aygıta bağlanılamadı"
 
 #: node_scripts/messages.js:26
 msgid "Verify device IP in extension preferences"
-msgstr ""
+msgstr "Eklenti tercihlerinde cihazın IP adresini doğrulayın"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:28
