@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-12-11 10:10\n"
+"PO-Revision-Date: 2019-12-11 14:19\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -371,7 +371,7 @@ msgstr "Manuel IP Yapılandırması"
 
 #: prefs.js:933
 msgid "Auto"
-msgstr "Otomatik"
+msgstr ""
 
 #: prefs.js:934
 msgid "Name"
