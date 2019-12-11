@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-12-11 14:19\n"
+"PO-Revision-Date: 2019-12-11 15:24\n"
 "Last-Translator: Rafostar\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -79,7 +79,7 @@ msgstr "Oynatılacak Dosyaları Seç"
 
 #: file-chooser.js:23
 msgid "Add to Playlist"
-msgstr "Oynatma listesine ekle"
+msgstr "Oynatma Listesine Ekle"
 
 #: file-chooser.js:56
 msgid "Transcode"
@@ -371,7 +371,7 @@ msgstr "Manuel IP Yapılandırması"
 
 #: prefs.js:933
 msgid "Auto"
-msgstr ""
+msgstr "Otomatik"
 
 #: prefs.js:934
 msgid "Name"
