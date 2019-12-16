@@ -138,6 +138,11 @@ app.get('/webplayer/webconfig.css', function(req, res)
 	webcreator.webConfig(req, res);
 });
 
+app.get('/segment*', function(req, res)
+{
+	webcreator.hlsStream(req, res);
+});
+
 app.use('/webplayer', express.static(__dirname + '/../webplayer'));
 app.use('/plyr', express.static(__dirname + '/../node_modules/plyr/dist'));
 

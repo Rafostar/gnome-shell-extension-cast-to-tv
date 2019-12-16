@@ -9,6 +9,7 @@ var tempDir = '/tmp/.cast-to-tv';
 
 module.exports = {
 	tempDir: tempDir,
+	hlsDir: tempDir + '-stream',
 	configPath: tempDir + '/config.json',
 	selectionPath: tempDir + '/selection.json',
 	listPath: tempDir + '/playlist.json',

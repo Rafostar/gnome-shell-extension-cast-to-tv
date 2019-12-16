@@ -141,6 +141,27 @@ exports.coverStream = function(req, res)
 	res.sendStatus(204);
 }
 
+exports.hlsStream = function(req, res)
+{
+	var filePath = shared.hlsDir + req.url;
+
+	/* Check if stream segment exists */
+	if(fs.existsSync(filePath))
+	{
+		var stat = fs.statSync(filePath);
+		var total = stat.size;
+
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.setHeader('Content-Type', 'application/x-mpegURL');
+		res.setHeader('Content-Length', total);
+		res.statusCode = 200;
+
+		return fs.createReadStream(filePath).pipe(res);
+	}
+
+	res.sendStatus(404);
+}
+
 exports.webConfig = function(req, res)
 {
 	res.setHeader('Access-Control-Allow-Origin', '*');

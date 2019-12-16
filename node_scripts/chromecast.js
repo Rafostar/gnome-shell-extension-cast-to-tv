@@ -214,6 +214,7 @@ function initChromecast()
 			mimeType = 'image/*';
 			break;
 		default:
+			if(bridge.selection.hlsStream) mimeType = 'application/x-mpegurl';
 			initType = 'LIVE';
 			break;
 	}
@@ -263,6 +264,15 @@ function initChromecast()
 				}
 			};
 			break;
+		default:
+			trackIds = [];
+			mediaTracks = {
+				metadata: {
+					metadataType: 1,
+					images: [{url: ''}]
+				}
+			};
+			break;
 	}
 
 	mediaTracks.metadata.title = getTitle();
@@ -270,8 +280,15 @@ function initChromecast()
 
 	var getAutoplayState = () =>
 	{
-		return (bridge.selection.streamType === 'MUSIC'
-			&& !bridge.config.musicVisualizer) ? true : false;
+		switch(bridge.selection.streamType)
+		{
+			case 'MUSIC':
+				return (bridge.config.musicVisualizer) ? false : true;
+			case 'LIVE':
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	var getChromecastName = () =>
@@ -429,7 +446,7 @@ function startPlayback(mimeType)
 		var delay = (bridge.selection.streamType === 'MUSIC') ?
 			shared.chromecast.visualizerBuffer : shared.chromecast.videoBuffer;
 
-			playTimeout = setTimeout(() => play(), delay);
+		playTimeout = setTimeout(() => play(), delay);
 	}
 	else
 	{
