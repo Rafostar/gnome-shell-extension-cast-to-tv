@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-15 20:55+0200\n"
-"PO-Revision-Date: 2019-12-28 17:47\n"
+"PO-Revision-Date: 2019-12-28 22:02\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -91,7 +91,7 @@ msgstr "Max calidad de video"
 
 #: links_prefs.js:76
 msgid "Allow VP9 codec"
-msgstr "Permitir el códec VP9 "
+msgstr "Permitir el códec VP9"
 
 #: links_prefs.js:84
 msgid "Subtitles"
