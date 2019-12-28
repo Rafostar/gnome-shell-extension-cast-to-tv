@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-12-27 20:30\n"
+"PO-Revision-Date: 2019-12-28 16:44\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -18,20 +18,20 @@ msgstr ""
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
 #: extension.js:35
 msgid "Playercast Remote"
-msgstr ""
+msgstr "Playercast Remoto"
 
 #. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
 #: extension.js:39
 msgid "Web Player Remote"
-msgstr ""
+msgstr "Navegador Web Remoto"
 
 #: extension.js:42
 msgid "Chromecast Remote"
-msgstr ""
+msgstr "Chromecast Remoto"
 
 #: widget.js:30 widget.js:83
 msgid "Cast Media"
-msgstr ""
+msgstr "Emitir Contenido"
 
 #: widget.js:35 file-chooser.js:59
 msgid "Video"
@@ -39,32 +39,32 @@ msgstr ""
 
 #: widget.js:36
 msgid "Music"
-msgstr ""
+msgstr "Música"
 
 #: widget.js:37
 msgid "Picture"
-msgstr ""
+msgstr "Imagen"
 
 #: widget.js:38 widget.js:82
 msgid "Turn Off"
-msgstr ""
+msgstr "Apagar"
 
 #: widget.js:39
 msgid "Cast Settings"
-msgstr ""
+msgstr "Preferencias de Emisión"
 
 #: widget.js:99
 msgid "Turn On"
-msgstr ""
+msgstr "Encender"
 
 #. TRANSLATORS: When "Cast Media" service is turned off
 #: widget.js:101
 msgid "Cast Off"
-msgstr ""
+msgstr "Detener Emisión"
 
 #: playlist.js:336
 msgid "Playlist"
-msgstr ""
+msgstr "Lista de Reproducción"
 
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:20
