@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-15 20:55+0200\n"
-"PO-Revision-Date: 2019-12-27 20:30\n"
+"PO-Revision-Date: 2019-12-28 17:47\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -18,94 +18,94 @@ msgstr ""
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:140
 msgid "No Image"
-msgstr ""
+msgstr "Sin Imagen"
 
 #: app.js:152
 msgid "Title:"
-msgstr ""
+msgstr "Título:"
 
 #: app.js:153
 msgid "Format:"
-msgstr ""
+msgstr "Formato:"
 
 #: app.js:154
 msgid "Resolution:"
-msgstr ""
+msgstr "Resolución:"
 
 #: app.js:155
 msgid "Video codec:"
-msgstr ""
+msgstr "Códec de video:"
 
 #: app.js:156
 msgid "Audio codec:"
-msgstr ""
+msgstr "Códec de audio:"
 
 #: app.js:157
 msgid "Subtitles:"
-msgstr ""
+msgstr "Subtitulos:"
 
 #: app.js:173
 msgid "Enter or drop link here"
-msgstr ""
+msgstr "Ingrese o arrastre la dirección acá"
 
 #: app.js:182
 msgid "Cast link"
-msgstr ""
+msgstr "Emitir enlace"
 
 #: widget.js:18
 msgid "Link"
-msgstr ""
+msgstr "Enlace"
 
 #: links_prefs.js:31
 msgid "Links"
-msgstr ""
+msgstr "Enlaces"
 
 #: links_prefs.js:36
 msgid "Links Options"
-msgstr ""
+msgstr "Opciones del enlace"
 
 #: links_prefs.js:40
 msgid "Preferred format"
-msgstr ""
+msgstr "Formato preferido"
 
 #: links_prefs.js:42
 msgid "Best seekable"
-msgstr ""
+msgstr "Mejor busqueda"
 
 #: links_prefs.js:43
 msgid "Best quality"
-msgstr ""
+msgstr "Mejor calidad"
 
 #: links_prefs.js:43
 msgid "(experimental)"
-msgstr ""
+msgstr "(experimental)"
 
 #: links_prefs.js:49
 msgid "Path to youtube-dl"
-msgstr ""
+msgstr "Ruta a youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
 #: links_prefs.js:58
 msgid "Max video quality"
-msgstr ""
+msgstr "Max calidad de video"
 
 #: links_prefs.js:76
 msgid "Allow VP9 codec"
-msgstr ""
+msgstr "Permitir el códec VP9 "
 
 #: links_prefs.js:84
 msgid "Subtitles"
-msgstr ""
+msgstr "Subtitulos"
 
 #: links_prefs.js:88
 msgid "Preferred language"
-msgstr ""
+msgstr "Lenguage preferido"
 
 #: links_prefs.js:96
 msgid "Fallback language"
-msgstr ""
+msgstr "Lenguaje de soporte"
 
 #: links_prefs.js:98
 msgid "none"
-msgstr ""
+msgstr "ninguno"
 
