@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-12-28 17:47\n"
+"PO-Revision-Date: 2019-12-28 22:02\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -69,16 +69,16 @@ msgstr "Lista de Reproducción"
 #. TRANSLATORS: Button text when selected SINGLE file
 #: file-chooser.js:20
 msgid "Cast Selected File"
-msgstr "Archivo seleccionado para emisión"
+msgstr "Enviar archivo"
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
 #: file-chooser.js:22
 msgid "Cast Selected Files"
-msgstr "Archivos seleccionados para emisión"
+msgstr "Enviar archivos"
 
 #: file-chooser.js:23
 msgid "Add to Playlist"
-msgstr "Agregar a la lista de reproducción"
+msgstr "Agregar a la cola"
 
 #: file-chooser.js:56
 msgid "Transcode"
@@ -413,7 +413,7 @@ msgstr "El proceso de transmisión aún está activo"
 #. TRANSLATORS: Do not remove HTML tags
 #: node_scripts/messages.js:10
 msgid "Too many connections!<p>Close all other tabs that are accessing this page in all browsers</p>"
-msgstr "¡Demasiadas conexiones! <p> Cierre todas las demás pestañas que acceden a esta página en todos los navegadores </p>"
+msgstr "¡Demasiadas conexiones!<p>Cierre todas las demás pestañas que acceden a esta página en todos los navegadores</p>"
 
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:12
