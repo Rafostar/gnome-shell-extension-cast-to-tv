@@ -5,107 +5,107 @@ msgstr ""
 "POT-Creation-Date: 2019-10-15 20:55+0200\n"
 "PO-Revision-Date: 2019-12-29 09:03\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: German\n"
-"Language: de_DE\n"
+"Language-Team: Spanish\n"
+"Language: es_ES\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: cast-to-tv\n"
-"X-Crowdin-Language: de\n"
+"X-Crowdin-Language: es-ES\n"
 "X-Crowdin-File: /master/po/cast-to-tv-links-addon/cast-to-tv-links-addon.pot\n"
 
 #. TRANSLATORS: Make sure this text fits the black background. Otherwise the frame will get stretched!!!
 #: app.js:140
 msgid "No Image"
-msgstr "Kein Bild"
+msgstr "Sin Imagen"
 
 #: app.js:152
 msgid "Title:"
-msgstr "Titel:"
+msgstr "Título:"
 
 #: app.js:153
 msgid "Format:"
-msgstr "Format:"
+msgstr "Formato:"
 
 #: app.js:154
 msgid "Resolution:"
-msgstr "Auflösung:"
+msgstr "Resolución:"
 
 #: app.js:155
 msgid "Video codec:"
-msgstr "Videocodec:"
+msgstr "Códec de video:"
 
 #: app.js:156
 msgid "Audio codec:"
-msgstr "Audio Codec:"
+msgstr "Códec de audio:"
 
 #: app.js:157
 msgid "Subtitles:"
-msgstr "Untertitel:"
+msgstr "Subtitulos:"
 
 #: app.js:173
 msgid "Enter or drop link here"
-msgstr "Link hier eingeben oder ablegen"
+msgstr "Ingrese o arrastre la dirección acá"
 
 #: app.js:182
 msgid "Cast link"
-msgstr "Castlink"
+msgstr "Emitir enlace"
 
 #: widget.js:18
 msgid "Link"
-msgstr "Link"
+msgstr "Enlace"
 
 #: links_prefs.js:31
 msgid "Links"
-msgstr "Links"
+msgstr "Enlaces"
 
 #: links_prefs.js:36
 msgid "Links Options"
-msgstr "Linkoptionen"
+msgstr "Opciones del enlace"
 
 #: links_prefs.js:40
 msgid "Preferred format"
-msgstr "Bevorzugtes Format"
+msgstr "Formato preferido"
 
 #: links_prefs.js:42
 msgid "Best seekable"
-msgstr "Am besten spulbar"
+msgstr "Mejor busqueda"
 
 #: links_prefs.js:43
 msgid "Best quality"
-msgstr "Beste Qualität"
+msgstr "Mejor calidad"
 
 #: links_prefs.js:43
 msgid "(experimental)"
-msgstr "(experimentell)"
+msgstr "(experimental)"
 
 #: links_prefs.js:49
 msgid "Path to youtube-dl"
-msgstr "Pfad zu youtube-dl"
+msgstr "Ruta a youtube-dl"
 
 #. TRANSLATORS: Can be translated simply as "Max quality" to make it shorter
 #: links_prefs.js:58
 msgid "Max video quality"
-msgstr "Max. Videoqualität"
+msgstr "Max calidad de video"
 
 #: links_prefs.js:76
 msgid "Allow VP9 codec"
-msgstr "VP9 Codec erlauben"
+msgstr "Permitir el códec VP9"
 
 #: links_prefs.js:84
 msgid "Subtitles"
-msgstr "Untertitel"
+msgstr "Subtitulos"
 
 #: links_prefs.js:88
 msgid "Preferred language"
-msgstr "Bevorzugte Sprache"
+msgstr "Lenguage preferido"
 
 #: links_prefs.js:96
 msgid "Fallback language"
-msgstr "Fallback-Sprache"
+msgstr "Lenguaje de soporte"
 
 #: links_prefs.js:98
 msgid "none"
-msgstr "keine"
+msgstr "ninguno"
 
