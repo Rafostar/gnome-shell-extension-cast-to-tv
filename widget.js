@@ -126,6 +126,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	{
 		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
+		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -203,18 +204,19 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.positionSlider.delay = 0;
 			this.positionSlider.isVolume ^= true;
 
-			let statusContents = Helper.readFromFile(shared.statusPath);
-
-			if(this.positionSlider.isVolume)
+			Helper.readFromFileAsync(this.statusFile, (statusContents) =>
 			{
-				this.positionSlider.setIcon(this.positionSlider.volumeIcon);
-				if(statusContents) this.setVolume(statusContents);
-			}
-			else
-			{
-				this.positionSlider.setIcon(this.positionSlider.defaultIcon);
-				if(statusContents) this.setProgress(statusContents);
-			}
+				if(this.positionSlider.isVolume)
+				{
+					this.positionSlider.setIcon(this.positionSlider.volumeIcon);
+					if(statusContents) this.setVolume(statusContents);
+				}
+				else
+				{
+					this.positionSlider.setIcon(this.positionSlider.defaultIcon);
+					if(statusContents) this.setProgress(statusContents);
+				}
+			});
 		}
 
 		/* Signals connections */
@@ -291,7 +293,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'))
 		);
 
-		this.statusFile = Gio.file_new_for_path(shared.statusPath);
 		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorFlags.NONE, null);
 
 		let handleSliderDelay = (sliderName) =>
@@ -301,13 +302,14 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.updateRemote = (monitor, file, otherFile, event) =>
+		this.updateRemote = (force, event) =>
 		{
-			if(event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT) return;
+			if(!force && event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT) return;
 
-			let statusContents = Helper.readFromFile(shared.statusPath);
-			if(statusContents)
+			Helper.readFromFileAsync(this.statusFile, (statusContents) =>
 			{
+				if(!statusContents) return;
+
 				if(
 					statusContents.hasOwnProperty('repeat')
 					&& this.repeatButton.turnedOn !== statusContents.repeat
@@ -344,10 +346,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				) {
 					this.setProgress(statusContents);
 				}
-			}
+			});
 		}
 
-		this.monitorSignal = this.statusMonitor.connect('changed', this.updateRemote.bind(this));
+		this.monitorSignal = this.statusMonitor.connect(
+			'changed', (monitor, file, otherFile, event) => this.updateRemote(false, event)
+		);
 
 		this.setPlaying = (value) =>
 		{

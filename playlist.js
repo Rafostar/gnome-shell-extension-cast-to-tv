@@ -415,12 +415,13 @@ class CastPlaylistItem extends AltPopupImage
 			}
 			else
 			{
-				let selectionContents = Helper.readFromFile(shared.selectionPath);
-				if(selectionContents)
+				Helper.readFromFileAsync(shared.selectionPath, (selectionContents) =>
 				{
+					if(!selectionContents) return;
+
 					selectionContents.filePath = this.filepath;
 					Helper.writeToFile(shared.selectionPath, selectionContents);
-				}
+				});
 			}
 		}
 	}

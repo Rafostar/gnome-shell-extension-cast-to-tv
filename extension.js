@@ -50,70 +50,71 @@ function configCastRemote()
 	if(chromecastPlaying)
 	{
 		/* Update selection and list data (needed for skipping tracks) */
-		let selectionContents = Helper.readFromFile(shared.selectionPath);
-		let listContents = Helper.readFromFile(shared.listPath);
-		let trackID;
-
-		if(listContents && selectionContents) trackID = listContents.indexOf(selectionContents.filePath) + 1;
-		else return;
-
-		/* List items are counted from 1 */
-		let listLastID = listContents.length;
-
-		/* Disable skip backward if playing first file from list */
-		if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
-		else remoteMenu.skipBackwardButton.reactive = false;
-
-		/* Disable skip forward if playing last file from list */
-		if(trackID < listLastID) remoteMenu.skipForwardButton.reactive = true;
-		else remoteMenu.skipForwardButton.reactive = false;
-
-		/* Update track title */
-		if(selectionContents.title) remoteMenu.trackTitle.setText(selectionContents.title);
-		else
+		getPlaybackDataAsync((selectionContents, listContents) =>
 		{
-			let filename = selectionContents.filePath.substring(selectionContents.filePath.lastIndexOf('/') + 1);
-			let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
+			let trackID;
 
-			if(title) remoteMenu.trackTitle.setText(title);
-			else remoteMenu.trackTitle.setText("");
-		}
+			if(listContents && selectionContents) trackID = listContents.indexOf(selectionContents.filePath) + 1;
+			else return;
 
-		/* Update widget playlist */
-		remoteMenu.playlist.loadPlaylist(listContents, selectionContents.filePath);
+			/* List items are counted from 1 */
+			let listLastID = listContents.length;
 
-		/* Choose remote to create */
-		switch(selectionContents.streamType)
-		{
-			case 'VIDEO':
-				remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
-				break;
-			case 'MUSIC':
-				if(!configContents.musicVisualizer) remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
-				else remoteMenu.setMode('ENCODE');
-				break;
-			case 'PICTURE':
-				remoteMenu.setMode('PICTURE');
-				break;
-			case 'LIVE':
-				remoteMenu.setMode('LIVE');
-				break;
-			default:
-				remoteMenu.setMode('ENCODE');
-				break;
-		}
+			/* Disable skip backward if playing first file from list */
+			if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
+			else remoteMenu.skipBackwardButton.reactive = false;
 
-		/* Set slider icon */
-		if(remoteMenu.positionSlider.isVolume)
-			remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.volumeIcon);
-		else
-			remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
+			/* Disable skip forward if playing last file from list */
+			if(trackID < listLastID) remoteMenu.skipForwardButton.reactive = true;
+			else remoteMenu.skipForwardButton.reactive = false;
 
-		/* Restore widget buttons and sliders state */
-		remoteMenu.updateRemote();
+			/* Update track title */
+			if(selectionContents.title) remoteMenu.trackTitle.setText(selectionContents.title);
+			else
+			{
+				let filename = selectionContents.filePath.substring(selectionContents.filePath.lastIndexOf('/') + 1);
+				let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
 
-		if(isActor) remoteMenu.actor.show();
-		else remoteMenu.show();
+				if(title) remoteMenu.trackTitle.setText(title);
+				else remoteMenu.trackTitle.setText("");
+			}
+
+			/* Update widget playlist */
+			remoteMenu.playlist.loadPlaylist(listContents, selectionContents.filePath);
+
+			/* Choose remote to create */
+			switch(selectionContents.streamType)
+			{
+				case 'VIDEO':
+					remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
+					break;
+				case 'MUSIC':
+					if(!configContents.musicVisualizer) remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
+					else remoteMenu.setMode('ENCODE');
+					break;
+				case 'PICTURE':
+					remoteMenu.setMode('PICTURE');
+					break;
+				case 'LIVE':
+					remoteMenu.setMode('LIVE');
+					break;
+				default:
+					remoteMenu.setMode('ENCODE');
+					break;
+			}
+
+			/* Set slider icon */
+			if(remoteMenu.positionSlider.isVolume)
+				remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.volumeIcon);
+			else
+				remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
+
+			/* Restore widget buttons and sliders state */
+			remoteMenu.updateRemote(true);
+
+			if(isActor) remoteMenu.actor.show();
+			else remoteMenu.show();
+		});
 	}
 	else
 	{
@@ -146,6 +147,30 @@ function setRemotePosition()
 	/* Place remote on top bar */
 	Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, itemIndex, remotePosition);
 	configCastRemote();
+}
+
+function getPlaybackDataAsync(callback)
+{
+	let selectionData = null;
+	let listData = null;
+
+	let checkBothData = () =>
+	{
+		if(selectionData && listData)
+			callback(selectionData, listData);
+	}
+
+	Helper.readFromFileAsync(shared.selectionPath, (selection) =>
+	{
+		selectionData = selection;
+		checkBothData();
+	});
+
+	Helper.readFromFileAsync(shared.listPath, (list) =>
+	{
+		listData = list;
+		checkBothData();
+	});
 }
 
 function getTempFiles()
