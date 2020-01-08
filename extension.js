@@ -54,8 +54,10 @@ function configCastRemote()
 		{
 			let trackID;
 
-			if(listContents && selectionContents) trackID = listContents.indexOf(selectionContents.filePath) + 1;
-			else return;
+			if(selectionContents && listContents)
+				trackID = listContents.indexOf(selectionContents.filePath) + 1;
+			else
+				return;
 
 			/* List items are counted from 1 */
 			let listLastID = listContents.length;
@@ -69,11 +71,15 @@ function configCastRemote()
 			else remoteMenu.skipForwardButton.reactive = false;
 
 			/* Update track title */
-			if(selectionContents.title) remoteMenu.trackTitle.setText(selectionContents.title);
+			if(selectionContents.title)
+				remoteMenu.trackTitle.setText(selectionContents.title);
 			else
 			{
-				let filename = selectionContents.filePath.substring(selectionContents.filePath.lastIndexOf('/') + 1);
-				let title = (filename.includes('.')) ? filename.split('.').slice(0, -1).join('.') : filename;
+				let filename = selectionContents.filePath.substring(
+					selectionContents.filePath.lastIndexOf('/') + 1);
+
+				let title = (filename.includes('.')) ?
+					filename.split('.').slice(0, -1).join('.') : filename;
 
 				if(title) remoteMenu.trackTitle.setText(title);
 				else remoteMenu.trackTitle.setText("");
@@ -89,8 +95,10 @@ function configCastRemote()
 					remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
 					break;
 				case 'MUSIC':
-					if(!configContents.musicVisualizer) remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
-					else remoteMenu.setMode('ENCODE');
+					if(!configContents.musicVisualizer)
+						remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
+					else
+						remoteMenu.setMode('ENCODE');
 					break;
 				case 'PICTURE':
 					remoteMenu.setMode('PICTURE');
@@ -162,12 +170,16 @@ function getPlaybackDataAsync(callback)
 
 	Helper.readFromFileAsync(shared.selectionPath, (selection) =>
 	{
+		if(!selection) return callback(null, listData);
+
 		selectionData = selection;
 		checkBothData();
 	});
 
 	Helper.readFromFileAsync(shared.listPath, (list) =>
 	{
+		if(!list) return callback(selectionData, null);
+
 		listData = list;
 		checkBothData();
 	});
