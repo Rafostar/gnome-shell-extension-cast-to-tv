@@ -19,11 +19,15 @@ function getSubsPath()
 	var subsPathEscaped = (bridge.selection.subsPath) ? bridge.selection.subsPath : bridge.selection.filePath;
 	var index = subsPathEscaped.length;
 
+	debug('Parsing subtitles path...');
+
 	while(index--)
 	{
 		if(shared.escapeChars.includes(subsPathEscaped.charAt(index)))
 			subsPathEscaped = subsPathEscaped.replaceAt(index, '\\' + subsPathEscaped.charAt(index));
 	}
+
+	debug(`Parsed subtitles path: ${subsPathEscaped}`);
 
 	return subsPathEscaped;
 }
@@ -35,17 +39,24 @@ function getAudioOptsArray()
 
 function createEncodeProcess(encodeOpts)
 {
+	debug(`Starting FFmpeg with opts: ${JSON.stringify(encodeOpts)}`);
+
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', stdioConf] });
 
 	var notifyError = false;
 
-	exports.streamProcess.once('close', (code) =>
+	exports.streamProcess.once('exit', (code) =>
 	{
 		if(code && !notifyError)
 			notify('Cast to TV', messages.ffmpegError, bridge.selection.filePath);
 
 		exports.streamProcess = null;
+
+		if(code !== null)
+			debug(`FFmpeg exited with code: ${code}`);
+
+		debug('FFmpeg closed');
 	});
 
 	exports.streamProcess.once('error', (error) =>
@@ -55,6 +66,9 @@ function createEncodeProcess(encodeOpts)
 			notify('Cast to TV', messages.ffmpegPath);
 			notifyError = true;
 		}
+
+		debug('FFmpeg had error!');
+		debug(error);
 	});
 
 	return exports.streamProcess.stdout;
@@ -176,7 +190,30 @@ exports.closeStreamProcess = function()
 {
 	if(exports.streamProcess)
 	{
-		try { process.kill(exports.streamProcess.pid, 'SIGHUP'); }
-		catch(err) {}
+		if(exports.streamProcess.stdout)
+		{
+			if(!exports.streamProcess.stdout.destroyed)
+			{
+				exports.streamProcess.stdout.destroy();
+				debug('Destroyed stream process remaining stdout data');
+			}
+			else
+				debug('Stream process stdout was destroyed earlier');
+
+			exports.streamProcess.stdout = null;
+		}
+		else
+		{
+			debug('Force killing stream process...');
+
+			try {
+				process.kill(exports.streamProcess.pid, 'SIGHUP');
+				debug('Force killed stream process');
+			}
+			catch(err) {
+				debug('Could not kill stream process!');
+				debug(err);
+			}
+		}
 	}
 }
