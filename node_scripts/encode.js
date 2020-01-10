@@ -8,6 +8,7 @@ var shared = require('../shared');
 var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
+var notifyError = false;
 
 String.prototype.replaceAt = function(index, replacement)
 {
@@ -44,34 +45,49 @@ function createEncodeProcess(encodeOpts)
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', stdioConf] });
 
-	var notifyError = false;
-
-	exports.streamProcess.once('exit', (code) =>
-	{
-		if(code && !notifyError)
-			notify('Cast to TV', messages.ffmpegError, bridge.selection.filePath);
-
-		exports.streamProcess = null;
-
-		if(code !== null)
-			debug(`FFmpeg exited with code: ${code}`);
-
-		debug('FFmpeg closed');
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-
-		debug('FFmpeg had error!');
-		debug(error);
-	});
+	notifyError = false;
+	exports.streamProcess.once('exit', onAutoExit);
+	exports.streamProcess.once('error', onEncodeError);
 
 	return exports.streamProcess.stdout;
+}
+
+function onAutoExit(code)
+{
+	if(!notifyError)
+	{
+		exports.streamProcess.removeListener('error', onEncodeError);
+
+		if(code) notify('Cast to TV', messages.ffmpegError, bridge.selection.filePath);
+	}
+
+	exports.streamProcess = null;
+
+	if(code !== null)
+		debug(`FFmpeg exited with code: ${code}`);
+
+	debug('FFmpeg auto exit');
+}
+
+function onManualExit(code)
+{
+	if(!notifyError)
+		exports.streamProcess.removeListener('error', onEncodeError);
+
+	exports.streamProcess = null;
+	debug('FFmpeg manual exit');
+}
+
+function onEncodeError(error)
+{
+	if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+	{
+		notify('Cast to TV', messages.ffmpegPath);
+		notifyError = true;
+	}
+
+	debug('FFmpeg had error!');
+	debug(error);
 }
 
 exports.video = function()
@@ -90,7 +106,12 @@ exports.video = function()
 	];
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + getSubsPath(), '-sn');
+	{
+		encodeOpts.splice(
+			encodeOpts.indexOf('libx264') + 1, 0,
+			'-vf', 'subtitles=' + getSubsPath(), '-sn'
+		);
+	}
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -110,9 +131,16 @@ exports.videoVaapi = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		encodeOpts.unshift('-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
-		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
-			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + getSubsPath() + ',hwmap', '-sn');
+		encodeOpts.unshift(
+			'-hwaccel', 'vaapi',
+			'-hwaccel_device', '/dev/dri/renderD128',
+			'-hwaccel_output_format', 'vaapi'
+		);
+		encodeOpts.splice(
+			encodeOpts.indexOf('h264_vaapi') + 1, 0,
+			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' +
+			getSubsPath() + ',hwmap', '-sn'
+		);
 	}
 	else
 	{
@@ -138,8 +166,10 @@ exports.videoNvenc = function()
 
 	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
 	{
-		encodeOpts.splice(encodeOpts.indexOf('h264_nvenc') + 1, 0,
-			'-vf', 'subtitles=' + getSubsPath(), '-sn');
+		encodeOpts.splice(
+			encodeOpts.indexOf('h264_nvenc') + 1, 0,
+			'-vf', 'subtitles=' + getSubsPath(), '-sn'
+		);
 	}
 
 	return createEncodeProcess(encodeOpts);
@@ -192,6 +222,9 @@ exports.closeStreamProcess = function()
 	{
 		if(exports.streamProcess.stdout)
 		{
+			exports.streamProcess.removeListener('exit', onAutoExit);
+			exports.streamProcess.once('exit', onManualExit);
+
 			if(!exports.streamProcess.stdout.destroyed)
 			{
 				exports.streamProcess.stdout.destroy();
