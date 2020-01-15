@@ -179,6 +179,21 @@ exports.webConfig = function(req, res)
 	res.send(webConfig);
 }
 
+exports.getTemp = function(type, req, res)
+{
+	switch(type)
+	{
+		case 'config':
+		case 'selection':
+		case 'playlist':
+			res.send(bridge[type]);
+			break;
+		default:
+			res.sendStatus(404);
+			break;
+	}
+}
+
 exports.pageWrong = function(req, res)
 {
 	res.writeHead(302, { Location: '/' });

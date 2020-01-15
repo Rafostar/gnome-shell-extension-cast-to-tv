@@ -17,12 +17,12 @@ exports.webControl = function(action, value)
 	switch(action)
 	{
 		case 'SKIP+':
-			currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
-			listLastID = bridge.list.length;
+			currentTrackID = bridge.playlist.indexOf(bridge.selection.filePath) + 1;
+			listLastID = bridge.playlist.length;
 			if(currentTrackID < listLastID) exports.changeTrack(currentTrackID + 1);
 			break;
 		case 'SKIP-':
-			currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
+			currentTrackID = bridge.playlist.indexOf(bridge.selection.filePath) + 1;
 			if(currentTrackID > 1) exports.changeTrack(currentTrackID - 1);
 			break;
 		case 'REPEAT':
@@ -42,14 +42,14 @@ exports.webControl = function(action, value)
 exports.changeTrack = function(id)
 {
 	/* Tracks are counted from 1, list indexes from 0 */
-	bridge.selection.filePath = bridge.list[id - 1];
+	bridge.selection.filePath = bridge.playlist[id - 1];
 	fs.writeFileSync(shared.selectionPath, JSON.stringify(bridge.selection, null, 1));
 }
 
 exports.checkNextTrack = function()
 {
-	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
-	var listLastID = bridge.list.length;
+	var currentTrackID = bridge.playlist.indexOf(bridge.selection.filePath) + 1;
+	var listLastID = bridge.playlist.length;
 
 	if(exports.repeat && currentTrackID === listLastID)
 	{

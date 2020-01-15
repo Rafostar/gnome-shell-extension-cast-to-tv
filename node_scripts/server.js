@@ -138,6 +138,11 @@ app.get('/webplayer/webconfig.css', function(req, res)
 	webcreator.webConfig(req, res);
 });
 
+app.get('/temp/*', function(req, res)
+{
+	webcreator.getTemp(req.params[0], req, res);
+});
+
 app.get('/segment*', function(req, res)
 {
 	webcreator.hlsStream(req, res);

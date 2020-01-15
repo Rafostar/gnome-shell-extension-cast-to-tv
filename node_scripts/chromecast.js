@@ -558,8 +558,8 @@ function closeCast(action)
 	chromecast._player.removeListener('close', finishCast);
 	chromecast._player.removeListener('status', handleChromecastStatus);
 
-	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
-	var listLastID = bridge.list.length;
+	var currentTrackID = bridge.playlist.indexOf(bridge.selection.filePath) + 1;
+	var listLastID = bridge.playlist.length;
 
 	if(action)
 	{

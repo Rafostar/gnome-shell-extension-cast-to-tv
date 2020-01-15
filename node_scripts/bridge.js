@@ -24,7 +24,7 @@ var writeTimeout;
 
 exports.config = require(shared.configPath);
 exports.selection = require(shared.selectionPath);
-exports.list = require(shared.listPath);
+exports.playlist = require(shared.listPath);
 exports.addon = null;
 gnome.showMenu(true);
 
@@ -202,10 +202,10 @@ function updateConfig()
 
 function updatePlaylist()
 {
-	exports.list = getContents(shared.listPath);
+	exports.playlist = getContents(shared.listPath);
 
-	if(exports.list)
-		debug(`New playlist contents: ${JSON.stringify(exports.list)}`);
+	if(exports.playlist)
+		debug(`New playlist contents: ${JSON.stringify(exports.playlist)}`);
 
 	/* Update remote widget with new playlist items */
 	if(gnome.isRemote()) gnome.showRemote(true);
@@ -221,7 +221,7 @@ function updateSelection()
 	}
 
 	var selectionContents = getContents(shared.selectionPath);
-	if(selectionContents === null || exports.list === null) return;
+	if(selectionContents === null || exports.playlist === null) return;
 
 	exports.selection = selectionContents;
 	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
