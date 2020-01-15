@@ -55,14 +55,16 @@ class SoupClient extends Soup.SessionAsync
 			});
 		}
 
-		this._postRequest = (type, data, cb) =>
+		this._postRequest = (type, data, query, cb) =>
 		{
 			cb = cb || noop;
 
 			this.abort();
-			let message = Soup.Message.new('POST',
-				'http://127.0.0.1:' + this.nodePort + '/temp/' + type
-			);
+			let url = 'http://127.0.0.1:' + this.nodePort + '/temp/' + type;
+
+			if(query) url += '?' + query;
+
+			let message = Soup.Message.new('POST', url);
 			let params = Soup.form_encode_hash(data);
 			message.set_request(
 				'application/x-www-form-urlencoded',
@@ -94,19 +96,31 @@ class SoupClient extends Soup.SessionAsync
 		this.postConfig = (data, cb) =>
 		{
 			cb = cb || noop;
-			this._postRequest('config', data, cb);
+			this._postRequest('config', data, null, cb);
 		}
 
 		this.postSelection = (data, cb) =>
 		{
 			cb = cb || noop;
-			this._postRequest('selection', data, cb);
+			this._postRequest('selection', data, null, cb);
 		}
 
-		this.postPlaylist = (data, cb) =>
+		this.postPlaylist = (data, isAppend, cb) =>
 		{
+			let append = false;
+
+			if(isAppend)
+			{
+				if(typeof isAppend === 'function')
+					cb = isAppend;
+				else
+					append = true;
+			}
+
 			cb = cb || noop;
-			this._postRequest('playlist', data, cb);
+
+			let query = 'append=' + append;
+			this._postRequest('playlist', data, query, cb);
 		}
 	}
 }

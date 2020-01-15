@@ -200,8 +200,26 @@ exports.postTemp = function(type, req, res)
 	{
 		case 'config':
 		case 'selection':
-		case 'playlist':
 			bridge[type] = req.body;
+			res.sendStatus(200);
+			break;
+		case 'playlist':
+			addItems = Object.values(req.body);
+
+			if(
+				req.query
+				&& req.query.append === 'true'
+				&& Array.isArray(bridge[type])
+			) {
+				addItems.forEach(item =>
+				{
+					if(!bridge[type].includes(item))
+						bridge[type].push(item);
+				});
+			}
+			else
+				bridge[type] = addItems;
+
 			res.sendStatus(200);
 			break;
 		default:
