@@ -1,9 +1,10 @@
-const { Gio, GLib, St, Clutter } = imports.gi;
+const { GLib, St, Clutter } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
+const { SoupServer } = Local.imports.soup;
 const { AltPopupBase } = Local.imports.compat;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
@@ -122,11 +123,11 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor()
+	constructor(port)
 	{
 		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
-		this.statusFile = Gio.file_new_for_path(shared.statusPath);
+		this.soupServer = new SoupServer(port);
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -204,7 +205,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.positionSlider.delay = 0;
 			this.positionSlider.isVolume ^= true;
 
-			Helper.readFromFileAsync(this.statusFile, (statusContents) =>
+			Helper.readFromFileAsync(shared.statusPath, (statusContents) =>
 			{
 				if(this.positionSlider.isVolume)
 				{
@@ -293,8 +294,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'))
 		);
 
-		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorFlags.NONE, null);
-
 		let handleSliderDelay = (sliderName) =>
 		{
 			this[sliderName].delay--;
@@ -302,56 +301,53 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.updateRemote = (force, event) =>
+		this.updateRemote = (statusContents) =>
 		{
-			if(!force && event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT) return;
+			if(
+				statusContents.hasOwnProperty('repeat')
+				&& this.repeatButton.turnedOn !== statusContents.repeat
+			) {
+				this.repeatButton.turnOn(statusContents.repeat);
+			}
 
-			Helper.readFromFileAsync(this.statusFile, (statusContents) =>
-			{
-				if(!statusContents) return;
+			if(
+				this.mode === 'PICTURE'
+				&& statusContents.hasOwnProperty('slideshow')
+				&& this.slideshowButton.turnedOn !== statusContents.slideshow
+			) {
+				this.slideshowButton.turnOn(statusContents.slideshow);
+				this.repeatButton.reactive = statusContents.slideshow;
+			}
 
-				if(
-					statusContents.hasOwnProperty('repeat')
-					&& this.repeatButton.turnedOn !== statusContents.repeat
-				) {
-					this.repeatButton.turnOn(statusContents.repeat);
-				}
+			if(this.mode === 'PICTURE') return;
 
-				if(
-					this.mode === 'PICTURE'
-					&& statusContents.hasOwnProperty('slideshow')
-					&& this.slideshowButton.turnedOn !== statusContents.slideshow
-				) {
-					this.slideshowButton.turnOn(statusContents.slideshow);
-					this.repeatButton.reactive = statusContents.slideshow;
-				}
+			this.checkPlaying(statusContents);
 
-				if(this.mode === 'PICTURE') return;
+			if(this.positionSlider.delay > 0)
+				handleSliderDelay('positionSlider');
 
-				this.checkPlaying(statusContents);
+			if(this.volumeSlider.delay > 0)
+				handleSliderDelay('volumeSlider');
 
-				if(this.positionSlider.delay > 0)
-					handleSliderDelay('positionSlider');
+			this.setVolume(statusContents);
 
-				if(this.volumeSlider.delay > 0)
-					handleSliderDelay('volumeSlider');
-
-				this.setVolume(statusContents);
-
-				if(
-					this.positionSlider.getVisible()
-					&& !this.positionSlider.isVolume
-					&& this.positionSlider.delay == 0
-					&& !this.positionSlider.busy
-				) {
-					this.setProgress(statusContents);
-				}
-			});
+			if(
+				this.positionSlider.getVisible()
+				&& !this.positionSlider.isVolume
+				&& this.positionSlider.delay == 0
+				&& !this.positionSlider.busy
+			) {
+				this.setProgress(statusContents);
+			}
 		}
 
-		this.monitorSignal = this.statusMonitor.connect(
-			'changed', (monitor, file, otherFile, event) => this.updateRemote(false, event)
-		);
+		this.statusSignal = this.soupServer.connect('request-read', (server, msg) =>
+		{
+			let statusContents = this.soupServer.parseMessage(msg);
+
+			if(statusContents)
+				this.updateRemote(statusContents);
+		});
 
 		this.setPlaying = (value) =>
 		{
@@ -473,8 +469,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.destroy = () =>
 		{
-			this.statusMonitor.disconnect(this.monitorSignal);
-			this.statusMonitor.cancel();
+			this.soupServer.disconnect(this.statusSignal);
+			this.soupServer.destroy();
 			this.playlist.destroy();
 
 			super.destroy();

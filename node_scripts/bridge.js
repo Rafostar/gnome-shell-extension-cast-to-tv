@@ -2,6 +2,7 @@ var fs = require('fs');
 var watch = require('node-watch');
 var debug = require('debug')('bridge');
 var server = require('./server');
+var sender = require('./sender');
 var encode = require('./encode');
 var extract = require('./extract');
 var remove = require('./remove');
@@ -39,6 +40,7 @@ exports.setStatusFile = function(status)
 	};
 
 	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
+	sender.send(statusContents);
 }
 
 exports.handleRemoteSignal = function(action, value)
@@ -96,6 +98,8 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 watcher.once('ready', () => watcherReady = true);
 watcher.once('error', onWatcherError);
 
+sender.configure(exports.config);
+
 function onWatcherError(err)
 {
 	watcherError = true;
@@ -111,6 +115,7 @@ exports.shutDown = function(err)
 	controller.clearSlideshow();
 
 	debug('Closing node server');
+	sender.stop();
 	closeAddon();
 
 	var finish = () =>
@@ -186,6 +191,9 @@ function updateConfig()
 {
 	var configContents = getContents(shared.configPath);
 	if(configContents === null) return;
+
+	if(exports.config.listeningPort !== configContents.listeningPort)
+		sender.configure(configContents);
 
 	exports.config = configContents;
 	debug(`New config contents: ${JSON.stringify(exports.config)}`);
