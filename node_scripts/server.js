@@ -1,5 +1,5 @@
 var express = require('express');
-var app = express();
+var bodyParser = require('body-parser');
 var path = require('path');
 var bridge = require('./bridge');
 var webcreator = require('./web-creator');
@@ -7,9 +7,12 @@ var socket = require('./server-socket');
 var encode = require('./encode');
 var extract = require('./extract');
 var gettext = require('./gettext');
+
+var app = express();
 var listeningPort = bridge.config.listeningPort;
 var server = app.listen(listeningPort);
 
+app.use(bodyParser.urlencoded({ extended: false }));
 socket.listen(server);
 gettext.initTranslations();
 
@@ -141,6 +144,11 @@ app.get('/webplayer/webconfig.css', function(req, res)
 app.get('/temp/*', function(req, res)
 {
 	webcreator.getTemp(req.params[0], req, res);
+});
+
+app.post('/temp/*', function(req, res)
+{
+	webcreator.postTemp(req.params[0], req, res);
 });
 
 app.get('/segment*', function(req, res)

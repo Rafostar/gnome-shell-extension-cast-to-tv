@@ -63,8 +63,13 @@ class SoupClient extends Soup.SessionAsync
 			let message = Soup.Message.new('POST',
 				'http://127.0.0.1:' + this.nodePort + '/temp/' + type
 			);
+			let params = Soup.form_encode_hash(data);
+			message.set_request(
+				'application/x-www-form-urlencoded',
+				Soup.MemoryUse.COPY,
+				params
+			);
 
-			message.request_body.data = JSON.stringify(data);
 			this.queue_message(message, cb);
 		}
 

@@ -194,6 +194,22 @@ exports.getTemp = function(type, req, res)
 	}
 }
 
+exports.postTemp = function(type, req, res)
+{
+	switch(type)
+	{
+		case 'config':
+		case 'selection':
+		case 'playlist':
+			bridge[type] = req.body;
+			res.sendStatus(200);
+			break;
+		default:
+			res.sendStatus(404);
+			break;
+	}
+}
+
 exports.pageWrong = function(req, res)
 {
 	res.writeHead(302, { Location: '/' });
