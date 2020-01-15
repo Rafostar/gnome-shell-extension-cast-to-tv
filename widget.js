@@ -469,8 +469,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.destroy = () =>
 		{
-			this.soupServer.disconnect(this.statusSignal);
-			this.soupServer.destroy();
+			this.soupServer.disconnect();
 			this.playlist.destroy();
 
 			super.destroy();

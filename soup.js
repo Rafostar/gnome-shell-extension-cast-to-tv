@@ -5,8 +5,9 @@ class SoupServer extends Soup.Server
 {
 	constructor(port)
 	{
-		super({ port: port });
-		this.run_async();
+		super();
+
+		this.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY);
 
 		this.parseMessage = (msg) =>
 		{
