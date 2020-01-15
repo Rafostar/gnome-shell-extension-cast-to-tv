@@ -1,6 +1,9 @@
 const { Soup } = imports.gi;
 const noop = () => {};
 
+var server = null;
+var client = null;
+
 class SoupServer extends Soup.Server
 {
 	constructor(port)
@@ -123,5 +126,45 @@ class SoupClient extends Soup.SessionAsync
 			let query = 'append=' + append;
 			this._postRequest('playlist', data, query, cb);
 		}
+
+		this.postRemote = (action, value, cb) =>
+		{
+			cb = cb || noop;
+
+			value = (typeof value === 'undefined') ? '' : String(value);
+
+			let data = { action: action, value: value };
+			this._postRequest('remote', data, null, cb);
+		}
 	}
+}
+
+function createServer(port)
+{
+	if(server) return;
+
+	server = new SoupServer(port);
+}
+
+function createClient(port)
+{
+	if(client) return;
+
+	client = new SoupClient(port);
+}
+
+function closeServer()
+{
+	if(!server) return;
+
+	server.disconnect();
+	server = null;
+}
+
+function closeClient()
+{
+	if(!client) return;
+
+	client.abort();
+	client = null;
 }

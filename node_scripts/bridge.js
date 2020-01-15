@@ -12,7 +12,6 @@ var controller = require('./remote-controller');
 var socket = require('./server-socket');
 var addons = require('./addons-importer');
 var shared = require('../shared');
-var remote = require(shared.remotePath);
 
 var watcherReady = false;
 var watcherError = false;
@@ -85,9 +84,6 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 					selectionTimeout = null;
 					updateSelection();
 				}, 150);
-				break;
-			case shared.remotePath:
-				updateRemote();
 				break;
 			default:
 				break;
@@ -302,15 +298,16 @@ function updateSelection()
 	}
 }
 
-function updateRemote()
+exports.updateRemote = function(contents)
 {
-	var remoteContents = getContents(shared.remotePath);
-	if(remoteContents === null) return;
+	if(contents.value)
+	{
+		if(contents.value === 'true') contents.value = true;
+		else if(contents.value === 'false') contents.value = false;
+	}
 
-	debug(`New remote contents: ${JSON.stringify(remoteContents)}`);
-	remote = remoteContents;
-
-	exports.handleRemoteSignal(remote.action, remote.value);
+	debug(`New remote contents: ${JSON.stringify(contents)}`);
+	exports.handleRemoteSignal(contents.action, contents.value);
 }
 
 function getContents(path)

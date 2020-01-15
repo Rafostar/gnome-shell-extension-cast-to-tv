@@ -4,6 +4,7 @@ const DND = imports.ui.dnd;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const { AltPopupImage } = Local.imports.compat;
+const Soup = Local.imports.soup;
 const Temp = Local.imports.temp;
 const Helper = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
@@ -411,7 +412,7 @@ class CastPlaylistItem extends AltPopupImage
 			if(this.isPlaying)
 			{
 				if(seekAllowed)
-					Temp.setRemoteAction('SEEK', 0);
+					Soup.client.postRemote('SEEK', 0);
 			}
 			else
 			{

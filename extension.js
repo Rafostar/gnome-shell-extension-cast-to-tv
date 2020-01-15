@@ -10,6 +10,7 @@ const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
+const Soup = Local.imports.soup;
 const Widget = Local.imports.widget;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path);
@@ -195,9 +196,6 @@ function getTempFiles()
 	let listExists = GLib.file_test(shared.listPath, GLib.FileTest.EXISTS);
 	if(!listExists) Temp.setListFile();
 
-	let remoteExists = GLib.file_test(shared.remotePath, GLib.FileTest.EXISTS);
-	if(!remoteExists) Temp.setRemoteFile();
-
 	let statusExists = GLib.file_test(shared.statusPath, GLib.FileTest.EXISTS);
 	if(!statusExists) Temp.setStatusFile();
 }
@@ -254,9 +252,7 @@ function recreateRemote()
 {
 	/* Remove previous indicator */
 	remoteMenu.destroy();
-
-	let servicePort = Settings.get_int('listening-port') + 1;
-	remoteMenu = new Widget.remoteMenu(servicePort);
+	remoteMenu = new Widget.remoteMenu();
 
 	/* Restore remote settings */
 	changeLabelVisibility();
@@ -314,11 +310,15 @@ function enable()
 	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
 	let serviceEnabled = Settings.get_boolean('service-enabled');
 	let serviceWanted = Settings.get_boolean('service-wanted');
-	let servicePort = Settings.get_int('listening-port') + 1;
+	let nodePort = Settings.get_int('listening-port');
+
+	/* Create Soup server and client */
+	Soup.createServer(nodePort + 1);
+	Soup.createClient(nodePort);
 
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
-	remoteMenu = new Widget.remoteMenu(servicePort);
+	remoteMenu = new Widget.remoteMenu();
 
 	/* Set initial remote label visibility */
 	changeLabelVisibility();
@@ -335,7 +335,6 @@ function enable()
 	signals.push(Settings.connect('changed::ffprobe-path', updateTempConfig.bind(this, 'ffprobe-path', 'string')));
 	signals.push(Settings.connect('changed::receiver-type', updateTempConfig.bind(this, 'receiver-type', 'string')));
 	signals.push(Settings.connect('changed::listening-port', updateTempConfig.bind(this, 'listening-port', 'int')));
-	signals.push(Settings.connect('changed::listening-port', recreateRemote.bind(this)));
 	signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
 	signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
 	signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
@@ -383,6 +382,10 @@ function disable()
 	/* Disconnect other signals */
 	castMenu.serviceMenuItem.disconnect(serviceSignal);
 	serviceSignal = null;
+
+	/* Close Soup server and client */
+	Soup.closeServer();
+	Soup.closeClient();
 
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)

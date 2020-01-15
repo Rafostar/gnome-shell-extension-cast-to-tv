@@ -4,8 +4,8 @@ const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
-const { SoupServer } = Local.imports.soup;
 const { AltPopupBase } = Local.imports.compat;
+const Soup = Local.imports.soup;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const Helper = Local.imports.helper;
@@ -123,11 +123,10 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor(port)
+	constructor()
 	{
 		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
-		this.soupServer = new SoupServer(port);
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -196,8 +195,9 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		{
 			this[sliderName].delay = MIN_DELAY;
 			let action = (this[sliderName].isVolume) ? 'VOLUME' : 'SEEK';
-			Temp.setRemoteAction(action, this[sliderName].getValue());
-			this[sliderName].busy = false;
+			let value = this[sliderName].getValue();
+
+			Soup.client.postRemote(action, value, () => this[sliderName].busy = false);
 		}
 
 		this.sliderButtonAction = () =>
@@ -262,36 +262,36 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.slideshowButton.connect('clicked', () =>
 			{
 				this.repeatButton.reactive = this.slideshowButton.turnedOn;
-				Temp.setRemoteAction('SLIDESHOW', this.slideshowButton.turnedOn);
+				Soup.client.postRemote('SLIDESHOW', this.slideshowButton.turnedOn);
 			})
 		);
 		this.repeatButton._signalIds.push(
 			this.repeatButton.connect('clicked', () =>
 			{
-				Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
+				Soup.client.postRemote('REPEAT', this.repeatButton.turnedOn);
 			})
 		);
 		this.togglePlayButton._signalIds.push(
 			this.togglePlayButton.connect('clicked', () =>
 			{
 				let toggleAction = (this.togglePlayButton.isPause) ? 'PAUSE' : 'PLAY';
-				Temp.setRemoteAction(toggleAction);
+				Soup.client.postRemote(toggleAction);
 			})
 		);
 		this.seekForwardButton._signalIds.push(
-			this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime))
+			this.seekForwardButton.connect('clicked', () => Soup.client.postRemote('SEEK+', seekTime))
 		);
 		this.seekBackwardButton._signalIds.push(
-			this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime))
+			this.seekBackwardButton.connect('clicked', () => Soup.client.postRemote('SEEK-', seekTime))
 		);
 		this.stopButton._signalIds.push(
-			this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'))
+			this.stopButton.connect('clicked', () => Soup.client.postRemote('STOP'))
 		);
 		this.skipBackwardButton._signalIds.push(
-			this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'))
+			this.skipBackwardButton.connect('clicked', () => Soup.client.postRemote('SKIP-'))
 		);
 		this.skipForwardButton._signalIds.push(
-			this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'))
+			this.skipForwardButton.connect('clicked', () => Soup.client.postRemote('SKIP+'))
 		);
 
 		let handleSliderDelay = (sliderName) =>
@@ -341,9 +341,9 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
-		this.statusSignal = this.soupServer.connect('request-read', (server, msg) =>
+		Soup.server.connect('request-read', (server, msg) =>
 		{
-			let statusContents = this.soupServer.parseMessage(msg);
+			let statusContents = Soup.server.parseMessage(msg);
 
 			if(statusContents)
 				this.updateRemote(statusContents);
@@ -469,7 +469,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.destroy = () =>
 		{
-			this.soupServer.disconnect();
 			this.playlist.destroy();
 
 			super.destroy();

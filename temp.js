@@ -47,16 +47,6 @@ function setListFile(list)
 	writeToFile(shared.listPath, listContents);
 }
 
-function setRemoteFile()
-{
-	let remoteContents = {
-		action: '',
-		value: ''
-	};
-
-	writeToFile(shared.remotePath, remoteContents);
-}
-
 function setStatusFile()
 {
 	let statusContents = {
@@ -73,14 +63,4 @@ function setStatusFile()
 	/* No status file means that Chromecast is not playing
 	This also prevents remote from showing after reboot */
 	Settings.set_boolean('chromecast-playing', false);
-}
-
-function setRemoteAction(castAction, castValue)
-{
-	let remoteContents = {
-		action: castAction,
-		value: castValue
-	};
-
-	writeToFile(shared.remotePath, remoteContents);
 }

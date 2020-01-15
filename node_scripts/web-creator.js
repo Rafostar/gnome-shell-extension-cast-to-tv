@@ -222,6 +222,10 @@ exports.postTemp = function(type, req, res)
 
 			res.sendStatus(200);
 			break;
+		case 'remote':
+			bridge.updateRemote(req.body);
+			res.sendStatus(200);
+			break;
 		default:
 			res.sendStatus(404);
 			break;
