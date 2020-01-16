@@ -9,8 +9,7 @@ var extract = require('./extract');
 var gettext = require('./gettext');
 
 var app = express();
-var listeningPort = bridge.config.listeningPort;
-var server = app.listen(listeningPort);
+var server = app.listen(bridge.config.listeningPort);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 socket.listen(server);
@@ -20,15 +19,12 @@ process.on('SIGINT', () => bridge.shutDown());
 process.on('SIGTERM', () => bridge.shutDown());
 process.on('uncaughtException', (err) => bridge.shutDown(err));
 
-exports.refreshConfig = function()
+exports.changePort = function(port)
 {
-	if(listeningPort != bridge.config.listeningPort)
-	{
-		server.close();
-		listeningPort = bridge.config.listeningPort;
-		server = app.listen(listeningPort);
-		socket.listen(server);
-	}
+	server.close();
+
+	server = app.listen(port);
+	socket.listen(server);
 }
 
 function checkMessagePage(req, res)

@@ -129,6 +129,16 @@ class MainSettings extends Gtk.VBox
 		Settings.bind('listening-port', this.portWidget, 'value', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(grid, label, this.portWidget);
 
+		/* Internal Port */
+		label = new SettingLabel(_("Internal communication port"));
+		this.intPortWidget = new Gtk.SpinButton({halign:Gtk.Align.END});
+		this.intPortWidget.set_sensitive(true);
+		this.intPortWidget.set_range(1, 65535);
+		this.intPortWidget.set_value(Settings.get_int('internal-port'));
+		this.intPortWidget.set_increments(1, 2);
+		Settings.bind('internal-port', this.intPortWidget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(grid, label, this.intPortWidget);
+
 		/* Web player link */
 		this.linkButton = new Gtk.LinkButton({
 			expand: false,

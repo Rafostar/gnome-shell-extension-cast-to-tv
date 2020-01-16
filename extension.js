@@ -188,16 +188,11 @@ function getPlaybackDataAsync(callback)
 
 function getTempFiles()
 {
-	if(!configContents) configContents = Temp.setConfigFile();
-
 	let selectionExists = GLib.file_test(shared.selectionPath, GLib.FileTest.EXISTS);
 	if(!selectionExists) Temp.setSelectionFile();
 
 	let listExists = GLib.file_test(shared.listPath, GLib.FileTest.EXISTS);
 	if(!listExists) Temp.setListFile();
-
-	let statusExists = GLib.file_test(shared.statusPath, GLib.FileTest.EXISTS);
-	if(!statusExists) Temp.setStatusFile();
 }
 
 function updateTempConfig(schemaKey, valueType)
@@ -205,18 +200,57 @@ function updateTempConfig(schemaKey, valueType)
 	let confKey = schemaKey.split('-');
 	confKey = confKey[0] + confKey[1].charAt(0).toUpperCase() + confKey[1].slice(1);
 
-	configContents[confKey] = Settings['get_' + valueType](schemaKey);
+	let postData = {};
+	postData[confKey] = Settings['get_' + valueType](schemaKey);
 
-	if(valueType === 'double')
-		configContents[confKey] = configContents[confKey].toFixed(1);
+	switch(confKey)
+	{
+		case 'listeningPort':
+			if(Soup.server.usedPort == postData[confKey])
+			{
+				postData[confKey] = (Soup.client.usedPort < Soup.server.usedPort) ?
+					postData[confKey] + 1 : postData[confKey] - 1;
 
-	if(!configContents.ffmpegPath)
-		configContents.ffmpegPath = '/usr/bin/ffmpeg';
+				return Settings.set_int('listening-port', postData[confKey]);
+			}
 
-	if(!configContents.ffprobePath)
-		configContents.ffprobePath = '/usr/bin/ffprobe';
+			configContents[confKey] = postData[confKey];
+			Soup.client.postConfig(postData, () => Soup.client.setPort(postData[confKey]));
+			break;
+		case 'internalPort':
+			if(Soup.client.usedPort == postData[confKey])
+			{
+				postData[confKey] = (Soup.client.usedPort > Soup.server.usedPort) ?
+					postData[confKey] + 1 : postData[confKey] - 1;
 
-	Helper.writeToFile(shared.configPath, configContents);
+				return Settings.set_int('internal-port', postData[confKey]);
+			}
+
+			Soup.server.setPort(postData[confKey], (usedPort) =>
+			{
+				if(!usedPort) return;
+
+				if(postData[confKey] === usedPort)
+				{
+					configContents[confKey] = postData[confKey];
+					Soup.client.postConfig(postData);
+				}
+				else
+					return Settings.set_int('internal-port', usedPort);
+			});
+			break;
+		default:
+			if(valueType === 'double')
+				postData[confKey] = postData[confKey].toFixed(1);
+			else if(confKey === 'ffmpegPath' && !postData[confKey])
+				postData[confKey] = '/usr/bin/ffmpeg';
+			else if(confKey === 'ffprobePath' && !postData[confKey])
+				postData[confKey] = '/usr/bin/ffprobe';
+
+			configContents[confKey] = postData[confKey];
+			Soup.client.postConfig(postData);
+			break;
+	}
 }
 
 function changeSeekTime()
@@ -302,6 +336,9 @@ function init()
 
 function enable()
 {
+	/* Get config object */
+	if(!configContents) configContents = Temp.getConfig();
+
 	/* Read/create temp files */
 	getTempFiles();
 
@@ -310,11 +347,20 @@ function enable()
 	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
 	let serviceEnabled = Settings.get_boolean('service-enabled');
 	let serviceWanted = Settings.get_boolean('service-wanted');
-	let nodePort = Settings.get_int('listening-port');
+	let internalPort = Settings.get_int('internal-port');
 
 	/* Create Soup server and client */
-	Soup.createServer(nodePort + 1);
-	Soup.createClient(nodePort);
+	if(!Soup.server)
+	{
+		Soup.createServer(internalPort, (usedPort) =>
+		{
+			if(usedPort && internalPort !== usedPort)
+				Settings.set_int('internal-port', usedPort);
+		});
+	}
+
+	if(!Soup.client)
+		Soup.createClient(Settings.get_int('listening-port'));
 
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
@@ -335,6 +381,7 @@ function enable()
 	signals.push(Settings.connect('changed::ffprobe-path', updateTempConfig.bind(this, 'ffprobe-path', 'string')));
 	signals.push(Settings.connect('changed::receiver-type', updateTempConfig.bind(this, 'receiver-type', 'string')));
 	signals.push(Settings.connect('changed::listening-port', updateTempConfig.bind(this, 'listening-port', 'int')));
+	signals.push(Settings.connect('changed::internal-port', updateTempConfig.bind(this, 'internal-port', 'int')));
 	signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
 	signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
 	signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
@@ -383,13 +430,13 @@ function disable()
 	castMenu.serviceMenuItem.disconnect(serviceSignal);
 	serviceSignal = null;
 
-	/* Close Soup server and client */
-	Soup.closeServer();
-	Soup.closeClient();
-
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)
 	{
+		/* Close Soup server and client */
+		Soup.closeServer();
+		Soup.closeClient();
+
 		enableService(false);
 		serviceStarted = false;
 	}

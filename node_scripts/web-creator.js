@@ -199,6 +199,9 @@ exports.postTemp = function(type, req, res)
 	switch(type)
 	{
 		case 'config':
+			bridge.updateConfig(req.body);
+			res.sendStatus(200);
+			break;
 		case 'selection':
 			bridge[type] = req.body;
 			res.sendStatus(200);

@@ -73,7 +73,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.playerState = 'PLAYING';
-					bridge.setStatusFile(playerStatus);
+					bridge.sendStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -84,7 +84,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.playerState = 'PAUSED';
-					bridge.setStatusFile(playerStatus);
+					bridge.sendStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -96,7 +96,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.currentTime = position;
-					bridge.setStatusFile(playerStatus);
+					bridge.sendStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -110,7 +110,7 @@ exports.remote = function(action, value)
 					if(!err)
 					{
 						playerStatus.currentTime = position;
-						bridge.setStatusFile(playerStatus);
+						bridge.sendStatus(playerStatus);
 					}
 					unsetBusy();
 				});
@@ -124,7 +124,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.currentTime = position;
-					bridge.setStatusFile(playerStatus);
+					bridge.sendStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -132,7 +132,7 @@ exports.remote = function(action, value)
 		case 'SKIP+':
 		case 'SKIP-':
 			playerStatus.currentTime = 0;
-			bridge.setStatusFile(playerStatus);
+			bridge.sendStatus(playerStatus);
 			return closeCast(action);
 			break;
 		case 'REPEAT':
@@ -157,7 +157,7 @@ exports.remote = function(action, value)
 				{
 					playerVolume = volume.level;
 					playerStatus.volume = playerVolume;
-					bridge.setStatusFile(playerStatus);
+					bridge.sendStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -511,7 +511,7 @@ function handleChromecastStatus(status)
 	}
 
 	if(!remoteBusy)
-		bridge.setStatusFile(playerStatus);
+		bridge.sendStatus(playerStatus);
 }
 
 function showIdleError()

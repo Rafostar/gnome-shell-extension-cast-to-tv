@@ -21,13 +21,13 @@ var playlistTimeout;
 var selectionTimeout;
 var writeTimeout;
 
-exports.config = require(shared.configPath);
+exports.config = gnome.getTempConfig();
 exports.selection = require(shared.selectionPath);
 exports.playlist = require(shared.listPath);
 exports.addon = null;
 gnome.showMenu(true);
 
-exports.setStatusFile = function(status)
+exports.sendStatus = function(status)
 {
 	var statusContents = {
 		playerState: status.playerState,
@@ -38,7 +38,6 @@ exports.setStatusFile = function(status)
 		slideshow: controller.slideshow
 	};
 
-	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
 	sender.send(statusContents);
 }
 
@@ -61,14 +60,6 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 	{
 		switch(filename)
 		{
-			case shared.configPath:
-				if(configTimeout) clearTimeout(configTimeout);
-				configTimeout = setTimeout(() =>
-				{
-					configTimeout = null;
-					updateConfig();
-				}, 125);
-				break;
 			case shared.listPath:
 				if(playlistTimeout) clearTimeout(playlistTimeout);
 				playlistTimeout = setTimeout(() =>
@@ -94,7 +85,7 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 watcher.once('ready', () => watcherReady = true);
 watcher.once('error', onWatcherError);
 
-sender.configure(exports.config);
+sender.configure(exports.config.internalPort);
 
 function onWatcherError(err)
 {
@@ -183,17 +174,24 @@ exports.writePlayercasts = function()
 	}, 1000);
 }
 
-function updateConfig()
+exports.updateConfig = function(contents)
 {
-	var configContents = getContents(shared.configPath);
-	if(configContents === null) return;
+	debug(`New config contents: ${JSON.stringify(contents)}`);
 
-	if(exports.config.listeningPort !== configContents.listeningPort)
-		sender.configure(configContents);
+	if(contents.listeningPort && contents.listeningPort !== exports.config.listeningPort)
+	{
+		debug(`Moving server to port: ${contents.listeningPort}`);
+		server.changePort(contents.listeningPort);
+	}
 
-	exports.config = configContents;
-	debug(`New config contents: ${JSON.stringify(exports.config)}`);
-	server.refreshConfig();
+	if(contents.internalPort && contents.internalPort !== sender.opts.port)
+	{
+		debug(`Changing sender port to: ${contents.internalPort}`);
+		sender.opts.port = contents.internalPort;
+	}
+
+	exports.config = { ...exports.config, ...contents };
+	debug(`New config: ${JSON.stringify(exports.config)}`);
 }
 
 function updatePlaylist()

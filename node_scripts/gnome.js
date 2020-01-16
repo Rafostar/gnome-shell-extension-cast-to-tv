@@ -75,6 +75,29 @@ var gnome =
 			isRemoteVisible : this.getBoolean('chromecast-playing');
 
 		return isRemoteVisible;
+	},
+
+	getTempConfig: function()
+	{
+		var config = {
+			ffmpegPath: this.getSetting('ffmpeg-path'),
+			ffprobePath: this.getSetting('ffprobe-path'),
+			receiverType: this.getSetting('receiver-type'),
+			listeningPort: this.getSetting('listening-port'),
+			internalPort: this.getSetting('internal-port'),
+			webplayerSubs: parseFloat(this.getSetting('webplayer-subs')).toFixed(1),
+			videoBitrate: parseFloat(this.getSetting('video-bitrate')).toFixed(1),
+			videoAcceleration: this.getSetting('video-acceleration'),
+			musicVisualizer: this.getBoolean('music-visualizer'),
+			chromecastName: this.getSetting('chromecast-name'),
+			playercastName: this.getSetting('playercast-name')
+		};
+
+		/* Use default paths if custom paths are not defined */
+		if(!config.ffmpegPath) config.ffmpegPath = '/usr/bin/ffmpeg';
+		if(!config.ffprobePath) config.ffprobePath = '/usr/bin/ffprobe';
+
+		return config;
 	}
 }
 

@@ -17,6 +17,10 @@
       <default>4000</default>
       <summary>Port used for incoming connections</summary>
     </key>
+    <key name="internal-port" type="i">
+      <default>9200</default>
+      <summary>Port used for internal communication</summary>
+    </key>
     <!-- Remote -->
     <key name="remote-position" type="s">
       <default>"right"</default>

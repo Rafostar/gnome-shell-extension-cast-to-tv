@@ -3,10 +3,9 @@ const debug = require('debug')('sender');
 
 module.exports =
 {
-	configure: function(config)
+	configure: function(port)
 	{
-		const port = config.listeningPort + 1;
-		this.options = {
+		this.opts = {
 			hostname: '127.0.0.1',
 			port: port,
 			path: '/',
@@ -16,12 +15,12 @@ module.exports =
 			}
 		};
 
-		debug(`Sender configured to port: ${port}`);
+		debug(`Sender configured to port: ${this.opts.port}`);
 	},
 
 	send: function(data)
 	{
-		var req = http.request(this.options, () => {});
+		var req = http.request(this.opts, () => {});
 		req.on('error', debug);
 
 		var dataString = JSON.stringify(data);

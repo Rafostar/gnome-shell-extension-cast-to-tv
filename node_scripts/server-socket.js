@@ -101,7 +101,7 @@ function handleMessages(socket)
 		}
 	});
 
-	socket.on('status-update', msg => bridge.setStatusFile(msg));
+	socket.on('status-update', msg => bridge.sendStatus(msg));
 	socket.on('show-remote', msg =>
 	{
 		if(msg) controller.setSlideshow();

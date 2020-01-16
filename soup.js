@@ -6,11 +6,42 @@ var client = null;
 
 class SoupServer extends Soup.Server
 {
-	constructor(port)
+	constructor()
 	{
 		super();
 
-		this.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY);
+		this.usedPort = null;
+		this.isConnected = false;
+
+		this.setPort = (port, cb) =>
+		{
+			cb = cb || noop;
+			port = parseInt(port);
+
+			if(this.usedPort && this.usedPort === port)
+				return cb(port);
+
+			if(this.isConnected)
+			{
+				server.disconnect();
+				this.isConnected = false;
+			}
+
+			try {
+				server.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY);
+
+				this.usedPort = port;
+				this.isConnected = true;
+			}
+			catch(err) {
+				if(port < 65535)
+					return this.setPort(port + 1, cb);
+				else
+					return cb(null);
+			}
+
+			return cb(port);
+		}
 
 		this.parseMessage = (msg) =>
 		{
@@ -30,7 +61,12 @@ class SoupClient extends Soup.SessionAsync
 	{
 		super();
 
-		this.nodePort = port;
+		this.usedPort = (port > 0) ? parseInt(port) : null;
+
+		this.setPort = (port) =>
+		{
+			this.usedPort = parseInt(port);
+		}
 
 		this._getRequest = (type, cb) =>
 		{
@@ -38,7 +74,7 @@ class SoupClient extends Soup.SessionAsync
 
 			this.abort();
 			let message = Soup.Message.new('GET',
-				'http://127.0.0.1:' + this.nodePort + '/temp/' + type
+				'http://127.0.0.1:' + this.usedPort + '/temp/' + type
 			);
 
 			this.queue_message(message, () =>
@@ -64,9 +100,15 @@ class SoupClient extends Soup.SessionAsync
 			cb = cb || noop;
 
 			this.abort();
-			let url = 'http://127.0.0.1:' + this.nodePort + '/temp/' + type;
+			let url = 'http://127.0.0.1:' + this.usedPort + '/temp/' + type;
 
 			if(query) url += '?' + query;
+
+			for(let key in data)
+			{
+				if(typeof data[key] !== 'string')
+					data[key] = String(data[key]);
+			}
 
 			let message = Soup.Message.new('POST', url);
 			let params = Soup.form_encode_hash(data);
@@ -139,11 +181,14 @@ class SoupClient extends Soup.SessionAsync
 	}
 }
 
-function createServer(port)
+function createServer(port, cb)
 {
-	if(server) return;
+	cb = cb || noop;
 
-	server = new SoupServer(port);
+	if(server) return cb(server.usedPort);
+
+	server = new SoupServer();
+	server.setPort(port, cb);
 }
 
 function createClient(port)
