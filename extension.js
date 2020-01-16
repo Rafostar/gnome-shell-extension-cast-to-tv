@@ -51,17 +51,17 @@ function configCastRemote()
 	if(chromecastPlaying)
 	{
 		/* Update selection and list data (needed for skipping tracks) */
-		getPlaybackDataAsync((selectionContents, listContents) =>
+		getPlaybackData((selection, playlist) =>
 		{
 			let trackID;
 
-			if(selectionContents && listContents)
-				trackID = listContents.indexOf(selectionContents.filePath) + 1;
+			if(selection && playlist)
+				trackID = playlist.indexOf(selection.filePath) + 1;
 			else
 				return;
 
 			/* List items are counted from 1 */
-			let listLastID = listContents.length;
+			let listLastID = playlist.length;
 
 			/* Disable skip backward if playing first file from list */
 			if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
@@ -72,12 +72,12 @@ function configCastRemote()
 			else remoteMenu.skipForwardButton.reactive = false;
 
 			/* Update track title */
-			if(selectionContents.title)
-				remoteMenu.trackTitle.setText(selectionContents.title);
+			if(selection.title)
+				remoteMenu.trackTitle.setText(selection.title);
 			else
 			{
-				let filename = selectionContents.filePath.substring(
-					selectionContents.filePath.lastIndexOf('/') + 1);
+				let filename = selection.filePath.substring(
+					selection.filePath.lastIndexOf('/') + 1);
 
 				let title = (filename.includes('.')) ?
 					filename.split('.').slice(0, -1).join('.') : filename;
@@ -87,10 +87,10 @@ function configCastRemote()
 			}
 
 			/* Update widget playlist */
-			remoteMenu.playlist.loadPlaylist(listContents, selectionContents.filePath);
+			remoteMenu.playlist.loadPlaylist(playlist, selection.filePath);
 
 			/* Choose remote to create */
-			switch(selectionContents.streamType)
+			switch(selection.streamType)
 			{
 				case 'VIDEO':
 					remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
@@ -158,31 +158,18 @@ function setRemotePosition()
 	configCastRemote();
 }
 
-function getPlaybackDataAsync(callback)
+function getPlaybackData(cb)
 {
-	let selectionData = null;
-	let listData = null;
-
-	let checkBothData = () =>
+	Soup.client.getPlaylist(playlist =>
 	{
-		if(selectionData && listData)
-			callback(selectionData, listData);
-	}
+		if(!playlist) return cb(null, null);
 
-	Helper.readFromFileAsync(shared.selectionPath, (selection) =>
-	{
-		if(!selection) return callback(null, listData);
+		Soup.client.getSelection(selection =>
+		{
+			if(!selection) return cb(null, playlist);
 
-		selectionData = selection;
-		checkBothData();
-	});
-
-	Helper.readFromFileAsync(shared.listPath, (list) =>
-	{
-		if(!list) return callback(selectionData, null);
-
-		listData = list;
-		checkBothData();
+			cb(selection, playlist);
+		});
 	});
 }
 

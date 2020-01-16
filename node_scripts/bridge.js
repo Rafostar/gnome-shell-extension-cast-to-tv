@@ -23,7 +23,7 @@ var writeTimeout;
 
 exports.config = gnome.getTempConfig();
 exports.selection = require(shared.selectionPath);
-exports.playlist = require(shared.listPath);
+exports.playlist = null;
 exports.addon = null;
 gnome.showMenu(true);
 
@@ -60,20 +60,13 @@ var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
 	{
 		switch(filename)
 		{
-			case shared.listPath:
-				if(playlistTimeout) clearTimeout(playlistTimeout);
-				playlistTimeout = setTimeout(() =>
-				{
-					playlistTimeout = null;
-					updatePlaylist();
-				}, 100);
-				break;
 			case shared.selectionPath:
 				if(selectionTimeout) clearTimeout(selectionTimeout);
 				selectionTimeout = setTimeout(() =>
 				{
 					selectionTimeout = null;
-					updateSelection();
+					var selectionContents = getContents(shared.selectionPath);
+					exports.updateSelection(selectionContents);
 				}, 150);
 				break;
 			default:
@@ -194,31 +187,34 @@ exports.updateConfig = function(contents)
 	debug(`New config: ${JSON.stringify(exports.config)}`);
 }
 
-function updatePlaylist()
+exports.updatePlaylist = function(playlist, append)
 {
-	exports.playlist = getContents(shared.listPath);
+	if(Array.isArray(playlist))
+	{
+		if(append && Array.isArray(exports.playlist))
+		{
+			playlist.forEach(item =>
+			{
+				if(!exports.playlist.includes(item))
+					exports.playlist.push(item);
+			});
+		}
+		else
+			exports.playlist = playlist;
 
-	if(exports.playlist)
 		debug(`New playlist contents: ${JSON.stringify(exports.playlist)}`);
 
-	/* Update remote widget with new playlist items */
-	if(gnome.isRemote()) gnome.showRemote(true);
+		/* Update remote widget with new playlist items */
+		if(gnome.isRemote()) gnome.showRemote(true);
+	}
 }
 
-function updateSelection()
+exports.updateSelection = function(contents)
 {
-	/* Prevent updating selection while playlist is still being read */
-	if(playlistTimeout)
-	{
-		setTimeout(() => updateSelection(), 150);
-		return;
-	}
+	if(!contents || exports.playlist === null) return;
 
-	var selectionContents = getContents(shared.selectionPath);
-	if(selectionContents === null || exports.playlist === null) return;
-
-	exports.selection = selectionContents;
-	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
+	exports.selection = contents;
+	debug(`New selection contents: ${JSON.stringify(contents)}`);
 
 	if(exports.selection.streamType !== 'PICTURE')
 	{

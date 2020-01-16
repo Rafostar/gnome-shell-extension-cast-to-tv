@@ -5,6 +5,7 @@ const Gettext = imports.gettext.domain('cast-to-tv');
 
 const LOCAL_PATH = GLib.get_current_dir();
 imports.searchPath.unshift(LOCAL_PATH);
+const Soup = imports.soup;
 const Helper = imports.helper;
 const shared = imports.shared.module.exports;
 imports.searchPath.shift();
@@ -179,11 +180,11 @@ class fileChooser
 		}
 	}
 
-	_getEncodeTypeString(configContents)
+	_getEncodeTypeString(config)
 	{
 		if(this.comboBoxConvert && this.comboBoxConvert.active_id !== 'audio')
 		{
-			switch(configContents.videoAcceleration)
+			switch(config.videoAcceleration)
 			{
 				case 'vaapi':
 					return '_VAAPI';
@@ -209,10 +210,15 @@ class fileChooser
 
 	_openDialog()
 	{
-		let configContents = Helper.readFromFile(shared.configPath);
-		if(!configContents || !STREAM_TYPE) return;
+		if(!STREAM_TYPE) return;
 
-		let selectionContents = {
+		let config = {
+			receiverType: Settings.get_string('receiver-type'),
+			videoAcceleration: Settings.get_string('video-acceleration'),
+			listeningPort: Settings.get_int('listening-port')
+		};
+
+		let selection = {
 			streamType: STREAM_TYPE,
 			subsPath: ''
 		};
@@ -220,14 +226,10 @@ class fileChooser
 		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
 
-		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
-		{
+		if(config.receiverType == 'other' && selection.streamType == 'PICTURE')
 			this.fileChooser.set_select_multiple(false);
-		}
 		else
-		{
 			this.fileChooser.set_select_multiple(true);
-		}
 
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
@@ -239,7 +241,7 @@ class fileChooser
 		let castButtonText = (this.playlistAllowed) ? _(ADD_PLAYLIST_LABEL) : _(CAST_LABEL_SINGLE);
 		this.buttonCast = this.fileChooser.add_button(castButtonText, Gtk.ResponseType.OK);
 
-		switch(selectionContents.streamType)
+		switch(selection.streamType)
 		{
 			case 'VIDEO':
 				this.buttonSubs = this.fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
@@ -282,14 +284,14 @@ class fileChooser
 		Settings.disconnect(this.playlistSignal);
 
 		let filesList = this.filePathChosen.sort();
-		selectionContents.filePath = filesList[0];
+		selection.filePath = filesList[0];
 
 		if(DialogResponse !== Gtk.ResponseType.OK)
 		{
 			if(DialogResponse === Gtk.ResponseType.APPLY)
 			{
-				selectionContents.subsPath = this._selectSubtitles();
-				if(!selectionContents.subsPath) return;
+				selection.subsPath = this._selectSubtitles();
+				if(!selection.subsPath) return;
 			}
 			else
 			{
@@ -302,39 +304,28 @@ class fileChooser
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
 		{
-			selectionContents.streamType += this._getEncodeTypeString(configContents);
-			selectionContents.transcodeAudio = this._getTranscodeAudioEnabled();
+			selection.streamType += this._getEncodeTypeString(config);
+			selection.transcodeAudio = this._getTranscodeAudioEnabled();
 		}
 		else
-			selectionContents.transcodeAudio = false;
+			selection.transcodeAudio = false;
 
 		this.fileChooser.destroy();
 
-		let setTempFiles = () =>
-		{
-			/* Set playback list */
-			Helper.writeToFile(shared.listPath, filesList);
+		Soup.createClient(config.listeningPort);
+		let loop = GLib.MainLoop.new(null, false);
 
-			/* Save selection to file */
-			Helper.writeToFile(shared.selectionPath, selectionContents);
-		}
-
-		/* Playlist does not support external subtitles */
 		if(this.playlistAllowed)
-		{
-			let playlist = Helper.readFromFile(shared.listPath);
-			if(!playlist) return setTempFiles();
-
-			filesList.forEach(filepath =>
-			{
-				if(!playlist.includes(filepath))
-					playlist.push(filepath);
-			});
-
-			Helper.writeToFile(shared.listPath, playlist);
-		}
+			Soup.client.postPlaylist(filesList, true, () => loop.quit());
 		else
-			setTempFiles();
+		{
+			Soup.client.postPlaylist(filesList, () =>
+			{
+				Soup.client.postSelection(selection, () => loop.quit());
+			});
+		}
+
+		loop.run();
 	}
 
 	_selectSubtitles()
