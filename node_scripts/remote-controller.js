@@ -1,8 +1,6 @@
-var fs = require('fs');
 var bridge = require('./bridge');
 var socket = require('./server-socket');
 var gnome = require('./gnome');
-var shared = require('../shared');
 
 exports.repeat = false;
 exports.slideshow = false;
@@ -43,7 +41,7 @@ exports.changeTrack = function(id)
 {
 	/* Tracks are counted from 1, list indexes from 0 */
 	bridge.selection.filePath = bridge.playlist[id - 1];
-	bridge.updateSelection();
+	bridge.updateSelection(bridge.selection);
 }
 
 exports.checkNextTrack = function()
@@ -71,7 +69,11 @@ exports.clearSlideshow = function()
 	{
 		clearTimeout(slideshowTimeout);
 		slideshowTimeout = null;
+
+		return true;
 	}
+
+	return false;
 }
 
 exports.setSlideshow = function()

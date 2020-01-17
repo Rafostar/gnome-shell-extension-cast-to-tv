@@ -17,7 +17,7 @@ gettext.initTranslations();
 
 process.on('SIGINT', () => bridge.shutDown());
 process.on('SIGTERM', () => bridge.shutDown());
-process.on('uncaughtException', (err) => bridge.shutDown(err));
+process.on('uncaughtException', bridge.shutDown);
 
 exports.changePort = function(port)
 {

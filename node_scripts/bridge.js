@@ -12,9 +12,9 @@ var addons = require('./addons-importer');
 var shared = require('../shared');
 
 exports.config = gnome.getTempConfig();
-exports.selection = null;
-exports.playlist = null;
-exports.status = null;
+exports.playlist = [];
+exports.selection = {};
+exports.status = {};
 exports.addon = null;
 sender.configure(exports.config.internalPort);
 gnome.showMenu(true);
@@ -129,19 +129,29 @@ exports.updatePlaylist = function(playlist, append)
 		/* Update remote widget with new playlist items */
 		if(gnome.isRemote()) gnome.showRemote(true);
 	}
+	else
+		debug('Received playlist is not an array');
 }
 
 exports.updateSelection = function(contents)
 {
-	if(!contents && !exports.selection || !exports.playlist) return;
-	else if(contents) exports.selection = contents;
+	if(!contents)
+		return debug('No selection contents for update');
+	else if(!exports.playlist.length)
+		return debug('Ignoring selection because playlist is empty');
+	else if(typeof contents !== 'object')
+		return debug(`Ignoring invalid selection: ${contents}`);
 
-	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
+	if(contents !== exports.selection)
+	{
+		exports.selection = contents;
+		debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
+	}
 
 	if(exports.selection.streamType !== 'PICTURE')
 	{
-		controller.clearSlideshow();
-		debug('Cleared slideshow timeout due to non-picture selection');
+		var isCleared = controller.clearSlideshow();
+		if(isCleared) debug('Cleared slideshow timeout due to non-picture selection');
 	}
 
 	/* Close addon before selecting a new one */
@@ -216,6 +226,9 @@ exports.updateSelection = function(contents)
 
 exports.updateRemote = function(contents)
 {
+	if(!contents || !contents.action)
+		return debug('Invalid update remote contents');
+
 	if(contents.value)
 	{
 		if(contents.value === 'true') contents.value = true;
