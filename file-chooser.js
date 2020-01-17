@@ -13,7 +13,7 @@ imports.searchPath.shift();
 const Settings = Helper.getSettings(LOCAL_PATH);
 const _ = Gettext.gettext;
 
-const STREAM_TYPE = ARGV[0];
+const STREAM_TYPE = (ARGV[0]) ? ARGV[0] : null;
 /* TRANSLATORS: Button text when selected SINGLE file */
 const CAST_LABEL_SINGLE = _("Cast Selected File");
 /* TRANSLATORS: Button text when selected MULTIPLE files */
@@ -210,7 +210,8 @@ class fileChooser
 
 	_openDialog()
 	{
-		if(!STREAM_TYPE) return;
+		if(!STREAM_TYPE)
+			return print('Cast to TV: cannot open file chooser without stream type');
 
 		let config = {
 			receiverType: Settings.get_string('receiver-type'),
@@ -222,6 +223,8 @@ class fileChooser
 			streamType: STREAM_TYPE,
 			subsPath: ''
 		};
+
+		Soup.createClient(config.listeningPort);
 
 		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
@@ -312,7 +315,6 @@ class fileChooser
 
 		this.fileChooser.destroy();
 
-		Soup.createClient(config.listeningPort);
 		let loop = GLib.MainLoop.new(null, false);
 
 		if(this.playlistAllowed)
@@ -341,7 +343,7 @@ class fileChooser
 		/* Add supported subtitles formats to filter */
 		subsFilter.set_name(_("Subtitle Files"));
 
-		shared.subsFormats.forEach(function(extension)
+		shared.subsFormats.forEach(extension =>
 		{
 			subsFilter.add_pattern('*.' + extension);
 		});
@@ -366,7 +368,7 @@ class fileChooser
 			}
 			else
 			{
-				let preSelection = Helper.readFromFile(shared.selectionPath);
+				let preSelection = Soup.client.getSelectionSync();
 
 				if(
 					preSelection
