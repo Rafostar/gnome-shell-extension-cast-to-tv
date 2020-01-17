@@ -55,11 +55,11 @@ class SoupServer extends Soup.Server
 	}
 }
 
-class SoupClient extends Soup.SessionAsync
+class SoupClient extends Soup.Session
 {
 	constructor(port)
 	{
-		super();
+		super({ timeout: 3 });
 
 		this.usedPort = (port > 0) ? parseInt(port) : null;
 		this.loop = GLib.MainLoop.new(null, false);
