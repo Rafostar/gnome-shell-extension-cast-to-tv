@@ -127,6 +127,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	{
 		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
+		this.currentProgress = 0;
+		this.currentVolume = 1;
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -202,22 +204,18 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.sliderButtonAction = () =>
 		{
-			this.positionSlider.delay = 0;
 			this.positionSlider.isVolume ^= true;
 
-			Helper.readFromFileAsync(shared.statusPath, (statusContents) =>
+			if(this.positionSlider.isVolume)
 			{
-				if(this.positionSlider.isVolume)
-				{
-					this.positionSlider.setIcon(this.positionSlider.volumeIcon);
-					if(statusContents) this.setVolume(statusContents);
-				}
-				else
-				{
-					this.positionSlider.setIcon(this.positionSlider.defaultIcon);
-					if(statusContents) this.setProgress(statusContents);
-				}
-			});
+				this.positionSlider.setIcon(this.positionSlider.volumeIcon);
+				this.positionSlider.setValue(this.currentVolume);
+			}
+			else
+			{
+				this.positionSlider.setIcon(this.positionSlider.defaultIcon);
+				this.positionSlider.setValue(this.currentProgress);
+			}
 		}
 
 		/* Signals connections */
@@ -321,6 +319,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(this.mode === 'PICTURE') return;
 
+			if(statusContents.mediaDuration > 0)
+				this.currentProgress = statusContents.currentTime / statusContents.mediaDuration;
+
+			this.currentVolume = statusContents.volume;
 			this.checkPlaying(statusContents);
 
 			if(this.positionSlider.delay > 0)
@@ -329,16 +331,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(this.volumeSlider.delay > 0)
 				handleSliderDelay('volumeSlider');
 
-			this.setVolume(statusContents);
+			if(statusContents.volume >= 0 && statusContents.volume <= 1)
+				this.setVolumeCheck();
 
-			if(
-				this.positionSlider.getVisible()
-				&& !this.positionSlider.isVolume
-				&& this.positionSlider.delay == 0
-				&& !this.positionSlider.busy
-			) {
-				this.setProgress(statusContents);
-			}
+			this.setProgressCheck();
 		}
 
 		Soup.server.connect('request-read', (server, msg) =>
@@ -366,33 +362,33 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			else if(statusContents.playerState == 'PAUSED') this.setPlaying(false);
 		}
 
-		this.setProgress = (statusContents) =>
+		this.setProgressCheck = () =>
 		{
-			if(statusContents.mediaDuration > 0)
-			{
-				let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
-				this.positionSlider.setValue(sliderValue);
+			if(
+				this.positionSlider.getVisible()
+				&& !this.positionSlider.isVolume
+				&& this.positionSlider.delay == 0
+				&& !this.positionSlider.busy
+			) {
+				this.positionSlider.setValue(this.currentProgress);
 			}
 		}
 
-		this.setVolume = (statusContents) =>
+		this.setVolumeCheck = () =>
 		{
-			if(statusContents.volume >= 0 && statusContents.volume <= 1)
-			{
-				if(
-					this.volumeSlider.getVisible()
-					&& this.volumeSlider.delay == 0
-					&& !this.volumeSlider.busy
-				) {
-					this.volumeSlider.setValue(statusContents.volume);
-				}
-				else if(
-					this.positionSlider.isVolume
-					&& this.positionSlider.delay == 0
-					&& !this.positionSlider.busy
-				) {
-					this.positionSlider.setValue(statusContents.volume);
-				}
+			if(
+				this.volumeSlider.getVisible()
+				&& this.volumeSlider.delay == 0
+				&& !this.volumeSlider.busy
+			) {
+				this.volumeSlider.setValue(this.currentVolume);
+			}
+			else if(
+				this.positionSlider.isVolume
+				&& this.positionSlider.delay == 0
+				&& !this.positionSlider.busy
+			) {
+				this.positionSlider.setValue(this.currentVolume);
 			}
 		}
 
