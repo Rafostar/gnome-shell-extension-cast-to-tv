@@ -1,4 +1,4 @@
-const { Soup } = imports.gi;
+const { GLib, Soup } = imports.gi;
 const noop = () => {};
 
 var server = null;
@@ -62,6 +62,7 @@ class SoupClient extends Soup.SessionAsync
 		super();
 
 		this.usedPort = (port > 0) ? parseInt(port) : null;
+		this.loop = GLib.MainLoop.new(null, false);
 
 		this.setPort = (port) =>
 		{
@@ -95,6 +96,21 @@ class SoupClient extends Soup.SessionAsync
 			});
 		}
 
+		this._getRequestSync = (type) =>
+		{
+			let result = null;
+
+			this._getRequest(type, (data) =>
+			{
+				result = data;
+				this.loop.quit();
+			});
+
+			this.loop.run();
+
+			return result;
+		}
+
 		this._postRequest = (type, data, query, cb) =>
 		{
 			cb = cb || noop;
@@ -121,22 +137,60 @@ class SoupClient extends Soup.SessionAsync
 			this.queue_message(message, cb);
 		}
 
+		this._getParsedObject = (data) =>
+		{
+			if(!data) return null;
+
+			for(let key in data)
+			{
+				if(data[key] === 'true')
+					data[key] = true;
+				else if(data[key] === 'false')
+					data[key] = false;
+			}
+
+			return data;
+		}
+
 		this.getConfig = (cb) =>
 		{
 			cb = cb || noop;
-			this._getRequest('config', cb);
+			this._getRequest('config', (data) =>
+			{
+				cb(this._getParsedObject(data));
+			});
+		}
+
+		this.getConfigSync = () =>
+		{
+			let data = this._getRequestSync('config');
+			return this._getParsedObject(data);
 		}
 
 		this.getSelection = (cb) =>
 		{
 			cb = cb || noop;
-			this._getRequest('selection', cb);
+			this._getRequest('selection', (data) =>
+			{
+				cb(this._getParsedObject(data));
+			});
+		}
+
+		this.getSelectionSync = () =>
+		{
+			let data = this._getRequestSync('selection');
+			return this._getParsedObject(data);
 		}
 
 		this.getPlaylist = (cb) =>
 		{
 			cb = cb || noop;
 			this._getRequest('playlist', cb);
+		}
+
+		this.getPlaylistSync = () =>
+		{
+			return this._getRequestSync('playlist');
 		}
 
 		this.postConfig = (data, cb) =>
