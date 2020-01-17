@@ -69,11 +69,6 @@ exports.shutDown = function(err)
 		{
 			debug('Removed top bar indicator');
 
-			fs.writeFileSync(shared.selectionPath,
-				JSON.stringify({streamType: "", subsPath: "", filePath: ""}, null, 1));
-
-			debug('Cleaned selection temp file');
-
 			console.log('Cast to TV: closed successfully');
 			process.exit();
 		});
@@ -149,6 +144,8 @@ exports.updatePlaylist = function(playlist, append)
 	{
 		if(append && Array.isArray(exports.playlist))
 		{
+			debug(`New playlist append: ${JSON.stringify(playlist)}`);
+
 			playlist.forEach(item =>
 			{
 				if(!exports.playlist.includes(item))
@@ -158,7 +155,7 @@ exports.updatePlaylist = function(playlist, append)
 		else
 			exports.playlist = playlist;
 
-		debug(`New playlist contents: ${JSON.stringify(exports.playlist)}`);
+		debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
 
 		/* Update remote widget with new playlist items */
 		if(gnome.isRemote()) gnome.showRemote(true);
