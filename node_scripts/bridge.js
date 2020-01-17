@@ -1,5 +1,4 @@
 var fs = require('fs');
-var watch = require('node-watch');
 var debug = require('debug')('bridge');
 var server = require('./server');
 var sender = require('./sender');
@@ -13,18 +12,16 @@ var socket = require('./server-socket');
 var addons = require('./addons-importer');
 var shared = require('../shared');
 
-var watcherReady = false;
-var watcherError = false;
-
 var configTimeout;
 var playlistTimeout;
 var selectionTimeout;
 var writeTimeout;
 
 exports.config = gnome.getTempConfig();
-exports.selection = require(shared.selectionPath);
+exports.selection = null;
 exports.playlist = null;
 exports.addon = null;
+sender.configure(exports.config.internalPort);
 gnome.showMenu(true);
 
 exports.sendStatus = function(status)
@@ -54,38 +51,6 @@ exports.handleRemoteSignal = function(action, value)
 	}
 }
 
-var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
-{
-	if(eventType == 'update')
-	{
-		switch(filename)
-		{
-			case shared.selectionPath:
-				if(selectionTimeout) clearTimeout(selectionTimeout);
-				selectionTimeout = setTimeout(() =>
-				{
-					selectionTimeout = null;
-					var selectionContents = getContents(shared.selectionPath);
-					exports.updateSelection(selectionContents);
-				}, 150);
-				break;
-			default:
-				break;
-		}
-	}
-});
-
-watcher.once('ready', () => watcherReady = true);
-watcher.once('error', onWatcherError);
-
-sender.configure(exports.config.internalPort);
-
-function onWatcherError(err)
-{
-	watcherError = true;
-	exports.shutDown(err);
-}
-
 exports.shutDown = function(err)
 {
 	if(err) console.error(err);
@@ -100,9 +65,6 @@ exports.shutDown = function(err)
 
 	var finish = () =>
 	{
-		watcher.close();
-		debug('Closed file watcher');
-
 		gnome.showMenu(false, () =>
 		{
 			debug('Removed top bar indicator');
@@ -117,12 +79,6 @@ exports.shutDown = function(err)
 		});
 	}
 
-	var closeWatcher = () =>
-	{
-		if(watcherReady || watcherError) finish();
-		else watcher.once('ready', finish);
-	}
-
 	if(gnome.isRemote())
 	{
 		gnome.showRemote(false);
@@ -132,12 +88,12 @@ exports.shutDown = function(err)
 		{
 			/* Remote might be reshown before timeout executes */
 			gnome.showRemote(false);
-			closeWatcher();
+			finish();
 		}, 3000);
 	}
 	else
 	{
-		closeWatcher();
+		finish();
 	}
 }
 

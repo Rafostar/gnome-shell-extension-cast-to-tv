@@ -16,7 +16,6 @@
     "jschardet": "^2.1.0",
     "multicast-scanner": "^2.2.1",
     "node-gettext": "^2.0.0",
-    "node-watch": "^0.6.3",
     "plyr": "3.5.3",
     "range-parser": "^1.2.1",
     "socket.io": "^2.3.0"
