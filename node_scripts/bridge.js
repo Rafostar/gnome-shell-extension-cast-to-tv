@@ -12,21 +12,19 @@ var socket = require('./server-socket');
 var addons = require('./addons-importer');
 var shared = require('../shared');
 
-var configTimeout;
-var playlistTimeout;
-var selectionTimeout;
 var writeTimeout;
 
 exports.config = gnome.getTempConfig();
 exports.selection = null;
 exports.playlist = null;
+exports.status = null;
 exports.addon = null;
 sender.configure(exports.config.internalPort);
 gnome.showMenu(true);
 
 exports.sendStatus = function(status)
 {
-	var statusContents = {
+	exports.status = {
 		playerState: status.playerState,
 		currentTime: status.currentTime,
 		mediaDuration: status.media.duration,
@@ -35,7 +33,7 @@ exports.sendStatus = function(status)
 		slideshow: controller.slideshow
 	};
 
-	sender.send(statusContents);
+	sender.send(exports.status);
 }
 
 exports.handleRemoteSignal = function(action, value)

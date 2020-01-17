@@ -186,6 +186,7 @@ exports.getTemp = function(type, req, res)
 		case 'config':
 		case 'selection':
 		case 'playlist':
+		case 'status':
 			res.send(bridge[type]);
 			break;
 		default:
