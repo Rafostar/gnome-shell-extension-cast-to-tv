@@ -5,9 +5,6 @@ const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const { AltPopupImage } = Local.imports.compat;
 const Soup = Local.imports.soup;
-const Temp = Local.imports.temp;
-const Helper = Local.imports.helper;
-const shared = Local.imports.shared.module.exports;
 const _ = Gettext.gettext;
 
 const PLAYLIST_MENU_ICON = 'view-list-symbolic';
@@ -149,7 +146,9 @@ var CastPlaylist = class
 		if(!filePlaylist.length)
 			filePlaylist = [''];
 
-		Temp.setListFile(filePlaylist);
+		if(!Soup.client) return;
+
+		Soup.client.postPlaylist(filePlaylist);
 	}
 
 	_addMenuInsertItem(isShown, position)
@@ -416,12 +415,14 @@ class CastPlaylistItem extends AltPopupImage
 			}
 			else
 			{
-				Helper.readFromFileAsync(shared.selectionPath, (selectionContents) =>
-				{
-					if(!selectionContents) return;
+				if(!Soup.client) return;
 
-					selectionContents.filePath = this.filepath;
-					Helper.writeToFile(shared.selectionPath, selectionContents);
+				Soup.client.getSelection(selection =>
+				{
+					if(!selection) return;
+
+					selection.filePath = this.filepath;
+					Soup.client.postSelection(selection);
 				});
 			}
 		}
