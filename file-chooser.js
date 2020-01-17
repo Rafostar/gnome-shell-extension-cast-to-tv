@@ -154,7 +154,7 @@ class fileChooser
 			this.deviceSelectLabel.label = 'Playercast:';
 			activeText = this.playercastSelect.get_active_text();
 
-			devices = Helper.readFromFile(shared.playercastsPath);
+			devices = Soup.client.getPlayercastsSync();
 			this.playercastSelect.remove_all();
 			this.playercastSelect.append('', _("Automatic"));
 			Helper.setDevicesWidget(this.playercastSelect, devices, activeText);

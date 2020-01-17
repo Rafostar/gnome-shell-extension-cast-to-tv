@@ -73,7 +73,6 @@ function handleMessages(socket)
 		{
 			exports.playercasts.push(socket.playercastName);
 			socket.emit('invalid', false);
-			bridge.writePlayercasts();
 		}
 		else
 		{
@@ -122,7 +121,6 @@ function handleMessages(socket)
 
 			var index = exports.playercasts.indexOf(socket.playercastName);
 			exports.playercasts.splice(index, 1);
-			bridge.writePlayercasts();
 		}
 		else
 			checkClients(msg);

@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var rangeParser = require('range-parser');
 var bridge = require('./bridge');
+var socket = require('./server-socket');
 var encode = require('./encode');
 var extract = require('./extract');
 var shared = require('../shared');
@@ -188,6 +189,9 @@ exports.getTemp = function(type, req, res)
 		case 'playlist':
 		case 'status':
 			res.send(bridge[type]);
+			break;
+		case 'playercasts':
+			res.send(socket.playercasts);
 			break;
 		default:
 			res.sendStatus(404);

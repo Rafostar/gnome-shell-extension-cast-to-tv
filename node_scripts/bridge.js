@@ -1,4 +1,3 @@
-var fs = require('fs');
 var debug = require('debug')('bridge');
 var server = require('./server');
 var sender = require('./sender');
@@ -11,8 +10,6 @@ var controller = require('./remote-controller');
 var socket = require('./server-socket');
 var addons = require('./addons-importer');
 var shared = require('../shared');
-
-var writeTimeout;
 
 exports.config = gnome.getTempConfig();
 exports.selection = null;
@@ -88,32 +85,6 @@ exports.shutDown = function(err)
 	{
 		finish();
 	}
-}
-
-exports.writePlayercasts = function()
-{
-	if(writeTimeout)
-	{
-		clearTimeout(writeTimeout);
-		writeTimeout = null;
-	}
-
-	writeTimeout = setTimeout(() =>
-	{
-		writeTimeout = null;
-
-		fs.writeFile(shared.playercastsPath, JSON.stringify(socket.playercasts), (err) =>
-		{
-			if(err)
-			{
-				var nextRetry = 60000;
-				console.error('Could not write Playercasts to temp file! ' +
-					`Next retry in ${nextRetry/1000} seconds.`
-				);
-				setTimeout(() => exports.writePlayercasts(), nextRetry);
-			}
-		});
-	}, 1000);
 }
 
 exports.updateConfig = function(contents)

@@ -5,6 +5,7 @@ const { Gio, Gtk, GLib, Gdk, Vte, Pango, GObject } = imports.gi;
 const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel, addToGrid } = Local.imports.prefs_shared;
+const Soup = Local.imports.soup;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path);
 const shared = Local.imports.shared.module.exports;
@@ -329,7 +330,7 @@ class ChromecastSettings extends Gtk.Grid
 		let onDevEdit = (widget) =>
 		{
 			let activeText = widget.get_active_text();
-			setDevices(widget, null, activeText);
+			setDevices(widget, false, activeText);
 		}
 
 		this.devChangeSignal = Settings.connect('changed::chromecast-devices', onDevEdit.bind(this, widget));
@@ -519,7 +520,7 @@ class OtherSettings extends Gtk.Grid
 		/* Playercast device name */
 		label = new SettingLabel(_("Device selection"));
 		widget = new Gtk.ComboBoxText();
-		setDevices(widget, shared.playercastsPath);
+		setDevices(widget, true);
 		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		let currentPlayercast = Settings.get_string('playercast-name');
 		if(widget.active_id != currentPlayercast)
@@ -1076,22 +1077,30 @@ function scanDevices(widget, buttons)
 	});
 }
 
-function setDevices(widget, filePath, activeText)
+function setDevices(widget, isPlayercasts, activeText)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
 	let devices = [];
 
-	if(filePath && typeof filePath === 'string')
-		devices = Helper.readFromFile(filePath);
+	if(isPlayercasts)
+	{
+		Soup.client.getPlayercasts(playercasts =>
+		{
+			if(playercasts)
+				devices = playercasts;
+
+			Helper.setDevicesWidget(widget, devices, activeText);
+		});
+	}
 	else
 	{
 		/* Restore empty devices list if someone messed it externally */
 		try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
 		catch(err) { Settings.set_string('chromecast-devices', "[]"); }
-	}
 
-	Helper.setDevicesWidget(widget, devices, activeText);
+		Helper.setDevicesWidget(widget, devices, activeText);
+	}
 }
 
 function getHostIp()
@@ -1191,6 +1200,12 @@ function buildPrefsWidget()
 
 	nodeDir = NODE_PATH.substring(0, NODE_PATH.lastIndexOf('/'));
 	nodeBin = NODE_PATH.substring(NODE_PATH.lastIndexOf('/') + 1);
+
+	if(!Soup.client)
+	{
+		let listeningPort = Settings.get_int('listening-port');
+		Soup.createClient(listeningPort);
+	}
 
 	widget = new CastToTvSettings();
 	widget.show_all();

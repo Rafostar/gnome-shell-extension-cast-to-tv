@@ -193,6 +193,17 @@ class SoupClient extends Soup.Session
 			return this._getRequestSync('playlist');
 		}
 
+		this.getPlayercasts = (cb) =>
+		{
+			cb = cb || noop;
+			this._getRequest('playercasts', cb);
+		}
+
+		this.getPlayercastsSync = () =>
+		{
+			return this._getRequestSync('playercasts');
+		}
+
 		this.postConfig = (data, cb) =>
 		{
 			cb = cb || noop;
