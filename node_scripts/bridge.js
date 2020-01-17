@@ -164,10 +164,10 @@ exports.updatePlaylist = function(playlist, append)
 
 exports.updateSelection = function(contents)
 {
-	if(!contents || exports.playlist === null) return;
+	if(!contents && !exports.selection || !exports.playlist) return;
+	else if(contents) exports.selection = contents;
 
-	exports.selection = contents;
-	debug(`New selection contents: ${JSON.stringify(contents)}`);
+	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
 
 	if(exports.selection.streamType !== 'PICTURE')
 	{

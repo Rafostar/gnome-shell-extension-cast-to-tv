@@ -43,7 +43,7 @@ exports.changeTrack = function(id)
 {
 	/* Tracks are counted from 1, list indexes from 0 */
 	bridge.selection.filePath = bridge.playlist[id - 1];
-	fs.writeFileSync(shared.selectionPath, JSON.stringify(bridge.selection, null, 1));
+	bridge.updateSelection();
 }
 
 exports.checkNextTrack = function()
