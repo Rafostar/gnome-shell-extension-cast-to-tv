@@ -1,7 +1,6 @@
-const GLib = imports.gi.GLib;
+const { GLib } = imports.gi;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Settings = Local.imports.helper.getSettings(Local.path);
-const { writeToFile } = Local.imports.helper;
 const shared = Local.imports.shared.module.exports;
 
 function getConfig()
@@ -27,20 +26,8 @@ function getConfig()
 	return config;
 }
 
-function setSelectionFile()
+function createTempDir()
 {
-	let selectionContents = {
-		streamType: '',
-		filePath: '',
-		subsPath: '',
-		transcodeAudio: false
-	};
-
-	writeToFile(shared.selectionPath, selectionContents);
-}
-
-function setListFile(list)
-{
-	let listContents = (list && Array.isArray(list)) ? list : [''];
-	writeToFile(shared.listPath, listContents);
+	let dirExists = GLib.file_test(shared.tempDir, GLib.FileTest.EXISTS);
+	if(!dirExists) GLib.mkdir_with_parents(shared.tempDir, 448); // 700 in octal
 }

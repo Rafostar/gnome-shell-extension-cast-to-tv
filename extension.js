@@ -4,7 +4,6 @@ Developer: Rafostar
 Extension GitHub: https://github.com/Rafostar/gnome-shell-extension-cast-to-tv
 */
 
-const GLib = imports.gi.GLib;
 const Main = imports.ui.main;
 const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
@@ -15,7 +14,6 @@ const Widget = Local.imports.widget;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path);
 const Temp = Local.imports.temp;
-const shared = Local.imports.shared.module.exports;
 const _ = Gettext.gettext;
 
 let castMenu;
@@ -173,15 +171,6 @@ function getPlaybackData(cb)
 	});
 }
 
-function getTempFiles()
-{
-	let selectionExists = GLib.file_test(shared.selectionPath, GLib.FileTest.EXISTS);
-	if(!selectionExists) Temp.setSelectionFile();
-
-	let listExists = GLib.file_test(shared.listPath, GLib.FileTest.EXISTS);
-	if(!listExists) Temp.setListFile();
-}
-
 function updateTempConfig(schemaKey, valueType)
 {
 	let confKey = schemaKey.split('-');
@@ -323,11 +312,11 @@ function init()
 
 function enable()
 {
+	/* Create dir for temporary data */
+	Temp.createTempDir();
+
 	/* Get config object */
 	if(!configContents) configContents = Temp.getConfig();
-
-	/* Read/create temp files */
-	getTempFiles();
 
 	/* Get remaining necessary settings */
 	Widget.seekTime = Settings.get_int('seek-time');
