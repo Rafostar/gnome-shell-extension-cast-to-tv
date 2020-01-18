@@ -16,43 +16,48 @@ exports.fileStream = function(req, res)
 		return res.sendStatus(404);
 
 	/* Check if file exists */
-	if(fs.existsSync(filePath))
+	fs.access(filePath, fs.constants.F_OK, (err) =>
 	{
-		res.setHeader('Access-Control-Allow-Origin', '*');
+		if(err) return res.sendStatus(404);
 
 		/* Pipe picture stream and exit function */
-		if(streamType == 'PICTURE')
+		if(streamType === 'PICTURE')
 		{
+			res.setHeader('Access-Control-Allow-Origin', '*');
 			res.setHeader('Content-Type', 'image/png');
 			return fs.createReadStream(filePath).pipe(res);
 		}
 
-		res.setHeader('Content-Type', 'video/mp4');
-
 		/* Calculate file range for chunked streaming */
-		var stat = fs.statSync(filePath);
-		var total = stat.size;
-		var range = req.headers.range;
-
-		if(!range)
+		fs.stat(filePath, (err, stats) =>
 		{
-			res.setHeader('Content-Length', total);
-			res.statusCode = 200;
-			return fs.createReadStream(filePath).pipe(res);
-		}
+			if(err) return res.sendStatus(404);
 
-		var part = rangeParser(total, range)[0];
-		var chunksize = (part.end - part.start) + 1;
-		var file = fs.createReadStream(filePath, {start: part.start, end: part.end});
+			res.setHeader('Access-Control-Allow-Origin', '*');
+			res.setHeader('Content-Type', 'video/mp4');
 
-		res.setHeader('Accept-Ranges', 'bytes');
-		res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
-		res.setHeader('Content-Length', chunksize);
-		res.statusCode = 206;
-		return file.pipe(res);
-	}
+			var total = stats.size;
+			var range = req.headers.range;
 
-	res.sendStatus(404);
+			if(!range)
+			{
+				res.setHeader('Content-Length', total);
+				res.statusCode = 200;
+				return fs.createReadStream(filePath).pipe(res);
+			}
+
+			var part = rangeParser(total, range)[0];
+			var chunksize = (part.end - part.start) + 1;
+			var file = fs.createReadStream(filePath, {start: part.start, end: part.end});
+
+			res.setHeader('Accept-Ranges', 'bytes');
+			res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
+			res.setHeader('Content-Length', chunksize);
+			res.statusCode = 206;
+
+			return file.pipe(res);
+		});
+	});
 }
 
 exports.encodedStream = function(req, res)
@@ -69,8 +74,10 @@ exports.encodedStream = function(req, res)
 	var streamType = bridge.selection.streamType;
 
 	/* Check if file exists */
-	if(fs.existsSync(filePath))
+	fs.access(filePath, fs.constants.F_OK, (err) =>
 	{
+		if(err) return res.sendStatus(404);
+
 		res.setHeader('Content-Type', 'video/x-matroska');
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.setHeader('Connection', 'keep-alive');
@@ -81,65 +88,71 @@ exports.encodedStream = function(req, res)
 		else if(streamType == 'VIDEO_NVENC') encode.videoNvenc().pipe(res);
 		else if(streamType == 'MUSIC') encode.musicVisualizer().pipe(res);
 		else res.end();
-
-		return;
-	}
-
-	res.sendStatus(404);
+	});
 }
 
 exports.subsStream = function(req, res)
 {
-	if(bridge.selection.streamType.startsWith('VIDEO'))
+	if(!bridge.selection.streamType.startsWith('VIDEO'))
+		return res.sendStatus(204);
+
+	var subsPath = bridge.selection.subsPath;
+
+	if(bridge.config.receiverType !== 'playercast')
 	{
-		var subsPath = bridge.selection.subsPath;
+		var parsedUrl = req._parsedUrl.pathname;
 
-		if(bridge.config.receiverType !== 'playercast')
+		if(!subsPath || parsedUrl == '/subswebplayer')
+			subsPath = shared.vttSubsPath;
+	}
+
+	/* Check if file is specified and exists */
+	if(subsPath)
+	{
+		fs.access(subsPath, fs.constants.F_OK, (err) =>
 		{
-			var parsedUrl = req._parsedUrl.pathname;
+			if(err) return res.sendStatus(404);
 
-			if(!subsPath || parsedUrl == '/subswebplayer')
-				subsPath = shared.vttSubsPath;
-		}
-
-		/* Check if file is specified and exists */
-		if(subsPath && fs.existsSync(subsPath))
-		{
 			res.writeHead(200, {
 				'Access-Control-Allow-Origin': '*',
 				'Content-Type': 'text/vtt'
 			});
 
 			return fs.createReadStream(subsPath).pipe(res);
-		}
+		});
 	}
-
-	res.sendStatus(204);
+	else
+		return res.sendStatus(204);
 }
 
 exports.coverStream = function(req, res)
 {
-	if(bridge.selection.streamType == 'MUSIC')
+	if(!bridge.selection.streamType == 'MUSIC')
+		return res.sendStatus(204);
+
+	var coverPath = extract.coverPath;
+
+	/* Playercast supports covers in media file */
+	if(bridge.config.receiverType === 'playercast' && coverPath === 'muxed_image')
+		return res.sendStatus(204);
+
+	res.writeHead(200, {
+		'Access-Control-Allow-Origin': '*',
+		'Content-Type': 'image/png'
+	});
+
+	/* Use default cover when other does not exists */
+	if(!coverPath)
 	{
-		var coverPath = extract.coverPath;
+		fs.access(coverPath, fs.constants.F_OK, (err) =>
+		{
+			if(err) coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
 
-		/* Playercast supports covers in media file */
-		if(bridge.config.receiverType === 'playercast' && coverPath === 'muxed_image')
-			return res.sendStatus(204);
-
-		res.writeHead(200, {
-			'Access-Control-Allow-Origin': '*',
-			'Content-Type': 'image/png'
+			return fs.createReadStream(coverPath).pipe(res);
 		});
-
-		/* Use default cover when other does not exists */
-		if(!(coverPath && fs.existsSync(coverPath)))
-			coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
-
-		return fs.createReadStream(coverPath).pipe(res);
 	}
-
-	res.sendStatus(204);
+	else
+		return fs.createReadStream(coverPath).pipe(res);
 }
 
 exports.hlsStream = function(req, res)
@@ -147,20 +160,21 @@ exports.hlsStream = function(req, res)
 	var filePath = shared.hlsDir + req.url;
 
 	/* Check if stream segment exists */
-	if(fs.existsSync(filePath))
+	fs.access(filePath, fs.constants.F_OK, (err) =>
 	{
-		var stat = fs.statSync(filePath);
-		var total = stat.size;
+		if(err) return res.sendStatus(404);
 
-		res.setHeader('Access-Control-Allow-Origin', '*');
-		res.setHeader('Content-Type', 'application/x-mpegURL');
-		res.setHeader('Content-Length', total);
-		res.statusCode = 200;
+		fs.stat(filePath, (err, stats) =>
+		{
+			if(!err) res.setHeader('Content-Length', stats.size);
 
-		return fs.createReadStream(filePath).pipe(res);
-	}
+			res.setHeader('Access-Control-Allow-Origin', '*');
+			res.setHeader('Content-Type', 'application/x-mpegURL');
+			res.statusCode = 200;
 
-	res.sendStatus(404);
+			return fs.createReadStream(filePath).pipe(res);
+		});
+	});
 }
 
 exports.webConfig = function(req, res)
