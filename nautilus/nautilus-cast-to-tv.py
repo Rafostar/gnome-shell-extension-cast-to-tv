@@ -100,7 +100,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         msg.set_request(
             'application/x-www-form-urlencoded',
             Soup.MemoryUse.COPY,
-            bytearray(params)
+            bytearray(params, 'utf-8')
         )
         response = self.soup_client.send_message(msg)
         if response == 200:
