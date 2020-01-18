@@ -1,11 +1,11 @@
 # Cast to TV Nautilus/Nemo Extension
 # Developer: Rafostar
-# Based on original code by: rendyanthony
 
-import os, sys, time, codecs, json, gettext, locale, gi
+import os, sys, json, gettext, locale, gi
 gi.require_version('GObject', '2.0')
 gi.require_version('Gio', '2.0')
-from gi.repository import GObject, Gio
+gi.require_version('Soup', '2.4')
+from gi.repository import GObject, Gio, Soup
 
 if 'nemo' in sys.argv[0].lower():
     gi.require_version('Nemo', '3.0')
@@ -25,10 +25,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def __init__(self):
         GObject.Object.__init__(self)
         self.subs_path = ""
-        self.config = {}
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
         self.ext_settings = None
+        self.soup_client = Soup.Session(timeout=3)
 
         Gio_SSS = Gio.SettingsSchemaSource
         if os.path.isfile(EXTENSION_PATH + '/schemas/gschemas.compiled'):
@@ -48,13 +48,63 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             gettext.bindtextdomain('cast-to-tv', None)
         gettext.textdomain('cast-to-tv')
 
-    def check_extension_enabled(self):
+    def get_extension_enabled(self):
         all_extensions_disabled = self.settings.get_boolean('disable-user-extensions')
 
         if not all_extensions_disabled:
             enabled_extensions = self.settings.get_strv('enabled-extensions')
             if EXTENSION_NAME in enabled_extensions:
                 return True
+
+        return False
+
+    def get_soup_data(self, data_type):
+        port = self.ext_settings.get_int('listening-port')
+        url = 'http://127.0.0.1:' + str(port) + '/temp/' + data_type
+        msg = Soup.Message.new('GET', url)
+        response = self.soup_client.send_message(msg)
+        if response == 200:
+            temp_json = json.loads(msg.response_body.data)
+
+            for key in temp_json:
+                if temp_json[key] == 'true':
+                    temp_json[key] = True
+                elif temp_json[key] == 'false':
+                    temp_json[key] = False
+
+            return temp_json
+
+        return None
+
+    def post_soup_data(self, data_type, data, is_append):
+        port = self.ext_settings.get_int('listening-port')
+        url = 'http://127.0.0.1:' + str(port) + '/temp/' + data_type
+
+        if isinstance(data, list):
+            temp_data = {}
+            for index, filepath in enumerate(data):
+                temp_data[str(index)] = filepath
+            data = temp_data
+        else:
+            for key in data:
+                if isinstance(data[key], bool):
+                    data[key] = str(data[key]).lower()
+                elif not isinstance(data[key], str):
+                    data[key] = str(data[key])
+
+        if (data_type == 'playlist' and is_append):
+            url += '?append=true'
+
+        msg = Soup.Message.new('POST', url)
+        params = Soup.form_encode_hash(data)
+        msg.set_request(
+            'application/x-www-form-urlencoded',
+            Soup.MemoryUse.COPY,
+            bytearray(params)
+        )
+        response = self.soup_client.send_message(msg)
+        if response == 200:
+            return True
 
         return False
 
@@ -65,17 +115,16 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         cast_devices = []
         parsed_devices = []
+        receiver_type = self.ext_settings.get_string('receiver-type')
 
         if not self.ext_settings.get_boolean('chromecast-playing'):
-            if self.config['receiverType'] == 'chromecast':
+            if receiver_type == 'chromecast':
                 cast_devices = json.loads(self.ext_settings.get_string('chromecast-devices'))
                 for device in cast_devices:
                     if (device['name'].endswith('.local') or device['ip']):
                         parsed_devices.append(device)
-            elif self.config['receiverType'] == 'playercast':
-                if os.path.isfile(TEMP_PATH + '/playercasts.json'):
-                    with codecs.open(TEMP_PATH + '/playercasts.json', 'r', encoding='utf-8') as fp:
-                        parsed_devices = json.load(fp)
+            elif receiver_type == 'playercast':
+                parsed_devices = self.get_soup_data('playercasts')
 
         if len(parsed_devices) > 1:
             menu_label = self.get_menu_name(False)
@@ -91,7 +140,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         if len(parsed_devices) > 1:
             for device in parsed_devices:
-                if self.config['receiverType'] == 'playercast':
+                if receiver_type == 'playercast':
                     device = {"friendlyName": device, "name": device}
                 self.add_menu_device(stream_type, files, cast_label, submenu, device, False)
         else:
@@ -100,7 +149,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         return top_menuitem
 
     def add_menu_device(self, stream_type, files, cast_label, submenu, device, is_short_list):
-        if is_short_list or not device:
+        if (is_short_list or not device):
             device_config_name = None
             cast_submenu = submenu
             playlist_allowed = self.get_playlist_allowed(stream_type)
@@ -111,11 +160,12 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             name_item.set_submenu(cast_submenu)
             submenu.append_item(name_item)
             playlist_allowed = False
-            if self.config['receiverType'] == 'chromecast':
-                if device_config_name == self.config['chromecastName']:
+            receiver_type = self.ext_settings.get_string('receiver-type')
+            if receiver_type == 'chromecast':
+                if device_config_name == self.ext_settings.get_string('chromecast-name'):
                     playlist_allowed = self.get_playlist_allowed(stream_type)
-            elif self.config['receiverType'] == 'playercast':
-                if device_config_name == self.config['playercastName']:
+            elif receiver_type == 'playercast':
+                if device_config_name == self.ext_settings.get_string('playercast-name'):
                     playlist_allowed = self.get_playlist_allowed(stream_type)
 
         cast_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=_(cast_label))
@@ -147,24 +197,36 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             cast_submenu.append_item(transcode_item)
 
     def get_menu_name(self, use_friendly_name):
-        if self.config['receiverType'] == 'chromecast':
-            if (not self.config['chromecastName'] or
-            not use_friendly_name):
+        receiver_type = self.ext_settings.get_string('receiver-type')
+        chromecast_name = None
+
+        if receiver_type == 'chromecast':
+            if not use_friendly_name:
                 return "Chromecast"
-        elif self.config['receiverType'] == 'playercast':
-            if (self.config['playercastName'] and use_friendly_name):
-                return self.config['playercastName']
             else:
+                chromecast_name = self.ext_settings.get_string('chromecast-name')
+                if not chromecast_name:
+                    return "Chromecast"
+        elif receiver_type == 'playercast':
+            if not use_friendly_name:
                 return "Playercast"
-        elif self.config['receiverType'] == 'other':
+            else:
+                playercast_name = self.ext_settings.get_string('playercast-name')
+                if playercast_name:
+                    return playercast_name
+                else:
+                    return "Playercast"
+        elif receiver_type == 'other':
             return _("Web browser | Media player")
+        else:
+            return None
 
         # Reduce extension settings reads (and below loop runs) when selecting files
-        if self.config['chromecastName'] == self.current_name['name']:
+        if chromecast_name == self.current_name['name']:
             return self.current_name['fn']
 
         for device in json.loads(self.ext_settings.get_string('chromecast-devices')):
-            if device['name'] == self.config['chromecastName']:
+            if device['name'] == chromecast_name:
                 self.current_name['name'] = device['name']
                 self.current_name['fn'] = device['friendlyName']
                 return self.current_name['fn']
@@ -180,17 +242,17 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return None
 
-    def check_subtitles(self, files):
-        if (self.is_subtitles_file(files[0]) and files[1].is_mime_type('video/*')):
+    def get_is_video_and_subs(self, files):
+        if (self.get_is_subtitles_file(files[0]) and files[1].is_mime_type('video/*')):
             self.subs_path = self.get_file_path(files[0])
-        elif (files[0].is_mime_type('video/*') and self.is_subtitles_file(files[1])):
+        elif (files[0].is_mime_type('video/*') and self.get_is_subtitles_file(files[1])):
             self.subs_path = self.get_file_path(files[1])
         else:
             return False
 
         return True
 
-    def is_subtitles_file(self, file):
+    def get_is_subtitles_file(self, file):
         if file.is_mime_type('text/*'):
             filename = self.get_file_path(file)
             if filename:
@@ -230,29 +292,36 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return True
 
-    def parse_playlist_files(self, files):
+    def get_parsed_playlist(self, files):
         parsed_files = [
             self.get_file_path(file)
             for file in files
-            if not self.is_subtitles_file(file)
+            if not self.get_is_subtitles_file(file)
         ]
+
+        if not PY3:
+            alt_playlist = []
+            for filepath in parsed_files:
+                filepath = filepath.decode('utf-8')
+                alt_playlist.append(filepath)
+
+            return alt_playlist
 
         return parsed_files
 
     def cast_files_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
         if device_config_name != None:
-            if self.config['receiverType'] == 'chromecast':
+            receiver_type = self.ext_settings.get_string('receiver-type')
+            if receiver_type == 'chromecast':
+                self.post_soup_data('config', { "chromecastName": device_config_name })
                 self.ext_settings.set_string('chromecast-name', device_config_name)
-            elif self.config['receiverType'] == 'playercast':
+            elif receiver_type == 'playercast':
+                self.post_soup_data('config', { "playercastName": device_config_name })
                 self.ext_settings.set_string('playercast-name', device_config_name)
-            # It takes a short while for gsetting to make its way to node app
-            time.sleep(0.25)
-
-        playlist = self.get_updated_playlist(files, [])
 
         # Playlist must be updated before selection file
-        with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
-            json.dump(playlist, fp, indent=1, ensure_ascii=False)
+        playlist = self.get_parsed_playlist(files)
+        self.post_soup_data('playlist', playlist, False)
 
         if not PY3:
             self.subs_path = self.subs_path.decode('utf-8')
@@ -264,81 +333,60 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             "transcodeAudio": is_transcode_audio
         }
 
-        with codecs.open(TEMP_PATH + '/selection.json', 'w', encoding='utf-8') as fp:
-            json.dump(selection, fp, indent=1, ensure_ascii=False)
+        self.post_soup_data('selection', selection, False)
 
     def add_to_playlist_cb(self, menu, files, stream_type, is_transcode_audio):
         # Check if Chromecast did not stop playing before option select
         playlist_allowed = self.get_playlist_allowed(stream_type)
         if playlist_allowed:
-            parsed_playlist = self.parse_playlist_files(files)
-
-            with codecs.open(TEMP_PATH + '/playlist.json', 'r', encoding='utf-8') as fp:
-                playlist = self.get_updated_playlist(files, json.load(fp))
-
-            with codecs.open(TEMP_PATH + '/playlist.json', 'w', encoding='utf-8') as fp:
-                json.dump(playlist, fp, indent=1, ensure_ascii=False)
+            playlist = self.get_parsed_playlist(files)
+            self.post_soup_data('playlist', playlist, True)
         else:
             self.cast_files_cb(menu, files, stream_type, is_transcode_audio, None)
 
     def transcode_files_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
-        if self.config['videoAcceleration'] == 'vaapi':
+        video_acceleration = self.ext_settings.get_string('video-acceleration')
+        if video_acceleration == 'vaapi':
             stream_type += '_VAAPI'
-        elif self.config['videoAcceleration'] == 'nvenc':
+        elif video_acceleration == 'nvenc':
             stream_type += '_NVENC'
         else:
             stream_type += '_ENCODE'
 
         self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
 
-    def get_updated_playlist(self, files, playlist):
-        parsed_playlist = self.parse_playlist_files(files)
-
-        for filepath in parsed_playlist:
-            if not PY3:
-                filepath = filepath.decode('utf-8')
-            if filepath not in playlist:
-                playlist.append(filepath)
-
-        return playlist
-
     def get_playlist_allowed(self, stream_type):
         chromecast_playing = self.ext_settings.get_boolean('chromecast-playing')
         if chromecast_playing:
-            with codecs.open(TEMP_PATH + '/selection.json', 'r', encoding='utf-8') as fp:
-                selection = json.load(fp)
-                if (not 'addon' in selection and
-                    selection['streamType'] == stream_type and
-                    'transcodeAudio' in selection and
-                    not selection['transcodeAudio']):
-                        return True
+            preselection = self.get_soup_data('selection')
+
+            if (
+                preselection
+                and not 'addon' in preselection
+                and preselection['streamType'] == stream_type
+                and 'transcodeAudio' in preselection
+                and not preselection['transcodeAudio']
+            ):
+                return True
 
         return False
 
     def get_file_items(self, window, files):
-        if not self.settings or not self.ext_settings:
+        if (not self.settings or not self.ext_settings):
             return
 
         if not self.ext_settings.get_boolean('service-enabled'):
             return
 
-        if not (os.path.isfile(TEMP_PATH + '/config.json') and
-            os.path.isfile(TEMP_PATH + '/playlist.json') and
-            os.path.isfile(TEMP_PATH + '/selection.json')):
-                return
-
-        extension_enabled = self.check_extension_enabled()
+        extension_enabled = self.get_extension_enabled()
         if not extension_enabled:
             return
 
         stream_type = None
         is_video_and_subs = False
 
-        with codecs.open(TEMP_PATH + '/config.json', 'r', encoding='utf-8') as config:
-            self.config = json.load(config)
-
         if len(files) == 2:
-            is_video_and_subs = self.check_subtitles(files)
+            is_video_and_subs = self.get_is_video_and_subs(files)
 
         if is_video_and_subs:
             stream_type = 'VIDEO'
