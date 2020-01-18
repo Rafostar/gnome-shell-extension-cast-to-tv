@@ -27,6 +27,7 @@ class fileChooser
 		GLib.set_prgname('Cast to TV');
 		Helper.initTranslations(LOCAL_PATH);
 		this.application = new Gtk.Application();
+		this.filePathChosen = [];
 		this.application.connect('activate', () => this._openDialog());
 		this.application.connect('startup', () => this._buildUI());
 		this.application.run([]);
@@ -280,7 +281,7 @@ class fileChooser
 
 		this.fileChooser.set_extra_widget(this._getExtraWidget());
 		this.fileChooser.add_filter(this.fileFilter);
-		this.fileChooser.connect('response', () => this._onResponse());
+		this.fileChooser.connect('response', this._onResponse.bind(this));
 
 		let DialogResponse = this.fileChooser.run();
 
