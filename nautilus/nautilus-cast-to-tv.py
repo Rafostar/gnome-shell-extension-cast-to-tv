@@ -15,7 +15,6 @@ else:
     from gi.repository import Nautilus as FileManager
 
 _ = gettext.gettext
-PY3 = sys.version_info > (3,)
 EXTENSION_NAME = 'cast-to-tv@rafostar.github.com'
 EXTENSION_PATH = os.path.expanduser('~/.local/share/gnome-shell/extensions/' + EXTENSION_NAME)
 TEMP_PATH = '/tmp/.cast-to-tv'
@@ -89,8 +88,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             for key in data:
                 if isinstance(data[key], bool):
                     data[key] = str(data[key]).lower()
-                elif not isinstance(data[key], str):
-                    data[key] = str(data[key])
 
         if (data_type == 'playlist' and is_append):
             url += '?append=true'
@@ -294,18 +291,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def get_parsed_playlist(self, files):
         parsed_files = [
-            self.get_file_path(file)
-            for file in files
-            if not self.get_is_subtitles_file(file)
+            self.get_file_path(parsed_file)
+            for parsed_file in files
+            if not self.get_is_subtitles_file(parsed_file)
         ]
-
-        if not PY3:
-            alt_playlist = []
-            for filepath in parsed_files:
-                filepath = filepath.decode('utf-8')
-                alt_playlist.append(filepath)
-
-            return alt_playlist
 
         return parsed_files
 
@@ -322,9 +311,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         # Playlist must be updated before selection file
         playlist = self.get_parsed_playlist(files)
         self.post_soup_data('playlist', playlist, False)
-
-        if not PY3:
-            self.subs_path = self.subs_path.decode('utf-8')
 
         selection = {
             "streamType": stream_type,
