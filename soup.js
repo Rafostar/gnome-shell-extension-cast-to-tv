@@ -73,7 +73,6 @@ class SoupClient extends Soup.Session
 		{
 			cb = cb || noop;
 
-			this.abort();
 			let message = Soup.Message.new('GET',
 				'http://127.0.0.1:' + this.usedPort + '/temp/' + type
 			);
@@ -115,7 +114,6 @@ class SoupClient extends Soup.Session
 		{
 			cb = cb || noop;
 
-			this.abort();
 			let url = 'http://127.0.0.1:' + this.usedPort + '/temp/' + type;
 
 			if(query) url += '?' + query;
