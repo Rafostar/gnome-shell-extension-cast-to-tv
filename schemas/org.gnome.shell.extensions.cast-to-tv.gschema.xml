@@ -85,6 +85,15 @@
       <default>5.0</default>
       <summary>Media encoding video bitrate</summary>
     </key>
+    <!-- Extractor -->
+    <key name="extractor-reuse" type="b">
+      <default>true</default>
+      <summary>Enable reusing subtitles from extractor dir</summary>
+    </key>
+    <key name="extractor-dir" type="s">
+      <default>"/tmp"</default>
+      <summary>Extractor save folder</summary>
+    </key>
     <!-- Status -->
     <key name="chromecast-playing" type="b">
       <default>false</default>
