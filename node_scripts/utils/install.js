@@ -19,7 +19,8 @@ extensions.forEach(folder =>
 
 		if(isPackage)
 		{
-			var installText = `Installing: Cast to TV - ${addonName[0].toUpperCase() + addonName.slice(1)} Add-on`;
+			var addonText = addonName[0].toUpperCase() + addonName.slice(1);
+			var installText = `Installing: Cast to TV - ${addonText} Add-on`;
 			var textLength = installText.length;
 
 			while(textLength)
