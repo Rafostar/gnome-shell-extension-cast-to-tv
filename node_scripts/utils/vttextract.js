@@ -1,5 +1,4 @@
-#!/bin/sh
-//bin/false || exec "$(command -v nodejs || command -v node)" "$0"
+#!/usr/bin/env node
 
 function extractSubs()
 {
