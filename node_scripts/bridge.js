@@ -148,6 +148,26 @@ exports.updateSelection = function(contents)
 		debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
 	}
 
+	onSelectionUpdate();
+}
+
+exports.updateRemote = function(contents)
+{
+	if(!contents || !contents.action)
+		return debug('Invalid update remote contents');
+
+	if(contents.value)
+	{
+		if(contents.value === 'true') contents.value = true;
+		else if(contents.value === 'false') contents.value = false;
+	}
+
+	debug(`New remote contents: ${JSON.stringify(contents)}`);
+	exports.handleRemoteSignal(contents.action, contents.value);
+}
+
+function onSelectionUpdate()
+{
 	if(exports.selection.streamType !== 'PICTURE')
 	{
 		var isCleared = controller.clearSlideshow();
@@ -167,76 +187,65 @@ exports.updateSelection = function(contents)
 		remove.covers();
 		remove.file(shared.vttSubsPath);
 	}
-	else if(exports.selection.filePath && exports.config.receiverType !== 'playercast')
+	else if(exports.selection.filePath)
 	{
-		setProcesses();
-	}
-
-	if(exports.selection.filePath)
-	{
-		/* Refresh already visible remote widget to mark new playing item */
-		if(gnome.isRemote()) gnome.showRemote(true);
-
-		switch(exports.config.receiverType)
+		if(exports.config.receiverType === 'playercast') castFile();
+		else
 		{
-			case 'chromecast':
-				chromecast.cast();
-				break;
-			case 'playercast':
-				if(socket.playercasts.length > 0)
-				{
-					/* Temporary workaround for Playercast cover detection */
-					extract.coverPath = 'muxed_image';
-
-					var playercastName = (exports.config.playercastName) ?
-						exports.config.playercastName : socket.playercasts[0];
-
-					if(
-						exports.selection.streamType === 'MUSIC'
-						&& !exports.config.musicVisualizer
-						&& !exports.addon
-					) {
-						extract.checkCoverIncluded(isIncluded =>
-						{
-							if(!isIncluded) extract.findCoverFile();
-
-							socket.emit('playercast', {
-								name: playercastName,
-								...exports.selection
-							});
-						});
-					}
-					else
-					{
-						socket.emit('playercast', {
-							name: playercastName,
-							...exports.selection
-						});
-					}
-				}
-				break;
-			case 'other':
-				setTimeout(socket.emit, 250, 'reload');
-				break;
-			default:
-				break;
+			setProcesses();
+			castFile();
 		}
 	}
 }
 
-exports.updateRemote = function(contents)
+function castFile()
 {
-	if(!contents || !contents.action)
-		return debug('Invalid update remote contents');
+	/* Refresh already visible remote widget to mark new playing item */
+	if(gnome.isRemote()) gnome.showRemote(true);
 
-	if(contents.value)
+	switch(exports.config.receiverType)
 	{
-		if(contents.value === 'true') contents.value = true;
-		else if(contents.value === 'false') contents.value = false;
-	}
+		case 'chromecast':
+			chromecast.cast();
+			break;
+		case 'playercast':
+			if(socket.playercasts.length === 0) return;
 
-	debug(`New remote contents: ${JSON.stringify(contents)}`);
-	exports.handleRemoteSignal(contents.action, contents.value);
+			/* Temporary workaround for Playercast cover detection */
+			extract.coverPath = 'muxed_image';
+
+			var playercastName = (exports.config.playercastName) ?
+				exports.config.playercastName : socket.playercasts[0];
+
+			if(
+				exports.selection.streamType === 'MUSIC'
+				&& !exports.config.musicVisualizer
+				&& !exports.addon
+			) {
+				extract.checkCoverIncluded(isIncluded =>
+				{
+					if(!isIncluded) extract.findCoverFile();
+
+					socket.emit('playercast', {
+						name: playercastName,
+						...exports.selection
+					});
+				});
+			}
+			else
+			{
+				socket.emit('playercast', {
+					name: playercastName,
+					...exports.selection
+				});
+			}
+			break;
+		case 'other':
+			setTimeout(socket.emit, 250, 'reload');
+			break;
+		default:
+			break;
+	}
 }
 
 function getContents(path)
