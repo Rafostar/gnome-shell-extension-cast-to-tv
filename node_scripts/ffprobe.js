@@ -1,34 +1,45 @@
-var JSONStream = require('JSONStream');
-var deferential = require('deferential');
-var spawn = require('child_process').spawn;
+const { spawn } = require('child_process');
+const noop = () => {};
 
-module.exports = getInfo;
-
-function getInfo(filePath, opts, cb)
+module.exports = function(opts, cb)
 {
-	var d = deferential();
-	var info;
-	var stderr;
+	cb = cb || noop;
 
-	var ffprobe = spawn(opts.path, ['-show_streams', '-show_format', '-print_format', 'json', filePath]);
+	if(!opts.ffprobePath)
+		return cb(new Error('No ffprobe path'));
 
-	ffprobe.once('close', function(code)
+	if(!opts.filePath)
+		return cb(new Error('No file path specified'));
+
+	var outData = "";
+
+	var ffprobe = spawn(opts.ffprobePath, [
+		'-show_streams', '-show_format', '-print_format', 'json', opts.filePath
+	]);
+
+	const addData = function(data)
 	{
-		if(!code) d.resolve(info);
-		else d.reject(new Error("FFprobe process error"));
-	});
+		outData += data;
+	}
 
-	ffprobe.once('error', function(error)
+	const onFFprobeExit = function(code)
 	{
-		d.reject(new Error("FFprobe exec error"));
-	});
+		ffprobe.removeListener('error', onFFprobeError);
+		ffprobe.removeListener('data', addData);
 
-	ffprobe.stdout
-		.pipe(JSONStream.parse())
-		.once('data', function(data)
-		{
-			info = data;
-		});
+		if(!code) cb(null, JSON.parse(outData));
+		else cb(new Error(`FFprobe process error code: ${code}`));
+	}
 
-	return d.nodeify(cb);
+	const onFFprobeError = function(code)
+	{
+		ffprobe.removeListener('exit', onFFprobeExit);
+		ffprobe.removeListener('data', addData);
+
+		cb(new Error(`FFprobe exec error code: ${code}`));
+	}
+
+	ffprobe.once('exit', onFFprobeExit);
+	ffprobe.once('error', onFFprobeError);
+	ffprobe.on('data', addData);
 }
