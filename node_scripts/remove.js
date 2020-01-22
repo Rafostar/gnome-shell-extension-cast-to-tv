@@ -1,21 +1,33 @@
-var fs = require('fs');
-var shared = require('../shared');
+const fs = require('fs');
+const shared = require('../shared');
+const noop = () => {};
 
-exports.file = function(fileToRemove)
+exports.file = function(filePath, cb)
 {
-	if(fs.existsSync(fileToRemove))
+	cb = cb || noop;
+
+	fs.access(filePath, fs.constants.F_OK, (err) =>
 	{
-		fs.unlink(fileToRemove, (err) =>
+		if(err) return cb(new Error(`File ${filePath} does not exist`));
+
+		fs.unlink(filePath, (err) =>
 		{
-			if(err) console.error(err);
+			if(err) cb(new Error(`Could not remove file: ${filePath}`));
+			else cb(null);
 		});
-	}
+	});
 }
 
-exports.covers = function()
+exports.tempCover = function(cb)
 {
-	shared.coverExtensions.forEach(ext =>
-	{
-		exports.file(shared.coverDefault + ext);
-	});
+	cb = cb || noop;
+
+	exports.file(shared.coverDefault + '.jpg', cb);
+}
+
+exports.tempSubs = function(cb)
+{
+	cb = cb || noop;
+
+	exports.file(shared.vttSubsPath, cb);
 }
