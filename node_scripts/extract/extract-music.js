@@ -41,17 +41,27 @@ exports.coverToJpg = function(opts, cb)
 	}
 }
 
-exports.getPossibleCoverNames = function(coverArr)
+exports.getPossibleCoverNames = function(nameArr, extArr)
 {
-	if(!Array.isArray(coverArr)) return null;
+	if(!Array.isArray(nameArr)) return null;
+	else if(!Array.isArray(extArr)) return null;
 
 	var possible = [];
 
-	coverArr.forEach(coverName =>
+	const updatePossible = function(ext)
 	{
-		possible.push(coverName);
-		possible.push(coverName.charAt(0).toUpperCase() + coverName.slice(1));
-		possible.push(coverName.toUpperCase());
+		nameArr.forEach(coverName =>
+		{
+			possible.push(coverName + ext);
+			possible.push(coverName.charAt(0).toUpperCase() + coverName.slice(1) + ext);
+			possible.push(coverName.toUpperCase() + ext);
+		});
+	}
+
+	extArr.forEach(coverExt =>
+	{
+		updatePossible(coverExt);
+		updatePossible(coverExt.toUpperCase());
 	});
 
 	return possible;
@@ -71,8 +81,8 @@ exports.findCoverInDir = function(dirPath, coverArr, cb)
 	{
 		if(err) return cb(new Error(`Could not obtain files in ${dirPath} dir`));
 
-		cb(coverArr.some(cover => files.includes(cover)));
-	})
+		cb(null, coverArr.find(cover => files.includes(cover)));
+	});
 }
 
 exports.getIsCoverMerged = function(ffprobeData)

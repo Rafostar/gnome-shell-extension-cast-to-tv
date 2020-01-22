@@ -11,6 +11,9 @@ exports.subsToVtt = function(opts, cb)
 {
 	cb = cb || noop;
 
+	if(!opts)
+		return cb(new Error('No convert subs options'));
+
 	if(!opts.file)
 		return cb(new Error('No subtitles file specified'));
 
@@ -26,7 +29,10 @@ exports.subsToVtt = function(opts, cb)
 	}
 
 	if(opts.overwrite)
-		readAndConvert(opts, cb);
+	{
+		if(opts.isVideo) convertSubsToVtt(opts, cb);
+		else readAndConvert(opts, cb);
+	}
 	else
 	{
 		fs.access(opts.outPath, fs.constants.F_OK, (err) =>
@@ -37,9 +43,19 @@ exports.subsToVtt = function(opts, cb)
 				return cb(null);
 			}
 
-			readAndConvert(opts, cb);
+			if(opts.isVideo) convertSubsToVtt(opts, cb);
+			else readAndConvert(opts, cb);
 		});
 	}
+}
+
+exports.videoToVtt = function(opts, cb)
+{
+	if(!opts)
+		return cb(new Error('No extract video subs options'));
+
+	opts.isVideo = true;
+	exports.subsToVtt(opts, cb);
 }
 
 exports.getIsSubsMerged = function(ffprobeData)
