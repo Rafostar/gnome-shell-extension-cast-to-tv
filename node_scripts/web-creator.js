@@ -1,11 +1,11 @@
-var fs = require('fs');
-var path = require('path');
-var rangeParser = require('range-parser');
-var bridge = require('./bridge');
-var socket = require('./server-socket');
-var encode = require('./encode');
-var extract = require('./extract');
-var shared = require('../shared');
+const fs = require('fs');
+const path = require('path');
+const rangeParser = require('range-parser');
+const debug = require('debug')('web');
+const bridge = require('./bridge');
+const socket = require('./server-socket');
+const encode = require('./encode');
+const shared = require('../shared');
 
 exports.fileStream = function(req, res)
 {
@@ -13,18 +13,29 @@ exports.fileStream = function(req, res)
 	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
+	{
+		debug('No file path');
+
 		return res.sendStatus(404);
+	}
 
 	/* Check if file exists */
 	fs.access(filePath, fs.constants.F_OK, (err) =>
 	{
-		if(err) return res.sendStatus(404);
+		if(err)
+		{
+			debug(err);
+
+			return res.sendStatus(404);
+		}
 
 		/* Pipe picture stream and exit function */
 		if(streamType === 'PICTURE')
 		{
 			res.setHeader('Access-Control-Allow-Origin', '*');
 			res.setHeader('Content-Type', 'image/png');
+			debug('Sending image file');
+
 			return fs.createReadStream(filePath).pipe(res);
 		}
 
@@ -39,21 +50,34 @@ exports.fileStream = function(req, res)
 			var total = stats.size;
 			var range = req.headers.range;
 
-			if(!range)
+			const getFullFile = function()
 			{
-				res.setHeader('Content-Length', total);
+				if(total) res.setHeader('Content-Length', total);
+
 				res.statusCode = 200;
+				debug('Sending full file');
+
 				return fs.createReadStream(filePath).pipe(res);
 			}
 
+			if(!range) return getFullFile();
+
 			var part = rangeParser(total, range)[0];
+			if(!part)
+			{
+				debug('No data from range-parser. This should not happen!');
+				return getFullFile();
+			}
+
 			var chunksize = (part.end - part.start) + 1;
-			var file = fs.createReadStream(filePath, {start: part.start, end: part.end});
+			var file = fs.createReadStream(filePath, { start: part.start, end: part.end });
+			var sendRange = `${part.start}-${part.end}/${total}`;
 
 			res.setHeader('Accept-Ranges', 'bytes');
-			res.setHeader('Content-Range', 'bytes ' + part.start + '-' + part.end + '/' + total);
+			res.setHeader('Content-Range', `bytes ${sendRange}`);
 			res.setHeader('Content-Length', chunksize);
 			res.statusCode = 206;
+			debug(`Sending data chunk: ${sendRange}`);
 
 			return file.pipe(res);
 		});
@@ -127,32 +151,34 @@ exports.subsStream = function(req, res)
 
 exports.coverStream = function(req, res)
 {
-	if(!bridge.selection.streamType == 'MUSIC')
+	if(bridge.selection.streamType !== 'MUSIC')
 		return res.sendStatus(204);
 
-	var coverPath = extract.coverPath;
+	var coverPath = bridge.musicData.coverPath;
 
 	/* Playercast supports covers in media file */
-	if(bridge.config.receiverType === 'playercast' && coverPath === 'muxed_image')
+	if(
+		bridge.config.receiverType === 'playercast'
+		&& coverPath
+		&& coverPath === 'muxed_image'
+	) {
 		return res.sendStatus(204);
-
-	res.writeHead(200, {
-		'Access-Control-Allow-Origin': '*',
-		'Content-Type': 'image/png'
-	});
+	}
 
 	/* Use default cover when other does not exists */
-	if(!coverPath)
-	{
-		fs.access(coverPath, fs.constants.F_OK, (err) =>
-		{
-			if(err) coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
+	if(!coverPath) coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
 
-			return fs.createReadStream(coverPath).pipe(res);
+	fs.access(coverPath, fs.constants.F_OK, (err) =>
+	{
+		if(err) return res.sendStatus(404);
+
+		res.writeHead(200, {
+			'Access-Control-Allow-Origin': '*',
+			'Content-Type': 'image/png'
 		});
-	}
-	else
+
 		return fs.createReadStream(coverPath).pipe(res);
+	});
 }
 
 exports.hlsStream = function(req, res)
