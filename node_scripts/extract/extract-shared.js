@@ -30,7 +30,9 @@ exports.convertFile = function(opts, cb)
 	const onConvertExit = function(code)
 	{
 		spawnProcess.removeListener('error', onConvertError);
-		cb(null);
+
+		if(code) cb(new Error(`Extract process exit code: ${code}`));
+		else cb(null);
 	}
 
 	const onConvertError = function(code)

@@ -29,7 +29,7 @@ exports.subsToVtt = function(opts, cb)
 
 	if(opts.overwrite)
 	{
-		if(opts.isVideo) convertSubsToVtt(opts, cb);
+		if(opts.isVideo) convertToVtt(opts, cb);
 		else readAndConvert(opts, cb);
 	}
 	else
@@ -42,7 +42,7 @@ exports.subsToVtt = function(opts, cb)
 				return cb(null);
 			}
 
-			if(opts.isVideo) convertSubsToVtt(opts, cb);
+			if(opts.isVideo) convertToVtt(opts, cb);
 			else readAndConvert(opts, cb);
 		});
 	}
@@ -87,12 +87,14 @@ function readAndConvert(opts, cb)
 			}
 		}
 
-		convertSubsToVtt(opts, cb);
+		convertToVtt(opts, cb);
 	});
 }
 
-function convertSubsToVtt(opts, cb)
+function convertToVtt(opts, cb)
 {
+	opts.charEnc = opts.charEnc || 'UTF-8';
+
 	opts.spawnArgs = [
 		'-sub_charenc', opts.charEnc,
 		'-i', opts.file,
