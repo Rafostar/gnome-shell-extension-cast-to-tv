@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
 const extractShared = require('./extract-shared');
 const noop = () => {};
 
@@ -81,7 +80,12 @@ exports.findCoverInDir = function(dirPath, coverArr, cb)
 	{
 		if(err) return cb(new Error(`Could not obtain files in ${dirPath} dir`));
 
-		cb(null, coverArr.find(cover => files.includes(cover)));
+		var foundCover = coverArr.find(cover => files.includes(cover));
+
+		if(foundCover)
+			cb(null, foundCover);
+		else
+			cb(new Error('Could not find cover file in search dir'));
 	});
 }
 
