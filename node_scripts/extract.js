@@ -1,42 +1,41 @@
-const fs = require('fs');
-const path = require('path');
-const { spawn } = require('child_process');
-
 const bridge = require('./bridge');
-const remove = require('./remove');
 const notify = require('./notify');
 const messages = require('./messages.js');
-
 const ffprobe = require('./ffprobe');
-const shared = require('../shared');
+const extractVid = require('./extract/extract-video');
+const extractMus = require('./extract/extract-music');
 const noop = () => {};
 
-exports.subsProcess = false;
-exports.coverProcess = null;
-
-exports.coverPath;
-exports.metadata;
-exports.subtitlesBuiltIn;
-
-var coverFound;
-
-exports.analyzeFile = function()
+module.exports =
 {
-	exports.subtitlesBuiltIn = false;
-	var ffprobePromise = ffprobe(bridge.selection.filePath, { path: bridge.config.ffprobePath });
+	video: extractVid,
+	music: extractMus,
+	analyzeSelection: analyzeSelection
+}
 
-	ffprobePromise
-		.then(value => {
-			if(bridge.selection.streamType == 'MUSIC') checkMetadata(value);
-			else checkBuiltInSubs(value);
-		})
-		.catch(err => {
-			if(err.message == 'FFprobe process error')
+function analyzeSelection(cb)
+{
+	cb = cb || noop;
+
+	exports.subtitlesBuiltIn = false;
+
+	var ffprobeOpts = {
+		ffprobePath : bridge.selection.filePath,
+		filePath: bridge.config.ffprobePath
+	};
+
+	ffprobe(ffprobeOpts, (err, data) =>
+	{
+		if(!err)
+			cb(null, data);
+		else
+		{
+			if(err.message.includes('FFprobe process error'))
 				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error')
+			else if(err.message.includes('FFprobe exec error'))
 				notify('Cast to TV', messages.ffprobePath);
 
-			exports.subsProcess = false;
-			exports.coverProcess = null;
-		});
+			cb(err);
+		}
+	});
 }

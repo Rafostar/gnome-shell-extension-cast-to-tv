@@ -1,137 +1,116 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const ffprobe = require('../ffprobe');
-const shared = require('../../shared');
+const extractShared = require('./extract-shared');
 const noop = () => {};
 
-exports.coverProcess = null;
+exports.coverProcess = false;
 
-exports.findCoverFile = function()
+exports.coverToJpg = function(opts, cb)
 {
-	var coverFile;
+	cb = cb || noop;
 
-	for(var i = 0; i < shared.coverNames.length; i++)
+	if(!opts.file)
+		return cb(new Error('No music file specified'));
+
+	if(!opts.outPath && !opts.outDir)
+		return cb(new Error('No cover output file path'));
+
+	exports.coverProcess = true;
+
+	if(!opts.outPath && opts.outDir)
 	{
-		for(var j = 0; j < shared.coverExtensions.length; j++)
-		{
-			var coverExists = checkCombinedCover(i,j);
-			if(coverExists) return coverFound = true;
-		}
+		var parsed = path.parse(opts.file);
+		opts.outPath = `${opts.outDir}/${parsed.name}.jpg`;
 	}
 
-	return coverFound = false;
-}
-
-exports.checkCoverIncluded = function(cb)
-{
-	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
-
-	ffprobePromise
-		.then(data => {
-			for(var i = 0; i < data.streams.length; i++)
+	if(opts.overwrite)
+		convertCoverToJpg(opts, cb);
+	else
+	{
+		fs.access(opts.outPath, fs.constants.F_OK, (err) =>
+		{
+			if(!err)
 			{
-				if(data.streams[i].codec_name == 'mjpeg')
-					return cb(true);
+				exports.coverProcess = false;
+				return cb(null);
 			}
 
-			cb(false);
-		})
-		.catch(err => {
-			if(err.message == 'FFprobe process error')
-				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error')
-				notify('Cast to TV', messages.ffprobePath);
-
-			cb(false);
+			convertCoverToJpg(opts, cb);
 		});
-}
-
-function extractCoverArt(extension)
-{
-	exports.coverPath = shared.coverDefault + extension;
-	exports.coverProcess = spawn(bridge.config.ffmpegPath, [
-		'-i', bridge.selection.filePath, '-c', 'copy', exports.coverPath, '-y'
-	]);
-	exports.coverProcess.on('close', () => exports.coverProcess = null);
-}
-
-function checkCombinedCover(i,j)
-{
-	var coverCombined = shared.coverNames[i] + shared.coverExtensions[j];
-
-	for(var k = 1; k <= 3; k++)
-	{
-		switch(k)
-		{
-			case 1:
-				coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined;
-				break
-			case 2:
-				coverFile = path.dirname(bridge.selection.filePath) + '/' +
-					coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
-				break;
-			case 3:
-				coverFile = path.dirname(bridge.selection.filePath) + '/' +
-					shared.coverNames[i].toUpperCase() + shared.coverExtensions[j];
-				break;
-			default:
-				break;
-		}
-
-		if(fs.existsSync(coverFile))
-		{
-			shared.coverExtensions.forEach(function(ext)
-			{
-				if(ext != shared.coverExtensions[j]) remove.file(shared.coverDefault + ext);
-			});
-
-			exports.coverPath = shared.coverDefault + shared.coverExtensions[j];
-			fs.copyFileSync(coverFile, exports.coverPath);
-			return true;
-		}
 	}
-
-	exports.coverPath = "";
-	return false;
 }
 
-function checkMetadata(ffprobeData)
+exports.getPossibleCoverNames = function(coverArr)
 {
-	var metadata = ffprobeData.format.tags;
+	if(!Array.isArray(coverArr)) return null;
+
+	var possible = [];
+
+	coverArr.forEach(coverName =>
+	{
+		possible.push(coverName);
+		possible.push(coverName.charAt(0).toUpperCase() + coverName.slice(1));
+		possible.push(coverName.toUpperCase());
+	});
+
+	return possible;
+}
+
+exports.findCoverInDir = function(dirPath, coverArr, cb)
+{
+	cb = cb || noop;
+
+	if(!dirPath)
+		return cb(new Error('No search dir specified'));
+
+	if(!coverArr || !coverArr.length)
+		return cb(new Error('No array with cover names provided'));
+
+	fs.readdir(dirPath, (err, files) =>
+	{
+		if(err) return cb(new Error(`Could not obtain files in ${dirPath} dir`));
+
+		cb(coverArr.some(cover => files.includes(cover)));
+	})
+}
+
+exports.getIsCoverMerged = function(ffprobeData)
+{
+	return extractShared.findInStreams(
+		ffprobeData, 'codec_name', 'mjpeg'
+	);
+}
+
+exports.getMetadata = function(ffprobeData)
+{
+	const metadata = ffprobeData.format.tags;
+	var parsedMetadata = {};
 
 	if(metadata.TITLE)
 	{
-		for(var i in metadata)
-		{
-			metadata[i.toLowerCase()] = metadata[i];
-			delete metadata[i];
-		}
-
-		exports.metadata = metadata;
+		for(var name in metadata)
+			parsedMetadata[name.toLowerCase()] = metadata[name];
 	}
-	else if(metadata.title) exports.metadata = metadata;
-	else exports.metadata = null;
+	else if(metadata.title)
+		parsedMetadata = metadata;
+	else
+		parsedMetadata = null;
 
-	if(!coverFound)
+	return parsedMetadata;
+}
+
+function convertCoverToJpg(opts, cb)
+{
+	opts.spawnArgs = [
+		'-i', opts.file,
+		'-c', 'copy',
+		opts.outPath, '-y'
+	];
+
+	extractShared.convertFile(opts, (err) =>
 	{
-		for(var i = 0; i < ffprobeData.streams.length; i++)
-		{
-			if(ffprobeData.streams[i].codec_name == 'mjpeg')
-			{
-				shared.coverExtensions.forEach(function(ext)
-				{
-					if(ext != '.jpg') remove.file(shared.coverDefault + ext);
-				});
-
-				extractCoverArt('.jpg');
-				return;
-			}
-		}
-
-		/* Delete existing cover if new cover not found */
-		remove.covers();
-	}
-
-	exports.coverProcess = null;
+		exports.coverProcess = false;
+		cb(err);
+	});
 }
