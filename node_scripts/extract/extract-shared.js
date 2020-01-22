@@ -1,3 +1,5 @@
+const { spawn } = require('child_process');
+
 exports.findInStreams = function(ffprobeData, name, value)
 {
 	if(ffprobeData && Array.isArray(ffprobeData.streams))

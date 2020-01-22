@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
 const jschardet = require('jschardet');
 const extractShared = require('./extract-shared');
 const noop = () => {};
