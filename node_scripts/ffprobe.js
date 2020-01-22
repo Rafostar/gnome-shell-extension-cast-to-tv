@@ -13,9 +13,11 @@ module.exports = function(opts, cb)
 
 	var outData = "";
 
-	var ffprobe = spawn(opts.ffprobePath, [
-		'-show_streams', '-show_format', '-print_format', 'json', opts.filePath
-	]);
+	var ffprobe = spawn(
+		opts.ffprobePath,
+		['-show_streams', '-show_format', '-print_format', 'json', opts.filePath],
+		{ stdio: ['ignore', 'pipe', 'ignore'] }
+	);
 
 	const addData = function(data)
 	{
@@ -25,7 +27,7 @@ module.exports = function(opts, cb)
 	const onFFprobeExit = function(code)
 	{
 		ffprobe.removeListener('error', onFFprobeError);
-		ffprobe.removeListener('data', addData);
+		ffprobe.stdout.removeListener('data', addData);
 
 		if(!code) cb(null, JSON.parse(outData));
 		else cb(new Error(`FFprobe process error code: ${code}`));
@@ -34,12 +36,12 @@ module.exports = function(opts, cb)
 	const onFFprobeError = function(code)
 	{
 		ffprobe.removeListener('exit', onFFprobeExit);
-		ffprobe.removeListener('data', addData);
+		ffprobe.stdout.removeListener('data', addData);
 
 		cb(new Error(`FFprobe exec error code: ${code}`));
 	}
 
 	ffprobe.once('exit', onFFprobeExit);
 	ffprobe.once('error', onFFprobeError);
-	ffprobe.on('data', addData);
+	ffprobe.stdout.on('data', addData);
 }
