@@ -154,7 +154,7 @@ exports.coverStream = function(req, res)
 	if(bridge.selection.streamType !== 'MUSIC')
 		return res.sendStatus(204);
 
-	var coverPath = bridge.musicData.coverPath;
+	var coverPath = bridge.mediaData.coverPath;
 
 	/* Playercast supports covers in media file */
 	if(

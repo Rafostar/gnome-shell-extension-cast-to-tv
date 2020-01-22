@@ -1,21 +1,38 @@
-var debug = require('debug')('bridge');
-var server = require('./server');
-var sender = require('./sender');
-var encode = require('./encode');
-var extract = require('./extract');
-var remove = require('./remove');
-var chromecast = require('./chromecast');
-var gnome = require('./gnome');
-var controller = require('./remote-controller');
-var socket = require('./server-socket');
-var addons = require('./addons-importer');
-var shared = require('../shared');
+const path = require('path');
+const debug = require('debug')('bridge');
+const server = require('./server');
+const sender = require('./sender');
+const encode = require('./encode');
+const extract = require('./extract');
+const remove = require('./remove');
+const chromecast = require('./chromecast');
+const gnome = require('./gnome');
+const controller = require('./remote-controller');
+const socket = require('./server-socket');
+const addons = require('./addons-importer');
+const shared = require('../shared');
+
+process.on('SIGINT', shutDownQuiet);
+process.on('SIGTERM', shutDownQuiet);
+process.on('uncaughtException', shutDown);
+
+var coverNames = extract.music.getPossibleCoverNames(
+	shared.coverNames, shared.coverExtensions
+);
+
+gnome.loadSchema();
 
 exports.config = gnome.getTempConfig();
 exports.playlist = [];
 exports.selection = {};
 exports.status = {};
 exports.addon = null;
+exports.mediaData = {
+	coverPath: null,
+	title: null,
+	isSubsMerged: false
+};
+
 sender.configure(exports.config.internalPort);
 gnome.showMenu(true);
 
@@ -46,49 +63,9 @@ exports.handleRemoteSignal = function(action, value)
 	}
 }
 
-exports.shutDown = function(err)
-{
-	if(err) console.error(err);
-	else process.stdout.write('\n');
-
-	console.log('Cast to TV: closing node app...');
-	controller.clearSlideshow();
-
-	debug('Closing node server');
-	sender.stop();
-	closeAddon();
-
-	var finish = () =>
-	{
-		gnome.showMenu(false, () =>
-		{
-			debug('Removed top bar indicator');
-
-			console.log('Cast to TV: closed successfully');
-			process.exit();
-		});
-	}
-
-	if(gnome.isRemote())
-	{
-		gnome.showRemote(false);
-		exports.handleRemoteSignal('STOP');
-
-		setTimeout(() =>
-		{
-			/* Remote might be reshown before timeout executes */
-			gnome.showRemote(false);
-			finish();
-		}, 3000);
-	}
-	else
-	{
-		finish();
-	}
-}
-
 exports.updateConfig = function(contents)
 {
+	contents = getParsedContents(contents);
 	debug(`New config contents: ${JSON.stringify(contents)}`);
 
 	if(contents.listeningPort && contents.listeningPort !== exports.config.listeningPort)
@@ -142,6 +119,8 @@ exports.updateSelection = function(contents)
 	else if(typeof contents !== 'object')
 		return debug(`Ignoring invalid selection: ${contents}`);
 
+	contents = getParsedContents(contents);
+
 	if(contents !== exports.selection)
 	{
 		exports.selection = contents;
@@ -184,16 +163,29 @@ function onSelectionUpdate()
 		if(exports.addon)
 			exports.addon.handleSelection(exports.selection, exports.config);
 
-		remove.covers();
-		remove.file(shared.vttSubsPath);
+		remove.tempCover();
+		remove.tempSubs();
 	}
 	else if(exports.selection.filePath)
 	{
-		if(exports.config.receiverType === 'playercast') castFile();
+		if(exports.config.receiverType === 'playercast')
+			castFile();
 		else
 		{
-			setProcesses();
-			castFile();
+			processSelection(err =>
+			{
+				if(err)
+				{
+					debug(err);
+					return notify('Cast to TV', messages.extractError, bridge.selection.filePath);
+				}
+
+				extract.video.subsProcess = false;
+				extract.video.coverProcess = false;
+				debug('File processed successfully');
+
+				castFile();
+			});
 		}
 	}
 }
@@ -212,7 +204,7 @@ function castFile()
 			if(socket.playercasts.length === 0) return;
 
 			/* Temporary workaround for Playercast cover detection */
-			extract.coverPath = 'muxed_image';
+			exports.mediaData.coverPath = 'muxed_image';
 
 			var playercastName = (exports.config.playercastName) ?
 				exports.config.playercastName : socket.playercasts[0];
@@ -241,53 +233,239 @@ function castFile()
 			}
 			break;
 		case 'other':
-			setTimeout(socket.emit, 250, 'reload');
+			socket.emit('processes-done', true);
 			break;
 		default:
 			break;
 	}
 }
 
-function getContents(path)
+function getParsedContents(contents)
 {
-	var data;
-
-	delete require.cache[path];
-
-	try { data = require(path); }
-	catch(err)
+	for(var key in contents)
 	{
-		debug(`Could not read file: ${path}`);
-		debug(err);
-		data = null
+		switch(contents[key])
+		{
+			case 'true':
+				contents[key] = true;
+				break;
+			case 'false':
+				contents[key] = false;
+				break;
+			case 'null':
+				contents[key] = null;
+				break;
+			default:
+				break;
+		}
 	}
 
-	return data;
+	return contents;
 }
 
-function setProcesses()
+function processSelection(cb)
 {
 	switch(exports.selection.streamType)
 	{
 		case 'MUSIC':
-			extract.coverProcess = true;
-			extract.findCoverFile();
-			extract.analyzeFile();
-			remove.file(shared.vttSubsPath);
+			remove.tempSubs();
+			processMusicSelection(cb);
 			break;
 		case 'PICTURE':
-			remove.covers();
-			remove.file(shared.vttSubsPath);
+			exports.mediaData.coverPath = null;
+			exports.mediaData.title = null;
+
+			remove.tempCover();
+			remove.tempSubs();
+
+			cb(null);
 			break;
 		default:
-			extract.subsProcess = true;
-			if(exports.selection.subsPath)
-				extract.detectSubsEncoding(exports.selection.subsPath);
-			else
-				extract.analyzeFile();
-			remove.covers();
+			remove.tempCover();
+			processVideoSelection(cb);
 			break;
 	}
+}
+
+function processVideoSelection(cb)
+{
+	extract.video.subsProcess = true;
+	exports.mediaData.isSubsMerged = false;
+	exports.mediaData.coverPath = null;
+	exports.mediaData.title = null;
+
+	if(exports.config.receiverType === 'other')
+		socket.emit('reload');
+
+	debug('Processing video file...');
+
+	if(exports.selection.subsPath)
+	{
+		var subs = path.parse(exports.selection.subsPath);
+		var isVtt = (subs.ext.toLowerCase() === '.vtt');
+
+		if(isVtt)
+		{
+			debug('Selected "vtt" subtitles - no conversion needed');
+
+			if(exports.selection.subsPath !== shared.vttSubsPath)
+				remove.tempSubs();
+
+			return cb(null);
+		}
+
+		var opts = {
+			file: exports.selection.subsPath,
+			outPath: shared.vttSubsPath,
+			overwrite: true
+		};
+
+		extract.video.subsToVtt(opts, (err) =>
+		{
+			if(err)
+			{
+				exports.selection.subsPath = "";
+				remove.tempSubs();
+
+				return cb(err);
+			}
+
+			exports.selection.subsPath = opts.outPath;
+			debug('Successfully converted subtitles file');
+
+			return cb(null);
+		});
+	}
+	else
+	{
+		extract.analyzeSelection((err, ffprobeData) =>
+		{
+			if(err)
+			{
+				exports.selection.subsPath = "";
+				remove.tempSubs();
+
+				return cb(err);
+			}
+
+			exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+			if(exports.mediaData.isSubsMerged)
+			{
+				var opts = {
+					file: exports.selection.filePath,
+					outPath: shared.vttSubsPath,
+					overwrite: true
+				};
+
+				extract.video.videoToVtt(opts, (err) =>
+				{
+					if(err)
+					{
+						exports.selection.subsPath = "";
+						return cb(err);
+					}
+
+					exports.selection.subsPath = opts.outPath;
+					debug('Successfully extracted video subtitles');
+
+					return cb(null);
+				});
+			}
+			else
+			{
+				exports.selection.subsPath = "";
+				remove.tempSubs();
+
+				return cb(null);
+			}
+		});
+	}
+}
+
+function processMusicSelection(cb)
+{
+	extract.music.coverProcess = true;
+	exports.mediaData.isSubsMerged = false;
+	exports.selection.subsPath = "";
+
+	if(exports.config.receiverType === 'other')
+		socket.emit('reload');
+
+	debug('Processing music file...');
+
+	extract.analyzeSelection((err, ffprobeData) =>
+	{
+		if(err)
+		{
+			exports.mediaData.coverPath = null;
+			exports.mediaData.title = null;
+			remove.tempCover();
+
+			return cb(err);
+		}
+
+		var file = path.parse(exports.selection.filePath);
+		var metadata = extract.music.getMetadata(ffprobeData);
+
+		if(metadata)
+			exports.mediaData.title = metadata.title;
+		else
+			exports.mediaData.title = file.name;
+
+		if(exports.config.musicVisualizer)
+		{
+			exports.mediaData.coverPath = null;
+			remove.tempCover();
+			debug('Music visualizer enabled - skipping cover search');
+
+			return cb(null);
+		}
+
+		extract.music.findCoverInDir(file.dir, coverNames, (err, cover) =>
+		{
+			if(!err)
+			{
+				exports.mediaData.coverPath = path.join(file.dir, cover);
+				debug(`Found cover file in music dir: ${cover}`);
+				remove.tempCover();
+
+				return cb(null);
+			}
+
+			if(extract.music.getIsCoverMerged(ffprobeData))
+			{
+				var opts = {
+					file: exports.selection.filePath,
+					outPath: shared.coverDefault + '.jpg',
+					overwrite: true
+				};
+
+				extract.music.coverToJpg(opts, (err) =>
+				{
+					if(err)
+					{
+						exports.mediaData.coverPath = null;
+						return cb(err);
+					}
+
+					exports.mediaData.coverPath = opts.outPath;
+					debug('Using music cover extracted from file');
+
+					return cb(null);
+				});
+			}
+			else
+			{
+				exports.mediaData.coverPath = path.join(
+					__dirname + '/../webplayer/images/cover.png'
+				);
+				debug('No cover found - using default image');
+				remove.tempCover();
+
+				return cb(null);
+			}
+		});
+	});
 }
 
 function closeAddon(selection, config)
@@ -298,4 +476,54 @@ function closeAddon(selection, config)
 		exports.addon = null;
 		debug('Closed Add-on');
 	}
+}
+
+function shutDown(err)
+{
+	process.removeListener('SIGINT', shutDownQuiet);
+	process.removeListener('SIGTERM', shutDownQuiet);
+	process.removeListener('uncaughtException', shutDown);
+
+	if(err) console.error(err);
+	else process.stdout.write('\n');
+
+	console.log('Cast to TV: closing node app...');
+	controller.clearSlideshow();
+
+	debug('Closing node server');
+	sender.stop();
+	closeAddon();
+
+	var finish = () =>
+	{
+		gnome.showMenu(false, () =>
+		{
+			debug('Removed top bar indicator');
+
+			console.log('Cast to TV: closed successfully');
+			process.exit();
+		});
+	}
+
+	if(gnome.isRemote())
+	{
+		gnome.showRemote(false);
+		exports.handleRemoteSignal('STOP');
+
+		setTimeout(() =>
+		{
+			/* Remote might be reshown before timeout executes */
+			gnome.showRemote(false);
+			finish();
+		}, 3000);
+	}
+	else
+	{
+		finish();
+	}
+}
+
+function shutDownQuiet()
+{
+	shutDown(null);
 }
