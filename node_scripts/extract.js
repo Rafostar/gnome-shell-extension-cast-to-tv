@@ -17,25 +17,20 @@ function analyzeSelection(cb)
 {
 	cb = cb || noop;
 
-	exports.subtitlesBuiltIn = false;
-
 	var ffprobeOpts = {
-		ffprobePath : bridge.selection.filePath,
-		filePath: bridge.config.ffprobePath
+		ffprobePath : bridge.config.ffprobePath,
+		filePath: bridge.selection.filePath
 	};
 
 	ffprobe(ffprobeOpts, (err, data) =>
 	{
-		if(!err)
-			cb(null, data);
-		else
-		{
-			if(err.message.includes('FFprobe process error'))
-				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
-			else if(err.message.includes('FFprobe exec error'))
-				notify('Cast to TV', messages.ffprobePath);
+		if(!err) return cb(null, data);
 
-			cb(err);
-		}
+		if(err.message.includes('FFprobe process error'))
+			notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
+		else if(err.message.includes('FFprobe exec error'))
+			notify('Cast to TV', messages.ffprobePath);
+
+		return cb(err);
 	});
 }
