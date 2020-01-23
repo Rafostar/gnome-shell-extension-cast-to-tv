@@ -321,6 +321,7 @@ function processVideoSelection(cb)
 			overwrite: true
 		};
 
+		debug('Converting subtitles file');
 		extract.video.subsToVtt(opts, (err) =>
 		{
 			if(err)

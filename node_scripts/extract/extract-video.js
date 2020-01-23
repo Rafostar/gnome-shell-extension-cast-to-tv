@@ -73,7 +73,7 @@ exports.getIsSubsMerged = function(ffprobeData)
 
 function readAndConvert(opts, cb)
 {
-	fs.readFileSync(opts.file, (err, data) =>
+	fs.readFile(opts.file, (err, data) =>
 	{
 		if(err)
 		{
