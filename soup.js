@@ -182,6 +182,23 @@ class SoupClient extends Soup.Session
 			return this._getParsedObject(data);
 		}
 
+		this.updateSelection = (filePath, cb) =>
+		{
+			cb = cb || noop;
+			this._getRequest('selection', (data) =>
+			{
+				let selection = this._getParsedObject(data);
+
+				if(!selection)
+					return cb(new Error('Could not obtain selection'));
+
+				selection.filePath = filePath;
+				selection.subsPath = "";
+
+				this._postRequest('selection', selection, null, cb);
+			});
+		}
+
 		this.getPlaylist = (cb) =>
 		{
 			cb = cb || noop;

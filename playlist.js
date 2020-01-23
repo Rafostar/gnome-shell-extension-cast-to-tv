@@ -417,13 +417,7 @@ class CastPlaylistItem extends AltPopupImage
 			{
 				if(!Soup.client) return;
 
-				Soup.client.getSelection(selection =>
-				{
-					if(!selection) return;
-
-					selection.filePath = this.filepath;
-					Soup.client.postSelection(selection);
-				});
+				Soup.client.updateSelection(this.filepath);
 			}
 		}
 	}
