@@ -323,18 +323,13 @@ class fileChooser
 
 		if(DialogResponse !== Gtk.ResponseType.OK)
 		{
-			if(DialogResponse === Gtk.ResponseType.APPLY)
-			{
-				selection.subsPath = this._selectSubtitles();
-				if(!selection.subsPath) return;
-			}
-			else
-			{
-				return;
-			}
-		}
+			if(DialogResponse !== Gtk.ResponseType.APPLY) return;
 
-		this.fileChooser.disconnect(this.fileSelectionChanged);
+			this.fileChooser.disconnect(this.fileSelectionChanged);
+			selection.subsPath = this._selectSubtitles();
+
+			if(!selection.subsPath) return;
+		}
 
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
@@ -431,7 +426,7 @@ class fileChooser
 			if(this.playlistAllowed && this.buttonCast)
 				this.buttonCast.label = _(ADD_PLAYLIST_LABEL);
 			else
-				this.fileChooser.emit('selection-changed');
+				this._onVideoSel();
 		}
 	}
 
@@ -450,6 +445,7 @@ class fileChooser
 		{
 			this.buttonCast.label = _(CAST_LABEL_SINGLE);
 			this.buttonSubs.show();
+			this.buttonSubs.set_sensitive(selectedNumber === 1);
 		}
 	}
 
