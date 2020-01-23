@@ -4,13 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const ffprobe = require('../ffprobe');
 const extractVid = require('../extract/extract-video');
+const remove = require('../remove');
 const gnome = require('../gnome');
 const metadata = require('../../metadata');
-
-const cursor = {
-	show: () => process.stdout.write('\u001B[?25h'),
-	hide: () => process.stdout.write('\u001B[?25l')
-};
 
 var opts = {
 	ffprobePath: null,
@@ -19,6 +15,8 @@ var opts = {
 	quiet: false,
 	recursive: false
 };
+
+var currOutPath = null;
 
 function showHelp()
 {
@@ -146,25 +144,22 @@ function extractFromFile(filePath)
 				var fileName = parsed.name + parsed.ext;
 
 				if(!opts.quiet)
-				{
-					cursor.hide();
 					writeProgress(fileName);
-				}
+
+				currOutPath = extOpts.outPath;
 
 				extractVid.videoToVtt(extOpts, (err) =>
 				{
+					currOutPath = null;
+
 					if(err)
 					{
 						writeProgress(fileName, '\u2716', true);
-						cursor.show();
-						return reject(err);
+						return remove.file(extOpts.outPath, () => reject(err));
 					}
 
 					if(!opts.quiet)
-					{
 						writeProgress(fileName, '\u2714', true);
-						cursor.show();
-					}
 
 					resolve();
 				});
@@ -213,18 +208,23 @@ function onFinish(hideMsg)
 	else
 		logInfo('Extraction finished');
 
-	cursor.show();
-	process.exit(0);
+	exitWithCode(0);
 }
 
 function onUncaughtException(err)
 {
-	/* Stopping ffprobe in middle causes JSON error */
-	if(err && !err.message.includes('JSON'))
+	if(err)
 		console.error(err.message);
 
-	cursor.show();
-	process.exit(1);
+	exitWithCode(1);
+}
+
+function exitWithCode(code)
+{
+	if(currOutPath)
+		remove.file(currOutPath, () => process.exit(code));
+	else
+		process.exit(code);
 }
 
 function startExtract()
