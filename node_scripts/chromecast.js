@@ -31,23 +31,7 @@ exports.cast = function()
 	}
 
 	debug('NEW SELECTION');
-
-	if(!extract.subsProcess && !extract.coverProcess)
-		return initChromecast();
-
-	debug('Waiting for extract processes to finish...');
-
-	var checkInterval = setInterval(() =>
-	{
-		/* Cast after extract processes are done */
-		if(!extract.subsProcess && !extract.coverProcess)
-		{
-			debug('Processes finished extracting');
-
-			clearInterval(checkInterval);
-			initChromecast();
-		}
-	}, 100);
+	initChromecast();
 }
 
 exports.remote = function(action, value)
@@ -226,7 +210,7 @@ function initChromecast()
 
 	var getTitle = () =>
 	{
-		if(mimeType === 'audio/*' && extract.metadata) return extract.metadata.title;
+		if(mimeType === 'audio/*' && bridge.mediaData.title) return bridge.mediaData.title;
 		else if(bridge.selection.title) return bridge.selection.title;
 		else return path.parse(bridge.selection.filePath).name;
 	}

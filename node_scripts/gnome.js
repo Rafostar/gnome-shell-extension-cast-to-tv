@@ -1,25 +1,23 @@
-var fs = require('fs');
-var path = require('path');
-var { spawn, spawnSync } = require('child_process');
-var debug = require('debug')('gnome');
+const fs = require('fs');
+const path = require('path');
+const { spawn, spawnSync } = require('child_process');
+const debug = require('debug')('gnome');
+const noop = () => {};
 
 var schemaName = 'org.gnome.shell.extensions.cast-to-tv';
 var schemaDir = path.join(__dirname + '/../schemas');
-var isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
-debug(`Local settings schema available: ${isSchema}`);
-
-const noop = () => {};
+var isSchema = false;
 var isRemoteVisible = null;
 
 var gnome =
 {
 	loadSchema: function(customName, customPath)
 	{
-		schemaName = customName;
-		schemaDir = customPath;
+		schemaName = customName || schemaName;
+		schemaDir = customPath || schemaDir;
 
-		isSchema = fs.existsSync(`${customPath}/gschemas.compiled`);
-		debug(`Custom settings schema available: ${isSchema}`);
+		isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
+		debug(`Settings schema available: ${isSchema}`);
 	},
 
 	setSetting: function(setting, value, cb)
@@ -89,6 +87,8 @@ var gnome =
 			videoBitrate: parseFloat(this.getSetting('video-bitrate')).toFixed(1),
 			videoAcceleration: this.getSetting('video-acceleration'),
 			musicVisualizer: this.getBoolean('music-visualizer'),
+			extractorReuse: this.getBoolean('extractor-reuse'),
+			extractorDir: this.getSetting('extractor-dir'),
 			chromecastName: this.getSetting('chromecast-name'),
 			playercastName: this.getSetting('playercast-name')
 		};

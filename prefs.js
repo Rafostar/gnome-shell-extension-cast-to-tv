@@ -12,6 +12,7 @@ const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
+const HOME_DIR = GLib.get_home_dir();
 const NODE_PATH = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 const NPM_PATH = GLib.find_program_in_path('npm');
 const FILE_MANAGERS = ['nautilus', 'nemo'];
@@ -196,7 +197,9 @@ class MainSettings extends Gtk.VBox
 
 		this.destroy = () =>
 		{
-			Settings.disconnect(this.serviceSignal);
+			if(this.serviceSignal)
+				Settings.disconnect(this.serviceSignal);
+
 			this.portWidget.disconnect(this.linkSignal);
 
 			super.destroy();
@@ -468,11 +471,46 @@ class ChromecastSettings extends Gtk.Grid
 	}
 }
 
-class OtherSettings extends Gtk.Grid
+class OtherSettings extends Gtk.Notebook
+{
+	constructor()
+	{
+		super();
+		let widget = null;
+		this.createdWidgets = [];
+
+		let otherWidgets = [
+			EncoderSettings,
+			ExtractorSettings,
+			PlayersSettings,
+			MiscSettings
+		];
+
+		otherWidgets.forEach(OtherWidget =>
+		{
+			widget = new OtherWidget();
+			this.append_page(widget, widget.title);
+			this.createdWidgets.push(widget);
+		});
+
+		this.destroy = () =>
+		{
+			this.createdWidgets.forEach(createdWidget =>
+			{
+				createdWidget.destroy();
+			});
+
+			super.destroy();
+		}
+	}
+}
+
+class EncoderSettings extends Gtk.Grid
 {
 	constructor()
 	{
 		super({margin: 20, row_spacing: 6});
+		this.title = new Gtk.Label({ label: _("Encoder") });
 		let label = null;
 		let widget = null;
 
@@ -498,23 +536,92 @@ class OtherSettings extends Gtk.Grid
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
+	}
+}
 
-		/* Label: Web Player */
-		label = new SettingLabel(_("Web Player"), true, true);
+class ExtractorSettings extends Gtk.Grid
+{
+	constructor()
+	{
+		super({margin: 20, row_spacing: 6});
+		/* TRANSLATORS: "Players" as video players */
+		this.title = new Gtk.Label({ label: _("Extractor") });
+		let label = null;
+		let widget = null;
+
+		/* Label: Extractor Settings */
+		label = new SettingLabel(_("Subtitles Extraction"), true);
 		addToGrid(this, label);
 
-		/* Subtitles Scale */
-		label = new SettingLabel(_("Subtitles scale factor"));
-		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
-		widget.set_sensitive(true);
-		widget.set_range(0.1, 5.0);
-		widget.set_value(Settings.get_double('webplayer-subs'));
-		widget.set_increments(0.1, 0.2);
-		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		addToGrid(this, label, widget);
+		/* Add vttextract */
+		/* TRANSLATORS: "vttextract" is the name of executable, do not change */
+		label = new SettingLabel(_("Add vttextract executable"));
+		this.installExtractor = new Gtk.Switch({halign:Gtk.Align.END});
+		this.installExtractor.set_sensitive(true);
+		this.installExtractor.set_active(
+			GLib.file_test(HOME_DIR + '/.local/bin/vttextract', GLib.FileTest.EXISTS)
+		);
+		addToGrid(this, label, this.installExtractor);
+
+		/* Reuse Extracted Subtitles */
+		label = new SettingLabel(_("Reuse extracted subtitles"));
+		this.extractorSave = new Gtk.Switch({halign:Gtk.Align.END});
+		this.extractorSave.set_sensitive(true);
+		this.extractorSave.set_active(Settings.get_boolean('extractor-reuse'));
+		Settings.bind('extractor-reuse', this.extractorSave, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, this.extractorSave);
+
+		/* Save Folder */
+		label = new SettingLabel(_("Save folder"));
+		this.extractorChooser = Gtk.FileChooserButton.new(
+			_("Select folder"), Gtk.FileChooserAction.SELECT_FOLDER
+		);
+		let startupDir = Settings.get_string('extractor-dir');
+		this.extractorChooser.set_filename(startupDir);
+		this.extractorChooser.set_sensitive(this.extractorSave.active);
+		addToGrid(this, label, this.extractorChooser);
+
+		this.chooserSignal = this.extractorChooser.connect('file-set', () =>
+		{
+			let filename = this.extractorChooser.get_filename();
+
+			if(filename && filename.length > 1)
+				Settings.set_string('extractor-dir', filename);
+		});
+
+		this.installExtractorSignal = this.installExtractor.connect('notify::active', () =>
+		{
+			enableCmdTool(this.installExtractor.active, 'vttextract');
+		});
+
+		this.enableExtractorSignal = this.extractorSave.connect('notify::active', () =>
+		{
+			this.extractorChooser.set_sensitive(this.extractorSave.active);
+		});
+
+		this.destroy = () =>
+		{
+			this.extractorChooser.disconnect(this.chooserSignal);
+			this.installExtractor.disconnect(this.installExtractorSignal);
+			this.extractorSave.disconnect(this.enableExtractorSignal);
+
+			super.destroy();
+		}
+	}
+}
+
+class PlayersSettings extends Gtk.Grid
+{
+	constructor()
+	{
+		super({margin: 20, row_spacing: 6});
+		/* TRANSLATORS: "Players" as video players */
+		this.title = new Gtk.Label({ label: _("Players") });
+		let label = null;
+		let widget = null;
 
 		/* Label: Playercast */
-		label = new SettingLabel(_("Playercast app"), true, true);
+		label = new SettingLabel(_("Playercast app"), true);
 		addToGrid(this, label);
 
 		/* Playercast device name */
@@ -530,9 +637,34 @@ class OtherSettings extends Gtk.Grid
 		}
 		addToGrid(this, label, widget);
 
+		/* Label: Web Player */
+		label = new SettingLabel(_("Web Player"), true, true);
+		addToGrid(this, label);
+
+		/* Subtitles Scale */
+		label = new SettingLabel(_("Subtitles scale factor"));
+		widget = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
+		widget.set_sensitive(true);
+		widget.set_range(0.1, 5.0);
+		widget.set_value(Settings.get_double('webplayer-subs'));
+		widget.set_increments(0.1, 0.2);
+		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, widget);
+	}
+}
+
+class MiscSettings extends Gtk.Grid
+{
+	constructor()
+	{
+		super({margin: 20, row_spacing: 6});
+		this.title = new Gtk.Label({ label: _("Misc") });
+		let label = null;
+		let widget = null;
+
 		/* Label: Miscellaneous */
 		/* TRANSLATORS: The rest of extension settings */
-		label = new SettingLabel(_("Miscellaneous"), true, true);
+		label = new SettingLabel(_("Miscellaneous"), true);
 		addToGrid(this, label);
 
 		/* Music Visualizer */
@@ -550,13 +682,12 @@ class OtherSettings extends Gtk.Grid
 
 		let isFmExtEnabled = () =>
 		{
-			let homeDir = GLib.get_home_dir();
-			if(!homeDir) return false;
+			if(!HOME_DIR) return false;
 
 			for(let fm of FILE_MANAGERS)
 			{
 				if(
-					GLib.file_test(homeDir + '/.local/share/' + fm +
+					GLib.file_test(HOME_DIR + '/.local/share/' + fm +
 						'-python/extensions/nautilus-cast-to-tv.py', GLib.FileTest.EXISTS)
 				) {
 					return true;
@@ -1132,15 +1263,11 @@ function getHostIp()
 
 function enableNautilusExtension(enabled)
 {
-	let userDataDir = GLib.get_user_data_dir();
 	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
+	if(!GLib.file_test(srcPath, GLib.FileTest.EXISTS)) return;
 
-	if(
-		(enabled && !GLib.file_test(srcPath, GLib.FileTest.EXISTS))
-		|| !userDataDir
-	) {
-		return;
-	}
+	let userDataDir = GLib.get_user_data_dir();
+	if(!userDataDir) return;
 
 	FILE_MANAGERS.forEach(fm =>
 	{
@@ -1150,13 +1277,35 @@ function enableNautilusExtension(enabled)
 		if(enabled && GLib.find_program_in_path(fm) && !destFile.query_exists(null))
 		{
 			GLib.mkdir_with_parents(installPath, 493); // 755 in octal
-			destFile.make_symbolic_link(Local.path + '/nautilus/nautilus-cast-to-tv.py', null);
+			destFile.make_symbolic_link(srcPath, null);
 		}
 		else if(!enabled && destFile.query_exists(null))
 		{
 			destFile.delete(null);
 		}
 	});
+}
+
+function enableCmdTool(enabled, toolName)
+{
+	if(!toolName) return;
+
+	let srcPath = Local.path + '/node_scripts/utils/' + toolName + '.js';
+	if(!HOME_DIR || !GLib.file_test(srcPath, GLib.FileTest.EXISTS)) return;
+
+	let installPath = HOME_DIR + '/.local/bin';
+	let destFile = Gio.File.new_for_path(installPath).get_child(toolName);
+
+	if(enabled && !destFile.query_exists(null))
+	{
+		GLib.mkdir_with_parents(installPath, 493); // 755 in octal
+		destFile.make_symbolic_link(srcPath, null);
+		GLib.spawn_command_line_async('chmod +x "' + srcPath + '"');
+	}
+	else if(!enabled && destFile.query_exists(null))
+	{
+		destFile.delete(null);
+	}
 }
 
 function hashToColor(colorHash)

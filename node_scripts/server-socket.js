@@ -49,7 +49,10 @@ function handleMessages(socket)
 				controller.checkNextTrack();
 				break;
 			case 'processes-ask':
-				if(!extract.subsProcess && !extract.coverProcess) websocket.emit('processes-done');
+				if(!extract.video.subsProcess && !extract.music.coverProcess)
+					websocket.emit('processes-done', true);
+				else
+					websocket.emit('processes-done', false);
 				break;
 			case 'loading-ask':
 				websocket.emit('loading-text', gettext.translate(messages.loading));

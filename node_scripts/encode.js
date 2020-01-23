@@ -1,11 +1,10 @@
-var { spawn } = require('child_process');
-var debug = require('debug')('ffmpeg');
-var bridge = require('./bridge');
-var extract = require('./extract');
-var notify = require('./notify');
-var messages = require('./messages.js');
-var shared = require('../shared');
-var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
+const { spawn } = require('child_process');
+const debug = require('debug')('ffmpeg');
+const bridge = require('./bridge');
+const notify = require('./notify');
+const messages = require('./messages.js');
+const shared = require('../shared');
+const stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
 var notifyError = false;
@@ -105,7 +104,7 @@ exports.video = function()
 	'pipe:1'
 	];
 
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
+	if(bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
 	{
 		encodeOpts.splice(
 			encodeOpts.indexOf('libx264') + 1, 0,
@@ -129,7 +128,7 @@ exports.videoVaapi = function()
 	'pipe:1'
 	];
 
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
+	if(bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
 	{
 		encodeOpts.unshift(
 			'-hwaccel', 'vaapi',
@@ -164,7 +163,7 @@ exports.videoNvenc = function()
 	'pipe:1'
 	];
 
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
+	if(bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
 	{
 		encodeOpts.splice(
 			encodeOpts.indexOf('h264_nvenc') + 1, 0,

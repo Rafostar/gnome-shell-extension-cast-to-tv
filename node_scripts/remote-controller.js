@@ -41,6 +41,8 @@ exports.changeTrack = function(id)
 {
 	/* Tracks are counted from 1, list indexes from 0 */
 	bridge.selection.filePath = bridge.playlist[id - 1];
+	bridge.selection.subsPath = "";
+
 	bridge.updateSelection(bridge.selection);
 }
 

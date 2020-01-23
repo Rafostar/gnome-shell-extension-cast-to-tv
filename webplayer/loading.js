@@ -1,15 +1,22 @@
 var websocket = io();
+
+websocket.on('loading-text', onLoadingText);
+websocket.on('processes-done', onProcessesDone);
 websocket.emit('webplayer', 'processes-ask');
-websocket.emit('webplayer', 'loading-ask');
 
-websocket.on('loading-text', msg => { document.getElementById("msg").innerHTML = msg; });
-
-var checkInterval = setInterval(() => { websocket.emit('webplayer', 'processes-ask'); }, 500);
-websocket.on('processes-done', () => changePage());
-
-function changePage()
+function onLoadingText(text)
 {
-	clearInterval(checkInterval);
+	document.getElementById('msg').innerHTML = text;
+}
+
+function onProcessesDone(isDone)
+{
+	if(!isDone)
+	{
+		websocket.emit('webplayer', 'loading-ask');
+		return;
+	}
+
 	websocket.disconnect();
 	location.reload(true);
 }

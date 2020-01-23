@@ -1,12 +1,12 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var path = require('path');
-var bridge = require('./bridge');
-var webcreator = require('./web-creator');
-var socket = require('./server-socket');
-var encode = require('./encode');
-var extract = require('./extract');
-var gettext = require('./gettext');
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
+const bridge = require('./bridge');
+const webcreator = require('./web-creator');
+const socket = require('./server-socket');
+const encode = require('./encode');
+const extract = require('./extract');
+const gettext = require('./gettext');
 
 var app = express();
 var server = app.listen(bridge.config.listeningPort);
@@ -14,10 +14,6 @@ var server = app.listen(bridge.config.listeningPort);
 app.use(bodyParser.urlencoded({ extended: false }));
 socket.listen(server);
 gettext.initTranslations();
-
-process.on('SIGINT', () => bridge.shutDown());
-process.on('SIGTERM', () => bridge.shutDown());
-process.on('uncaughtException', bridge.shutDown);
 
 exports.changePort = function(port)
 {
@@ -49,7 +45,7 @@ function checkMessagePage(req, res)
 		return true;
 	}
 
-	if(extract.subsProcess || extract.coverProcess)
+	if(extract.video.subsProcess || extract.music.coverProcess)
 	{
 		res.sendFile(path.join(__dirname + '/../webplayer/loading.html'));
 		return true;
