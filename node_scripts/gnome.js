@@ -87,6 +87,8 @@ var gnome =
 			videoBitrate: parseFloat(this.getSetting('video-bitrate')).toFixed(1),
 			videoAcceleration: this.getSetting('video-acceleration'),
 			musicVisualizer: this.getBoolean('music-visualizer'),
+			extractorReuse: this.getBoolean('extractor-reuse'),
+			extractorDir: this.getSetting('extractor-dir'),
 			chromecastName: this.getSetting('chromecast-name'),
 			playercastName: this.getSetting('playercast-name')
 		};

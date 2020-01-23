@@ -339,17 +339,14 @@ function processVideoSelection(cb)
 	}
 	else
 	{
-		var reuseEnabled = gnome.getBoolean('extractor-reuse');
-
-		if(!reuseEnabled)
+		if(
+			!exports.config.extractorReuse
+			|| !exports.config.extractorDir
+		) {
 			return analyzeVideoFile(cb);
+		}
 
-		var reuseDir = gnome.getSetting('extractor-dir');
-
-		if(!reuseDir)
-			return analyzeVideoFile(cb);
-
-		fs.access(reuseDir, fs.constants.F_OK, (err) =>
+		fs.access(exports.config.extractorDir, fs.constants.F_OK, (err) =>
 		{
 			if(err)
 			{
@@ -358,7 +355,7 @@ function processVideoSelection(cb)
 			}
 
 			var file = path.parse(exports.selection.filePath);
-			var reusePath = path.join(reuseDir, file.name + '.vtt');
+			var reusePath = path.join(exports.config.extractorDir, file.name + '.vtt');
 
 			fs.access(reusePath, fs.constants.F_OK, (err) =>
 			{
