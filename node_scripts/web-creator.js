@@ -124,10 +124,20 @@ exports.subsStream = function(req, res)
 
 	if(bridge.config.receiverType !== 'playercast')
 	{
-		var parsedUrl = req._parsedUrl.pathname;
-
-		if(!subsPath || parsedUrl == '/subswebplayer')
+		if(!subsPath)
 			subsPath = shared.vttSubsPath;
+		else if(req._parsedUrl.pathname === '/subswebplayer')
+		{
+			var parsedSubs = path.parse(subsPath);
+
+			if(
+				!parsedSubs
+				|| !parsedSubs.ext
+				|| parsedSubs.ext.toLowerCase() !== '.vtt'
+			) {
+				subsPath = shared.vttSubsPath;
+			}
+		}
 	}
 
 	/* Check if file is specified and exists */

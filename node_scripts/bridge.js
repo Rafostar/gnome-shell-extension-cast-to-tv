@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const debug = require('debug')('bridge');
 const server = require('./server');
@@ -338,48 +339,86 @@ function processVideoSelection(cb)
 	}
 	else
 	{
-		extract.analyzeSelection((err, ffprobeData) =>
+		var reuseEnabled = gnome.getBoolean('extractor-reuse');
+
+		if(!reuseEnabled)
+			return analyzeVideoFile(cb);
+
+		var reuseDir = gnome.getSetting('extractor-dir');
+
+		if(!reuseDir)
+			return analyzeVideoFile(cb);
+
+		fs.access(reuseDir, fs.constants.F_OK, (err) =>
+		{
+			if(err)
+			{
+				debug('Could not access reusable subtitles dir');
+				return analyzeVideoFile(cb);
+			}
+
+			var file = path.parse(exports.selection.filePath);
+			var reusePath = path.join(reuseDir, file.name + '.vtt');
+
+			fs.access(reusePath, fs.constants.F_OK, (err) =>
+			{
+				if(err)
+				{
+					debug('No reusable subtitles file');
+					return analyzeVideoFile(cb);
+				}
+
+				debug('Found reusable subtitles file');
+				exports.selection.subsPath = reusePath;
+
+				return cb(null);
+			});
+		});
+	}
+}
+
+function analyzeVideoFile(cb)
+{
+	extract.analyzeSelection((err, ffprobeData) =>
+	{
+		if(err)
+		{
+			exports.selection.subsPath = "";
+			remove.tempSubs();
+
+			return cb(err);
+		}
+
+		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+
+		if(!exports.mediaData.isSubsMerged)
+		{
+			exports.selection.subsPath = "";
+			remove.tempSubs();
+
+			return cb(null);
+		}
+
+		var opts = {
+			file: exports.selection.filePath,
+			outPath: shared.vttSubsPath,
+			overwrite: true
+		};
+
+		extract.video.videoToVtt(opts, (err) =>
 		{
 			if(err)
 			{
 				exports.selection.subsPath = "";
-				remove.tempSubs();
-
 				return cb(err);
 			}
 
-			exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
-			if(exports.mediaData.isSubsMerged)
-			{
-				var opts = {
-					file: exports.selection.filePath,
-					outPath: shared.vttSubsPath,
-					overwrite: true
-				};
+			exports.selection.subsPath = opts.outPath;
+			debug('Successfully extracted video subtitles');
 
-				extract.video.videoToVtt(opts, (err) =>
-				{
-					if(err)
-					{
-						exports.selection.subsPath = "";
-						return cb(err);
-					}
-
-					exports.selection.subsPath = opts.outPath;
-					debug('Successfully extracted video subtitles');
-
-					return cb(null);
-				});
-			}
-			else
-			{
-				exports.selection.subsPath = "";
-				remove.tempSubs();
-
-				return cb(null);
-			}
+			return cb(null);
 		});
-	}
+	});
 }
 
 function processMusicSelection(cb)
