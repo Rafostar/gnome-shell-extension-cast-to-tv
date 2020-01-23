@@ -553,8 +553,9 @@ class ExtractorSettings extends Gtk.Grid
 		label = new SettingLabel(_("Subtitles Extraction"), true);
 		addToGrid(this, label);
 
-		/* Install vttextract */
-		label = new SettingLabel(_("Enable vttextract tool"));
+		/* Add vttextract */
+		/* TRANSLATORS: "vttextract" is the name of executable, do not change */
+		label = new SettingLabel(_("Add vttextract executable"));
 		this.installExtractor = new Gtk.Switch({halign:Gtk.Align.END});
 		this.installExtractor.set_sensitive(true);
 		this.installExtractor.set_active(

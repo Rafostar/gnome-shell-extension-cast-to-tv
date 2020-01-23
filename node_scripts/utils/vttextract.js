@@ -237,7 +237,7 @@ function startExtract()
 	gnome.loadSchema();
 
 	if(!gnome.getBoolean('extractor-reuse'))
-		return console.error('Extractor is disabled');
+		return console.error('Reusing subtitles is disabled');
 
 	opts.outDir = gnome.getSetting('extractor-dir');
 
