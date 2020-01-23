@@ -59,6 +59,13 @@ exports.videoToVtt = function(opts, cb)
 
 exports.getIsSubsMerged = function(ffprobeData)
 {
+	var isVideo = extractShared.findInStreams(
+		ffprobeData, 'codec_type', 'video'
+	);
+
+	if(!isVideo)
+		return false;
+
 	return extractShared.findInStreams(
 		ffprobeData, 'codec_type', 'subtitle'
 	);
