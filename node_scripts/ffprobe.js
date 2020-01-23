@@ -29,7 +29,18 @@ module.exports = function(opts, cb)
 		ffprobe.removeListener('error', onFFprobeError);
 		ffprobe.stdout.removeListener('data', addData);
 
-		if(!code) cb(null, JSON.parse(outData));
+		if(!code)
+		{
+			var parsedData = null;
+
+			try { parsedData = JSON.parse(outData); }
+			catch(err) {}
+
+			if(parsedData)
+				cb(null, parsedData);
+			else
+				cb(new Error('Could not parse ffprobe data'));
+		}
 		else cb(new Error(`FFprobe process error code: ${code}`));
 	}
 
