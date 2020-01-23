@@ -45,22 +45,16 @@ function logInfo(text)
 		console.log(text);
 }
 
-function writeProgress(fileName, percent)
+function writeProgress(fileName, mark, isEndLine)
 {
-	var blackSquare = String.fromCharCode(9632);
-	var whiteSquare = String.fromCharCode(9633);
-	var numSquares = Math.floor(percent / 10);
-	var progress = "";
-
-	while(numSquares--)
-		progress += blackSquare;
-
-	while(progress.length < 10)
-		progress += whiteSquare;
+	mark = mark || '\u2B58';
 
 	process.stdout.cursorTo(0);
 	process.stdout.clearLine(0);
-	process.stdout.write(`${fileName} ${progress}`);
+	process.stdout.write(`${mark} ${fileName}`);
+
+	if(isEndLine)
+		process.stdout.write('\n');
 }
 
 function parseArgs()
@@ -154,21 +148,21 @@ function extractFromFile(filePath)
 				if(!opts.quiet)
 				{
 					cursor.hide();
-					writeProgress(fileName, 0);
+					writeProgress(fileName);
 				}
 
 				extractVid.videoToVtt(extOpts, (err) =>
 				{
 					if(err)
 					{
+						writeProgress(fileName, '\u2716', true);
 						cursor.show();
 						return reject(err);
 					}
 
 					if(!opts.quiet)
 					{
-						writeProgress(fileName, 100);
-						process.stdout.write('\n');
+						writeProgress(fileName, '\u2714', true);
 						cursor.show();
 					}
 
