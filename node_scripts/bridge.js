@@ -343,7 +343,7 @@ function processVideoSelection(cb)
 			!exports.config.extractorReuse
 			|| !exports.config.extractorDir
 		) {
-			return analyzeVideoFile(cb);
+			return analyzeVideoFile(null, cb);
 		}
 
 		fs.access(exports.config.extractorDir, fs.constants.F_OK, (err) =>
@@ -351,7 +351,7 @@ function processVideoSelection(cb)
 			if(err)
 			{
 				debug('Could not access reusable subtitles dir');
-				return analyzeVideoFile(cb);
+				return analyzeVideoFile(null, cb);
 			}
 
 			var file = path.parse(exports.selection.filePath);
@@ -362,7 +362,7 @@ function processVideoSelection(cb)
 				if(err)
 				{
 					debug('No reusable subtitles file');
-					return analyzeVideoFile(cb);
+					return analyzeVideoFile(reusePath, cb);
 				}
 
 				debug('Found reusable subtitles file');
@@ -374,7 +374,7 @@ function processVideoSelection(cb)
 	}
 }
 
-function analyzeVideoFile(cb)
+function analyzeVideoFile(reusePath, cb)
 {
 	extract.analyzeSelection((err, ffprobeData) =>
 	{
@@ -398,7 +398,7 @@ function analyzeVideoFile(cb)
 
 		var opts = {
 			file: exports.selection.filePath,
-			outPath: shared.vttSubsPath,
+			outPath: reusePath || shared.vttSubsPath,
 			overwrite: true
 		};
 
