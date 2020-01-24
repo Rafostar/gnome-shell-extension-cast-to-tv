@@ -88,27 +88,25 @@ app.get('/cast', function(req, res)
 		/* Send to add-on if available, otherwise ignore request */
 		if(bridge.addon)
 			bridge.addon.fileStream(req, res, bridge.selection, bridge.config);
-	}
-	else
-	{
-		switch(bridge.selection.streamType)
-		{
-			case 'MUSIC':
-				if(bridge.config.musicVisualizer)
-					webcreator.encodedStream(req, res);
-				else
-					webcreator.fileStream(req, res);
-				break;
-			case 'VIDEO':
-			case 'PICTURE':
-				webcreator.fileStream(req, res);
-				break;
-			default:
-				webcreator.encodedStream(req, res);
-				break;
-		}
 
-		req.once('close', encode.closeStreamProcess);
+		return;
+	}
+
+	switch(bridge.selection.streamType)
+	{
+		case 'MUSIC':
+			if(bridge.config.musicVisualizer)
+				webcreator.encodedStream(req, res);
+			else
+				webcreator.fileStream(req, res);
+			break;
+		case 'VIDEO':
+		case 'PICTURE':
+			webcreator.fileStream(req, res);
+			break;
+		default:
+			webcreator.encodedStream(req, res);
+			break;
 	}
 });
 

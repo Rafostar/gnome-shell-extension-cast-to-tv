@@ -12,10 +12,7 @@ function onLoadingText(text)
 function onProcessesDone(isDone)
 {
 	if(!isDone)
-	{
-		websocket.emit('webplayer', 'loading-ask');
-		return;
-	}
+		return websocket.emit('webplayer', 'loading-ask');
 
 	websocket.disconnect();
 	location.reload(true);

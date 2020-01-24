@@ -86,6 +86,9 @@ exports.fileStream = function(req, res)
 
 exports.encodedStream = function(req, res)
 {
+	if(!encode.enabled)
+		return res.sendStatus(204);
+
 	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
@@ -104,15 +107,27 @@ exports.encodedStream = function(req, res)
 
 		res.writeHead(200, {
 			'Access-Control-Allow-Origin': '*',
-			'Content-Type': 'video/mp4',
-			'Connection': 'keep-alive'
+			'Connection': 'close',
+			'Content-Type': 'video/mp4'
 		});
 
-		if(streamType == 'VIDEO_ENCODE') encode.video().pipe(res);
-		else if(streamType == 'VIDEO_VAAPI') encode.videoVaapi().pipe(res);
-		else if(streamType == 'VIDEO_NVENC') encode.videoNvenc().pipe(res);
-		else if(streamType == 'MUSIC') encode.musicVisualizer().pipe(res);
-		else res.end();
+		switch(streamType)
+		{
+			case 'VIDEO_VAAPI':
+				encode.videoVaapi().pipe(res);
+				break;
+			case 'VIDEO_NVENC':
+				encode.videoNvenc().pipe(res);
+				break;
+			case 'MUSIC':
+				encode.musicVisualizer().pipe(res);
+				break;
+			default:
+				encode.video().pipe(res);
+				break;
+		}
+
+		res.once('close', encode.closeStreamProcess);
 	});
 }
 

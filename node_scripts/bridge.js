@@ -569,6 +569,7 @@ function shutDown(err)
 	else process.stdout.write('\n');
 
 	console.log('Cast to TV: closing node app...');
+	encode.enabled = false;
 	controller.clearSlideshow();
 
 	debug('Closing node server');

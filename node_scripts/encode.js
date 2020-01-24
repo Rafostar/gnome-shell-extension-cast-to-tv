@@ -7,6 +7,7 @@ const shared = require('../shared');
 const stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
+exports.enabled = true;
 var notifyError = false;
 
 String.prototype.replaceAt = function(index, replacement)
@@ -85,6 +86,7 @@ function onEncodeError(error)
 		notifyError = true;
 	}
 
+	exports.streamProcess = null;
 	debug('FFmpeg had error!');
 	debug(error);
 }
@@ -100,7 +102,8 @@ exports.video = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
-	'-movflags', 'frag_keyframe+empty_moov',
+	'-frag_duration', '1000000',
+	'-movflags', '+empty_moov',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -125,7 +128,8 @@ exports.videoVaapi = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
-	'-movflags', 'frag_keyframe+empty_moov',
+	'-frag_duration', '1000000',
+	'-movflags', '+empty_moov',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -161,7 +165,8 @@ exports.videoNvenc = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
-	'-movflags', 'frag_keyframe+empty_moov',
+	'-frag_duration', '1000000',
+	'-movflags', '+empty_moov',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -211,7 +216,8 @@ exports.musicVisualizer = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', 'copy',
 	'-metadata', 'title=Cast to TV - Music Visualizer',
-	'-movflags', 'frag_keyframe+empty_moov',
+	'-frag_duration', '1000000',
+	'-movflags', '+empty_moov',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -221,35 +227,34 @@ exports.musicVisualizer = function()
 
 exports.closeStreamProcess = function()
 {
-	if(exports.streamProcess)
+	if(!exports.streamProcess) return;
+
+	if(exports.streamProcess.stdout)
 	{
-		if(exports.streamProcess.stdout)
+		exports.streamProcess.removeListener('exit', onAutoExit);
+		exports.streamProcess.once('exit', onManualExit);
+
+		if(!exports.streamProcess.stdout.destroyed)
 		{
-			exports.streamProcess.removeListener('exit', onAutoExit);
-			exports.streamProcess.once('exit', onManualExit);
-
-			if(!exports.streamProcess.stdout.destroyed)
-			{
-				exports.streamProcess.stdout.destroy();
-				debug('Destroyed stream process remaining stdout data');
-			}
-			else
-				debug('Stream process stdout was destroyed earlier');
-
-			exports.streamProcess.stdout = null;
+			exports.streamProcess.stdout.destroy();
+			debug('Destroyed stream process remaining stdout data');
 		}
 		else
-		{
-			debug('Force killing stream process...');
+			debug('Stream process stdout was destroyed earlier');
 
-			try {
-				process.kill(exports.streamProcess.pid, 'SIGHUP');
-				debug('Force killed stream process');
-			}
-			catch(err) {
-				debug('Could not kill stream process!');
-				debug(err);
-			}
+		exports.streamProcess.stdout = null;
+	}
+	else
+	{
+		debug('Force killing stream process...');
+
+		try {
+			process.kill(exports.streamProcess.pid, 'SIGHUP');
+			debug('Force killed stream process');
+		}
+		catch(err) {
+			debug('Could not kill stream process!');
+			debug(err);
 		}
 	}
 }
