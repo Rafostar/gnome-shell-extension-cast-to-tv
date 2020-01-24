@@ -44,12 +44,12 @@ module.exports = function(opts, cb)
 		else cb(new Error(`FFprobe process error code: ${code}`));
 	}
 
-	const onFFprobeError = function(code)
+	const onFFprobeError = function(err)
 	{
 		ffprobe.removeListener('exit', onFFprobeExit);
 		ffprobe.stdout.removeListener('data', addData);
 
-		cb(new Error(`FFprobe exec error code: ${code}`));
+		cb(new Error(`FFprobe exec error: ${err.message}`));
 	}
 
 	ffprobe.once('exit', onFFprobeExit);

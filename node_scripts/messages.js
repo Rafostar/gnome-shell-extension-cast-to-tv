@@ -15,7 +15,7 @@ module.exports = {
 	ffprobeError: _("FFprobe could not process file:"),
 	ffprobePath: _("FFprobe path is incorrect"),
 	/* TRANSLATORS: This sentence will contain file path after end */
-	extractError: _("Could not analyse selected file:"),
+	extractError: _("Could not analyze selected file:"),
 	plyr: {
 		speed: _("Speed"),
 		/* TRANSLATORS: One of "Speed" setting value */

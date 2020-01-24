@@ -1,6 +1,3 @@
-const bridge = require('./bridge');
-const notify = require('./notify');
-const messages = require('./messages.js');
 const ffprobe = require('./ffprobe');
 const extractVid = require('./extract/extract-video');
 const extractMus = require('./extract/extract-music');
@@ -10,27 +7,23 @@ module.exports =
 {
 	video: extractVid,
 	music: extractMus,
-	analyzeSelection: analyzeSelection
+	analyzeFile: analyzeFile
 }
 
-function analyzeSelection(cb)
+function analyzeFile(opts, cb)
 {
 	cb = cb || noop;
 
-	var ffprobeOpts = {
-		ffprobePath : bridge.config.ffprobePath,
-		filePath: bridge.selection.filePath
-	};
+	if(!opts.ffprobePath)
+		return cb(new Error('No path to ffprobe'));
 
-	ffprobe(ffprobeOpts, (err, data) =>
+	if(!opts.filePath)
+		return cb(new Error('No file path to analyze'));
+
+	ffprobe(opts, (err, data) =>
 	{
-		if(!err) return cb(null, data);
+		if(err) return cb(err);
 
-		if(err.message.includes('FFprobe process error'))
-			notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
-		else if(err.message.includes('FFprobe exec error'))
-			notify('Cast to TV', messages.ffprobePath);
-
-		return cb(err);
+		cb(null, data);
 	});
 }

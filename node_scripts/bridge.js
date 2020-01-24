@@ -8,6 +8,8 @@ const extract = require('./extract');
 const remove = require('./remove');
 const chromecast = require('./chromecast');
 const gnome = require('./gnome');
+const notify = require('./notify');
+const messages = require('./messages.js');
 const controller = require('./remote-controller');
 const socket = require('./server-socket');
 const addons = require('./addons-importer');
@@ -171,25 +173,21 @@ function onSelectionUpdate()
 	else if(exports.selection.filePath)
 	{
 		if(exports.config.receiverType === 'playercast')
-			castFile();
-		else
+			return castFile();
+
+		processSelection(err =>
 		{
-			processSelection(err =>
-			{
-				if(err)
-				{
-					debug(err);
-					return notify('Cast to TV', messages.extractError, bridge.selection.filePath);
-				}
+			if(err) return notifyFromError(err);
 
-				extract.video.subsProcess = false;
-				extract.music.coverProcess = false;
-				debug('File processed successfully');
+			extract.video.subsProcess = false;
+			extract.music.coverProcess = false;
+			debug('File processed successfully');
 
-				castFile();
-			});
-		}
+			return castFile();
+		});
 	}
+	else
+		debug('No addon and file path in selection!');
 }
 
 function castFile()
@@ -240,6 +238,18 @@ function castFile()
 		default:
 			break;
 	}
+}
+
+function notifyFromError(err)
+{
+	debug(err);
+
+	if(err.message.includes('FFprobe process error'))
+		notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
+	else if(err.message.includes('FFprobe exec error'))
+		notify('Cast to TV', messages.ffprobePath);
+	else
+		notify('Cast to TV', messages.extractError, bridge.selection.filePath);
 }
 
 function processSelection(cb)
@@ -360,7 +370,12 @@ function processVideoSelection(cb)
 
 function analyzeVideoFile(reusePath, cb)
 {
-	extract.analyzeSelection((err, ffprobeData) =>
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
 	{
 		if(err)
 		{
@@ -417,7 +432,12 @@ function processVideoTranscode(cb)
 	if(exports.selection.subsPath)
 		return cb(null);
 
-	extract.analyzeSelection((err, ffprobeData) =>
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
 	{
 		if(err) return cb(err);
 
@@ -443,7 +463,12 @@ function processMusicSelection(cb)
 
 	debug('Processing music file...');
 
-	extract.analyzeSelection((err, ffprobeData) =>
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
 	{
 		if(err)
 		{
