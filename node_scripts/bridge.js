@@ -99,7 +99,17 @@ exports.updatePlaylist = function(playlist, append)
 			});
 		}
 		else
+		{
+			/* Ignore new playlist if it is not different */
+			if(
+				exports.playlist.length === playlist.length
+				&& JSON.stringify(exports.playlist) === JSON.stringify(playlist)
+			) {
+				return;
+			}
+
 			exports.playlist = playlist;
+		}
 
 		debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
 
