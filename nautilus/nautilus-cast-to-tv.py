@@ -63,15 +63,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         msg = Soup.Message.new('GET', url)
         response = self.soup_client.send_message(msg)
         if response == 200:
-            temp_json = json.loads(msg.response_body.data)
-
-            for key in temp_json:
-                if temp_json[key] == 'true':
-                    temp_json[key] = True
-                elif temp_json[key] == 'false':
-                    temp_json[key] = False
-
-            return temp_json
+            return json.loads(msg.response_body.data)
 
         return None
 
@@ -79,23 +71,13 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         port = self.ext_settings.get_int('listening-port')
         url = 'http://127.0.0.1:' + str(port) + '/temp/' + data_type
 
-        if isinstance(data, list):
-            temp_data = {}
-            for index, filepath in enumerate(data):
-                temp_data[str(index)] = filepath
-            data = temp_data
-        else:
-            for key in data:
-                if isinstance(data[key], bool):
-                    data[key] = str(data[key]).lower()
-
         if (data_type == 'playlist' and is_append):
             url += '?append=true'
 
         msg = Soup.Message.new('POST', url)
-        params = Soup.form_encode_hash(data)
+        params = json.dumps(data)
         msg.set_request(
-            'application/x-www-form-urlencoded',
+            'application/json',
             Soup.MemoryUse.COPY,
             bytearray(params, 'utf-8')
         )

@@ -66,7 +66,6 @@ exports.handleRemoteSignal = function(action, value)
 
 exports.updateConfig = function(contents)
 {
-	contents = getParsedContents(contents);
 	debug(`New config contents: ${JSON.stringify(contents)}`);
 
 	if(contents.listeningPort && contents.listeningPort !== exports.config.listeningPort)
@@ -120,8 +119,6 @@ exports.updateSelection = function(contents)
 	else if(typeof contents !== 'object')
 		return debug(`Ignoring invalid selection: ${contents}`);
 
-	contents = getParsedContents(contents);
-
 	if(contents !== exports.selection)
 	{
 		exports.selection = contents;
@@ -135,12 +132,6 @@ exports.updateRemote = function(contents)
 {
 	if(!contents || !contents.action)
 		return debug('Invalid update remote contents');
-
-	if(contents.value)
-	{
-		if(contents.value === 'true') contents.value = true;
-		else if(contents.value === 'false') contents.value = false;
-	}
 
 	debug(`New remote contents: ${JSON.stringify(contents)}`);
 	exports.handleRemoteSignal(contents.action, contents.value);
@@ -239,29 +230,6 @@ function castFile()
 		default:
 			break;
 	}
-}
-
-function getParsedContents(contents)
-{
-	for(var key in contents)
-	{
-		switch(contents[key])
-		{
-			case 'true':
-				contents[key] = true;
-				break;
-			case 'false':
-				contents[key] = false;
-				break;
-			case 'null':
-				contents[key] = null;
-				break;
-			default:
-				break;
-		}
-	}
-
-	return contents;
 }
 
 function processSelection(cb)

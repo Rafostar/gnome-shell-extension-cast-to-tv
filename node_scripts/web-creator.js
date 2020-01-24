@@ -262,9 +262,8 @@ exports.postTemp = function(type, req, res)
 			res.sendStatus(200);
 			break;
 		case 'playlist':
-			addItems = Object.values(req.body);
 			const append = (req.query && req.query.append === 'true');
-			bridge.updatePlaylist(addItems, append);
+			bridge.updatePlaylist(req.body, append);
 			res.sendStatus(200);
 			break;
 		case 'remote':

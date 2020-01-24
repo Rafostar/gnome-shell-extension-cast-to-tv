@@ -11,7 +11,7 @@ const gettext = require('./gettext');
 var app = express();
 var server = app.listen(bridge.config.listeningPort);
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 socket.listen(server);
 gettext.initTranslations();
 

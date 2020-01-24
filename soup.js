@@ -118,75 +118,50 @@ class SoupClient extends Soup.Session
 
 			if(query) url += '?' + query;
 
-			for(let key in data)
-			{
-				if(typeof data[key] !== 'string')
-					data[key] = String(data[key]);
-			}
-
 			let message = Soup.Message.new('POST', url);
-			let params = Soup.form_encode_hash(data);
+			let parsedData = null;
+
+			try { parsedData = JSON.stringify(data); }
+			catch(err) {}
+
+			if(!parsedData) return cb(null);
+
 			message.set_request(
-				'application/x-www-form-urlencoded',
+				'application/json',
 				Soup.MemoryUse.COPY,
-				params
+				parsedData
 			);
 
 			this.queue_message(message, cb);
 		}
 
-		this._getParsedObject = (data) =>
-		{
-			if(!data) return null;
-
-			for(let key in data)
-			{
-				if(data[key] === 'true')
-					data[key] = true;
-				else if(data[key] === 'false')
-					data[key] = false;
-			}
-
-			return data;
-		}
-
 		this.getConfig = (cb) =>
 		{
 			cb = cb || noop;
-			this._getRequest('config', (data) =>
-			{
-				cb(this._getParsedObject(data));
-			});
+			this._getRequest('config', cb);
 		}
 
 		this.getConfigSync = () =>
 		{
-			let data = this._getRequestSync('config');
-			return this._getParsedObject(data);
+			return this._getRequestSync('config');
 		}
 
 		this.getSelection = (cb) =>
 		{
 			cb = cb || noop;
-			this._getRequest('selection', (data) =>
-			{
-				cb(this._getParsedObject(data));
-			});
+			this._getRequest('selection', cb);
 		}
 
 		this.getSelectionSync = () =>
 		{
-			let data = this._getRequestSync('selection');
-			return this._getParsedObject(data);
+			return this._getRequestSync('selection');
 		}
 
 		this.updateSelection = (filePath, cb) =>
 		{
 			cb = cb || noop;
-			this._getRequest('selection', (data) =>
+			this._getRequest('selection', (selection) =>
 			{
-				let selection = this._getParsedObject(data);
-
 				if(!selection)
 					return cb(new Error('Could not obtain selection'));
 

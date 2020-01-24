@@ -47,7 +47,7 @@ var gnome =
 	getBoolean: function(setting)
 	{
 		var value = this.getSetting(setting);
-		return (value === 'true' || value === true) ? true : false;
+		return (value === 'true' || value === true);
 	},
 
 	getJSON: function(setting)
