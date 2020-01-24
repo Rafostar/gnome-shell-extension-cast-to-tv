@@ -173,7 +173,7 @@ function onSelectionUpdate()
 				}
 
 				extract.video.subsProcess = false;
-				extract.video.coverProcess = false;
+				extract.music.coverProcess = false;
 				debug('File processed successfully');
 
 				castFile();
@@ -413,9 +413,15 @@ function processMusicSelection(cb)
 		var metadata = extract.music.getMetadata(ffprobeData);
 
 		if(metadata)
+		{
+			debug('Obtained music metadata');
 			exports.mediaData.title = metadata.title;
+		}
 		else
+		{
+			debug('No music metadata');
 			exports.mediaData.title = file.name;
+		}
 
 		if(exports.config.musicVisualizer)
 		{
