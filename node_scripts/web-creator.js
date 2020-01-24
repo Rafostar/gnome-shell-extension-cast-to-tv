@@ -102,10 +102,11 @@ exports.encodedStream = function(req, res)
 	{
 		if(err) return res.sendStatus(404);
 
-		res.setHeader('Content-Type', 'video/x-matroska');
-		res.setHeader('Access-Control-Allow-Origin', '*');
-		res.setHeader('Connection', 'keep-alive');
-		res.statusCode = 200;
+		res.writeHead(200, {
+			'Access-Control-Allow-Origin': '*',
+			'Content-Type': 'video/mp4',
+			'Connection': 'keep-alive'
+		});
 
 		if(streamType == 'VIDEO_ENCODE') encode.video().pipe(res);
 		else if(streamType == 'VIDEO_VAAPI') encode.videoVaapi().pipe(res);

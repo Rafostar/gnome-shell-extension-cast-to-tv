@@ -100,7 +100,8 @@ exports.video = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
-	'-f', 'matroska',
+	'-movflags', 'frag_keyframe+empty_moov',
+	'-f', 'mp4',
 	'pipe:1'
 	];
 
@@ -124,7 +125,8 @@ exports.videoVaapi = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
-	'-f', 'matroska',
+	'-movflags', 'frag_keyframe+empty_moov',
+	'-f', 'mp4',
 	'pipe:1'
 	];
 
@@ -159,7 +161,8 @@ exports.videoNvenc = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
-	'-f', 'matroska',
+	'-movflags', 'frag_keyframe+empty_moov',
+	'-f', 'mp4',
 	'pipe:1'
 	];
 
@@ -208,7 +211,8 @@ exports.musicVisualizer = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', 'copy',
 	'-metadata', 'title=Cast to TV - Music Visualizer',
-	'-f', 'matroska',
+	'-movflags', 'frag_keyframe+empty_moov',
+	'-f', 'mp4',
 	'pipe:1'
 	];
 
