@@ -259,9 +259,14 @@ function processSelection(cb)
 
 			cb(null);
 			break;
-		default:
+		case 'VIDEO':
 			remove.tempCover();
 			processVideoSelection(cb);
+			break;
+		default:
+			remove.tempSubs();
+			remove.tempCover();
+			processVideoTranscode(cb);
 			break;
 	}
 }
@@ -394,6 +399,36 @@ function analyzeVideoFile(reusePath, cb)
 
 			return cb(null);
 		});
+	});
+}
+
+function processVideoTranscode(cb)
+{
+	extract.video.subsProcess = true;
+	exports.mediaData.isSubsMerged = false;
+	exports.mediaData.coverPath = null;
+	exports.mediaData.title = null;
+
+	debug('Processing file for transcoding...');
+
+	if(exports.config.receiverType === 'other')
+		socket.emit('reload');
+
+	if(exports.selection.subsPath)
+		return cb(null);
+
+	extract.analyzeSelection((err, ffprobeData) =>
+	{
+		if(err) return cb(err);
+
+		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+
+		if(exports.mediaData.isSubsMerged)
+			debug('Found subtitles encoded in file');
+		else
+			debug('No encoded subtitles detected');
+
+		return cb(null);
 	});
 }
 
