@@ -15,7 +15,6 @@
     "multicast-scanner": "^2.2.1",
     "node-gettext": "^2.0.0",
     "plyr": "3.5.3",
-    "range-parser": "^1.2.1",
     "socket.io": "^2.3.0"
   },
   "scripts": {

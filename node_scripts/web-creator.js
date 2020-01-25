@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const rangeParser = require('range-parser');
 const debug = require('debug')('web');
 const bridge = require('./bridge');
 const socket = require('./server-socket');
@@ -9,13 +8,14 @@ const shared = require('../shared');
 
 exports.fileStream = function(req, res)
 {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+
 	var streamType = bridge.selection.streamType;
 	var filePath = bridge.selection.filePath;
 
 	if(!filePath)
 	{
 		debug('No file path');
-
 		return res.sendStatus(404);
 	}
 
@@ -25,62 +25,10 @@ exports.fileStream = function(req, res)
 		if(err)
 		{
 			debug(err);
-
 			return res.sendStatus(404);
 		}
 
-		/* Pipe picture stream and exit function */
-		if(streamType === 'PICTURE')
-		{
-			res.setHeader('Access-Control-Allow-Origin', '*');
-			res.setHeader('Content-Type', 'image/png');
-			debug('Sending image file');
-
-			return fs.createReadStream(filePath).pipe(res);
-		}
-
-		/* Calculate file range for chunked streaming */
-		fs.stat(filePath, (err, stats) =>
-		{
-			if(err) return res.sendStatus(404);
-
-			res.setHeader('Access-Control-Allow-Origin', '*');
-			res.setHeader('Content-Type', 'video/mp4');
-
-			var total = stats.size;
-			var range = req.headers.range;
-
-			const getFullFile = function()
-			{
-				if(total) res.setHeader('Content-Length', total);
-
-				res.statusCode = 200;
-				debug('Sending full file');
-
-				return fs.createReadStream(filePath).pipe(res);
-			}
-
-			if(!range) return getFullFile();
-
-			var part = rangeParser(total, range)[0];
-			if(!part)
-			{
-				debug('No data from range-parser. This should not happen!');
-				return getFullFile();
-			}
-
-			var chunksize = (part.end - part.start) + 1;
-			var file = fs.createReadStream(filePath, { start: part.start, end: part.end });
-			var sendRange = `${part.start}-${part.end}/${total}`;
-
-			res.setHeader('Accept-Ranges', 'bytes');
-			res.setHeader('Content-Range', `bytes ${sendRange}`);
-			res.setHeader('Content-Length', chunksize);
-			res.statusCode = 206;
-			debug(`Sending data chunk: ${sendRange}`);
-
-			return file.pipe(res);
-		});
+		return res.sendFile(filePath);
 	});
 }
 
@@ -133,6 +81,8 @@ exports.encodedStream = function(req, res)
 
 exports.subsStream = function(req, res)
 {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+
 	if(!bridge.selection.streamType.startsWith('VIDEO'))
 		return res.sendStatus(204);
 
@@ -163,12 +113,7 @@ exports.subsStream = function(req, res)
 		{
 			if(err) return res.sendStatus(404);
 
-			res.writeHead(200, {
-				'Access-Control-Allow-Origin': '*',
-				'Content-Type': 'text/vtt'
-			});
-
-			return fs.createReadStream(subsPath).pipe(res);
+			return res.sendFile(subsPath);
 		});
 	}
 	else
@@ -177,6 +122,8 @@ exports.subsStream = function(req, res)
 
 exports.coverStream = function(req, res)
 {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+
 	if(bridge.selection.streamType !== 'MUSIC')
 		return res.sendStatus(204);
 
@@ -198,17 +145,14 @@ exports.coverStream = function(req, res)
 	{
 		if(err) return res.sendStatus(404);
 
-		res.writeHead(200, {
-			'Access-Control-Allow-Origin': '*',
-			'Content-Type': 'image/png'
-		});
-
-		return fs.createReadStream(coverPath).pipe(res);
+		return res.sendFile(coverPath);
 	});
 }
 
 exports.hlsStream = function(req, res)
 {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+
 	var filePath = shared.hlsDir + req.url;
 
 	/* Check if stream segment exists */
@@ -216,16 +160,7 @@ exports.hlsStream = function(req, res)
 	{
 		if(err) return res.sendStatus(404);
 
-		fs.stat(filePath, (err, stats) =>
-		{
-			if(!err) res.setHeader('Content-Length', stats.size);
-
-			res.setHeader('Access-Control-Allow-Origin', '*');
-			res.setHeader('Content-Type', 'application/x-mpegURL');
-			res.statusCode = 200;
-
-			return fs.createReadStream(filePath).pipe(res);
-		});
+		return res.sendFile(filePath);
 	});
 }
 
@@ -290,10 +225,4 @@ exports.postTemp = function(type, req, res)
 			res.sendStatus(404);
 			break;
 	}
-}
-
-exports.pageWrong = function(req, res)
-{
-	res.writeHead(302, { Location: '/' });
-	res.end();
 }

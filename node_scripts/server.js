@@ -151,5 +151,5 @@ app.use('/plyr', express.static(__dirname + '/../node_modules/plyr/dist'));
 
 app.get('/*', function(req, res)
 {
-	webcreator.pageWrong(req, res);
+	res.redirect('/');
 });
