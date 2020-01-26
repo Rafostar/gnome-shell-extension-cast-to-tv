@@ -17,6 +17,7 @@ var opts = {
 };
 
 var currOutPath = null;
+var filesCount = 0;
 
 function showHelp()
 {
@@ -134,7 +135,8 @@ function extractFromFile(filePath)
 			var extOpts = {
 				file: filePath,
 				outPath: path.join(opts.outDir, parsed.name + '.vtt'),
-				overwrite: true
+				overwrite: true,
+				vttparser: true
 			};
 
 			fs.access(extOpts.outPath, fs.constants.F_OK, (err) =>
@@ -161,6 +163,7 @@ function extractFromFile(filePath)
 					if(!opts.quiet)
 						writeProgress(fileName, '\u2714', true);
 
+					filesCount++;
 					resolve();
 				});
 			});
@@ -205,8 +208,17 @@ function onFinish(hideMsg)
 {
 	if(hideMsg)
 		console.log();
+	else if(filesCount > 0)
+	{
+		var text = `Extracted subtitles from ${filesCount} file`;
+
+		if(filesCount > 1)
+			text += 's';
+
+		logInfo(text);
+	}
 	else
-		logInfo('Extraction finished');
+		logInfo('No subtitles extracted');
 
 	exitWithCode(0);
 }
