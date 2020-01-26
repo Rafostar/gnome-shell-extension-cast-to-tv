@@ -105,7 +105,7 @@ function convertToVtt(opts, cb)
 	opts.spawnArgs = [
 		'-sub_charenc', opts.charEnc,
 		'-i', opts.file,
-		opts.outPath, '-y'
+		'-f', 'webvtt'
 	];
 
 	extractShared.convertFile(opts, (err) =>

@@ -311,7 +311,8 @@ function processVideoSelection(cb)
 		var opts = {
 			file: exports.selection.subsPath,
 			outPath: shared.vttSubsPath,
-			overwrite: true
+			overwrite: true,
+			vttparser: true
 		};
 
 		debug('Converting subtitles file');
@@ -398,7 +399,8 @@ function analyzeVideoFile(reusePath, cb)
 		var opts = {
 			file: exports.selection.filePath,
 			outPath: reusePath || shared.vttSubsPath,
-			overwrite: true
+			overwrite: true,
+			vttparser: true
 		};
 
 		extract.video.videoToVtt(opts, (err) =>
