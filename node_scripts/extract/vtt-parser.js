@@ -10,8 +10,8 @@ module.exports = function(fileStream, cb)
 	var prevTime = null;
 	var currTime = null;
 
-	var prevLine = null;
-	var currLine = null;
+	var prevLine = "";
+	var currLine = "";
 
 	var timesArr = [];
 	var linesArr = [];
@@ -21,13 +21,15 @@ module.exports = function(fileStream, cb)
 		if(getIsLineInvalid(line))
 			return;
 
-		if(!isNaN(line.charAt(0)) && line.includes(' --> '))
+		if(line && !isNaN(line.charAt(0)) && line.includes(' --> '))
 			return currTime = line;
 
-		currLine = line;
-
-		if(!currTime)
-			return parsedData += currLine + '\n\n';
+		if(line && currTime)
+			return currLine += line + '\n';
+		else if(line)
+			return parsedData += line;
+		else if(!currTime)
+			parsedData += '\n\n';
 
 		if(
 			prevTime !== currTime
@@ -38,6 +40,7 @@ module.exports = function(fileStream, cb)
 
 			timesArr.push(currTime.split(' --> '));
 			linesArr.push(currLine);
+			currLine = "";
 		}
 	}
 
@@ -75,7 +78,7 @@ module.exports = function(fileStream, cb)
 			)
 				continue;
 
-			parsedData += `${start} --> ${end}\n${linesArr[i]}\n\n`;
+			parsedData += `${start} --> ${end}\n${linesArr[i]}\n`;
 
 			prevEnds.push(end);
 			prevLines.push(linesArr[i]);
@@ -86,8 +89,13 @@ module.exports = function(fileStream, cb)
 	{
 		rl.removeListener('line', parseLine);
 
+		debug('Stream from ffmpeg is closed');
+
 		if(!linesArr.length)
 			return cb(new Error('Parser output is empty'));
+
+		/* Fix for missing empty line at file end */
+		parseLine("");
 
 		debug('Cleaning repeated lines...');
 
@@ -115,7 +123,7 @@ module.exports = function(fileStream, cb)
 
 function getIsLineInvalid(line)
 {
-	if(!line || line.length > 128)
+	if(line && line.length > 128)
 		return true;
 
 	var numCount = 0;
