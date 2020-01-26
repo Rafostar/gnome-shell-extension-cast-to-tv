@@ -482,7 +482,6 @@ class OtherSettings extends Gtk.Notebook
 		let otherWidgets = [
 			EncoderSettings,
 			ExtractorSettings,
-			PlayersSettings,
 			MiscSettings
 		];
 
@@ -610,13 +609,12 @@ class ExtractorSettings extends Gtk.Grid
 	}
 }
 
-class PlayersSettings extends Gtk.Grid
+class MiscSettings extends Gtk.Grid
 {
 	constructor()
 	{
 		super({margin: 20, row_spacing: 6});
-		/* TRANSLATORS: "Players" as video players */
-		this.title = new Gtk.Label({ label: _("Players") });
+		this.title = new Gtk.Label({ label: _("Misc") });
 		let label = null;
 		let widget = null;
 
@@ -650,21 +648,10 @@ class PlayersSettings extends Gtk.Grid
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
-	}
-}
-
-class MiscSettings extends Gtk.Grid
-{
-	constructor()
-	{
-		super({margin: 20, row_spacing: 6});
-		this.title = new Gtk.Label({ label: _("Misc") });
-		let label = null;
-		let widget = null;
 
 		/* Label: Miscellaneous */
 		/* TRANSLATORS: The rest of extension settings */
-		label = new SettingLabel(_("Miscellaneous"), true);
+		label = new SettingLabel(_("Miscellaneous"), true, true);
 		addToGrid(this, label);
 
 		/* Music Visualizer */
