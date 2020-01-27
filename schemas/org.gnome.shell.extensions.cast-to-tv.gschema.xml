@@ -113,5 +113,10 @@
       <default>false</default>
       <summary>Remember last service state</summary>
     </key>
+    <!-- Restore -->
+    <key name="last-transcode" type="i">
+      <default>0</default>
+      <summary>Restore previous transcode option in file chooser</summary>
+    </key>
   </schema>
 </schemalist>

@@ -80,7 +80,8 @@ class fileChooser
 		this.comboBoxConvert.append('video', _("Video"));
 		this.comboBoxConvert.append('audio', _("Audio"));
 		this.comboBoxConvert.append('video+audio', _("Video + Audio"));
-		this.comboBoxConvert.set_active(0);
+		this.comboBoxConvert.set_active(Settings.get_int('last-transcode'));
+		Settings.bind('last-transcode', this.comboBoxConvert, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.comboBoxConvert.set_sensitive(false);
 
 		this.buttonConvert.connect('toggled', () =>
