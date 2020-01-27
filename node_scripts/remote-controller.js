@@ -1,6 +1,6 @@
-var bridge = require('./bridge');
-var socket = require('./server-socket');
-var gnome = require('./gnome');
+const bridge = require('./bridge');
+const socket = require('./server-socket');
+const gnome = require('./gnome');
 
 exports.repeat = false;
 exports.slideshow = false;

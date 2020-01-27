@@ -1,5 +1,6 @@
-var gettext = require('./gettext');
-var { spawn } = require('child_process');
+const gettext = require('./gettext');
+const { spawn } = require('child_process');
+
 const sysLang = process.env.LANG.substring(0, 2);
 
 module.exports = function(summary, mainBody, data, infoBody)

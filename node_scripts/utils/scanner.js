@@ -1,5 +1,5 @@
-var scanner = require('multicast-scanner');
-var gnome = require('../gnome');
+const scanner = require('multicast-scanner');
+const gnome = require('../gnome');
 
 scanner({ full_scan: true }, (err, devices) =>
 {

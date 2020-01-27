@@ -1,7 +1,7 @@
-var fs = require('fs');
-var path = require('path');
-var Gettext = require('node-gettext');
-var moParser = require('gettext-parser').mo;
+const fs = require('fs');
+const path = require('path');
+const Gettext = require('node-gettext');
+const moParser = require('gettext-parser').mo;
 
 const extLocaleDir = path.join(__dirname + '/../locale');
 const translationsDir = (fs.existsSync(extLocaleDir)) ? extLocaleDir : '/usr/share/locale';

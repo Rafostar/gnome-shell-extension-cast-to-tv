@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const debug = require('debug')('web');
+const debug = require('debug')('web-creator');
 const bridge = require('./bridge');
 const socket = require('./server-socket');
 const encode = require('./encode');

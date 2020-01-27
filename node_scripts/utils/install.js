@@ -1,10 +1,11 @@
 #!/bin/sh
 //bin/false || exec "$(command -v nodejs || command -v node)" "$0"
 
-var fs = require('fs');
-var path = require('path');
-var { execSync } = require('child_process');
-var extensionsPath = path.join(__dirname + '/../../..');
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const extensionsPath = path.join(__dirname + '/../../..');
 
 /* Add-ons should be installed synchronously */
 var extensions = fs.readdirSync(extensionsPath);

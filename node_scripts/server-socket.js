@@ -1,13 +1,13 @@
-var io = require('socket.io');
-var fs = require('fs');
-var bridge = require('./bridge');
-var encode = require('./encode');
-var extract = require('./extract');
-var gettext = require('./gettext');
-var messages = require('./messages');
-var gnome = require('./gnome');
-var controller = require('./remote-controller');
-var shared = require('../shared');
+const fs = require('fs');
+const io = require('socket.io');
+const bridge = require('./bridge');
+const encode = require('./encode');
+const extract = require('./extract');
+const gettext = require('./gettext');
+const messages = require('./messages');
+const gnome = require('./gnome');
+const controller = require('./remote-controller');
+const shared = require('../shared');
 
 var clientTimeout;
 var websocket;
@@ -135,13 +135,16 @@ function initWebPlayer()
 	var initType = 'VIDEO';
 	var isSub = false;
 
-	if(bridge.selection.streamType != 'MUSIC')
-	{
-		if(bridge.selection.subsPath || bridge.selection.subsSrc) isSub = true;
-		else if(bridge.selection.streamType == 'VIDEO') isSub = fs.existsSync(shared.vttSubsPath);
+	if(
+		bridge.selection.streamType !== 'MUSIC'
+		&& bridge.selection.streamType !== 'PICTURE'
+	) {
+		if(bridge.selection.subsPath || bridge.selection.subsSrc)
+			isSub = true;
 	}
 
-	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) initType = 'MUSIC';
+	if(bridge.selection.streamType === 'MUSIC' && !bridge.config.musicVisualizer)
+		initType = 'MUSIC';
 
 	var webData = {
 		type: initType,
