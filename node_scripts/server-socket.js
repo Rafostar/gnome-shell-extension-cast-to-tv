@@ -139,7 +139,13 @@ function initWebPlayer()
 		&& bridge.selection.streamType !== 'PICTURE'
 	) {
 		if(bridge.selection.subsPath || bridge.selection.subsSrc)
-			isSub = true;
+		{
+			if(
+				bridge.selection.streamType === 'VIDEO'
+				|| !bridge.config.burnSubtitles
+			)
+				isSub = true;
+		}
 	}
 
 	if(bridge.selection.streamType === 'MUSIC' && !bridge.config.musicVisualizer)

@@ -358,6 +358,7 @@ function enable()
 	signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
 	signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
 	signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
+	signals.push(Settings.connect('changed::burn-subtitles', updateTempConfig.bind(this, 'burn-subtitles', 'boolean')));
 	signals.push(Settings.connect('changed::music-visualizer', updateTempConfig.bind(this, 'music-visualizer', 'boolean')));
 	signals.push(Settings.connect('changed::extractor-reuse', updateTempConfig.bind(this, 'extractor-reuse', 'boolean')));
 	signals.push(Settings.connect('changed::extractor-dir', updateTempConfig.bind(this, 'extractor-dir', 'string')));

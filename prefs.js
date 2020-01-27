@@ -535,6 +535,15 @@ class EncoderSettings extends Gtk.Grid
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
+
+		/* Burn Subtitles */
+		/* TRANSLATORS: Burn subtitles into video during transcoding */
+		label = new SettingLabel(_("Burn subtitles"));
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('burn-subtitles'));
+		Settings.bind('burn-subtitles', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, widget);
 	}
 }
 

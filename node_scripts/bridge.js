@@ -274,9 +274,14 @@ function processSelection(cb)
 			processVideoSelection(cb);
 			break;
 		default:
-			remove.tempSubs();
 			remove.tempCover();
-			processVideoTranscode(cb);
+			if(exports.config.burnSubtitles)
+			{
+				remove.tempSubs();
+				processVideoTranscode(cb);
+			}
+			else
+				processVideoSelection(cb);
 			break;
 	}
 }

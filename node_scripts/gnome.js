@@ -86,6 +86,7 @@ var gnome =
 			webplayerSubs: parseFloat(this.getSetting('webplayer-subs')).toFixed(1),
 			videoBitrate: parseFloat(this.getSetting('video-bitrate')).toFixed(1),
 			videoAcceleration: this.getSetting('video-acceleration'),
+			burnSubtitles: this.getBoolean('burn-subtitles'),
 			musicVisualizer: this.getBoolean('music-visualizer'),
 			extractorReuse: this.getBoolean('extractor-reuse'),
 			extractorDir: this.getSetting('extractor-dir'),

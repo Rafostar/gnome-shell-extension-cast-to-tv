@@ -108,8 +108,10 @@ exports.video = function()
 	'pipe:1'
 	];
 
-	if(bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
-	{
+	if(
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) {
 		encodeOpts.splice(
 			encodeOpts.indexOf('libx264') + 1, 0,
 			'-vf', 'subtitles=' + getSubsPath(), '-sn'
@@ -134,8 +136,10 @@ exports.videoVaapi = function()
 	'pipe:1'
 	];
 
-	if(bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
-	{
+	if(
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) {
 		encodeOpts.unshift(
 			'-hwaccel', 'vaapi',
 			'-hwaccel_device', '/dev/dri/renderD128',
@@ -171,8 +175,10 @@ exports.videoNvenc = function()
 	'pipe:1'
 	];
 
-	if(bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
-	{
+	if(
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) {
 		encodeOpts.splice(
 			encodeOpts.indexOf('h264_nvenc') + 1, 0,
 			'-vf', 'subtitles=' + getSubsPath(), '-sn'

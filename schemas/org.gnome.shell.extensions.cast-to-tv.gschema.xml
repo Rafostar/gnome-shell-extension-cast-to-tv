@@ -68,15 +68,7 @@
       <default>""</default>
       <summary>Playercast device name</summary>
     </key>
-    <!-- Other -->
-    <key name="music-visualizer" type="b">
-      <default>false</default>
-      <summary>FFmpeg music visualizer</summary>
-    </key>
-    <key name="webplayer-subs" type="d">
-      <default>1.0</default>
-      <summary>Web player subtitles size</summary>
-    </key>
+    <!-- Encoder -->
     <key name="video-acceleration" type="s">
       <default>"none"</default>
       <summary>Video streaming hardware acceleration</summary>
@@ -84,6 +76,10 @@
     <key name="video-bitrate" type="d">
       <default>5.0</default>
       <summary>Media encoding video bitrate</summary>
+    </key>
+    <key name="burn-subtitles" type="b">
+      <default>false</default>
+      <summary>Burn subtitles into video during transcode</summary>
     </key>
     <!-- Extractor -->
     <key name="extractor-reuse" type="b">
@@ -93,6 +89,15 @@
     <key name="extractor-dir" type="s">
       <default>"/tmp"</default>
       <summary>Extractor save folder</summary>
+    </key>
+    <!-- Other -->
+    <key name="music-visualizer" type="b">
+      <default>false</default>
+      <summary>FFmpeg music visualizer</summary>
+    </key>
+    <key name="webplayer-subs" type="d">
+      <default>1.0</default>
+      <summary>Web player subtitles size</summary>
     </key>
     <!-- Status -->
     <key name="chromecast-playing" type="b">
