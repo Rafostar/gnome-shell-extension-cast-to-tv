@@ -243,7 +243,10 @@ function castFile()
 			}
 			break;
 		case 'other':
-			socket.emit('processes-done', true);
+			if(exports.selection.streamType !== 'PICTURE')
+				socket.emit('processes-done', true);
+			else
+				socket.emit('reload');
 			break;
 		default:
 			break;

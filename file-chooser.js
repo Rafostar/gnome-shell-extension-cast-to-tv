@@ -251,12 +251,7 @@ class fileChooser
 
 		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
-
-		if(config.receiverType == 'other' && selection.streamType == 'PICTURE')
-			this.fileChooser.set_select_multiple(false);
-		else
-			this.fileChooser.set_select_multiple(true);
-
+		this.fileChooser.set_select_multiple(true);
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
 

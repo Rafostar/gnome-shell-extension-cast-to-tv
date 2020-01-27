@@ -99,6 +99,10 @@ if(typeof player !== 'undefined')
 		}
 	});
 }
+else
+{
+	websocket.emit('show-remote', true);
+}
 
 websocket.on('reload', () =>
 {
