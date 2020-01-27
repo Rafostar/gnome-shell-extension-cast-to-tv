@@ -208,6 +208,7 @@ class SoupClient extends Soup.Session
 
 		this.postPlaylist = (data, isAppend, cb) =>
 		{
+			cb = cb || noop;
 			let append = false;
 
 			if(isAppend)
@@ -218,8 +219,6 @@ class SoupClient extends Soup.Session
 					append = true;
 			}
 
-			cb = cb || noop;
-
 			let query = 'append=' + append;
 			this._postRequest('playlist', data, query, cb);
 		}
@@ -227,10 +226,11 @@ class SoupClient extends Soup.Session
 		this.postRemote = (action, value, cb) =>
 		{
 			cb = cb || noop;
+			let data = { action: action };
 
-			value = (typeof value === 'undefined') ? '' : String(value);
+			if(typeof value !== 'undefined')
+				data.value = value;
 
-			let data = { action: action, value: value };
 			this._postRequest('remote', data, null, cb);
 		}
 	}

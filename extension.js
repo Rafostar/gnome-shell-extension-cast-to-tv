@@ -116,9 +116,6 @@ function configCastRemote()
 			else
 				remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
 
-			/* Restore widget buttons and sliders state */
-			//remoteMenu.updateRemote(true);
-
 			if(isActor) remoteMenu.actor.show();
 			else remoteMenu.show();
 		});

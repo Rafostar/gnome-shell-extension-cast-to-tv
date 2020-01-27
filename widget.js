@@ -202,10 +202,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			Soup.client.postRemote(action, value, () => this[sliderName].busy = false);
 		}
 
-		this.sliderButtonAction = () =>
+		this.refreshSliders = () =>
 		{
-			this.positionSlider.isVolume ^= true;
-
 			if(this.positionSlider.isVolume)
 			{
 				this.positionSlider.setIcon(this.positionSlider.volumeIcon);
@@ -216,6 +214,12 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.positionSlider.setIcon(this.positionSlider.defaultIcon);
 				this.positionSlider.setValue(this.currentProgress);
 			}
+		}
+
+		this.sliderButtonAction = () =>
+		{
+			this.positionSlider.isVolume ^= true;
+			this.refreshSliders();
 		}
 
 		/* Signals connections */

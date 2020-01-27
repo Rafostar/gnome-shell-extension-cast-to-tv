@@ -37,7 +37,7 @@ exports.remote = function(action, value)
 {
 	if(remoteBusy) return;
 
-	if(!isNaN(value) || typeof value == 'boolean')
+	if(!isNaN(value) || typeof value === 'boolean')
 		debug(`Signal from remote. ACTION: ${action}, VALUE: ${value}`);
 	else
 		debug(`Signal from remote. ACTION: ${action}`);
@@ -146,7 +146,7 @@ exports.remote = function(action, value)
 			break;
 		case 'SLIDESHOW':
 			controller.slideshow = value;
-			if(value)
+			if(controller.slideshow)
 				controller.setSlideshow();
 			else
 				controller.clearSlideshow();

@@ -42,7 +42,6 @@ function handleMessages(socket)
 		{
 			case 'webplayer-ask':
 				initWebPlayer();
-				gnome.showRemote(true);
 				controller.setSlideshow();
 				break;
 			case 'track-ended':
@@ -156,6 +155,9 @@ function initWebPlayer()
 	}
 
 	websocket.emit('webplayer-init', webData);
+
+	if(!gnome.isRemote())
+		gnome.showRemote(true);
 }
 
 function checkClients()

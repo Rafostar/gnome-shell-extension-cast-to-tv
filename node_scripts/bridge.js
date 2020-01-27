@@ -157,6 +157,9 @@ function onSelectionUpdate()
 		if(isCleared) debug('Cleared slideshow timeout due to non-picture selection');
 	}
 
+	/* Refresh already visible remote widget to mark new playing item */
+	if(gnome.isRemote()) gnome.showRemote(true);
+
 	/* Close addon before selecting a new one */
 	closeAddon(exports.selection, exports.config);
 
@@ -192,9 +195,6 @@ function onSelectionUpdate()
 
 function castFile()
 {
-	/* Refresh already visible remote widget to mark new playing item */
-	if(gnome.isRemote()) gnome.showRemote(true);
-
 	switch(exports.config.receiverType)
 	{
 		case 'chromecast':

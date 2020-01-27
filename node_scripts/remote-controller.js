@@ -28,11 +28,16 @@ exports.webControl = function(action, value)
 			break;
 		case 'SLIDESHOW':
 			exports.slideshow = value;
-			if(value) exports.setSlideshow();
-			else exports.clearSlideshow();
+			if(exports.slideshow)
+				exports.setSlideshow();
+			else
+				exports.clearSlideshow();
 			break;
 		default:
-			socket.emit('remote-signal', { action, value });
+			if(typeof value !== 'undefined')
+				socket.emit('remote-signal', { action, value });
+			else
+				socket.emit('remote-signal', { action });
 			break;
 	}
 }
