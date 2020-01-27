@@ -284,10 +284,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if device_config_name != None:
             receiver_type = self.ext_settings.get_string('receiver-type')
             if receiver_type == 'chromecast':
-                self.post_soup_data('config', { "chromecastName": device_config_name })
+                self.post_soup_data('config', { "chromecastName": device_config_name }, False)
                 self.ext_settings.set_string('chromecast-name', device_config_name)
             elif receiver_type == 'playercast':
-                self.post_soup_data('config', { "playercastName": device_config_name })
+                self.post_soup_data('config', { "playercastName": device_config_name }, False)
                 self.ext_settings.set_string('playercast-name', device_config_name)
 
         # Playlist must be updated before selection file

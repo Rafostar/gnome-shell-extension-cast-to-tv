@@ -68,6 +68,16 @@ exports.handleRemoteSignal = function(action, value)
 
 exports.updateConfig = function(contents)
 {
+	/* Ignore posting same receiver name (nautilus fix) */
+	if(Object.keys(contents).length === 1)
+	{
+		for(var recName of ['chromecastName', 'playercastName'])
+		{
+			if(contents[recName] && contents[recName] === exports.config[recName])
+				return;
+		}
+	}
+
 	debug(`New config contents: ${JSON.stringify(contents)}`);
 
 	if(contents.listeningPort && contents.listeningPort !== exports.config.listeningPort)
