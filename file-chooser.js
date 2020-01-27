@@ -78,7 +78,7 @@ class fileChooser
 
 		this.comboBoxConvert = new Gtk.ComboBoxText({ margin_right: 8 });
 		this.comboBoxConvert.append('video', _("Video"));
-		//this.comboBoxConvert.append('audio', _("Audio"));
+		this.comboBoxConvert.append('audio', _("Audio"));
 		this.comboBoxConvert.append('video+audio', _("Video + Audio"));
 		this.comboBoxConvert.set_active(0);
 		this.comboBoxConvert.set_sensitive(false);
@@ -201,8 +201,11 @@ class fileChooser
 
 	_getEncodeTypeString(config)
 	{
-		if(this.comboBoxConvert && this.comboBoxConvert.active_id !== 'audio')
+		if(this.comboBoxConvert)
 		{
+			if(this.comboBoxConvert.active_id === 'audio')
+				return '_AUDIOENC';
+
 			switch(config.videoAcceleration)
 			{
 				case 'vaapi':

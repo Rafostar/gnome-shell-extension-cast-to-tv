@@ -162,15 +162,15 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             transcode_item.set_submenu(transcode_submenu)
 
             video_only_item = FileManager.MenuItem(name='CastTranscodeMenu::Video', label=_("Video"))
-            video_only_item.connect('activate', self.transcode_files_cb, files, stream_type, False, device_config_name)
+            video_only_item.connect('activate', self.transcode_video_cb, files, stream_type, False, device_config_name)
             transcode_submenu.append_item(video_only_item)
 
-            #audio_only_item = FileManager.MenuItem(name='CastTranscodeMenu::Audio', label=_("Audio"))
-            #audio_only_item.connect('activate', self.cast_files_cb, files, stream_type, True, device_config_name)
-            #transcode_submenu.append_item(audio_only_item)
+            audio_only_item = FileManager.MenuItem(name='CastTranscodeMenu::Audio', label=_("Audio"))
+            audio_only_item.connect('activate', self.transcode_audio_cb, files, stream_type, True, device_config_name)
+            transcode_submenu.append_item(audio_only_item)
 
             video_audio_item = FileManager.MenuItem(name='CastTranscodeMenu::Video+Audio', label=_("Video + Audio"))
-            video_audio_item.connect('activate', self.transcode_files_cb, files, stream_type, True, device_config_name)
+            video_audio_item.connect('activate', self.transcode_video_cb, files, stream_type, True, device_config_name)
             transcode_submenu.append_item(video_audio_item)
 
             cast_submenu.append_item(transcode_item)
@@ -312,7 +312,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         else:
             self.cast_files_cb(menu, files, stream_type, is_transcode_audio, None)
 
-    def transcode_files_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
+    def transcode_video_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
         video_acceleration = self.ext_settings.get_string('video-acceleration')
         if video_acceleration == 'vaapi':
             stream_type += '_VAAPI'
@@ -321,6 +321,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         else:
             stream_type += '_ENCODE'
 
+        self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
+
+    def transcode_audio_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
+        stream_type += '_AUDIOENC';
         self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
 
     def get_playlist_allowed(self, stream_type):

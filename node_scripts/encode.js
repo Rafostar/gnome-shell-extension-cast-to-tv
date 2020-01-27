@@ -104,6 +104,7 @@ exports.video = function()
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	'-frag_duration', '1000000',
 	'-movflags', '+empty_moov',
+	'-strict', '-2',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -132,6 +133,7 @@ exports.videoVaapi = function()
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	'-frag_duration', '1000000',
 	'-movflags', '+empty_moov',
+	'-strict', '-2',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -171,6 +173,7 @@ exports.videoNvenc = function()
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
 	'-frag_duration', '1000000',
 	'-movflags', '+empty_moov',
+	'-strict', '-2',
 	'-f', 'mp4',
 	'pipe:1'
 	];
@@ -184,6 +187,23 @@ exports.videoNvenc = function()
 			'-vf', 'subtitles=' + getSubsPath(), '-sn'
 		);
 	}
+
+	return createEncodeProcess(encodeOpts);
+}
+
+exports.audio = function()
+{
+	var encodeOpts = [
+	'-i', bridge.selection.filePath,
+	'-c:v', 'copy',
+	'-c:a', ...getAudioOptsArray(),
+	'-metadata', 'title=Cast to TV - Audio Encoded Stream',
+	'-frag_duration', '1000000',
+	'-movflags', '+empty_moov',
+	'-strict', '-2',
+	'-f', 'mp4',
+	'pipe:1'
+	];
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -224,6 +244,7 @@ exports.musicVisualizer = function()
 	'-metadata', 'title=Cast to TV - Music Visualizer',
 	'-frag_duration', '1000000',
 	'-movflags', '+empty_moov',
+	'-strict', '-2',
 	'-f', 'mp4',
 	'pipe:1'
 	];

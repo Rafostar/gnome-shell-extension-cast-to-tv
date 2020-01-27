@@ -70,6 +70,9 @@ exports.encodedStream = function(req, res)
 			case 'MUSIC':
 				encode.musicVisualizer().pipe(res);
 				break;
+			case 'VIDEO_AUDIOENC':
+				encode.audio().pipe(res);
+				break;
 			default:
 				encode.video().pipe(res);
 				break;
