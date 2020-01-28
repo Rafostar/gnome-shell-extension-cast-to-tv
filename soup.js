@@ -1,4 +1,4 @@
-const { GLib, Soup } = imports.gi;
+const { Soup } = imports.gi;
 const noop = () => {};
 
 var server = null;
@@ -12,6 +12,7 @@ class SoupServer extends Soup.Server
 
 		this.usedPort = null;
 		this.isConnected = false;
+		this.doneCleanup = false;
 
 		this.setPort = (port, cb) =>
 		{
@@ -23,12 +24,12 @@ class SoupServer extends Soup.Server
 
 			if(this.isConnected)
 			{
-				server.disconnect();
+				this.disconnect();
 				this.isConnected = false;
 			}
 
 			try {
-				server.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY);
+				this.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY);
 
 				this.usedPort = port;
 				this.isConnected = true;
@@ -52,6 +53,40 @@ class SoupServer extends Soup.Server
 
 			return result;
 		}
+
+		this.onPlaybackData = (cb) =>
+		{
+			this.add_handler('/temp/data', (self, msg) =>
+			{
+				cb(this.parseMessage(msg));
+			});
+		}
+
+		this.onPlaybackStatus = (cb) =>
+		{
+			this.add_handler('/temp/status', (self, msg) =>
+			{
+				cb(this.parseMessage(msg));
+			});
+		}
+
+		this._onDefaultAccess = (self, msg) =>
+		{
+			msg.status_code = 404;
+		}
+
+		this.closeCleanup = () =>
+		{
+			if(this.doneCleanup) return;
+
+			this.remove_handler('/temp/data');
+			this.remove_handler('/temp/status');
+			this.remove_handler(null);
+
+			this.doneCleanup = true;
+		}
+
+		this.add_handler(null, this._onDefaultAccess);
 	}
 }
 
@@ -62,7 +97,6 @@ class SoupClient extends Soup.Session
 		super({ timeout: 3 });
 
 		this.usedPort = (port > 0) ? parseInt(port) : null;
-		this.loop = GLib.MainLoop.new(null, false);
 
 		this.setPort = (port) =>
 		{
@@ -99,13 +133,21 @@ class SoupClient extends Soup.Session
 		{
 			let result = null;
 
-			this._getRequest(type, (data) =>
-			{
-				result = data;
-				this.loop.quit();
-			});
+			let message = Soup.Message.new('GET',
+				'http://127.0.0.1:' + this.usedPort + '/temp/' + type
+			);
 
-			this.loop.run();
+			this.send_message(message);
+
+			if(
+				typeof message === 'object'
+				&& message.response_body
+				&& typeof message.response_body === 'object'
+				&& message.response_body.data
+			) {
+				try { result = JSON.parse(message.response_body.data); }
+				catch(err) {}
+			}
 
 			return result;
 		}
@@ -183,6 +225,17 @@ class SoupClient extends Soup.Session
 			return this._getRequestSync('playlist');
 		}
 
+		this.getPlaybackData = (cb) =>
+		{
+			cb = cb || noop;
+			this._getRequest('playback-data', cb);
+		}
+
+		this.getPlaybackDataSync = () =>
+		{
+			return this._getRequestSync('playback-data');
+		}
+
 		this.getPlayercasts = (cb) =>
 		{
 			cb = cb || noop;
@@ -257,6 +310,7 @@ function closeServer()
 {
 	if(!server) return;
 
+	server.closeCleanup();
 	server.disconnect();
 	server = null;
 }

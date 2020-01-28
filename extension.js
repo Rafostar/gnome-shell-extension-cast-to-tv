@@ -18,113 +18,117 @@ const _ = Gettext.gettext;
 
 let castMenu;
 let remoteMenu;
-let configContents;
+let config;
 let serviceStarted;
 let signals;
 let serviceSignal;
 
-function configCastRemote()
+function refreshRemote(playbackData)
 {
+	let isShown = (playbackData) ? playbackData.isPlaying : false;
+
+	remoteMenu.playlist.remoteActive = isShown;
+
 	/* Change remote label */
-	switch(configContents.receiverType)
+	switch(config.receiverType)
 	{
 		case 'playercast':
-			/* TRANSLATORS: "Playercast" is a name of an app, so do not change it */
-			remoteMenu.toplabel.text = _("Playercast Remote");
+			remoteMenu.toplabel.text = "Playercast";
 			break;
 		case 'other':
-			/* TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter */
-			remoteMenu.toplabel.text = _("Web Player Remote");
+			/* TRANSLATORS: Can be translated as "Browser" if it makes it shorter */
+			remoteMenu.toplabel.text = _("Web Player");
 			break;
 		default:
-			remoteMenu.toplabel.text = _("Chromecast Remote");
+			remoteMenu.toplabel.text = _("Chromecast");
 			break;
 	}
-
-	let chromecastPlaying = Settings.get_boolean('chromecast-playing');
-	remoteMenu.playlist.remoteActive = chromecastPlaying;
 
 	let isActor = (remoteMenu.hasOwnProperty('actor'));
 
-	if(chromecastPlaying)
+	if(!isShown)
 	{
-		/* Update selection and list data (needed for skipping tracks) */
-		getPlaybackData((selection, playlist) =>
-		{
-			let trackID;
-
-			if(selection && playlist)
-				trackID = playlist.indexOf(selection.filePath) + 1;
-			else
-				return;
-
-			/* List items are counted from 1 */
-			let listLastID = playlist.length;
-
-			/* Disable skip backward if playing first file from list */
-			if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
-			else remoteMenu.skipBackwardButton.reactive = false;
-
-			/* Disable skip forward if playing last file from list */
-			if(trackID < listLastID) remoteMenu.skipForwardButton.reactive = true;
-			else remoteMenu.skipForwardButton.reactive = false;
-
-			/* Update track title */
-			if(selection.title)
-				remoteMenu.trackTitle.setText(selection.title);
-			else
-			{
-				let filename = selection.filePath.substring(
-					selection.filePath.lastIndexOf('/') + 1);
-
-				let title = (filename.includes('.')) ?
-					filename.split('.').slice(0, -1).join('.') : filename;
-
-				if(title) remoteMenu.trackTitle.setText(title);
-				else remoteMenu.trackTitle.setText("");
-			}
-
-			/* Update widget playlist */
-			remoteMenu.playlist.loadPlaylist(playlist, selection.filePath);
-
-			/* Choose remote to create */
-			switch(selection.streamType)
-			{
-				case 'VIDEO':
-					remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
-					break;
-				case 'MUSIC':
-					if(!configContents.musicVisualizer)
-						remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
-					else
-						remoteMenu.setMode('ENCODE');
-					break;
-				case 'PICTURE':
-					remoteMenu.setMode('PICTURE');
-					break;
-				case 'LIVE':
-					remoteMenu.setMode('LIVE');
-					break;
-				default:
-					remoteMenu.setMode('ENCODE');
-					break;
-			}
-
-			/* Set slider icon */
-			if(remoteMenu.positionSlider.isVolume)
-				remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.volumeIcon);
-			else
-				remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
-
-			if(isActor) remoteMenu.actor.show();
-			else remoteMenu.show();
-		});
+		if(isActor)
+			return remoteMenu.actor.hide();
+		else
+			return remoteMenu.hide();
 	}
+
+	if(
+		!playbackData
+		|| !playbackData.selection
+		|| !playbackData.playlist
+	)
+		return;
+
+	let selection = playbackData.selection;
+	let playlist = playbackData.playlist;
+
+	/* Current track number in playlist */
+	let trackID = playlist.indexOf(selection.filePath) + 1;
+
+	/* List items are counted from 1 */
+	let listLastID = playlist.length;
+
+	/* Disable skip backward if playing first file from list */
+	if(trackID > 1) remoteMenu.skipBackwardButton.reactive = true;
+	else remoteMenu.skipBackwardButton.reactive = false;
+
+	/* Disable skip forward if playing last file from list */
+	if(trackID < listLastID) remoteMenu.skipForwardButton.reactive = true;
+	else remoteMenu.skipForwardButton.reactive = false;
+
+	/* Update track title */
+	if(selection.title)
+		remoteMenu.trackTitle.setText(selection.title);
 	else
 	{
-		if(isActor) remoteMenu.actor.hide();
-		else remoteMenu.hide();
+		let filename = selection.filePath.substring(
+			selection.filePath.lastIndexOf('/') + 1);
+
+		let title = (filename.includes('.')) ?
+			filename.split('.').slice(0, -1).join('.') : filename;
+
+		if(title) remoteMenu.trackTitle.setText(title);
+		else remoteMenu.trackTitle.setText("");
 	}
+
+	/* Update widget playlist */
+	remoteMenu.playlist.loadPlaylist(playlist, selection.filePath);
+
+	/* Choose remote to create */
+	switch(selection.streamType)
+	{
+		case 'VIDEO':
+			remoteMenu.setMode('DIRECT', 'folder-videos-symbolic');
+			break;
+		case 'MUSIC':
+			if(!config.musicVisualizer)
+				remoteMenu.setMode('DIRECT', 'folder-music-symbolic');
+			else
+				remoteMenu.setMode('ENCODE');
+			break;
+		case 'PICTURE':
+			remoteMenu.setMode('PICTURE');
+			break;
+		case 'LIVE':
+			remoteMenu.setMode('LIVE');
+			break;
+		default:
+			remoteMenu.setMode('ENCODE');
+			break;
+	}
+
+	/* Set slider icon */
+	if(remoteMenu.positionSlider.isVolume)
+		remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.volumeIcon);
+	else
+		remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
+
+	if(isActor)
+		remoteMenu.actor.show();
+	else
+		remoteMenu.show();
 }
 
 function setRemotePosition()
@@ -150,22 +154,8 @@ function setRemotePosition()
 
 	/* Place remote on top bar */
 	Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, itemIndex, remotePosition);
-	configCastRemote();
-}
 
-function getPlaybackData(cb)
-{
-	Soup.client.getPlaylist(playlist =>
-	{
-		if(!playlist) return cb(null, null);
-
-		Soup.client.getSelection(selection =>
-		{
-			if(!selection) return cb(null, playlist);
-
-			cb(selection, playlist);
-		});
-	});
+	Soup.client.getPlaybackData(refreshRemote);
 }
 
 function updateTempConfig(schemaKey, valueType)
@@ -187,7 +177,7 @@ function updateTempConfig(schemaKey, valueType)
 				return Settings.set_int('listening-port', postData[confKey]);
 			}
 
-			configContents[confKey] = postData[confKey];
+			config[confKey] = postData[confKey];
 			Soup.client.postConfig(postData, () => Soup.client.setPort(postData[confKey]));
 			break;
 		case 'internalPort':
@@ -205,7 +195,7 @@ function updateTempConfig(schemaKey, valueType)
 
 				if(postData[confKey] === usedPort)
 				{
-					configContents[confKey] = postData[confKey];
+					config[confKey] = postData[confKey];
 					Soup.client.postConfig(postData);
 				}
 				else
@@ -220,7 +210,7 @@ function updateTempConfig(schemaKey, valueType)
 			else if(confKey === 'ffprobePath' && !postData[confKey])
 				postData[confKey] = '/usr/bin/ffprobe';
 
-			configContents[confKey] = postData[confKey];
+			config[confKey] = postData[confKey];
 			Soup.client.postConfig(postData);
 			break;
 	}
@@ -313,7 +303,7 @@ function enable()
 	Temp.createTempDir();
 
 	/* Get config object */
-	if(!configContents) configContents = Temp.getConfig();
+	if(!config) config = Temp.getConfig();
 
 	/* Get remaining necessary settings */
 	Widget.seekTime = Settings.get_int('seek-time');
@@ -338,6 +328,8 @@ function enable()
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
 	remoteMenu = new Widget.remoteMenu();
+
+	Soup.server.onPlaybackData(refreshRemote);
 
 	/* Set initial remote label visibility */
 	changeLabelVisibility();
@@ -370,7 +362,6 @@ function enable()
 	signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
 	signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
 	signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
-	signals.push(Settings.connect('changed::chromecast-playing', configCastRemote.bind(this)));
 	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
@@ -405,6 +396,9 @@ function disable()
 	/* Disconnect other signals */
 	castMenu.serviceMenuItem.disconnect(serviceSignal);
 	serviceSignal = null;
+
+	/* Remove added server handlers */
+	Soup.server.closeCleanup();
 
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)

@@ -303,31 +303,33 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.updateRemote = (statusContents) =>
+		this.updateRemote = (status) =>
 		{
+			if(!status) return;
+
 			if(
-				statusContents.hasOwnProperty('repeat')
-				&& this.repeatButton.turnedOn !== statusContents.repeat
+				status.hasOwnProperty('repeat')
+				&& this.repeatButton.turnedOn !== status.repeat
 			) {
-				this.repeatButton.turnOn(statusContents.repeat);
+				this.repeatButton.turnOn(status.repeat);
 			}
 
 			if(
 				this.mode === 'PICTURE'
-				&& statusContents.hasOwnProperty('slideshow')
-				&& this.slideshowButton.turnedOn !== statusContents.slideshow
+				&& status.hasOwnProperty('slideshow')
+				&& this.slideshowButton.turnedOn !== status.slideshow
 			) {
-				this.slideshowButton.turnOn(statusContents.slideshow);
-				this.repeatButton.reactive = statusContents.slideshow;
+				this.slideshowButton.turnOn(status.slideshow);
+				this.repeatButton.reactive = status.slideshow;
 			}
 
 			if(this.mode === 'PICTURE') return;
 
-			if(statusContents.mediaDuration > 0)
-				this.currentProgress = statusContents.currentTime / statusContents.mediaDuration;
+			if(status.mediaDuration > 0)
+				this.currentProgress = status.currentTime / status.mediaDuration;
 
-			this.currentVolume = statusContents.volume;
-			this.checkPlaying(statusContents);
+			this.currentVolume = status.volume;
+			this.checkPlaying(status);
 
 			if(this.positionSlider.delay > 0)
 				handleSliderDelay('positionSlider');
@@ -335,35 +337,29 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			if(this.volumeSlider.delay > 0)
 				handleSliderDelay('volumeSlider');
 
-			if(statusContents.volume >= 0 && statusContents.volume <= 1)
+			if(status.volume >= 0 && status.volume <= 1)
 				this.setVolumeCheck();
 
 			this.setProgressCheck();
 		}
 
-		Soup.server.connect('request-read', (server, msg) =>
-		{
-			let statusContents = Soup.server.parseMessage(msg);
+		Soup.server.onPlaybackStatus(this.updateRemote);
 
-			if(statusContents)
-				this.updateRemote(statusContents);
-		});
-
-		this.setPlaying = (value) =>
+		this.setPlaying = (isPlaying) =>
 		{
-			if(this.togglePlayButton.isPause !== value)
+			if(this.togglePlayButton.isPause !== isPlaying)
 			{
-				if(value) this.togglePlayButton.setIcon('media-playback-pause-symbolic');
-				else this.togglePlayButton.setIcon('media-playback-start-symbolic');
+				let name = (isPlaying) ? 'pause' : 'start';
 
-				this.togglePlayButton.isPause = value;
+				this.togglePlayButton.setIcon('media-playback-' + name + '-symbolic');
+				this.togglePlayButton.isPause = isPlaying;
 			}
 		}
 
-		this.checkPlaying = (statusContents) =>
+		this.checkPlaying = (status) =>
 		{
-			if(statusContents.playerState == 'PLAYING') this.setPlaying(true);
-			else if(statusContents.playerState == 'PAUSED') this.setPlaying(false);
+			if(status.playerState == 'PLAYING') this.setPlaying(true);
+			else if(status.playerState == 'PAUSED') this.setPlaying(false);
 		}
 
 		this.setProgressCheck = () =>
@@ -470,6 +466,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.destroy = () =>
 		{
 			this.playlist.destroy();
+			Soup.server.remove_handler('/tmp/status');
 
 			super.destroy();
 		}
