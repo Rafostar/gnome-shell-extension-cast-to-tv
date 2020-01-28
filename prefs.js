@@ -279,11 +279,31 @@ class RemoteSettings extends Gtk.Grid
 
 		/* Remote Label */
 		label = new SettingLabel(_("Show remote label"));
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('remote-label'));
-		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		addToGrid(this, label, widget);
+		this.remoteSwitch = new Gtk.Switch({halign:Gtk.Align.END});
+		this.remoteSwitch.set_sensitive(true);
+		this.remoteSwitch.set_active(Settings.get_boolean('remote-label'));
+		Settings.bind('remote-label', this.remoteSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, this.remoteSwitch);
+
+		/* Remote Label */
+		label = new SettingLabel(_("Receiver name as label"));
+		this.nameSwitch = new Gtk.Switch({halign:Gtk.Align.END});
+		this.nameSwitch.set_sensitive(true);
+		this.nameSwitch.set_active(Settings.get_boolean('remote-label-fn'));
+		Settings.bind('remote-label-fn', this.nameSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, this.nameSwitch);
+
+		this.remoteSwitchSignal = this.remoteSwitch.connect('notify::active', () =>
+		{
+			this.nameSwitch.set_sensitive(this.remoteSwitch.active);
+		});
+
+		this.destroy = () =>
+		{
+			this.remoteSwitch.disconnect(this.remoteSwitchSignal);
+
+			super.destroy();
+		}
 	}
 }
 
