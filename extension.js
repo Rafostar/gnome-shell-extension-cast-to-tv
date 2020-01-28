@@ -241,8 +241,10 @@ function changeLabelVisibility()
 {
 	let showLabel = Settings.get_boolean('remote-label');
 
-	if(showLabel) remoteMenu.toplabel.show();
-	else remoteMenu.toplabel.hide();
+	if(showLabel)
+		remoteMenu.toplabel.show();
+	else
+		remoteMenu.toplabel.hide();
 }
 
 function recreateRemote()
@@ -267,8 +269,10 @@ function changeServiceEnabled()
 
 function enableService(enable)
 {
-	if(enable) Helper.startApp(Local.path, 'server-monitor');
-	else Helper.closeOtherApps(Local.path, true);
+	if(enable)
+		Helper.startApp(Local.path, 'server-monitor');
+	else
+		Helper.closeOtherApps(Local.path, true);
 }
 
 function setIndicator(enable)
@@ -409,6 +413,7 @@ function disable()
 
 		enableService(false);
 		serviceStarted = false;
+		config = null;
 	}
 
 	/* Remove top bar indicator */
