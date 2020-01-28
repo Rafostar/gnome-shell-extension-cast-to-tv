@@ -1,14 +1,15 @@
 const { Gio, GLib } = imports.gi;
-const ByteArray = imports.byteArray;
 const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
 
 const EXTENSION_NAME = 'cast-to-tv@rafostar.github.com';
 const LOCAL_PATH = GLib.get_current_dir();
 
 imports.searchPath.unshift(LOCAL_PATH);
-const CastSettings = imports.helper.getSettings(LOCAL_PATH);
+const Helper = imports.helper;
 const Soup = imports.soup;
 imports.searchPath.shift();
+
+const CastSettings = Helper.getSettings(LOCAL_PATH);
 
 let statusTimer;
 let restartCount = 0;
@@ -177,34 +178,10 @@ class ServerMonitor
 
 	_getDependencies(readPath)
 	{
-		let packagePath = readPath + '/package.json';
+		let data = Helper.readFromFile(readPath + '/package.json');
 
-		let fileExists = GLib.file_test(packagePath, GLib.FileTest.EXISTS);
-		if(fileExists)
-		{
-			let [readOk, readFile] = GLib.file_get_contents(packagePath);
-
-			if(readOk)
-			{
-				let data;
-
-				if(readFile instanceof Uint8Array)
-				{
-					try{ data = JSON.parse(ByteArray.toString(readFile)); }
-					catch(e){ data = null; }
-				}
-				else
-				{
-					try{ data = JSON.parse(readFile); }
-					catch(e){ data = null; }
-				}
-
-				if(data)
-				{
-					return data.dependencies;
-				}
-			}
-		}
+		if(data && data.dependencies)
+			return data.dependencies;
 
 		print('Cast to TV: could not read npm dependencies!');
 		return null;
