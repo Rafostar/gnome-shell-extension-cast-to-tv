@@ -36,11 +36,11 @@ function refreshRemote(playbackData)
 			remoteMenu.toplabel.text = "Playercast";
 			break;
 		case 'other':
-			/* TRANSLATORS: Can be translated as "Browser" if it makes it shorter */
-			remoteMenu.toplabel.text = _("Web Player");
+			/* TRANSLATORS: Web browser label for top bar remote */
+			remoteMenu.toplabel.text = _("Browser");
 			break;
 		default:
-			remoteMenu.toplabel.text = _("Chromecast");
+			remoteMenu.toplabel.text = "Chromecast";
 			break;
 	}
 
