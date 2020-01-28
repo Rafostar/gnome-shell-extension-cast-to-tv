@@ -7,6 +7,7 @@ const LOCAL_PATH = GLib.get_current_dir();
 
 imports.searchPath.unshift(LOCAL_PATH);
 const CastSettings = imports.helper.getSettings(LOCAL_PATH);
+const Soup = imports.soup;
 imports.searchPath.shift();
 
 let statusTimer;
@@ -45,7 +46,7 @@ class ServerMonitor
 			return;
 		}
 
-		let proc = Gio.Subprocess.new([nodePath, LOCAL_PATH + '/node_scripts/server'], Gio.SubprocessFlags.NONE);
+		let proc = Gio.Subprocess.new([nodePath, `${LOCAL_PATH}/node_scripts/server`], Gio.SubprocessFlags.NONE);
 		print('Cast to TV: service started');
 
 		proc.wait_async(null, () =>
@@ -108,14 +109,11 @@ class ServerMonitor
 
 	_isServerRunning()
 	{
-		let [res, out_fd] = GLib.spawn_command_line_sync('pgrep -a node');
-		let outStr;
+		if(!Soup.client)
+			Soup.createClient(CastSettings.get_int('listening-port'));
 
-		if(out_fd instanceof Uint8Array) outStr = ByteArray.toString(out_fd);
-		else outStr = out_fd.toString();
-
-		if(res && outStr.includes(EXTENSION_NAME) && outStr.includes('server')) return true;
-		else return false;
+		let selection = Soup.client.getSelectionSync();
+		return (selection) ? true : false;
 	}
 
 	_checkModules(sourceDir)
