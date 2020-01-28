@@ -102,7 +102,7 @@ function handleMessages(socket)
 		}
 	});
 
-	socket.on('status-update', msg => bridge.sendStatus(msg));
+	socket.on('status-update', bridge.setGnomeStatus);
 	socket.on('show-remote', msg =>
 	{
 		if(msg) controller.setSlideshow();
@@ -112,7 +112,7 @@ function handleMessages(socket)
 			controller.slideshow = false;
 		}
 
-		gnome.showRemote(msg)
+		bridge.setGnomeRemote(msg)
 	});
 
 	socket.on('disconnect', msg =>
@@ -163,7 +163,7 @@ function initWebPlayer()
 	websocket.emit('webplayer-init', webData);
 
 	if(!gnome.isRemote())
-		gnome.showRemote(true);
+		bridge.setGnomeRemote(true);
 }
 
 function checkClients()
@@ -179,7 +179,7 @@ function checkClients()
 		{
 			controller.clearSlideshow();
 			controller.slideshow = false;
-			gnome.showRemote(false);
+			bridge.setGnomeRemote(false);
 		}
 	}, 2500);
 }

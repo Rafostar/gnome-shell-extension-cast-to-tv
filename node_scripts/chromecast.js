@@ -55,7 +55,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.playerState = 'PLAYING';
-					bridge.sendStatus(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -66,7 +66,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.playerState = 'PAUSED';
-					bridge.sendStatus(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -78,7 +78,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.currentTime = position;
-					bridge.sendStatus(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -92,7 +92,7 @@ exports.remote = function(action, value)
 					if(!err)
 					{
 						playerStatus.currentTime = position;
-						bridge.sendStatus(playerStatus);
+						bridge.setGnomeStatus(playerStatus);
 					}
 					unsetBusy();
 				});
@@ -106,7 +106,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.currentTime = position;
-					bridge.sendStatus(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -114,7 +114,7 @@ exports.remote = function(action, value)
 		case 'SKIP+':
 		case 'SKIP-':
 			playerStatus.currentTime = 0;
-			bridge.sendStatus(playerStatus);
+			bridge.setGnomeStatus(playerStatus);
 			return closeCast(action);
 			break;
 		case 'REPEAT':
@@ -139,7 +139,7 @@ exports.remote = function(action, value)
 				{
 					playerVolume = volume.level;
 					playerStatus.volume = playerVolume;
-					bridge.sendStatus(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -411,7 +411,7 @@ function startPlayback(mimeType)
 					debug('Playback started');
 					startCastInterval();
 					/* Show on refresh is handled in bridge.js */
-					if(!gnome.isRemote()) gnome.showRemote(true);
+					if(!gnome.isRemote()) bridge.setGnomeRemote(true);
 				}
 				else
 				{
@@ -447,7 +447,7 @@ function startPlayback(mimeType)
 		startCastInterval();
 
 		/* Show on refresh is handled in bridge.js */
-		if(!gnome.isRemote()) gnome.showRemote(true);
+		if(!gnome.isRemote()) bridge.setGnomeRemote(true);
 	}
 }
 
@@ -493,7 +493,7 @@ function handleChromecastStatus(status)
 	}
 
 	if(!remoteBusy)
-		bridge.sendStatus(playerStatus);
+		bridge.setGnomeStatus(playerStatus);
 }
 
 function showIdleError()
@@ -558,7 +558,7 @@ function closeCast(action)
 		if(!err) debug('Session closed');
 		else debug('Could not close session!');
 
-		gnome.showRemote(false);
+		bridge.setGnomeRemote(false);
 		debug('Cast finished!');
 	});
 }
@@ -573,6 +573,6 @@ function finishCast()
 	/* 'close' listener is auto removed as it is a 'once' event performed here */
 	chromecast._player.removeListener('status', handleChromecastStatus);
 
-	gnome.showRemote(false);
+	bridge.setGnomeRemote(false);
 	debug('Cast finished due to close event!');
 }

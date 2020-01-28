@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 const debug = require('debug')('gnome');
+const sender = require('./sender');
 const noop = () => {};
 
 var schemaName = 'org.gnome.shell.extensions.cast-to-tv';
@@ -56,10 +57,19 @@ var gnome =
 		return JSON.parse(value);
 	},
 
-	showRemote: function(enable, cb)
+	showRemote: function(enable, playbackData, cb)
 	{
+		var data = { isPlaying: enable };
+
+		if(playbackData)
+			data = { ...playbackData, ...data };
+
+		sender.sendPlaybackData(data, cb);
+
+		if(isRemoteVisible !== enable)
+			this.setSetting('chromecast-playing', enable);
+
 		isRemoteVisible = enable;
-		this.setSetting('chromecast-playing', enable, cb);
 	},
 
 	showMenu: function(enable, cb)

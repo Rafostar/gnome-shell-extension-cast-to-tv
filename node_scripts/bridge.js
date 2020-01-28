@@ -39,7 +39,7 @@ exports.mediaData = {
 sender.configure(exports.config.internalPort);
 gnome.showMenu(true);
 
-exports.sendStatus = function(status)
+exports.setGnomeStatus = function(status)
 {
 	exports.status = {
 		playerState: status.playerState,
@@ -50,7 +50,26 @@ exports.sendStatus = function(status)
 		slideshow: controller.slideshow
 	};
 
-	sender.send(exports.status);
+	sender.sendPlaybackStatus(exports.status);
+}
+
+exports.setGnomeRemote = function(isShow, cb)
+{
+	if(!isShow)
+		return gnome.showRemote(false, null, cb);
+
+	gnome.showRemote(true, exports.getPlaybackData(), cb);
+}
+
+exports.getPlaybackData = function()
+{
+	var playbackData = {
+		isPlaying: gnome.isRemote(),
+		selection: exports.selection,
+		playlist: exports.playlist
+	};
+
+	return playbackData;
 }
 
 exports.handleRemoteSignal = function(action, value)
@@ -126,7 +145,7 @@ exports.updatePlaylist = function(playlist, append)
 		debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
 
 		/* Update remote widget with new playlist items */
-		if(gnome.isRemote()) gnome.showRemote(true);
+		if(gnome.isRemote()) exports.setGnomeRemote(true);
 	}
 	else
 		debug('Received playlist is not an array');
@@ -168,7 +187,7 @@ function onSelectionUpdate()
 	}
 
 	/* Refresh already visible remote widget to mark new playing item */
-	if(gnome.isRemote()) gnome.showRemote(true);
+	if(gnome.isRemote()) exports.setGnomeRemote(true);
 
 	/* Close addon before selecting a new one */
 	closeAddon(exports.selection, exports.config);
@@ -593,7 +612,6 @@ function shutDown(err)
 	controller.clearSlideshow();
 
 	debug('Closing node server');
-	sender.stop();
 	closeAddon();
 
 	var finish = () =>
@@ -609,18 +627,16 @@ function shutDown(err)
 
 	if(gnome.isRemote())
 	{
-		gnome.showRemote(false);
+		exports.setGnomeRemote(false);
+		sender.stop();
 		exports.handleRemoteSignal('STOP');
 
-		setTimeout(() =>
-		{
-			/* Remote might be reshown before timeout executes */
-			gnome.showRemote(false);
-			finish();
-		}, 3000);
+		/* Give receiver time to stop playback */
+		setTimeout(() => finish(), 3000);
 	}
 	else
 	{
+		sender.stop();
 		finish();
 	}
 }

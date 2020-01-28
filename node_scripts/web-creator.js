@@ -197,6 +197,9 @@ exports.getTemp = function(type, req, res)
 		case 'playercasts':
 			res.send(socket.playercasts);
 			break;
+		case 'playback-data':
+			res.send(bridge.getPlaybackData());
+			break;
 		default:
 			res.sendStatus(404);
 			break;
