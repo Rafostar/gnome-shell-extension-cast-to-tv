@@ -16,9 +16,6 @@ const ICON_NAME = 'tv-symbolic';
 const MIN_DELAY = 3;
 const MAX_DELAY = 5;
 
-var isUnifiedSlider = true;
-var seekTime = 10;
-
 var statusIcon = new St.Icon({ icon_name: ICON_NAME, style_class: 'system-status-icon' });
 
 var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
@@ -127,6 +124,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 	{
 		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
+		this.seekTime = 10;
+		this.isUnifiedSlider = true;
+		this.useFriendlyName = false;
+		this.chromecastData = { name: "", friendlyName: "Chromecast" };
+		this.playercastName = "Playercast";
 		this.currentProgress = 0;
 		this.currentVolume = 1;
 
@@ -153,7 +155,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider, false);
+		this.positionSlider = new SliderItem('folder-videos-symbolic', this.isUnifiedSlider, false);
 		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false, true);
 		this.togglePlayButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
@@ -249,7 +251,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this[sliderName]._slider.connect('drag-end', this.sliderAction.bind(this, sliderName))
 			);
 
-			if(isUnifiedSlider && sliderName === 'positionSlider')
+			if(this.isUnifiedSlider && sliderName === 'positionSlider')
 			{
 				this[sliderName].button._signalIds.push(
 					this[sliderName].button.connect('clicked', this.sliderButtonAction.bind(this))
@@ -281,10 +283,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			})
 		);
 		this.seekForwardButton._signalIds.push(
-			this.seekForwardButton.connect('clicked', () => Soup.client.postRemote('SEEK+', seekTime))
+			this.seekForwardButton.connect('clicked', () => Soup.client.postRemote('SEEK+', this.seekTime))
 		);
 		this.seekBackwardButton._signalIds.push(
-			this.seekBackwardButton.connect('clicked', () => Soup.client.postRemote('SEEK-', seekTime))
+			this.seekBackwardButton.connect('clicked', () => Soup.client.postRemote('SEEK-', this.seekTime))
 		);
 		this.stopButton._signalIds.push(
 			this.stopButton.connect('clicked', () => Soup.client.postRemote('STOP'))
@@ -301,6 +303,30 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this[sliderName].delay--;
 			if(!this[sliderName].busy && this[sliderName].delay === MIN_DELAY)
 				this.sliderAction(sliderName);
+		}
+
+		this.updateLabel = (receiverType) =>
+		{
+			/* Change remote label */
+			switch(receiverType)
+			{
+				case 'playercast':
+					if(this.useFriendlyName)
+						this.toplabel.text = this.playercastName;
+					else
+						this.toplabel.text = "Playercast";
+					break;
+				case 'other':
+					/* TRANSLATORS: Web browser label for top bar remote */
+					this.toplabel.text = _("Browser");
+					break;
+				default:
+					if(this.useFriendlyName)
+						this.toplabel.text = this.chromecastData.friendlyName;
+					else
+						this.toplabel.text = "Chromecast";
+					break;
+			}
 		}
 
 		this.updateRemote = (status) =>
@@ -406,7 +432,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				case 'DIRECT':
 					shownItems = ['positionSlider', 'repeatButton', 'togglePlayButton',
 						'seekBackwardButton', 'seekForwardButton'];
-					if(!isUnifiedSlider) shownItems.push('volumeSlider');
+					if(!this.isUnifiedSlider) shownItems.push('volumeSlider');
 					break;
 				case 'ENCODE':
 					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];

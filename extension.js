@@ -26,25 +26,8 @@ let serviceSignal;
 function refreshRemote(playbackData)
 {
 	let isShown = (playbackData) ? playbackData.isPlaying : false;
-
-	remoteMenu.playlist.remoteActive = isShown;
-
-	/* Change remote label */
-	switch(config.receiverType)
-	{
-		case 'playercast':
-			remoteMenu.toplabel.text = "Playercast";
-			break;
-		case 'other':
-			/* TRANSLATORS: Web browser label for top bar remote */
-			remoteMenu.toplabel.text = _("Browser");
-			break;
-		default:
-			remoteMenu.toplabel.text = "Chromecast";
-			break;
-	}
-
 	let isActor = (remoteMenu.hasOwnProperty('actor'));
+	remoteMenu.playlist.remoteActive = isShown;
 
 	if(!isShown)
 	{
@@ -60,6 +43,8 @@ function refreshRemote(playbackData)
 		|| !playbackData.playlist
 	)
 		return;
+
+	remoteMenu.updateLabel(config.receiverType);
 
 	let selection = playbackData.selection;
 	let playlist = playbackData.playlist;
@@ -176,7 +161,6 @@ function updateTempConfig(schemaKey, valueType)
 
 				return Settings.set_int('listening-port', postData[confKey]);
 			}
-
 			config[confKey] = postData[confKey];
 			Soup.client.postConfig(postData, () => Soup.client.setPort(postData[confKey]));
 			break;
@@ -188,7 +172,6 @@ function updateTempConfig(schemaKey, valueType)
 
 				return Settings.set_int('internal-port', postData[confKey]);
 			}
-
 			Soup.server.setPort(postData[confKey], (usedPort) =>
 			{
 				if(!usedPort) return;
@@ -201,6 +184,24 @@ function updateTempConfig(schemaKey, valueType)
 				else
 					return Settings.set_int('internal-port', usedPort);
 			});
+			break;
+		case 'chromecastName':
+			config[confKey] = postData[confKey];
+			if(remoteMenu.chromecastData.name !== config[confKey])
+			{
+				updateChromecastName(config[confKey]);
+				remoteMenu.updateLabel(config.receiverType);
+			}
+			Soup.client.postConfig(postData);
+			break;
+		case 'playercastName':
+			config[confKey] = postData[confKey];
+			if(remoteMenu.playercastName !== postData[confKey])
+			{
+				updatePlayercastName();
+				remoteMenu.updateLabel(config.receiverType);
+			}
+			Soup.client.postConfig(postData);
 			break;
 		default:
 			if(valueType === 'double')
@@ -216,9 +217,30 @@ function updateTempConfig(schemaKey, valueType)
 	}
 }
 
+function updateChromecastName(name)
+{
+	name = name || Settings.get_string('chromecast-name');
+	let castDevices = null;
+
+	try { castDevices = JSON.parse(Settings.get_string('chromecast-devices')); }
+	catch(err) { Settings.set_string('chromecast-devices', "[]"); }
+
+	if(!castDevices) return;
+
+	let myDevice = castDevices.find(device => device.name === name);
+
+	if(myDevice)
+		remoteMenu.chromecastData = myDevice;
+}
+
+function updatePlayercastName()
+{
+	remoteMenu.playercastName = Settings.get_string('playercast-name');
+}
+
 function changeSeekTime()
 {
-	Widget.seekTime = Settings.get_int('seek-time');
+	remoteMenu.seekTime = Settings.get_int('seek-time');
 }
 
 function changeMediaButtonsSize()
@@ -233,7 +255,7 @@ function changeSlidersIconSize()
 
 function changeUnifiedSlider()
 {
-	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
+	remoteMenu.isUnifiedSlider = Settings.get_boolean('unified-slider');
 	recreateRemote();
 }
 
@@ -245,6 +267,12 @@ function changeLabelVisibility()
 		remoteMenu.toplabel.show();
 	else
 		remoteMenu.toplabel.hide();
+}
+
+function changeLabelFriendlyName()
+{
+	remoteMenu.useFriendlyName = Settings.get_boolean('remote-label-fn');
+	remoteMenu.updateLabel(config.receiverType);
 }
 
 function recreateRemote()
@@ -310,8 +338,6 @@ function enable()
 	if(!config) config = Temp.getConfig();
 
 	/* Get remaining necessary settings */
-	Widget.seekTime = Settings.get_int('seek-time');
-	Widget.isUnifiedSlider = Settings.get_boolean('unified-slider');
 	let serviceEnabled = Settings.get_boolean('service-enabled');
 	let serviceWanted = Settings.get_boolean('service-wanted');
 	let internalPort = Settings.get_int('internal-port');
@@ -332,6 +358,13 @@ function enable()
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
 	remoteMenu = new Widget.remoteMenu();
+
+	/* Change remote default settings */
+	remoteMenu.seekTime = Settings.get_int('seek-time');
+	remoteMenu.isUnifiedSlider = Settings.get_boolean('unified-slider');
+	remoteMenu.useFriendlyName = Settings.get_boolean('remote-label-fn');
+	updateChromecastName();
+	updatePlayercastName();
 
 	Soup.server.onPlaybackData(refreshRemote);
 
@@ -366,6 +399,7 @@ function enable()
 	signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
 	signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
 	signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
+	signals.push(Settings.connect('changed::remote-label-fn', changeLabelFriendlyName.bind(this)));
 	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */

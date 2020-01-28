@@ -42,6 +42,10 @@
       <default>true</default>
       <summary>Show label next to remote controller</summary>
     </key>
+    <key name="remote-label-fn" type="b">
+      <default>false</default>
+      <summary>Show receiver friendly name as remote controller label</summary>
+    </key>
     <key name="media-buttons-size" type="i">
       <default>20</default>
       <summary>Icon size for widget media control buttons</summary>
