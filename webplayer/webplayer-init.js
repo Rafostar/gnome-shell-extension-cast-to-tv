@@ -1,13 +1,13 @@
 const isMobile = (/Android|iPhone|iPad|iPod|BlackBerry|webOS|IEMobile|Windows Phone/i.test(navigator.userAgent)) ? true : false;
 const player = new Plyr('#player', playerOptions);
-const sessionID = makeID();
-
-var subsKind = 'none';
-var subsSrc = null;
-var posterPath = '/webplayer/images/play.png';
 
 function preparePlayer(msg)
 {
+	var sessionID = makeID();
+	var posterPath = '/webplayer/images/play.png';
+	var subsKind = 'none';
+	var subsSrc = null;
+
 	player.config.i18n = msg.i18n;
 
 	/* Show album cover when playing without visualizations */
@@ -22,12 +22,6 @@ function preparePlayer(msg)
 		subsSrc = '/subswebplayer?session=' + sessionID;
 	}
 
-	setPlyrSource();
-	addClickListeners();
-}
-
-function setPlyrSource()
-{
 	player.source = {
 		type: 'video',
 		title: 'Cast to TV',

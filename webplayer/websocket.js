@@ -21,7 +21,11 @@ if(typeof player !== 'undefined')
 
 	websocket.emit('webplayer', 'webplayer-ask');
 
-	websocket.on('webplayer-init', msg => preparePlayer(msg));
+	websocket.on('webplayer-init', msg =>
+	{
+		preparePlayer(msg);
+		addClickListeners();
+	});
 	player.on('ended', () => websocket.emit('webplayer', 'track-ended'));
 
 	player.on('loadeddata', () =>
