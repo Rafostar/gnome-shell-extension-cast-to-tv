@@ -457,19 +457,17 @@ function disable()
 	castMenu.serviceMenuItem.disconnect(serviceSignal);
 	serviceSignal = null;
 
-	/* Remove added server handlers */
-	Soup.server.closeCleanup();
-
 	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
 	if(!lockingScreen)
 	{
-		/* Close Soup server and client */
-		Soup.closeServer();
-		Soup.closeClient();
-
+		/* Close background service */
 		enableService(false);
 		serviceStarted = false;
 		config = null;
+
+		/* Close Soup server and client */
+		Soup.closeServer();
+		Soup.closeClient();
 	}
 
 	/* Remove top bar indicator */

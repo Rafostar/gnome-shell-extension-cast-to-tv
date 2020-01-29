@@ -90,12 +90,12 @@ class SoupServer extends Soup.Server
 			this.remove_handler('/temp/data');
 			this.remove_handler('/temp/status');
 			this.remove_handler('/temp/browser');
-			this.remove_handler(null);
+			this.remove_handler('/');
 
 			this.doneCleanup = true;
 		}
 
-		this.add_handler(null, this._onDefaultAccess);
+		this.add_handler('/', this._onDefaultAccess);
 	}
 }
 
