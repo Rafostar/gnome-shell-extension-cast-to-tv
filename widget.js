@@ -120,13 +120,13 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor()
+	constructor(seekTime, isUnified, useFn)
 	{
 		super(0.5, "Cast to TV Remote", false);
 		this.mode = 'DIRECT';
-		this.seekTime = 10;
-		this.isUnifiedSlider = true;
-		this.useFriendlyName = false;
+		this.seekTime = seekTime;
+		this.isUnifiedSlider = isUnified;
+		this.useFriendlyName = useFn;
 		this.chromecastData = { name: "", friendlyName: "Chromecast" };
 		this.playercastName = "Playercast";
 		this.currentProgress = 0;
@@ -251,10 +251,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this[sliderName]._slider.connect('drag-end', this.sliderAction.bind(this, sliderName))
 			);
 
-			if(this.isUnifiedSlider && sliderName === 'positionSlider')
+			if(sliderName === 'positionSlider')
 			{
-				this[sliderName].button._signalIds.push(
-					this[sliderName].button.connect('clicked', this.sliderButtonAction.bind(this))
+				this[sliderName]._sliderButton._signalIds.push(
+					this[sliderName]._sliderButton.connect('clicked', this.sliderButtonAction.bind(this))
 				);
 			}
 		}
@@ -489,6 +489,30 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.volumeSlider.setIconSize(size);
 		}
 
+		this.setUnifiedSlider = (value) =>
+		{
+			let isActor = (this.volumeSlider.hasOwnProperty('actor'));
+
+			if(isActor)
+			{
+				if(value) this.volumeSlider.actor.hide();
+				else this.volumeSlider.actor.show();
+			}
+			else
+			{
+				if(value) this.volumeSlider.hide();
+				else this.volumeSlider.show();
+			}
+
+			this.isUnifiedSlider = value;
+			this.positionSlider.setToggle(value);
+
+			if(!value)
+				this.positionSlider.isVolume = false;
+
+			this.refreshSliders();
+		}
+
 		this.destroy = () =>
 		{
 			this.playlist.destroy();
@@ -560,33 +584,35 @@ class SliderItem extends AltPopupBase
 	constructor(icon, toggle, isVolume)
 	{
 		super();
+
 		this.defaultIcon = icon;
 		this.volumeIcon = 'audio-volume-high-symbolic';
-		this._toggle = toggle;
-		this._slider = new Slider.Slider(0);
-
-		this.button = (this._toggle) ?
-			new MediaControlButton(this.defaultIcon, false, 16) :
-			new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
-
 		this.delay = 0;
 		this.busy = false;
 		this.isVolume = isVolume || false;
 
+		this._slider = new Slider.Slider(0);
+		this._sliderIcon = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
+		this._sliderButton = new MediaControlButton(icon, false, 16);
+
 		if(this.hasOwnProperty('actor'))
 		{
-			this.actor.add(this.button);
+			this.actor.add(this._sliderIcon);
+			this.actor.add(this._sliderButton);
 			this.actor.add(this._slider.actor, { expand: true });
 			this.actor.visible = true;
 		}
 		else
 		{
-			this.add(this.button);
+			this.add(this._sliderIcon);
+			this.add(this._sliderButton);
 			this.add(this._slider, { expand: true });
 			this.visible = true;
 		}
 
-		this.button.style = 'margin-right: 2px;';
+		this._sliderIcon.style = 'margin-right: 2px;';
+		this._sliderButton.style = 'margin-right: 2px;';
+		(toggle) ? this._sliderIcon.hide() : this._sliderButton.hide();
 
 		/* Actor signals for backward compatibility */
 		this._actorSignalIds = [];
@@ -615,8 +641,8 @@ class SliderItem extends AltPopupBase
 
 		this.setIconSize = (size) =>
 		{
-			if(this._toggle) this.button.child.icon_size = size;
-			else this.button.icon_size = size;
+			this._sliderButton.child.icon_size = size;
+			this._sliderIcon.icon_size = size;
 		}
 
 		this.getValue = () =>
@@ -634,8 +660,22 @@ class SliderItem extends AltPopupBase
 
 		this.setIcon = (iconName) =>
 		{
-			if(this._toggle) this.button.child.icon_name = iconName;
-			else this.button.icon_name = iconName;
+			this._sliderButton.child.icon_name = iconName;
+			this._sliderIcon.icon_name = iconName;
+		}
+
+		this.setToggle = (value) =>
+		{
+			if(value)
+			{
+				this._sliderIcon.hide();
+				this._sliderButton.show();
+			}
+			else
+			{
+				this._sliderButton.hide();
+				this._sliderIcon.show();
+			}
 		}
 	}
 }

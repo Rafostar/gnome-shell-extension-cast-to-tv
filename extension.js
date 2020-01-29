@@ -255,8 +255,7 @@ function changeSlidersIconSize()
 
 function changeUnifiedSlider()
 {
-	remoteMenu.isUnifiedSlider = Settings.get_boolean('unified-slider');
-	recreateRemote();
+	remoteMenu.setUnifiedSlider(Settings.get_boolean('unified-slider'));
 }
 
 function changeLabelVisibility()
@@ -275,16 +274,25 @@ function changeLabelFriendlyName()
 	remoteMenu.updateLabel(config.receiverType);
 }
 
-function recreateRemote()
+function createRemote()
 {
 	/* Remove previous indicator */
-	remoteMenu.destroy();
-	remoteMenu = new Widget.remoteMenu();
+	if(remoteMenu) remoteMenu.destroy();
+
+	let seekTime = Settings.get_int('seek-time');
+	let isUnified = Settings.get_boolean('unified-slider');
+	let useFn = Settings.get_boolean('remote-label-fn');
+
+	remoteMenu = new Widget.remoteMenu(seekTime, isUnified, useFn);
 
 	/* Restore remote settings */
 	changeLabelVisibility();
 	changeMediaButtonsSize();
 	changeSlidersIconSize();
+	updateChromecastName();
+	updatePlayercastName();
+
+	/* Add remote to top bar */
 	setRemotePosition();
 }
 
@@ -357,23 +365,9 @@ function enable()
 
 	/* Create new objects from classes */
 	castMenu = new Widget.castMenu();
-	remoteMenu = new Widget.remoteMenu();
-
-	/* Change remote default settings */
-	remoteMenu.seekTime = Settings.get_int('seek-time');
-	remoteMenu.isUnifiedSlider = Settings.get_boolean('unified-slider');
-	remoteMenu.useFriendlyName = Settings.get_boolean('remote-label-fn');
-	updateChromecastName();
-	updatePlayercastName();
+	createRemote();
 
 	Soup.server.onPlaybackData(refreshRemote);
-
-	/* Set initial remote label visibility */
-	changeLabelVisibility();
-
-	/* Set initial remote buttons size */
-	changeMediaButtonsSize();
-	changeSlidersIconSize();
 
 	/* Clear signals array */
 	signals = [];
@@ -393,7 +387,7 @@ function enable()
 	signals.push(Settings.connect('changed::extractor-dir', updateTempConfig.bind(this, 'extractor-dir', 'string')));
 	signals.push(Settings.connect('changed::chromecast-name', updateTempConfig.bind(this, 'chromecast-name', 'string')));
 	signals.push(Settings.connect('changed::playercast-name', updateTempConfig.bind(this, 'playercast-name', 'string')));
-	signals.push(Settings.connect('changed::remote-position', recreateRemote.bind(this)));
+	signals.push(Settings.connect('changed::remote-position', createRemote.bind(this)));
 	signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
 	signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
 	signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
@@ -411,9 +405,6 @@ function enable()
 
 	/* Add menu item */
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
-
-	/* Add remote to top bar */
-	setRemotePosition();
 
 	/* Check if service should start */
 	if(!serviceStarted && serviceWanted)
