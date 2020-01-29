@@ -230,7 +230,8 @@ function castFile()
 			chromecast.cast();
 			break;
 		case 'playercast':
-			if(socket.playercasts.length === 0) return;
+			if(socket.playercasts.length === 0)
+				return debug('No playercasts connected');
 
 			/* Temporary workaround for Playercast cover detection */
 			exports.mediaData.coverPath = 'muxed_image';

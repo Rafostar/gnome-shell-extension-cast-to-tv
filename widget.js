@@ -16,6 +16,12 @@ const ICON_NAME = 'tv-symbolic';
 const MIN_DELAY = 3;
 const MAX_DELAY = 5;
 
+var remoteNames = {
+	chromecast: {},
+	playercast: null,
+	browser: null
+};
+
 var statusIcon = new St.Icon({ icon_name: ICON_NAME, style_class: 'system-status-icon' });
 
 var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
@@ -23,6 +29,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 	constructor()
 	{
 		super();
+
 		this.extensionId = Local.metadata['extension-id'];
 		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
 		this.castSubMenu.icon.icon_name = ICON_NAME;
@@ -120,15 +127,12 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor(seekTime, isUnified, useFn)
+	constructor(opts)
 	{
 		super(0.5, "Cast to TV Remote", false);
-		this.mode = 'DIRECT';
-		this.seekTime = seekTime;
-		this.isUnifiedSlider = isUnified;
-		this.useFriendlyName = useFn;
-		this.chromecastData = { name: "", friendlyName: "Chromecast" };
-		this.playercastName = "Playercast";
+
+		this.opts = opts;
+		this.isActor = (this.hasOwnProperty('actor'));
 		this.currentProgress = 0;
 		this.currentVolume = 1;
 
@@ -140,6 +144,8 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.box.add(this.icon);
 		this.box.add(this.toplabel);
 		this.box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
+
+		(this.opts.isLabel) ? this.toplabel.show() : this.toplabel.hide();
 
 		if(this.hasOwnProperty('actor'))
 			this.actor.add_child(this.box);
@@ -155,7 +161,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic', this.isUnifiedSlider, false);
+		this.positionSlider = new SliderItem('folder-videos-symbolic', this.opts.isUnifiedSlider, false);
 		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false, true);
 		this.togglePlayButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
@@ -259,9 +265,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
-		connectSliderSignals('positionSlider');
-		connectSliderSignals('volumeSlider');
-
 		this.slideshowButton._signalIds.push(
 			this.slideshowButton.connect('clicked', () =>
 			{
@@ -283,10 +286,10 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			})
 		);
 		this.seekForwardButton._signalIds.push(
-			this.seekForwardButton.connect('clicked', () => Soup.client.postRemote('SEEK+', this.seekTime))
+			this.seekForwardButton.connect('clicked', () => Soup.client.postRemote('SEEK+', this.opts.seekTime))
 		);
 		this.seekBackwardButton._signalIds.push(
-			this.seekBackwardButton.connect('clicked', () => Soup.client.postRemote('SEEK-', this.seekTime))
+			this.seekBackwardButton.connect('clicked', () => Soup.client.postRemote('SEEK-', this.opts.seekTime))
 		);
 		this.stopButton._signalIds.push(
 			this.stopButton.connect('clicked', () => Soup.client.postRemote('STOP'))
@@ -305,26 +308,31 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.updateLabel = (receiverType) =>
+		this.refreshLabel = () =>
 		{
 			/* Change remote label */
-			switch(receiverType)
+			switch(this.opts.receiverType)
 			{
+				case 'chromecast':
+					if(this.opts.useFriendlyName && remoteNames.chromecast.friendlyName)
+						this.toplabel.text = remoteNames.chromecast.friendlyName;
+					else
+						this.toplabel.text = "Chromecast";
+					break;
 				case 'playercast':
-					if(this.useFriendlyName)
-						this.toplabel.text = this.playercastName;
+					if(this.opts.useFriendlyName && remoteNames.playercast)
+						this.toplabel.text = remoteNames.playercast;
 					else
 						this.toplabel.text = "Playercast";
 					break;
 				case 'other':
 					/* TRANSLATORS: Web browser label for top bar remote */
-					this.toplabel.text = _("Browser");
+					if(this.opts.useFriendlyName && remoteNames.browser)
+						this.toplabel.text = remoteNames.browser;
+					else
+						this.toplabel.text = _("Browser");
 					break;
 				default:
-					if(this.useFriendlyName)
-						this.toplabel.text = this.chromecastData.friendlyName;
-					else
-						this.toplabel.text = "Chromecast";
 					break;
 			}
 		}
@@ -341,7 +349,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 
 			if(
-				this.mode === 'PICTURE'
+				this.opts.mode === 'PICTURE'
 				&& status.hasOwnProperty('slideshow')
 				&& this.slideshowButton.turnedOn !== status.slideshow
 			) {
@@ -349,7 +357,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.repeatButton.reactive = status.slideshow;
 			}
 
-			if(this.mode === 'PICTURE') return;
+			if(this.opts.mode === 'PICTURE') return;
 
 			if(status.mediaDuration > 0)
 				this.currentProgress = status.currentTime / status.mediaDuration;
@@ -368,8 +376,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			this.setProgressCheck();
 		}
-
-		Soup.server.onPlaybackStatus(this.updateRemote);
 
 		this.setPlaying = (isPlaying) =>
 		{
@@ -420,19 +426,19 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.setMode = (value, icon) =>
 		{
-			this.mode = value;
+			this.opts.mode = value;
 			let shownItems = [];
 
 			/* Items that might be shown or hidden depending on media content */
 			let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
 				'seekBackwardButton', 'seekForwardButton', 'repeatButton', 'slideshowButton'];
 
-			switch(this.mode)
+			switch(this.opts.mode)
 			{
 				case 'DIRECT':
 					shownItems = ['positionSlider', 'repeatButton', 'togglePlayButton',
 						'seekBackwardButton', 'seekForwardButton'];
-					if(!this.isUnifiedSlider) shownItems.push('volumeSlider');
+					if(!this.opts.isUnifiedSlider) shownItems.push('volumeSlider');
 					break;
 				case 'ENCODE':
 					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];
@@ -447,7 +453,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					break;
 			}
 
-			this.repeatButton.reactive = (this.mode !== 'PICTURE') ? true
+			this.repeatButton.reactive = (this.opts.mode !== 'PICTURE') ? true
 				: (this.slideshowButton.turnedOn) ? true : false;
 
 			changableItems.forEach(item =>
@@ -468,11 +474,13 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(icon) this.positionSlider.defaultIcon = icon;
 
-			Playlist.seekAllowed = (this.mode === 'DIRECT') ? true : false;
+			Playlist.seekAllowed = (this.opts.mode === 'DIRECT') ? true : false;
 		}
 
 		this.setMediaButtonsSize = (size) =>
 		{
+			this.opts.mediaButtonsSize = size;
+
 			this.togglePlayButton.child.icon_size = size;
 			this.stopButton.child.icon_size = size;
 			this.seekBackwardButton.child.icon_size = size;
@@ -485,12 +493,15 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.setSlidersIconSize = (size) =>
 		{
+			this.opts.sliderIconSize = size;
+
 			this.positionSlider.setIconSize(size);
 			this.volumeSlider.setIconSize(size);
 		}
 
 		this.setUnifiedSlider = (value) =>
 		{
+			this.opts.isUnifiedSlider = value;
 			let isActor = (this.volumeSlider.hasOwnProperty('actor'));
 
 			if(isActor)
@@ -504,7 +515,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				else this.volumeSlider.show();
 			}
 
-			this.isUnifiedSlider = value;
 			this.positionSlider.setToggle(value);
 
 			if(!value)
@@ -513,11 +523,21 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			this.refreshSliders();
 		}
 
+		/* Should be here until ported to GObject */
+		connectSliderSignals('positionSlider');
+		connectSliderSignals('volumeSlider');
+		Soup.server.onPlaybackStatus(this.updateRemote);
+		this.setMode(this.opts.mode);
+		this.setMediaButtonsSize(this.opts.mediaButtonsSize);
+		this.setSlidersIconSize(this.opts.sliderIconSize);
+		this.setUnifiedSlider(this.opts.isUnifiedSlider);
+
+		/* Hide remote by default */
+		(this.isActor) ? this.actor.hide() : this.hide();
+
 		this.destroy = () =>
 		{
 			this.playlist.destroy();
-			Soup.server.remove_handler('/tmp/status');
-
 			super.destroy();
 		}
 	}
@@ -584,7 +604,6 @@ class SliderItem extends AltPopupBase
 	constructor(icon, toggle, isVolume)
 	{
 		super();
-
 		this.defaultIcon = icon;
 		this.volumeIcon = 'audio-volume-high-symbolic';
 		this.delay = 0;

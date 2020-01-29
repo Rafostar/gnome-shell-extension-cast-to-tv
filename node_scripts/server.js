@@ -1,8 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const bowser = require("bowser");
 const path = require('path');
 const bridge = require('./bridge');
 const webcreator = require('./web-creator');
+const sender = require('./sender');
 const socket = require('./server-socket');
 const encode = require('./encode');
 const extract = require('./extract');
@@ -10,6 +12,7 @@ const gettext = require('./gettext');
 
 var app = express();
 var server = app.listen(bridge.config.listeningPort);
+var userAgent = null;
 
 app.use(bodyParser.json());
 socket.listen(server);
@@ -54,6 +57,19 @@ function checkMessagePage(req, res)
 	return false;
 }
 
+function getBrowserName()
+{
+	if(!userAgent)
+		return null;
+
+	var parsedAgent = bowser.parse(userAgent);
+
+	if(parsedAgent && parsedAgent.browser && parsedAgent.browser.name)
+		return parsedAgent.browser.name;
+
+	return null;
+}
+
 app.get('/', function(req, res)
 {
 	var lang = req.acceptsLanguages.apply(req, gettext.locales);
@@ -63,6 +79,14 @@ app.get('/', function(req, res)
 
 	var isMessage = checkMessagePage(req, res);
 	if(isMessage) return;
+
+	if(
+		bridge.config.receiverType === 'other'
+		&& userAgent !== req.headers['user-agent']
+	) {
+		userAgent = req.headers['user-agent'];
+		sender.sendBrowserName(getBrowserName());
+	}
 
 	switch(bridge.selection.streamType)
 	{
@@ -133,7 +157,10 @@ app.get('/webplayer/webconfig.css', function(req, res)
 
 app.get('/temp/*', function(req, res)
 {
-	webcreator.getTemp(req.params[0], req, res);
+	if(req.params[0] === 'browser')
+		res.send({ name: getBrowserName() });
+	else
+		webcreator.getTemp(req.params[0], req, res);
 });
 
 app.post('/temp/*', function(req, res)

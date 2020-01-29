@@ -70,6 +70,14 @@ class SoupServer extends Soup.Server
 			});
 		}
 
+		this.onBrowserData = (cb) =>
+		{
+			this.add_handler('/temp/browser', (self, msg) =>
+			{
+				cb(this.parseMessage(msg));
+			});
+		}
+
 		this._onDefaultAccess = (self, msg) =>
 		{
 			msg.status_code = 404;
@@ -81,6 +89,7 @@ class SoupServer extends Soup.Server
 
 			this.remove_handler('/temp/data');
 			this.remove_handler('/temp/status');
+			this.remove_handler('/temp/browser');
 			this.remove_handler(null);
 
 			this.doneCleanup = true;
@@ -245,6 +254,18 @@ class SoupClient extends Soup.Session
 		this.getPlayercastsSync = () =>
 		{
 			return this._getRequestSync('playercasts');
+		}
+
+		this.getBrowser = (cb) =>
+		{
+			cb = cb || noop;
+			this._getRequest('browser', cb);
+		}
+
+		this.getBrowserSync = (cb) =>
+		{
+			let browser = this._getRequestSync('browser');
+			return (browser && browser.name) ?  browser.name : null;
 		}
 
 		this.postConfig = (data, cb) =>

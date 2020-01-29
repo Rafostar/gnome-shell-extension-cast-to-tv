@@ -52,6 +52,11 @@ module.exports =
 		this.send('data', data, cb);
 	},
 
+	sendBrowserName: function(name, cb)
+	{
+		this.send('browser', { name: name }, cb);
+	},
+
 	showMenu: function(isShow, cb)
 	{
 		this.send('menu', { show: isShow }, cb);

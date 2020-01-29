@@ -26,12 +26,11 @@ let serviceSignal;
 function refreshRemote(playbackData)
 {
 	let isShown = (playbackData) ? playbackData.isPlaying : false;
-	let isActor = (remoteMenu.hasOwnProperty('actor'));
 	remoteMenu.playlist.remoteActive = isShown;
 
 	if(!isShown)
 	{
-		if(isActor)
+		if(remoteMenu.isActor)
 			return remoteMenu.actor.hide();
 		else
 			return remoteMenu.hide();
@@ -44,7 +43,7 @@ function refreshRemote(playbackData)
 	)
 		return;
 
-	remoteMenu.updateLabel(config.receiverType);
+	remoteMenu.refreshLabel();
 
 	let selection = playbackData.selection;
 	let playlist = playbackData.playlist;
@@ -110,7 +109,7 @@ function refreshRemote(playbackData)
 	else
 		remoteMenu.positionSlider.setIcon(remoteMenu.positionSlider.defaultIcon);
 
-	if(isActor)
+	if(remoteMenu.isActor)
 		remoteMenu.actor.show();
 	else
 		remoteMenu.show();
@@ -186,21 +185,15 @@ function updateTempConfig(schemaKey, valueType)
 			});
 			break;
 		case 'chromecastName':
-			config[confKey] = postData[confKey];
-			if(remoteMenu.chromecastData.name !== config[confKey])
-			{
-				updateChromecastName(config[confKey]);
-				remoteMenu.updateLabel(config.receiverType);
-			}
+			updateChromecastName(postData[confKey]);
 			Soup.client.postConfig(postData);
 			break;
 		case 'playercastName':
+			updatePlayercastName(postData[confKey]);
+			Soup.client.postConfig(postData);
+			break;
+		case 'musicVisualizer':
 			config[confKey] = postData[confKey];
-			if(remoteMenu.playercastName !== postData[confKey])
-			{
-				updatePlayercastName();
-				remoteMenu.updateLabel(config.receiverType);
-			}
 			Soup.client.postConfig(postData);
 			break;
 		default:
@@ -210,8 +203,9 @@ function updateTempConfig(schemaKey, valueType)
 				postData[confKey] = '/usr/bin/ffmpeg';
 			else if(confKey === 'ffprobePath' && !postData[confKey])
 				postData[confKey] = '/usr/bin/ffprobe';
+			else if(confKey === 'receiverType')
+				setReceiverName(postData[confKey]);
 
-			config[confKey] = postData[confKey];
 			Soup.client.postConfig(postData);
 			break;
 	}
@@ -220,6 +214,13 @@ function updateTempConfig(schemaKey, valueType)
 function updateChromecastName(name)
 {
 	name = name || Settings.get_string('chromecast-name');
+
+	if(
+		Widget.remoteNames.chromecast.name
+		&& Widget.remoteNames.chromecast.name === name
+	)
+		return;
+
 	let castDevices = null;
 
 	try { castDevices = JSON.parse(Settings.get_string('chromecast-devices')); }
@@ -230,17 +231,56 @@ function updateChromecastName(name)
 	let myDevice = castDevices.find(device => device.name === name);
 
 	if(myDevice)
-		remoteMenu.chromecastData = myDevice;
+		Widget.remoteNames.chromecast = myDevice;
 }
 
-function updatePlayercastName()
+function updatePlayercastName(name)
 {
-	remoteMenu.playercastName = Settings.get_string('playercast-name');
+	name = name || Settings.get_string('playercast-name');
+
+	if(Widget.remoteNames.playercast === name)
+		return;
+
+	Widget.remoteNames.playercast = name;
+}
+
+function onBrowserData(browser)
+{
+	if(browser && browser.name && Widget.remoteNames.browser !== browser.name)
+	{
+		Widget.remoteNames.browser = browser.name;
+		remoteMenu.refreshLabel();
+	}
+	else if(!browser || !browser.name)
+	{
+		Widget.remoteNames.browser = null;
+		remoteMenu.refreshLabel();
+	}
+}
+
+function setReceiverName(receiverType)
+{
+	remoteMenu.opts.receiverType = receiverType;
+
+	switch(receiverType)
+	{
+		case 'chromecast':
+			updateChromecastName();
+			break;
+		case 'playercast':
+			updatePlayercastName();
+			break;
+		case 'other':
+			Soup.client.getBrowser(onBrowserData);
+			break;
+		default:
+			break;
+	}
 }
 
 function changeSeekTime()
 {
-	remoteMenu.seekTime = Settings.get_int('seek-time');
+	remoteMenu.opts.seekTime = Settings.get_int('seek-time');
 }
 
 function changeMediaButtonsSize()
@@ -268,10 +308,10 @@ function changeLabelVisibility()
 		remoteMenu.toplabel.hide();
 }
 
-function changeLabelFriendlyName()
+function changeUseFriendlyName()
 {
-	remoteMenu.useFriendlyName = Settings.get_boolean('remote-label-fn');
-	remoteMenu.updateLabel(config.receiverType);
+	remoteMenu.opts.useFriendlyName = Settings.get_boolean('remote-label-fn');
+	remoteMenu.refreshLabel();
 }
 
 function createRemote()
@@ -279,18 +319,8 @@ function createRemote()
 	/* Remove previous indicator */
 	if(remoteMenu) remoteMenu.destroy();
 
-	let seekTime = Settings.get_int('seek-time');
-	let isUnified = Settings.get_boolean('unified-slider');
-	let useFn = Settings.get_boolean('remote-label-fn');
-
-	remoteMenu = new Widget.remoteMenu(seekTime, isUnified, useFn);
-
-	/* Restore remote settings */
-	changeLabelVisibility();
-	changeMediaButtonsSize();
-	changeSlidersIconSize();
-	updateChromecastName();
-	updatePlayercastName();
+	let opts = Temp.getRemoteOpts();
+	remoteMenu = new Widget.remoteMenu(opts);
 
 	/* Add remote to top bar */
 	setRemotePosition();
@@ -368,6 +398,7 @@ function enable()
 	createRemote();
 
 	Soup.server.onPlaybackData(refreshRemote);
+	Soup.server.onBrowserData(onBrowserData);
 
 	/* Clear signals array */
 	signals = [];
@@ -393,7 +424,7 @@ function enable()
 	signals.push(Settings.connect('changed::media-buttons-size', changeMediaButtonsSize.bind(this)));
 	signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
 	signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
-	signals.push(Settings.connect('changed::remote-label-fn', changeLabelFriendlyName.bind(this)));
+	signals.push(Settings.connect('changed::remote-label-fn', changeUseFriendlyName.bind(this)));
 	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
