@@ -48,7 +48,7 @@ class StreamingNotification extends Gtk.VBox
 {
 	constructor()
 	{
-		super({height_request: 420, spacing: 10, margin: 20});
+		super({height_request: 380, spacing: 10, margin: 10});
 		let label = null;
 
 		label = new Gtk.Label({
@@ -56,7 +56,7 @@ class StreamingNotification extends Gtk.VBox
 			use_markup: true,
 			vexpand: true,
 			valign: Gtk.Align.END,
-			margin_top: 20
+			margin_top: 10
 		});
 		this.pack_start(label, true, true, 0);
 
@@ -66,7 +66,7 @@ class StreamingNotification extends Gtk.VBox
 			use_markup: true,
 			vexpand: true,
 			valign: Gtk.Align.START,
-			margin_bottom: 30
+			margin_bottom: 0
 		});
 		this.pack_start(label, true, true, 0);
 
