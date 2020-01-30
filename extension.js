@@ -139,7 +139,7 @@ function setRemotePosition()
 	/* Place remote on top bar */
 	Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, itemIndex, remotePosition);
 
-	Soup.client.getPlaybackData(refreshRemote);
+	Soup.client.getPlaybackData(data => refreshRemote(data));
 }
 
 function updateTempConfig(schemaKey, valueType)
@@ -155,18 +155,18 @@ function updateTempConfig(schemaKey, valueType)
 		case 'listeningPort':
 			if(Soup.server.usedPort == postData[confKey])
 			{
-				postData[confKey] = (Soup.client.usedPort < Soup.server.usedPort) ?
+				postData[confKey] = (Soup.client.nodePort < Soup.server.usedPort) ?
 					postData[confKey] + 1 : postData[confKey] - 1;
 
 				return Settings.set_int('listening-port', postData[confKey]);
 			}
 			config[confKey] = postData[confKey];
-			Soup.client.postConfig(postData, () => Soup.client.setPort(postData[confKey]));
+			Soup.client.postConfig(postData, () => Soup.client.setNodePort(postData[confKey]));
 			break;
 		case 'internalPort':
-			if(Soup.client.usedPort == postData[confKey])
+			if(Soup.client.nodePort == postData[confKey])
 			{
-				postData[confKey] = (Soup.client.usedPort > Soup.server.usedPort) ?
+				postData[confKey] = (Soup.client.nodePort > Soup.server.usedPort) ?
 					postData[confKey] + 1 : postData[confKey] - 1;
 
 				return Settings.set_int('internal-port', postData[confKey]);
@@ -271,7 +271,7 @@ function setReceiverName(receiverType)
 			updatePlayercastName();
 			break;
 		case 'other':
-			Soup.client.getBrowser(onBrowserData);
+			Soup.client.getBrowser(data => onBrowserData(data));
 			break;
 		default:
 			break;
@@ -397,8 +397,8 @@ function enable()
 	castMenu = new Widget.castMenu();
 	createRemote();
 
-	Soup.server.onPlaybackData(refreshRemote);
-	Soup.server.onBrowserData(onBrowserData);
+	Soup.server.onPlaybackData(data => refreshRemote(data));
+	Soup.server.onBrowserData(data => onBrowserData(data));
 
 	/* Clear signals array */
 	signals = [];

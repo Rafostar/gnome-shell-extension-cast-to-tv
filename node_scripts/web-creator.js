@@ -227,6 +227,11 @@ exports.postTemp = function(type, req, res)
 			bridge.updateRemote(req.body);
 			res.sendStatus(200);
 			break;
+		case 'playback-data':
+			bridge.updatePlaylist(req.body.playlist, false);
+			bridge.updateSelection(req.body.selection);
+			res.sendStatus(200);
+			break;
 		default:
 			res.sendStatus(404);
 			break;

@@ -8,7 +8,6 @@ const noop = () => {};
 var schemaName = 'org.gnome.shell.extensions.cast-to-tv';
 var schemaDir = path.join(__dirname + '/../schemas');
 var isSchema = false;
-var isRemoteVisible = null;
 
 var gnome =
 {
@@ -59,30 +58,27 @@ var gnome =
 
 	showRemote: function(enable, playbackData, cb)
 	{
-		var data = { isPlaying: enable };
+		cb = cb || noop;
+
+		debug(`Show remote widget: ${enable}`);
+
+		var data = { showMenu: true, isPlaying: enable };
 
 		if(playbackData)
 			data = { ...playbackData, ...data };
 
+		this.isRemote = enable;
 		sender.sendPlaybackData(data, cb);
-
-		if(isRemoteVisible !== enable)
-			this.setSetting('chromecast-playing', enable);
-
-		isRemoteVisible = enable;
 	},
 
 	showMenu: function(enable, cb)
 	{
+		cb = cb || noop;
+
+		var data = { showMenu: enable, isPlaying: this.isRemote };
+		//sender.sendPlaybackData(data, cb);
+
 		this.setSetting('service-enabled', enable, cb);
-	},
-
-	isRemote: function()
-	{
-		isRemoteVisible = (isRemoteVisible === true || isRemoteVisible === false) ?
-			isRemoteVisible : this.getBoolean('chromecast-playing');
-
-		return isRemoteVisible;
 	},
 
 	getTempConfig: function()
@@ -109,7 +105,9 @@ var gnome =
 		if(!config.ffprobePath) config.ffprobePath = '/usr/bin/ffprobe';
 
 		return config;
-	}
+	},
+
+	isRemote: false
 }
 
 module.exports = gnome;

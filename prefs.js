@@ -985,11 +985,25 @@ class CastToTvSettings extends Gtk.VBox
 		this.notification = new StreamingNotification();
 		this.pack_start(this.notification, true, true, 0);
 
-		this.streamingSignal = Settings.connect('changed::chromecast-playing', () =>
-		{
-			let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
 
-			if(chromecastPlaying)
+		Soup.client.connectWebsocket(err =>
+		{
+			if(err) return log('Cast to TV: '+ err.message);
+
+			Soup.client.onWebsocketMsg((err, data) =>
+			{
+				if(err) return log('Cast to TV: '+ err.message);
+
+				this._onPlayingChange(data);
+			});
+		});
+
+		this._onPlayingChange = (data) =>
+		{
+			if(!data) return;
+
+			if(data.isPlaying)
 			{
 				this.notebook.hide();
 				this.notification.show();
@@ -999,12 +1013,10 @@ class CastToTvSettings extends Gtk.VBox
 				this.notification.hide();
 				this.notebook.show();
 			}
-		});
+		}
 
 		this.destroy = () =>
 		{
-			Settings.disconnect(this.streamingSignal);
-
 			this.notebook.destroy();
 			this.notification.destroy();
 
@@ -1369,16 +1381,14 @@ function buildPrefsWidget()
 	if(!Soup.client)
 	{
 		let listeningPort = Settings.get_int('listening-port');
-		Soup.createClient(listeningPort);
+		let wsPort = Settings.get_int('internal-port');
+		Soup.createClient(listeningPort, wsPort);
 	}
 
 	widget = new CastToTvSettings();
 	widget.show_all();
-
+	widget.notification.hide();
 	widget.notebook.mainWidget.checkService();
-
-	if(Settings.get_boolean('chromecast-playing')) widget.notebook.hide();
-	else widget.notification.hide();
 
 	return widget;
 }

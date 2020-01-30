@@ -155,7 +155,7 @@ class fileChooser
 				this.boundChromecastDevices = true;
 			}
 
-			if(!this.chromecastPlaying)
+			if(!this.isPlaying)
 			{
 				this.deviceSelectLabel.show();
 				this.playercastSelect.hide();
@@ -184,7 +184,7 @@ class fileChooser
 					this.boundPlayercastDevices = true;
 				}
 
-				if(!this.chromecastPlaying)
+				if(!this.isPlaying)
 				{
 					this.deviceSelectLabel.show();
 					this.chromecastSelect.hide();
@@ -234,12 +234,13 @@ class fileChooser
 	_openDialog()
 	{
 		if(!STREAM_TYPE)
-			return print('Cast to TV: cannot open file chooser without stream type');
+			return log('Cast to TV: cannot open file chooser without stream type');
 
 		let config = {
 			receiverType: Settings.get_string('receiver-type'),
 			videoAcceleration: Settings.get_string('video-acceleration'),
-			listeningPort: Settings.get_int('listening-port')
+			listeningPort: Settings.get_int('listening-port'),
+			internalPort: Settings.get_int('internal-port')
 		};
 
 		let selection = {
@@ -247,19 +248,29 @@ class fileChooser
 			subsPath: ''
 		};
 
-		Soup.createClient(config.listeningPort);
+		Soup.createClient(config.listeningPort, config.internalPort);
+
+		Soup.client.connectWebsocket(err =>
+		{
+			if(err) return log('Cast to TV: ' + err.message);
+
+			Soup.client.onWebsocketMsg((err, data) =>
+			{
+				if(err) return log('Cast to TV: ' + err.message);
+
+				this.isPlaying = data.isPlaying;
+				this._setDevices();
+				this._checkPlaylistLabel();
+			});
+		});
+
+		this._getInitData();
 
 		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
 		this.fileChooser.set_select_multiple(true);
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
-
-		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
-		this.playlistAllowed = this._getAddPlaylistAllowed();
-		this.playlistSignal = Settings.connect(
-			'changed::chromecast-playing', this._onChromecastPlayingChange.bind(this)
-		);
 
 		let castButtonText = (this.playlistAllowed) ? _(ADD_PLAYLIST_LABEL) : _(CAST_LABEL_SINGLE);
 		this.buttonCast = this.fileChooser.add_button(castButtonText, Gtk.ResponseType.OK);
@@ -315,8 +326,6 @@ class fileChooser
 
 		let DialogResponse = this.fileChooser.run();
 
-		Settings.disconnect(this.playlistSignal);
-
 		let filesList = this.filePathChosen.sort();
 		selection.filePath = filesList[0];
 
@@ -330,6 +339,8 @@ class fileChooser
 			if(!selection.subsPath) return;
 		}
 
+		Soup.client.disconnectWebsocket();
+
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
 		{
@@ -341,19 +352,15 @@ class fileChooser
 
 		this.fileChooser.destroy();
 
-		let loop = GLib.MainLoop.new(null, false);
-
 		if(this.playlistAllowed)
-			Soup.client.postPlaylist(filesList, true, () => loop.quit());
+			Soup.client.postPlaylistSync(filesList, true);
 		else
 		{
-			Soup.client.postPlaylist(filesList, () =>
-			{
-				Soup.client.postSelection(selection, () => loop.quit());
+			Soup.client.postPlaybackDataSync({
+				playlist: filesList,
+				selection: selection
 			});
 		}
-
-		loop.run();
 	}
 
 	_selectSubtitles()
@@ -384,11 +391,21 @@ class fileChooser
 			return null;
 	}
 
-	_getAddPlaylistAllowed()
+	_getInitData()
+	{
+		let data = Soup.client.getPlaybackDataSync();
+
+		if(!data) return null;
+
+		this.isPlaying = data.isPlaying;
+		this.playlistAllowed = this._getAddPlaylistAllowed(data.selection);
+	}
+
+	_getAddPlaylistAllowed(preSelection)
 	{
 		let allowed = false;
 
-		if(this.chromecastPlaying)
+		if(this.isPlaying)
 		{
 			if(
 				this.isSubsDialog
@@ -398,7 +415,7 @@ class fileChooser
 			}
 			else
 			{
-				let preSelection = Soup.client.getSelectionSync();
+				preSelection = preSelection || Soup.client.getSelectionSync();
 
 				if(
 					preSelection
@@ -461,13 +478,6 @@ class fileChooser
 	_onResponse()
 	{
 		this.filePathChosen = this.fileChooser.get_filenames();
-	}
-
-	_onChromecastPlayingChange()
-	{
-		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
-		this._setDevices();
-		this._checkPlaylistLabel();
 	}
 }
 

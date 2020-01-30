@@ -103,11 +103,6 @@
       <default>1.0</default>
       <summary>Web player subtitles size</summary>
     </key>
-    <!-- Status -->
-    <key name="chromecast-playing" type="b">
-      <default>false</default>
-      <summary>Chromecast playing state</summary>
-    </key>
     <!-- Service -->
     <key name="service-enabled" type="b">
       <default>false</default>

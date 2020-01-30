@@ -162,7 +162,7 @@ function initWebPlayer()
 
 	websocket.emit('webplayer-init', webData);
 
-	if(!gnome.isRemote())
+	if(!gnome.isRemote)
 		bridge.setGnomeRemote(true);
 }
 

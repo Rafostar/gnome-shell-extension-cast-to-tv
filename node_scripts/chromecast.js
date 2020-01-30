@@ -410,8 +410,8 @@ function startPlayback(mimeType)
 				{
 					debug('Playback started');
 					startCastInterval();
-					/* Show on refresh is handled in bridge.js */
-					if(!gnome.isRemote()) bridge.setGnomeRemote(true);
+					/* Refresh is handled in bridge.js */
+					if(!gnome.isRemote) bridge.setGnomeRemote(true);
 				}
 				else
 				{
@@ -446,8 +446,8 @@ function startPlayback(mimeType)
 
 		startCastInterval();
 
-		/* Show on refresh is handled in bridge.js */
-		if(!gnome.isRemote()) bridge.setGnomeRemote(true);
+		/* Refresh is handled in bridge.js */
+		if(!gnome.isRemote) bridge.setGnomeRemote(true);
 	}
 }
 

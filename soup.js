@@ -13,6 +13,7 @@ class SoupServer extends Soup.Server
 		this.usedPort = null;
 		this.isConnected = false;
 		this.doneCleanup = false;
+		this.wsConn = null;
 
 		this.setPort = (port, cb) =>
 		{
@@ -58,7 +59,22 @@ class SoupServer extends Soup.Server
 		{
 			this.add_handler('/temp/data', (self, msg) =>
 			{
-				cb(this.parseMessage(msg));
+				let parsedMsg = this.parseMessage(msg);
+
+				if(this.wsConn)
+				{
+					this.wsConn.send_text(JSON.stringify({
+						showMenu: parsedMsg.showMenu,
+						isPlaying: parsedMsg.isPlaying
+					}));
+				}
+
+				cb(parsedMsg);
+			});
+
+			this.add_websocket_handler('/websocket', null, null, (self, conn) =>
+			{
+				this.wsConn = conn;
 			});
 		}
 
@@ -90,6 +106,7 @@ class SoupServer extends Soup.Server
 			this.remove_handler('/temp/data');
 			this.remove_handler('/temp/status');
 			this.remove_handler('/temp/browser');
+			this.remove_handler('/websocket');
 			this.remove_handler('/');
 
 			this.doneCleanup = true;
@@ -101,23 +118,30 @@ class SoupServer extends Soup.Server
 
 class SoupClient extends Soup.Session
 {
-	constructor(port)
+	constructor(nodePort, wsPort)
 	{
 		super({ timeout: 3 });
 
-		this.usedPort = (port > 0) ? parseInt(port) : null;
+		this.nodePort = (nodePort > 0) ? parseInt(nodePort) : null;
+		this.wsPort = (wsPort > 0) ? parseInt(wsPort) : null;
+		this.wsConn = null;
 
-		this.setPort = (port) =>
+		this.setNodePort = (port) =>
 		{
-			this.usedPort = parseInt(port);
+			this.nodePort = parseInt(port);
+		}
+
+		this.setWsPort = (port) =>
+		{
+			this.wsPort = parseInt(port);
 		}
 
 		this._getRequest = (type, cb) =>
 		{
 			cb = cb || noop;
 
-			let message = Soup.Message.new('GET',
-				'http://127.0.0.1:' + this.usedPort + '/temp/' + type
+			let message = Soup.Message.new(
+				'GET', 'http://127.0.0.1:' + this.nodePort + '/temp/' + type
 			);
 
 			this.queue_message(message, () =>
@@ -142,8 +166,8 @@ class SoupClient extends Soup.Session
 		{
 			let result = null;
 
-			let message = Soup.Message.new('GET',
-				'http://127.0.0.1:' + this.usedPort + '/temp/' + type
+			let message = Soup.Message.new(
+				'GET', 'http://127.0.0.1:' + this.nodePort + '/temp/' + type
 			);
 
 			this.send_message(message);
@@ -165,7 +189,7 @@ class SoupClient extends Soup.Session
 		{
 			cb = cb || noop;
 
-			let url = 'http://127.0.0.1:' + this.usedPort + '/temp/' + type;
+			let url = 'http://127.0.0.1:' + this.nodePort + '/temp/' + type;
 
 			if(query) url += '?' + query;
 
@@ -186,6 +210,84 @@ class SoupClient extends Soup.Session
 			this.queue_message(message, cb);
 		}
 
+		this._postRequestSync = (type, data, query) =>
+		{
+			let url = 'http://127.0.0.1:' + this.nodePort + '/temp/' + type;
+
+			if(query) url += '?' + query;
+
+			let message = Soup.Message.new('POST', url);
+			let parsedData = null;
+
+			try { parsedData = JSON.stringify(data); }
+			catch(err) {}
+
+			if(!parsedData) return null;
+
+			message.set_request(
+				'application/json',
+				Soup.MemoryUse.COPY,
+				parsedData
+			);
+
+			this.send_message(message);
+		}
+
+		this.connectWebsocket = (cb) =>
+		{
+			cb = cb || noop;
+
+			let message = Soup.Message.new(
+				'GET', 'ws://127.0.0.1:' + this.wsPort + '/websocket'
+			);
+
+			this.websocket_connect_async(message, null, null, null, (self, res) =>
+			{
+				let conn = null;
+				try { conn = this.websocket_connect_finish(res); }
+				catch(err) { return cb(new Error('Could not connect to websocket')); }
+
+				this.wsConn = conn;
+				return cb(null);
+			});
+		}
+
+		this.disconnectWebsocket = (cb) =>
+		{
+			cb = cb || noop;
+
+			this.wsConn.connect('closed', () =>
+			{
+				this.wsConn = null;
+				cb(null);
+			});
+
+			this.wsConn.close(Soup.WebsocketCloseCode.NORMAL, null);
+		}
+
+		this.onWebsocketMsg = (cb) =>
+		{
+			if(!this.wsConn)
+				return cb(new Error('Websocket not connected'));
+
+			this.wsConn.connect('message', (self, type, bytes) =>
+			{
+				/* Ignore not compatible messages */
+				if(type !== Soup.WebsocketDataType.TEXT)
+					return;
+
+				let parsedData = null;
+				try {
+					parsedData = JSON.parse(bytes.get_data());
+				}
+				catch(err) {
+					return cb(new Error('Could not parse websocket data'));
+				}
+
+				return cb(null, parsedData);
+			});
+		}
+
 		this.getConfig = (cb) =>
 		{
 			cb = cb || noop;
@@ -197,6 +299,12 @@ class SoupClient extends Soup.Session
 			return this._getRequestSync('config');
 		}
 
+		this.postConfig = (data, cb) =>
+		{
+			cb = cb || noop;
+			this._postRequest('config', data, null, cb);
+		}
+
 		this.getSelection = (cb) =>
 		{
 			cb = cb || noop;
@@ -206,6 +314,17 @@ class SoupClient extends Soup.Session
 		this.getSelectionSync = () =>
 		{
 			return this._getRequestSync('selection');
+		}
+
+		this.postSelection = (data, cb) =>
+		{
+			cb = cb || noop;
+			this._postRequest('selection', data, null, cb);
+		}
+
+		this.postSelectionSync = (data) =>
+		{
+			this._postRequestSync('selection', data, null);
 		}
 
 		this.updateSelection = (filePath, cb) =>
@@ -234,6 +353,30 @@ class SoupClient extends Soup.Session
 			return this._getRequestSync('playlist');
 		}
 
+		this.postPlaylist = (data, isAppend, cb) =>
+		{
+			cb = cb || noop;
+			let append = false;
+
+			if(isAppend)
+			{
+				if(typeof isAppend === 'function')
+					cb = isAppend;
+				else
+					append = true;
+			}
+
+			let query = 'append=' + append;
+			this._postRequest('playlist', data, query, cb);
+		}
+
+		this.postPlaylistSync = (data, isAppend) =>
+		{
+			isAppend = (isAppend) ? true : false;
+			let query = 'append=' + isAppend;
+			this._postRequestSync('playlist', data, query);
+		}
+
 		this.getPlaybackData = (cb) =>
 		{
 			cb = cb || noop;
@@ -243,6 +386,28 @@ class SoupClient extends Soup.Session
 		this.getPlaybackDataSync = () =>
 		{
 			return this._getRequestSync('playback-data');
+		}
+
+		this.postPlaybackData = (data) =>
+		{
+			cb = cb || noop;
+			this._postRequest('playback-data', data, null, cb);
+		}
+
+		this.postPlaybackDataSync = (data) =>
+		{
+			this._postRequestSync('playback-data', data, null);
+		}
+
+		this.postRemote = (action, value, cb) =>
+		{
+			cb = cb || noop;
+			let data = { action: action };
+
+			if(typeof value !== 'undefined')
+				data.value = value;
+
+			this._postRequest('remote', data, null, cb);
 		}
 
 		this.getPlayercasts = (cb) =>
@@ -267,46 +432,6 @@ class SoupClient extends Soup.Session
 			let browser = this._getRequestSync('browser');
 			return (browser && browser.name) ?  browser.name : null;
 		}
-
-		this.postConfig = (data, cb) =>
-		{
-			cb = cb || noop;
-			this._postRequest('config', data, null, cb);
-		}
-
-		this.postSelection = (data, cb) =>
-		{
-			cb = cb || noop;
-			this._postRequest('selection', data, null, cb);
-		}
-
-		this.postPlaylist = (data, isAppend, cb) =>
-		{
-			cb = cb || noop;
-			let append = false;
-
-			if(isAppend)
-			{
-				if(typeof isAppend === 'function')
-					cb = isAppend;
-				else
-					append = true;
-			}
-
-			let query = 'append=' + append;
-			this._postRequest('playlist', data, query, cb);
-		}
-
-		this.postRemote = (action, value, cb) =>
-		{
-			cb = cb || noop;
-			let data = { action: action };
-
-			if(typeof value !== 'undefined')
-				data.value = value;
-
-			this._postRequest('remote', data, null, cb);
-		}
 	}
 }
 
@@ -320,11 +445,11 @@ function createServer(port, cb)
 	server.setPort(port, cb);
 }
 
-function createClient(port)
+function createClient(nodePort, wsPort)
 {
 	if(client) return;
 
-	client = new SoupClient(port);
+	client = new SoupClient(nodePort, wsPort);
 }
 
 function closeServer()

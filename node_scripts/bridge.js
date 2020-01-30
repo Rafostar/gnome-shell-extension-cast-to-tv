@@ -64,7 +64,8 @@ exports.setGnomeRemote = function(isShow, cb)
 exports.getPlaybackData = function()
 {
 	var playbackData = {
-		isPlaying: gnome.isRemote(),
+		showMenu: true,
+		isPlaying: gnome.isRemote,
 		selection: exports.selection,
 		playlist: exports.playlist
 	};
@@ -145,7 +146,7 @@ exports.updatePlaylist = function(playlist, append)
 		debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
 
 		/* Update remote widget with new playlist items */
-		if(gnome.isRemote()) exports.setGnomeRemote(true);
+		if(gnome.isRemote) exports.setGnomeRemote(true);
 	}
 	else
 		debug('Received playlist is not an array');
@@ -187,7 +188,7 @@ function onSelectionUpdate()
 	}
 
 	/* Refresh already visible remote widget to mark new playing item */
-	if(gnome.isRemote()) exports.setGnomeRemote(true);
+	if(gnome.isRemote) exports.setGnomeRemote(true);
 
 	/* Close addon before selecting a new one */
 	closeAddon(exports.selection, exports.config);
@@ -626,7 +627,7 @@ function shutDown(err)
 		});
 	}
 
-	if(gnome.isRemote())
+	if(gnome.isRemote)
 	{
 		exports.setGnomeRemote(false);
 		sender.stop();

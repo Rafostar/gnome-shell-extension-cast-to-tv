@@ -27,6 +27,8 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
         self.ext_settings = None
+        self.ws_conn = None
+        self.ws_data = None
         self.soup_client = Soup.Session(timeout=3)
 
         Gio_SSS = Gio.SettingsSchemaSource
@@ -39,6 +41,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True)
         if schema_obj:
             self.ext_settings = Gio.Settings.new_full(schema_obj)
+            ws_port = self.ext_settings.get_int('internal-port')
+            url = 'ws://127.0.0.1:' + str(ws_port) + '/websocket'
+            msg = Soup.Message.new('GET', url)
+            self.soup_client.websocket_connect_async(msg, None, None, None, self.websocket_cb)
 
         locale.setlocale(locale.LC_ALL, '')
         if os.path.exists(EXTENSION_PATH + '/locale'):
@@ -87,6 +93,18 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return False
 
+    def websocket_cb(self, session, res):
+        self.ws_conn = self.soup_client.websocket_connect_finish(res)
+        if self.ws_conn:
+            self.ws_conn.connect('message', self.websocket_msg_cb)
+
+    def websocket_msg_cb(self, socket, data_type, bytes):
+        ws_text = bytes.get_data()
+        if ws_text:
+            ws_parsed_text = json.loads(ws_text)
+            if ws_parsed_text:
+                self.ws_data = ws_parsed_text
+
     def create_menu_item(self, stream_type, files):
         cast_label="Cast Selected File"
         if len(files) > 1:
@@ -96,7 +114,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         parsed_devices = []
         receiver_type = self.ext_settings.get_string('receiver-type')
 
-        if not self.ext_settings.get_boolean('chromecast-playing'):
+        if not self.ws_data or not self.ws_data['isPlaying']:
             if receiver_type == 'chromecast':
                 cast_devices = json.loads(self.ext_settings.get_string('chromecast-devices'))
                 for device in cast_devices:
@@ -290,18 +308,19 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
                 self.post_soup_data('config', { "playercastName": device_config_name }, False)
                 self.ext_settings.set_string('playercast-name', device_config_name)
 
-        # Playlist must be updated before selection file
         playlist = self.get_parsed_playlist(files)
-        self.post_soup_data('playlist', playlist, False)
 
-        selection = {
-            "streamType": stream_type,
-            "subsPath": self.subs_path,
-            "filePath": playlist[0],
-            "transcodeAudio": is_transcode_audio
+        playback_data = {
+            "playlist": playlist,
+            "selection": {
+                "streamType": stream_type,
+                "subsPath": self.subs_path,
+                "filePath": playlist[0],
+                "transcodeAudio": is_transcode_audio
+            }
         }
 
-        self.post_soup_data('selection', selection, False)
+        self.post_soup_data('playback-data', playback_data, False)
 
     def add_to_playlist_cb(self, menu, files, stream_type, is_transcode_audio):
         # Check if Chromecast did not stop playing before option select
@@ -324,12 +343,11 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
 
     def transcode_audio_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
-        stream_type += '_AUDIOENC';
+        stream_type += '_AUDIOENC'
         self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
 
     def get_playlist_allowed(self, stream_type):
-        chromecast_playing = self.ext_settings.get_boolean('chromecast-playing')
-        if chromecast_playing:
+        if self.ws_data and self.ws_data['isPlaying']:
             preselection = self.get_soup_data('selection')
 
             if (
@@ -344,15 +362,24 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         return False
 
     def get_file_items(self, window, files):
-        if (not self.settings or not self.ext_settings):
+        if (
+            not self.settings
+            or not self.ext_settings
+            or not self.get_extension_enabled()
+            or not self.ext_settings.get_boolean('service-enabled')
+        ):
             return
 
-        if not self.ext_settings.get_boolean('service-enabled'):
-            return
-
-        extension_enabled = self.get_extension_enabled()
-        if not extension_enabled:
-            return
+        if not self.ws_data:
+            pb_data = self.get_soup_data('playback-data')
+            if (
+                pb_data
+                and 'showMenu' in pb_data
+                and 'isPlaying' in pb_data
+            ):
+                self.ws_data = {"showMenu": pb_data['showMenu'], "isPlaying": pb_data['isPlaying']}
+            else:
+                return
 
         stream_type = None
         is_video_and_subs = False
