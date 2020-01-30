@@ -2,7 +2,6 @@ imports.gi.versions.Gtk = '3.0';
 imports.gi.versions.Gdk = '3.0';
 
 const { Gio, Gtk, GLib, Gdk, Vte, Pango, GObject } = imports.gi;
-const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel, addToGrid } = Local.imports.prefs_shared;
 const Soup = Local.imports.soup;
@@ -147,8 +146,6 @@ class MainSettings extends Gtk.VBox
 			halign:Gtk.Align.CENTER
 		});
 
-		this.hostIp = getHostIp();
-
 		this.updateLink = () =>
 		{
 			let link = 'http://' + this.hostIp + ':' + this.portWidget.value;
@@ -164,12 +161,6 @@ class MainSettings extends Gtk.VBox
 		});
 
 		this.infoLabel = new Gtk.Label();
-
-		if(this.hostIp)
-		{
-			this.infoLabel.label = _("Access web player from devices on local network");
-			this.updateLink();
-		}
 
 		box.pack_start(this.infoLabel, false, false, 0);
 		box.pack_start(this.linkButton, false, false, 0);
@@ -194,6 +185,18 @@ class MainSettings extends Gtk.VBox
 		}
 
 		this.serviceSignal = Settings.connect('changed::service-enabled', () => this.checkService());
+
+		getHostIpAsync(hostIp =>
+		{
+			this.hostIp = hostIp;
+
+			if(this.hostIp)
+			{
+				this.infoLabel.label = _("Access web player from devices on local network");
+				this.updateLink();
+				this.checkService();
+			}
+		});
 
 		this.destroy = () =>
 		{
@@ -1262,31 +1265,25 @@ function setDevices(widget, isPlayercasts, activeText)
 	}
 }
 
-function getHostIp()
+function getHostIpAsync(cb)
 {
-	try {
-		let ip4;
+	let ip4 = '';
 
-		/* synchronous because must be obtained before widget is shown */
-		let [res, stdout] = GLib.spawn_sync(
-			nodeDir, [nodeBin, Local.path + '/node_scripts/utils/local-ip'],
-			null, 0, null);
+	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
+		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/local-ip'],
+		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null
+	);
 
-		if(res && stdout)
-		{
-			if(stdout instanceof Uint8Array) ip4 = ByteArray.toString(stdout);
-			else ip4 = stdout.toString();
+	let stream = new Gio.DataInputStream({ base_stream: new Gio.UnixInputStream({ fd: stdout }) });
 
-			return ip4.replace(/\n/, '');
-		}
-		else
-		{
-			return null;
-		}
-	}
-	catch(err) {
-		return null;
-	}
+	Helper.readOutputAsync(stream, (out) => ip4 += out);
+
+	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
+	{
+		if(ip4) ip4 = ip4.replace(/\n/, '');
+
+		return cb(ip4);
+	});
 }
 
 function enableNautilusExtension(enabled)
@@ -1388,7 +1385,6 @@ function buildPrefsWidget()
 	widget = new CastToTvSettings();
 	widget.show_all();
 	widget.notification.hide();
-	widget.notebook.mainWidget.checkService();
 
 	return widget;
 }
