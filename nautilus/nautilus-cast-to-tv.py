@@ -42,7 +42,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if schema_obj:
             self.ext_settings = Gio.Settings.new_full(schema_obj)
             ws_port = self.ext_settings.get_int('internal-port')
-            url = 'ws://127.0.0.1:' + str(ws_port) + '/websocket'
+            url = 'ws://127.0.0.1:' + str(ws_port) + '/websocket/nautilus'
             msg = Soup.Message.new('GET', url)
             self.soup_client.websocket_connect_async(msg, None, None, None, self.websocket_cb)
 

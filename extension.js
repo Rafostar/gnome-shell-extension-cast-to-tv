@@ -153,6 +153,7 @@ function updateTempConfig(schemaKey, valueType)
 	switch(confKey)
 	{
 		case 'listeningPort':
+			/* Prevent setting node to same port as gnome */
 			if(Soup.server.usedPort == postData[confKey])
 			{
 				postData[confKey] = (Soup.client.nodePort < Soup.server.usedPort) ?
@@ -164,6 +165,7 @@ function updateTempConfig(schemaKey, valueType)
 			Soup.client.postConfig(postData, () => Soup.client.setNodePort(postData[confKey]));
 			break;
 		case 'internalPort':
+			/* Prevent setting gnome to same port as node */
 			if(Soup.client.nodePort == postData[confKey])
 			{
 				postData[confKey] = (Soup.client.nodePort > Soup.server.usedPort) ?
@@ -175,13 +177,15 @@ function updateTempConfig(schemaKey, valueType)
 			{
 				if(!usedPort) return;
 
-				if(postData[confKey] === usedPort)
-				{
-					config[confKey] = postData[confKey];
-					Soup.client.postConfig(postData);
-				}
-				else
+				/* Save port you ended with to gsettings */
+				if(postData[confKey] != usedPort)
 					return Settings.set_int('internal-port', usedPort);
+
+				postData[confKey] = usedPort;
+				config[confKey] = usedPort;
+
+				Soup.server.createWebsocket();
+				Soup.client.postConfig(postData);
 			});
 			break;
 		case 'chromecastName':
@@ -378,29 +382,11 @@ function enable()
 	/* Get remaining necessary settings */
 	let serviceEnabled = Settings.get_boolean('service-enabled');
 	let serviceWanted = Settings.get_boolean('service-wanted');
-	let internalPort = Settings.get_int('internal-port');
 
-	/* Create Soup server and client */
-	if(!Soup.server)
-	{
-		Soup.createServer(internalPort, (usedPort) =>
-		{
-			if(usedPort && internalPort !== usedPort)
-				Settings.set_int('internal-port', usedPort);
-		});
-	}
-
-	if(!Soup.client)
-		Soup.createClient(Settings.get_int('listening-port'));
-
-	/* Create new objects from classes */
+	/* Create main menu */
 	castMenu = new Widget.castMenu();
-	createRemote();
 
-	Soup.server.onPlaybackData(data => refreshRemote(data));
-	Soup.server.onBrowserData(data => onBrowserData(data));
-
-	/* Clear signals array */
+	/* Prepare signals array */
 	signals = [];
 
 	/* Connect signals */
@@ -429,6 +415,31 @@ function enable()
 
 	/* Other signals */
 	serviceSignal = castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
+
+	/* Create Soup client and server */
+	if(!Soup.client)
+		Soup.createClient(Settings.get_int('listening-port'));
+
+	if(!Soup.server)
+	{
+		let internalPort = Settings.get_int('internal-port');
+
+		Soup.createServer(internalPort, (usedPort) =>
+		{
+			if(!usedPort) return;
+
+			if(internalPort != usedPort)
+				return Settings.set_int('internal-port', usedPort);
+
+			Soup.server.createWebsocket();
+		});
+	}
+
+	/* Create remote widget */
+	createRemote();
+
+	Soup.server.onPlaybackData(data => refreshRemote(data));
+	Soup.server.onBrowserData(data => onBrowserData(data));
 
 	/* Set insert position after network menu items */
 	let menuItems = AggregateMenu.menu._getMenuItems();

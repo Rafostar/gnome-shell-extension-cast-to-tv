@@ -250,7 +250,7 @@ class fileChooser
 
 		Soup.createClient(config.listeningPort, config.internalPort);
 
-		Soup.client.connectWebsocket(err =>
+		Soup.client.connectWebsocket('filechooser', err =>
 		{
 			if(err) return log('Cast to TV: ' + err.message);
 

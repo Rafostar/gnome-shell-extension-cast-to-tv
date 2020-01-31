@@ -13,7 +13,7 @@ class SoupServer extends Soup.Server
 		this.usedPort = null;
 		this.isConnected = false;
 		this.doneCleanup = false;
-		this.wsConn = null;
+		this.wsConns = {};
 
 		this.setPort = (port, cb) =>
 		{
@@ -29,15 +29,21 @@ class SoupServer extends Soup.Server
 				this.isConnected = false;
 			}
 
-			try {
-				this.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY);
-
-				this.usedPort = port;
+			this._findFreePort(port, (usedPort) =>
+			{
 				this.isConnected = true;
-			}
+				this.usedPort = port;
+
+				return cb(usedPort);
+			});
+		}
+
+		this._findFreePort = (port, cb) =>
+		{
+			try { this.listen_local(port, Soup.ServerListenOptions.IPV4_ONLY); }
 			catch(err) {
 				if(port < 65535)
-					return this.setPort(port + 1, cb);
+					return this._findFreePort(port + 1, cb);
 				else
 					return cb(null);
 			}
@@ -55,15 +61,19 @@ class SoupServer extends Soup.Server
 			return result;
 		}
 
+		/* Should not be used in extension more than once */
 		this.onPlaybackData = (cb) =>
 		{
 			this.add_handler('/temp/data', (self, msg) =>
 			{
 				let parsedMsg = this.parseMessage(msg);
 
-				if(this.wsConn)
+				for(let conn in this.wsConns)
 				{
-					this.wsConn.send_text(JSON.stringify({
+					if(!this.wsConns[conn])
+						continue;
+
+					this.wsConns[conn].send_text(JSON.stringify({
 						showMenu: parsedMsg.showMenu,
 						isPlaying: parsedMsg.isPlaying
 					}));
@@ -71,11 +81,21 @@ class SoupServer extends Soup.Server
 
 				cb(parsedMsg);
 			});
+		}
 
-			this.add_websocket_handler('/websocket', null, null, (self, conn) =>
+		this.createWebsocket = () =>
+		{
+			if(!this.isConnected) return;
+
+			for(let srcApp of ['prefs', 'filechooser', 'nautilus'])
 			{
-				this.wsConn = conn;
-			});
+				this.add_websocket_handler('/websocket/' + srcApp, null, null, (self, conn) =>
+				{
+					/* Connection will close automatically on srcApp close */
+					this.wsConns[srcApp] = conn;
+					this.wsConns[srcApp].connect('closed', () => this.wsConns[srcApp] = null);
+				});
+			}
 		}
 
 		this.onPlaybackStatus = (cb) =>
@@ -233,21 +253,25 @@ class SoupClient extends Soup.Session
 			this.send_message(message);
 		}
 
-		this.connectWebsocket = (cb) =>
+		this.connectWebsocket = (srcApp, cb) =>
 		{
 			cb = cb || noop;
 
+			if(!this.wsPort)
+				cb(new Error('No websocket port to connect'));
+
 			let message = Soup.Message.new(
-				'GET', 'ws://127.0.0.1:' + this.wsPort + '/websocket'
+				'GET', 'ws://127.0.0.1:' + this.wsPort + '/websocket/' + srcApp
 			);
 
 			this.websocket_connect_async(message, null, null, null, (self, res) =>
 			{
 				let conn = null;
 				try { conn = this.websocket_connect_finish(res); }
-				catch(err) { return cb(new Error('Could not connect to websocket')); }
+				catch(err) { return cb(err); }
 
 				this.wsConn = conn;
+
 				return cb(null);
 			});
 		}
@@ -255,6 +279,9 @@ class SoupClient extends Soup.Session
 		this.disconnectWebsocket = (cb) =>
 		{
 			cb = cb || noop;
+
+			if(!this.wsConn)
+				return cb(null);
 
 			this.wsConn.connect('closed', () =>
 			{

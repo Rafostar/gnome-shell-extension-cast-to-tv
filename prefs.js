@@ -990,17 +990,45 @@ class CastToTvSettings extends Gtk.VBox
 
 		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
 
-		Soup.client.connectWebsocket(err =>
+		this.timeout = null;
+		this.createWebsocketConn = () =>
 		{
-			if(err) return log('Cast to TV: '+ err.message);
-
-			Soup.client.onWebsocketMsg((err, data) =>
+			Soup.client.connectWebsocket('prefs', err =>
 			{
 				if(err) return log('Cast to TV: '+ err.message);
 
-				this._onPlayingChange(data);
+				Soup.client.onWebsocketMsg((err, data) =>
+				{
+					if(err) return log('Cast to TV: '+ err.message);
+
+					this._onPlayingChange(data);
+				});
 			});
-		});
+		}
+
+		this.delayReconnect = () =>
+		{
+			if(this.timeout)
+				GLib.source_remove(this.timeout);
+
+			this.timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 520, () =>
+			{
+				this.timeout = null;
+				let wsPort = Settings.get_int('internal-port');
+
+				if(wsPort != Soup.client.wsPort)
+				{
+					Soup.client.setWsPort(wsPort);
+					this.createWebsocketConn();
+				}
+
+				return GLib.SOURCE_REMOVE;
+			});
+		}
+
+		Settings.connect('changed::internal-port', () => this.delayReconnect());
+
+		this.createWebsocketConn();
 
 		this._onPlayingChange = (data) =>
 		{
