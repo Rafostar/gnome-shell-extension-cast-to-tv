@@ -38,11 +38,13 @@ exports.connectWs = function(port)
 
 	const onConnClose = function()
 	{
-		setTimeout(() => exports.connectWs(), 3000);
+		ws.removeAllListeners();
+		setTimeout(() => exports.connectWs(port), 5000);
 	}
 
 	ws.once('open', onConnOpen);
 	ws.once('close', onConnClose);
+	ws.once('error', onConnClose);
 }
 
 function handleMessages(socket)
