@@ -488,25 +488,27 @@ function processVideoTranscode(cb)
 			return cb(null);
 		});
 	}
-
-	var ffprobeOpts = {
-		ffprobePath : exports.config.ffprobePath,
-		filePath: exports.selection.filePath
-	};
-
-	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+	else
 	{
-		if(err) return cb(err);
+		var ffprobeOpts = {
+			ffprobePath : exports.config.ffprobePath,
+			filePath: exports.selection.filePath
+		};
 
-		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+		extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+		{
+			if(err) return cb(err);
 
-		if(exports.mediaData.isSubsMerged)
-			debug('Found subtitles encoded in file');
-		else
-			debug('No encoded subtitles detected');
+			exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
 
-		return cb(null);
-	});
+			if(exports.mediaData.isSubsMerged)
+				debug('Found subtitles encoded in file');
+			else
+				debug('No encoded subtitles detected');
+
+			return cb(null);
+		});
+	}
 }
 
 function processMusicSelection(cb)
