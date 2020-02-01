@@ -15,6 +15,13 @@ const socket = require('./server-socket');
 const addons = require('./addons-importer');
 const shared = require('../shared');
 
+const mediaDataDefaults = {
+	coverPath: null,
+	title: null,
+	isSubsMerged: false,
+	charEnc: null
+};
+
 process.on('SIGINT', shutDownQuiet);
 process.on('SIGTERM', shutDownQuiet);
 process.on('uncaughtException', shutDown);
@@ -30,11 +37,7 @@ exports.playlist = [];
 exports.selection = {};
 exports.status = {};
 exports.addon = null;
-exports.mediaData = {
-	coverPath: null,
-	title: null,
-	isSubsMerged: false
-};
+exports.mediaData = Object.assign({}, mediaDataDefaults);
 
 sender.configure(exports.config.internalPort);
 gnome.showMenu(true);
@@ -288,6 +291,8 @@ function notifyFromError(err)
 
 function processSelection(cb)
 {
+	exports.mediaData = Object.assign({}, mediaDataDefaults);
+
 	switch(exports.selection.streamType)
 	{
 		case 'MUSIC':
@@ -295,12 +300,8 @@ function processSelection(cb)
 			processMusicSelection(cb);
 			break;
 		case 'PICTURE':
-			exports.mediaData.coverPath = null;
-			exports.mediaData.title = null;
-
 			remove.tempCover();
 			remove.tempSubs();
-
 			cb(null);
 			break;
 		case 'VIDEO':
@@ -323,9 +324,6 @@ function processSelection(cb)
 function processVideoSelection(cb)
 {
 	extract.video.subsProcess = true;
-	exports.mediaData.isSubsMerged = false;
-	exports.mediaData.coverPath = null;
-	exports.mediaData.title = null;
 
 	if(exports.config.receiverType === 'other')
 		socket.emit('reload');
@@ -461,9 +459,6 @@ function analyzeVideoFile(reusePath, cb)
 function processVideoTranscode(cb)
 {
 	extract.video.subsProcess = true;
-	exports.mediaData.isSubsMerged = false;
-	exports.mediaData.coverPath = null;
-	exports.mediaData.title = null;
 
 	debug('Processing file for transcoding...');
 
@@ -471,7 +466,29 @@ function processVideoTranscode(cb)
 		socket.emit('reload');
 
 	if(exports.selection.subsPath)
-		return cb(null);
+	{
+		var subs = path.parse(exports.selection.subsPath);
+		var isVtt = (subs.ext.toLowerCase() === '.vtt');
+
+		if(isVtt)
+		{
+			debug('Selected "vtt" subtitles - no conversion needed');
+			return cb(null);
+		}
+
+		extract.video.getSubsCharEnc(exports.selection.subsPath, (err, charEnc) =>
+		{
+			if(err) return cb(err);
+
+			debug(`Detected subs char encoding: ${charEnc}`);
+
+			/* ffmpeg uses UTF-8 by default */
+			if(charEnc !== 'UTF-8')
+				exports.mediaData.charEnc = charEnc;
+
+			return cb(null);
+		});
+	}
 
 	var ffprobeOpts = {
 		ffprobePath : exports.config.ffprobePath,
@@ -496,7 +513,6 @@ function processVideoTranscode(cb)
 function processMusicSelection(cb)
 {
 	extract.music.coverProcess = true;
-	exports.mediaData.isSubsMerged = false;
 	exports.selection.subsPath = "";
 
 	if(exports.config.receiverType === 'other')

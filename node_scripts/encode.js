@@ -15,7 +15,7 @@ String.prototype.replaceAt = function(index, replacement)
 	return this.substr(0, index) + replacement + this.substr(index + 1);
 }
 
-function getSubsPath()
+function getSubsOptions()
 {
 	var subsPathEscaped = (bridge.selection.subsPath) ? bridge.selection.subsPath : bridge.selection.filePath;
 	var index = subsPathEscaped.length;
@@ -29,6 +29,12 @@ function getSubsPath()
 	}
 
 	debug(`Parsed subtitles path: ${subsPathEscaped}`);
+
+	if(bridge.mediaData.charEnc)
+	{
+		subsPathEscaped += ':charenc=' + bridge.mediaData.charEnc;
+		debug(`Added ${bridge.mediaData.charEnc} char encoding to subtitles options`);
+	}
 
 	return subsPathEscaped;
 }
@@ -115,7 +121,7 @@ exports.video = function()
 	) {
 		encodeOpts.splice(
 			encodeOpts.indexOf('libx264') + 1, 0,
-			'-vf', 'subtitles=' + getSubsPath(), '-sn'
+			'-vf', 'subtitles=' + getSubsOptions(), '-sn'
 		);
 	}
 
@@ -150,7 +156,7 @@ exports.videoVaapi = function()
 		encodeOpts.splice(
 			encodeOpts.indexOf('h264_vaapi') + 1, 0,
 			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' +
-			getSubsPath() + ',hwmap', '-sn'
+			getSubsOptions() + ',hwmap', '-sn'
 		);
 	}
 	else
@@ -184,7 +190,7 @@ exports.videoNvenc = function()
 	) {
 		encodeOpts.splice(
 			encodeOpts.indexOf('h264_nvenc') + 1, 0,
-			'-vf', 'subtitles=' + getSubsPath(), '-sn'
+			'-vf', 'subtitles=' + getSubsOptions(), '-sn'
 		);
 	}
 

@@ -71,9 +71,9 @@ exports.getIsSubsMerged = function(ffprobeData)
 	);
 }
 
-function readAndConvert(opts, cb)
+exports.getSubsCharEnc = function(filePath, cb)
 {
-	fs.readFile(opts.file, (err, data) =>
+	fs.readFile(filePath, (err, data) =>
 	{
 		if(err)
 		{
@@ -81,19 +81,28 @@ function readAndConvert(opts, cb)
 			return cb(err);
 		}
 
-		if(!opts.charEnc)
+		var charDet = jschardet.detect(data);
+
+		if(charDet && charDet.encoding)
+			return cb(null, charDet.encoding);
+		else
 		{
-			var charDet = jschardet.detect(data);
-
-			if(charDet && charDet.encoding)
-				opts.charEnc = charDet.encoding;
-			else
-			{
-				exports.subsProcess = false;
-				return cb(new Error('Could not detect subtitles encoding'));
-			}
+			exports.subsProcess = false;
+			return cb(new Error('Could not detect subtitles encoding'));
 		}
+	});
+}
 
+function readAndConvert(opts, cb)
+{
+	if(opts.charEnc)
+		return convertToVtt(opts, cb);
+
+	exports.getSubsCharEnc(opts.file, (err, charEnc) =>
+	{
+		if(err) return cb(err);
+
+		opts.charEnc = charEnc;
 		convertToVtt(opts, cb);
 	});
 }
