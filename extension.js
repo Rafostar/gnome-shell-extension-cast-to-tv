@@ -25,7 +25,7 @@ let serviceSignal;
 
 function refreshRemote(playbackData)
 {
-	let isShown = (playbackData) ? playbackData.isPlaying : false;
+	let isShown = (playbackData && playbackData.isPlaying);
 	remoteMenu.playlist.remoteActive = isShown;
 
 	if(!isShown)
@@ -369,6 +369,7 @@ function onNodeWebsocket(err, msg)
 			setIndicator(true);
 			break;
 		case 'disconnected':
+			refreshRemote(false);
 			castMenu.enableFullMenu(false);
 			setIndicator(false);
 			break;
