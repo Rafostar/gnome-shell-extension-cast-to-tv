@@ -16,7 +16,8 @@
     "multicast-scanner": "^2.2.1",
     "node-gettext": "^2.0.0",
     "plyr": "3.5.3",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "ws": "^7.2.1"
   },
   "scripts": {
     "install": "sh node_scripts/utils/install.js"
@@ -36,5 +37,9 @@
   "bugs": {
     "url": "https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/issues"
   },
-  "homepage": "https://github.com/Rafostar/gnome-shell-extension-cast-to-tv"
+  "homepage": "https://github.com/Rafostar/gnome-shell-extension-cast-to-tv",
+  "devDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
+  }
 }

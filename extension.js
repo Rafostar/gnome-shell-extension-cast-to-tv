@@ -332,7 +332,7 @@ function createRemote()
 
 function changeServiceEnabled()
 {
-	let enable = !Settings.get_boolean('service-enabled');
+	let enable = !castMenu.isServiceEnabled;
 	Settings.set_boolean('service-wanted', enable);
 	enableService(enable);
 }
@@ -347,23 +347,34 @@ function enableService(enable)
 
 function setIndicator(enable)
 {
-	if(enable !== true && enable !== false)
-		enable = Settings.get_boolean('service-enabled');
-
 	let children = Indicator.get_children();
+
 	if(children && children.length)
 	{
 		if(enable && !children.includes(Widget.statusIcon))
-		{
 			Indicator.add_child(Widget.statusIcon);
-		}
 		else if(!enable && children.includes(Widget.statusIcon))
-		{
 			Indicator.remove_child(Widget.statusIcon);
-		}
 	}
+}
 
-	castMenu.enableFullMenu(enable);
+function onNodeWebsocket(err, msg)
+{
+	if(err) return log('Cast to TV: ' + err.message);
+
+	switch(msg)
+	{
+		case 'connected':
+			castMenu.enableFullMenu(true);
+			setIndicator(true);
+			break;
+		case 'disconnected':
+			castMenu.enableFullMenu(false);
+			setIndicator(false);
+			break;
+		default:
+			break;
+	}
 }
 
 function init()
@@ -380,7 +391,7 @@ function enable()
 	if(!config) config = Temp.getConfig();
 
 	/* Get remaining necessary settings */
-	let serviceEnabled = Settings.get_boolean('service-enabled');
+	//let serviceEnabled = Settings.get_boolean('service-enabled');
 	let serviceWanted = Settings.get_boolean('service-wanted');
 
 	/* Create main menu */
@@ -411,7 +422,7 @@ function enable()
 	signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
 	signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	signals.push(Settings.connect('changed::remote-label-fn', changeUseFriendlyName.bind(this)));
-	signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
+	//signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
 	serviceSignal = castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
@@ -432,6 +443,7 @@ function enable()
 				return Settings.set_int('internal-port', usedPort);
 
 			Soup.server.createWebsocket();
+			Soup.server.addNodeHandler((err, msg) => onNodeWebsocket(err, msg));
 		});
 	}
 
@@ -455,7 +467,7 @@ function enable()
 		serviceStarted = true;
 	}
 
-	setIndicator(serviceEnabled);
+	//setIndicator(serviceEnabled);
 }
 
 function disable()

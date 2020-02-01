@@ -374,10 +374,9 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             pb_data = self.get_soup_data('playback-data')
             if (
                 pb_data
-                and 'showMenu' in pb_data
                 and 'isPlaying' in pb_data
             ):
-                self.ws_data = {"showMenu": pb_data['showMenu'], "isPlaying": pb_data['isPlaying']}
+                self.ws_data = {"isPlaying": pb_data['isPlaying']}
             else:
                 return
 

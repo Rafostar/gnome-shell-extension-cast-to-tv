@@ -31,15 +31,15 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		super();
 
 		this.extensionId = Local.metadata['extension-id'];
-		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
+		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Off"), true);
 		this.castSubMenu.icon.icon_name = ICON_NAME;
-		this.isServiceEnabled = true;
+		this.isServiceEnabled = false;
 
 		/* Expandable menu */
 		this.videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
 		this.musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
 		this.pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
-		this.serviceMenuItem = new PopupMenu.PopupMenuItem(_("Turn Off"));
+		this.serviceMenuItem = new PopupMenu.PopupMenuItem(_("Turn On"));
 		this.settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
 
 		/* Assemble all menu items */
@@ -48,6 +48,16 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		this.castSubMenu.menu.addMenuItem(this.pictureMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.serviceMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.settingsMenuItem);
+
+		/* Start with turned off state with media items hidden */
+		let mediaItems = ['videoMenuItem', 'musicMenuItem', 'pictureMenuItem'];
+		mediaItems.forEach(item =>
+		{
+			if(this[item].hasOwnProperty('actor'))
+				this[item].actor.hide();
+			else
+				this[item].hide();
+		});
 
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>

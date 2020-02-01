@@ -74,7 +74,6 @@ class SoupServer extends Soup.Server
 						continue;
 
 					this.wsConns[conn].send_text(JSON.stringify({
-						showMenu: parsedMsg.showMenu,
 						isPlaying: parsedMsg.isPlaying
 					}));
 				}
@@ -96,6 +95,30 @@ class SoupServer extends Soup.Server
 					this.wsConns[srcApp].connect('closed', () => this.wsConns[srcApp] = null);
 				});
 			}
+		}
+
+		this.addNodeHandler = (cb) =>
+		{
+			cb = cb || noop;
+
+			if(!this.isConnected)
+				return cb(new Error('Client in not connected'));
+
+			this.add_websocket_handler('/websocket/node', null, null, (self, conn) =>
+			{
+				conn.connect('message', (self, type, bytes) =>
+				{
+					/* Ignore not compatible messages */
+					if(type !== Soup.WebsocketDataType.TEXT)
+						return;
+
+					let msg = String(bytes.get_data());
+
+					return cb(null, msg);
+				});
+
+				conn.connect('closed', () => cb(null, 'disconnected'));
+			});
 		}
 
 		this.onPlaybackStatus = (cb) =>

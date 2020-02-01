@@ -62,23 +62,13 @@ var gnome =
 
 		debug(`Show remote widget: ${enable}`);
 
-		var data = { showMenu: true, isPlaying: enable };
+		var data = { isPlaying: enable };
 
 		if(playbackData)
 			data = { ...playbackData, ...data };
 
 		this.isRemote = enable;
 		sender.sendPlaybackData(data, cb);
-	},
-
-	showMenu: function(enable, cb)
-	{
-		cb = cb || noop;
-
-		var data = { showMenu: enable, isPlaying: this.isRemote };
-		//sender.sendPlaybackData(data, cb);
-
-		this.setSetting('service-enabled', enable, cb);
 	},
 
 	getTempConfig: function()

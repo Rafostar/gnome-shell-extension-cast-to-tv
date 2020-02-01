@@ -57,11 +57,6 @@ module.exports =
 		this.send('browser', { name: name }, cb);
 	},
 
-	showMenu: function(isShow, cb)
-	{
-		this.send('menu', { show: isShow }, cb);
-	},
-
 	stop: function()
 	{
 		this.send = () => {};

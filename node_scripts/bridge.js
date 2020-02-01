@@ -40,7 +40,7 @@ exports.addon = null;
 exports.mediaData = Object.assign({}, mediaDataDefaults);
 
 sender.configure(exports.config.internalPort);
-gnome.showMenu(true);
+socket.connectWs(exports.config.internalPort);
 
 exports.setGnomeStatus = function(status)
 {
@@ -67,7 +67,6 @@ exports.setGnomeRemote = function(isShow, cb)
 exports.getPlaybackData = function()
 {
 	var playbackData = {
-		showMenu: true,
 		isPlaying: gnome.isRemote,
 		selection: exports.selection,
 		playlist: exports.playlist
@@ -631,32 +630,26 @@ function shutDown(err)
 
 	debug('Closing node server');
 	closeAddon();
+	sender.stop();
 
-	var finish = () =>
+	const finish = function()
 	{
-		gnome.showMenu(false, () =>
-		{
-			debug('Removed top bar indicator');
+		console.log('Cast to TV: closed successfully');
 
-			console.log('Cast to TV: closed successfully');
-			process.exit();
-		});
+		var code = (err) ? 1 : 0;
+		process.exit(code);
 	}
 
 	if(gnome.isRemote)
 	{
-		exports.setGnomeRemote(false);
 		sender.stop();
 		exports.handleRemoteSignal('STOP');
 
 		/* Give receiver time to stop playback */
-		setTimeout(() => finish(), 3000);
+		return setTimeout(() => finish(), 3000);
 	}
-	else
-	{
-		sender.stop();
-		finish();
-	}
+
+	finish();
 }
 
 function shutDownQuiet()

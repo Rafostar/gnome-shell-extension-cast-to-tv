@@ -1,5 +1,6 @@
 const fs = require('fs');
 const io = require('socket.io');
+const WebSocket = require('ws');
 const bridge = require('./bridge');
 const encode = require('./encode');
 const extract = require('./extract');
@@ -24,6 +25,24 @@ exports.listen = function(server)
 exports.emit = function(message, opts)
 {
 	websocket.emit(message, opts);
+}
+
+exports.connectWs = function(port)
+{
+	var ws = new WebSocket(`ws://127.0.0.1:${port}/websocket/node`);
+
+	const onConnOpen = function()
+	{
+		ws.send('connected');
+	}
+
+	const onConnClose = function()
+	{
+		setTimeout(() => exports.connectWs(), 3000);
+	}
+
+	ws.once('open', onConnOpen);
+	ws.once('close', onConnClose);
 }
 
 function handleMessages(socket)
