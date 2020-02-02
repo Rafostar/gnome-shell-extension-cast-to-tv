@@ -339,7 +339,15 @@ function changeServiceEnabled()
 {
 	let enable = !castMenu.isServiceEnabled;
 	Settings.set_boolean('service-wanted', enable);
-	enableService(enable);
+
+	Soup.client.getIsServiceEnabled(data =>
+	{
+		/* When wanted state matches service state */
+		if(data && data.isEnabled === enable || !data && !enable)
+			return;
+
+		enableService(enable);
+	});
 }
 
 function enableService(enable)
@@ -399,21 +407,35 @@ function enable()
 	/* Prepare signals array */
 	signals = [];
 
+	let signalTypes = {
+		string: [
+			'ffmpeg-path', 'ffprobe-path', 'receiver-type',
+			'video-acceleration', 'extractor-dir', 'chromecast-name',
+			'playercast-name'
+		],
+		int: [
+			'listening-port', 'internal-port'
+		],
+		double: [
+			'webplayer-subs', 'video-bitrate'
+		],
+		boolean: [
+			'burn-subtitles', 'music-visualizer', 'extractor-reuse'
+		]
+	};
+
 	/* Connect signals */
-	signals.push(Settings.connect('changed::ffmpeg-path', updateTempConfig.bind(this, 'ffmpeg-path', 'string')));
-	signals.push(Settings.connect('changed::ffprobe-path', updateTempConfig.bind(this, 'ffprobe-path', 'string')));
-	signals.push(Settings.connect('changed::receiver-type', updateTempConfig.bind(this, 'receiver-type', 'string')));
-	signals.push(Settings.connect('changed::listening-port', updateTempConfig.bind(this, 'listening-port', 'int')));
-	signals.push(Settings.connect('changed::internal-port', updateTempConfig.bind(this, 'internal-port', 'int')));
-	signals.push(Settings.connect('changed::webplayer-subs', updateTempConfig.bind(this, 'webplayer-subs', 'double')));
-	signals.push(Settings.connect('changed::video-bitrate', updateTempConfig.bind(this, 'video-bitrate', 'double')));
-	signals.push(Settings.connect('changed::video-acceleration', updateTempConfig.bind(this, 'video-acceleration', 'string')));
-	signals.push(Settings.connect('changed::burn-subtitles', updateTempConfig.bind(this, 'burn-subtitles', 'boolean')));
-	signals.push(Settings.connect('changed::music-visualizer', updateTempConfig.bind(this, 'music-visualizer', 'boolean')));
-	signals.push(Settings.connect('changed::extractor-reuse', updateTempConfig.bind(this, 'extractor-reuse', 'boolean')));
-	signals.push(Settings.connect('changed::extractor-dir', updateTempConfig.bind(this, 'extractor-dir', 'string')));
-	signals.push(Settings.connect('changed::chromecast-name', updateTempConfig.bind(this, 'chromecast-name', 'string')));
-	signals.push(Settings.connect('changed::playercast-name', updateTempConfig.bind(this, 'playercast-name', 'string')));
+	for(let type in signalTypes)
+	{
+		for(let setting of signalTypes[type])
+		{
+			signals.push(Settings.connect(`changed::${setting}`,
+				updateTempConfig.bind(this, setting, type))
+			);
+		}
+	}
+
+	/* Connect remaining signals */
 	signals.push(Settings.connect('changed::remote-position', createRemote.bind(this)));
 	signals.push(Settings.connect('changed::unified-slider', changeUnifiedSlider.bind(this)));
 	signals.push(Settings.connect('changed::seek-time', changeSeekTime.bind(this)));
@@ -437,10 +459,15 @@ function enable()
 		{
 			if(!usedPort) return;
 
-			/* Handlers should be set only once, port can still be changed */
+			/* Handlers should be set only once, server port can still be changed */
 			Soup.server.addNodeHandler((err, msg) => onNodeWebsocket(err, msg));
 			Soup.server.onPlaybackData(data => refreshRemote(data));
 			Soup.server.onBrowserData(data => onBrowserData(data));
+			Soup.server.onPlaybackStatus(data =>
+			{
+				if(remoteMenu)
+					remoteMenu.updateRemote(data);
+			});
 			Soup.server.createWebsockets();
 
 			if(internalPort != usedPort)
@@ -459,14 +486,21 @@ function enable()
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
 
 	/* Check if service should start */
-	if(Settings.get_boolean('service-wanted'))
+	Soup.client.getIsServiceEnabled(data =>
 	{
-		Soup.client.getIsServiceEnabled(data =>
+		let serviceWanted = Settings.get_boolean('service-wanted');
+
+		if(data && data.isEnabled)
 		{
-			if(!data || !data.isEnabled)
-				enableService(true);
-		});
-	}
+			/* Resume communication with node */
+			Soup.client.postIsLockScreen(false);
+
+			if(!serviceWanted)
+				enableService(false);
+		}
+		else if(serviceWanted)
+			enableService(true);
+	});
 }
 
 function disable()
@@ -479,8 +513,23 @@ function disable()
 	castMenu.serviceMenuItem.disconnect(serviceSignal);
 	serviceSignal = null;
 
-	let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog' || Main.sessionMode.currentMode == 'lock-screen');
-	if(!lockingScreen)
+	let lockingScreen = (
+		Main.sessionMode.currentMode == 'unlock-dialog'
+		|| Main.sessionMode.currentMode == 'lock-screen'
+	);
+
+	if(lockingScreen)
+	{
+		/* Pause data communication with node client */
+		Soup.client.postIsLockScreen(true, (err) =>
+		{
+			/* No return here cause we must continue cleanup anyway */
+			if(err) log('Cast to TV: ' + err.message);
+
+			Soup.server.disconnectWebsockets();
+		});
+	}
+	else
 	{
 		/* Close background service */
 		enableService(false);

@@ -9,10 +9,12 @@ const gettext = require('./gettext');
 const messages = require('./messages');
 const gnome = require('./gnome');
 const controller = require('./remote-controller');
+const sender = require('./sender');
 const shared = require('../shared');
 
 var clientTimeout;
 var websocket;
+var wsConnected;
 
 exports.activeConnections = 0;
 exports.playercasts = [];
@@ -28,22 +30,31 @@ exports.emit = function(message, opts)
 	websocket.emit(message, opts);
 }
 
-exports.connectWs = function(port)
+exports.connectWs = function()
 {
-	debug('Connecting GNOME websocket...');
-	var ws = new WebSocket(`ws://127.0.0.1:${port}/websocket/node`);
+	if(gnome.isLockScreen || wsConnected)
+		return;
+
+	debug(`Connecting to GNOME websocket on port: ${bridge.config.internalPort}`);
+	var ws = new WebSocket(`ws://127.0.0.1:${bridge.config.internalPort}/websocket/node`);
 
 	const onConnOpen = function()
 	{
 		debug('GNOME websocket connected');
 		ws.send('connected');
+		wsConnected = true;
+		sender.enabled = true;
 	}
 
 	const onConnClose = function()
 	{
 		debug('GNOME websocket disconnected');
 		ws.removeAllListeners();
-		setTimeout(() => exports.connectWs(port), 5000);
+		wsConnected = false;
+		sender.enabled = false;
+
+		if(!gnome.isLockScreen)
+			setTimeout(() => exports.connectWs(bridge.config.internalPort), 4200);
 	}
 
 	ws.once('open', onConnOpen);

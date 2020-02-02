@@ -235,6 +235,10 @@ exports.postTemp = function(type, req, res)
 			bridge.updateSelection(req.body.selection);
 			res.sendStatus(200);
 			break;
+		case 'lock-screen':
+			bridge.updateLockScreen(req.body);
+			res.sendStatus(200);
+			break;
 		default:
 			res.sendStatus(404);
 			break;

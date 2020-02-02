@@ -10,13 +10,18 @@ const encode = require('./encode');
 const extract = require('./extract');
 const gettext = require('./gettext');
 
-var app = express();
-var server = app.listen(bridge.config.listeningPort);
+const app = express();
+
 var userAgent = null;
+var server = app.listen(bridge.config.listeningPort, () =>
+{
+	gettext.initTranslations();
+	sender.configure(bridge.config.internalPort);
+	socket.listen(server);
+	socket.connectWs();
+});
 
 app.use(bodyParser.json());
-socket.listen(server);
-gettext.initTranslations();
 
 exports.changePort = function(port)
 {

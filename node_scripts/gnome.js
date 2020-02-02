@@ -9,8 +9,11 @@ var schemaName = 'org.gnome.shell.extensions.cast-to-tv';
 var schemaDir = path.join(__dirname + '/../schemas');
 var isSchema = false;
 
-var gnome =
+module.exports =
 {
+	isRemote: false,
+	isLockScreen: false,
+
 	loadSchema: function(customName, customPath)
 	{
 		schemaName = customName || schemaName;
@@ -95,9 +98,5 @@ var gnome =
 		if(!config.ffprobePath) config.ffprobePath = '/usr/bin/ffprobe';
 
 		return config;
-	},
-
-	isRemote: false
+	}
 }
-
-module.exports = gnome;

@@ -182,15 +182,22 @@ class SoupServer extends Soup.Server
 			msg.status_code = 404;
 		}
 
-		this.closeCleanup = () =>
+		this.removeAddedHandlers = () =>
 		{
-			if(this.doneCleanup) return;
+			for(let conn in this.wsConns)
+				this.remove_handler('/websocket/' + conn);
 
 			this.disconnectWebsockets();
 			this.remove_handler('/temp/data');
 			this.remove_handler('/temp/status');
 			this.remove_handler('/temp/browser');
-			this.remove_handler('/websocket');
+		}
+
+		this.closeCleanup = () =>
+		{
+			if(this.doneCleanup) return;
+
+			this.removeAddedHandlers();
 			this.remove_handler('/');
 
 			this.doneCleanup = true;
@@ -533,6 +540,14 @@ class SoupClient extends Soup.Session
 		{
 			let browser = this._getRequestSync('browser');
 			return (browser && browser.name) ?  browser.name : null;
+		}
+
+		this.postIsLockScreen = (value, cb) =>
+		{
+			cb = cb || noop;
+
+			let data = { isLockScreen: value };
+			this._postRequest('lock-screen', data, null, cb);
 		}
 	}
 }

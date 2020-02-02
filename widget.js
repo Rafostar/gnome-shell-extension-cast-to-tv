@@ -540,7 +540,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.setMediaButtonsSize(this.opts.mediaButtonsSize);
 		this.setSlidersIconSize(this.opts.sliderIconSize);
 		this.setUnifiedSlider(this.opts.isUnifiedSlider);
-		Soup.server.onPlaybackStatus(data => this.updateRemote(data));
 
 		/* Hide remote by default */
 		(this.isActor) ? this.actor.hide() : this.hide();

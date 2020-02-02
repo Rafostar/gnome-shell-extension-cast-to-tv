@@ -39,9 +39,6 @@ exports.status = {};
 exports.addon = null;
 exports.mediaData = Object.assign({}, mediaDataDefaults);
 
-sender.configure(exports.config.internalPort);
-socket.connectWs(exports.config.internalPort);
-
 exports.setGnomeStatus = function(status)
 {
 	exports.status = {
@@ -179,6 +176,19 @@ exports.updateRemote = function(contents)
 
 	debug(`New remote contents: ${JSON.stringify(contents)}`);
 	exports.handleRemoteSignal(contents.action, contents.value);
+}
+
+exports.updateLockScreen = function(contents)
+{
+	if(!contents || !contents.hasOwnProperty('isLockScreen'))
+		return debug('Invalid update lock screen state contents');
+
+	debug(`Received lock screen state: ${contents.isLockScreen}`);
+
+	gnome.isLockScreen = contents.isLockScreen;
+
+	if(!gnome.isLockScreen)
+		socket.connectWs();
 }
 
 function onSelectionUpdate()
@@ -629,11 +639,11 @@ function shutDown(err)
 
 	console.log('Cast to TV: closing node app...');
 	encode.enabled = false;
+	sender.enabled = false;
 	controller.clearSlideshow();
 
 	debug('Closing node server');
 	closeAddon();
-	sender.stop();
 
 	const finish = function()
 	{
@@ -645,7 +655,6 @@ function shutDown(err)
 
 	if(gnome.isRemote)
 	{
-		sender.stop();
 		exports.handleRemoteSignal('STOP');
 
 		/* Give receiver time to stop playback */

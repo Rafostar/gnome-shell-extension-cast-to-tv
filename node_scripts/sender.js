@@ -4,6 +4,8 @@ const noop = () => {};
 
 module.exports =
 {
+	enabled: false,
+
 	configure: function(port)
 	{
 		this.opts = {
@@ -23,6 +25,9 @@ module.exports =
 	send: function(type, data, cb)
 	{
 		cb = cb || noop;
+
+		if(!this.enabled)
+			return cb(null);
 
 		if(!this.opts)
 			return cb(new Error('Sender not configured'));
@@ -55,10 +60,5 @@ module.exports =
 	sendBrowserName: function(name, cb)
 	{
 		this.send('browser', { name: name }, cb);
-	},
-
-	stop: function()
-	{
-		this.send = () => {};
 	}
 }
