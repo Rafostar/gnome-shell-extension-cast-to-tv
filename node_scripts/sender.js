@@ -2,6 +2,8 @@ const http = require('http');
 const debug = require('debug')('sender');
 const noop = () => {};
 
+var lastData;
+
 module.exports =
 {
 	enabled: false,
@@ -32,12 +34,18 @@ module.exports =
 		if(!this.opts)
 			return cb(new Error('Sender not configured'));
 
+		var dataString = JSON.stringify(data);
+
+		/* Do not send same data */
+		if(dataString === lastData)
+			return cb(null);
+
+		lastData = dataString;
 		this.opts.path = '/temp/' + type;
 
 		var req = http.request(this.opts, () => {});
 		req.on('error', debug);
 
-		var dataString = JSON.stringify(data);
 		req.end(dataString, () =>
 		{
 			req.removeListener('error', debug);
