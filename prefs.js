@@ -560,8 +560,7 @@ class EncoderSettings extends Gtk.Grid
 		addToGrid(this, label, widget);
 
 		/* Burn Subtitles */
-		/* TRANSLATORS: Burn subtitles into video during transcoding */
-		label = new SettingLabel(_("Burn subtitles"));
+		label = new SettingLabel(_("Burn subtitles when transcoding video"));
 		widget = new Gtk.Switch({halign:Gtk.Align.END});
 		widget.set_sensitive(true);
 		widget.set_active(Settings.get_boolean('burn-subtitles'));
