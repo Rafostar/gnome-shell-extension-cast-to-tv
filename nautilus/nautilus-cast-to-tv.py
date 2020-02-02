@@ -27,6 +27,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
         self.ext_settings = None
+        self.is_service_enabled = None
         self.ws_conn = None
         self.ws_data = None
         self.soup_client = Soup.Session(timeout=3)
@@ -103,7 +104,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if ws_text:
             ws_parsed_text = json.loads(ws_text)
             if ws_parsed_text:
-                self.ws_data = ws_parsed_text
+                if 'isPlaying' in ws_parsed_text:
+                    self.ws_data = ws_parsed_text
+                elif 'isEnabled' in ws_parsed_text:
+                    self.is_service_enabled = ws_parsed_text['isEnabled']
 
     def create_menu_item(self, stream_type, files):
         cast_label="Cast Selected File"
@@ -366,9 +370,18 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             not self.settings
             or not self.ext_settings
             or not self.get_extension_enabled()
-            or not self.ext_settings.get_boolean('service-enabled')
         ):
             return
+
+        if self.is_service_enabled == None:
+            soup_data = self.get_soup_data('is-enabled')
+            if (
+                soup_data
+                and 'isEnabled' in soup_data
+            ):
+                self.is_service_enabled = soup_data['isEnabled']
+            else:
+                return
 
         if not self.ws_data:
             pb_data = self.get_soup_data('playback-data')

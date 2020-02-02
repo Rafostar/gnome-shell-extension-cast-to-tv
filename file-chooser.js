@@ -258,13 +258,29 @@ class fileChooser
 			{
 				if(err) return log('Cast to TV: ' + err.message);
 
-				this.isPlaying = data.isPlaying;
-				this._setDevices();
-				this._checkPlaylistLabel();
+				if(data.hasOwnProperty('isPlaying'))
+				{
+					this.isPlaying = data.isPlaying;
+					this._setDevices();
+					this._checkPlaylistLabel();
+				}
+				else if(data.hasOwnProperty('isEnabled'))
+				{
+					if(!data.isEnabled && this.fileChooser)
+						this.fileChooser.destroy();
+				}
 			});
 		});
 
-		this._getInitData();
+		let isServiceEnabled = this._getInitData();
+
+		if(!isServiceEnabled)
+		{
+			if(this.fileChooser)
+				this.fileChooser.destroy();
+
+			return log('Cast to TV: file chooser - node service is disabled');
+		}
 
 		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
@@ -399,6 +415,8 @@ class fileChooser
 
 		this.isPlaying = data.isPlaying;
 		this.playlistAllowed = this._getAddPlaylistAllowed(data.selection);
+
+		return true;
 	}
 
 	_getAddPlaylistAllowed(preSelection)

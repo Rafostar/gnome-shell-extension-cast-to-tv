@@ -170,9 +170,19 @@ class MainSettings extends Gtk.VBox
 
 		this.checkService = () =>
 		{
-			let serviceEnabled = Settings.get_boolean('service-enabled');
+			Soup.client.getIsServiceEnabled(data =>
+			{
+				if(data && data.isEnabled)
+					this.setDisplayInfo(true);
+				else
+					this.setDisplayInfo(false);
+			});
+		}
 
-			if(serviceEnabled && this.hostIp)
+		this.setDisplayInfo = (isEnabled) =>
+		{
+			/* No point in displaying without host IP */
+			if(isEnabled && this.hostIp)
 			{
 				this.infoLabel.show();
 				this.linkButton.show();
@@ -183,8 +193,6 @@ class MainSettings extends Gtk.VBox
 				this.linkButton.hide();
 			}
 		}
-
-		this.serviceSignal = Settings.connect('changed::service-enabled', () => this.checkService());
 
 		getHostIpAsync(hostIp =>
 		{
@@ -200,9 +208,6 @@ class MainSettings extends Gtk.VBox
 
 		this.destroy = () =>
 		{
-			if(this.serviceSignal)
-				Settings.disconnect(this.serviceSignal);
-
 			this.portWidget.disconnect(this.linkSignal);
 
 			super.destroy();
@@ -1000,7 +1005,10 @@ class CastToTvSettings extends Gtk.VBox
 				{
 					if(err) return log('Cast to TV: '+ err.message);
 
-					this._onPlayingChange(data);
+					if(data.hasOwnProperty('isPlaying'))
+						this._onPlayingChange(data);
+					else if(data.hasOwnProperty('isEnabled'))
+						this.notebook.mainWidget.setDisplayInfo(data.isEnabled);
 				});
 			});
 		}

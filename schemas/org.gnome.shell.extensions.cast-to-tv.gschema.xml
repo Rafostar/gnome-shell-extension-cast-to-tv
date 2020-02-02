@@ -104,10 +104,6 @@
       <summary>Web player subtitles size</summary>
     </key>
     <!-- Service -->
-    <key name="service-enabled" type="b">
-      <default>false</default>
-      <summary>Enable local service process</summary>
-    </key>
     <key name="service-wanted" type="b">
       <default>false</default>
       <summary>Remember last service state</summary>

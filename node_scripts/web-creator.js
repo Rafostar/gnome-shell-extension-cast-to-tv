@@ -200,6 +200,9 @@ exports.getTemp = function(type, req, res)
 		case 'playback-data':
 			res.send(bridge.getPlaybackData());
 			break;
+		case 'is-enabled':
+			res.send({ isEnabled: true });
+			break;
 		default:
 			res.sendStatus(404);
 			break;

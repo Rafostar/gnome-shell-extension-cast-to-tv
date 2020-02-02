@@ -25,6 +25,7 @@ class SoupServer extends Soup.Server
 
 			if(this.isConnected)
 			{
+				this.disconnectWebsockets();
 				this.disconnect();
 				this.isConnected = false;
 			}
@@ -64,6 +65,8 @@ class SoupServer extends Soup.Server
 		/* Should not be used in extension more than once */
 		this.onPlaybackData = (cb) =>
 		{
+			this.remove_handler('/temp/data');
+
 			this.add_handler('/temp/data', (self, msg) =>
 			{
 				let parsedMsg = this.parseMessage(msg);
@@ -82,12 +85,14 @@ class SoupServer extends Soup.Server
 			});
 		}
 
-		this.createWebsocket = () =>
+		this.createWebsockets = () =>
 		{
 			if(!this.isConnected) return;
 
 			for(let srcApp of ['prefs', 'filechooser', 'nautilus'])
 			{
+				this.remove_handler('/websocket/' + srcApp);
+
 				this.add_websocket_handler('/websocket/' + srcApp, null, null, (self, conn) =>
 				{
 					/* Connection will close automatically on srcApp close */
@@ -104,9 +109,13 @@ class SoupServer extends Soup.Server
 			if(!this.isConnected)
 				return cb(new Error('Client in not connected'));
 
+			this.remove_handler('/websocket/node');
+
 			this.add_websocket_handler('/websocket/node', null, null, (self, conn) =>
 			{
-				conn.connect('message', (self, type, bytes) =>
+				this.wsConns.node = conn;
+
+				this.wsConns.node.connect('message', (self, type, bytes) =>
 				{
 					/* Ignore not compatible messages */
 					if(type !== Soup.WebsocketDataType.TEXT)
@@ -117,12 +126,41 @@ class SoupServer extends Soup.Server
 					return cb(null, msg);
 				});
 
-				conn.connect('closed', () => cb(null, 'disconnected'));
+				this.wsConns.node.connect('closed', () => cb(null, 'disconnected'));
 			});
+		}
+
+		this.disconnectWebsockets = () =>
+		{
+			for(let conn in this.wsConns)
+			{
+				if(!this.wsConns[conn])
+					continue;
+
+				this.wsConns[conn].close(Soup.WebsocketCloseCode.NORMAL, null);
+			}
+		}
+
+		this.emitIsServiceEnabled = (isEnabled) =>
+		{
+			for(let conn in this.wsConns)
+			{
+				if(!this.wsConns[conn])
+					continue;
+
+				var msg = (isEnabled) ? 'enabled' : 'disabled';
+
+				this.wsConns[conn].send_text(JSON.stringify({
+					isEnabled: isEnabled
+				}));
+			}
 		}
 
 		this.onPlaybackStatus = (cb) =>
 		{
+			/* Must remove previous handler on new remote creation */
+			this.remove_handler('/temp/status');
+
 			this.add_handler('/temp/status', (self, msg) =>
 			{
 				cb(this.parseMessage(msg));
@@ -131,6 +169,8 @@ class SoupServer extends Soup.Server
 
 		this.onBrowserData = (cb) =>
 		{
+			this.remove_handler('/temp/browser');
+
 			this.add_handler('/temp/browser', (self, msg) =>
 			{
 				cb(this.parseMessage(msg));
@@ -146,6 +186,7 @@ class SoupServer extends Soup.Server
 		{
 			if(this.doneCleanup) return;
 
+			this.disconnectWebsockets();
 			this.remove_handler('/temp/data');
 			this.remove_handler('/temp/status');
 			this.remove_handler('/temp/browser');
@@ -336,6 +377,17 @@ class SoupClient extends Soup.Session
 
 				return cb(null, parsedData);
 			});
+		}
+
+		this.getIsServiceEnabled = (cb) =>
+		{
+			cb = cb || noop;
+			this._getRequest('is-enabled', cb);
+		}
+
+		this.getIsServiceEnabledSync = () =>
+		{
+			return this._getRequestSync('is-enabled');
 		}
 
 		this.getConfig = (cb) =>

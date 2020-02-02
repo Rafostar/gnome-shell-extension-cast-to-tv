@@ -536,11 +536,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		/* Should be here until ported to GObject */
 		connectSliderSignals('positionSlider');
 		connectSliderSignals('volumeSlider');
-		Soup.server.onPlaybackStatus(data => this.updateRemote(data));
 		this.setMode(this.opts.mode);
 		this.setMediaButtonsSize(this.opts.mediaButtonsSize);
 		this.setSlidersIconSize(this.opts.sliderIconSize);
 		this.setUnifiedSlider(this.opts.isUnifiedSlider);
+		Soup.server.onPlaybackStatus(data => this.updateRemote(data));
 
 		/* Hide remote by default */
 		(this.isActor) ? this.actor.hide() : this.hide();

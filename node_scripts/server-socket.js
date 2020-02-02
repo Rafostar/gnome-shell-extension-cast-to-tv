@@ -1,6 +1,7 @@
 const fs = require('fs');
 const io = require('socket.io');
 const WebSocket = require('ws');
+const debug = require('debug')('socket');
 const bridge = require('./bridge');
 const encode = require('./encode');
 const extract = require('./extract');
@@ -29,15 +30,18 @@ exports.emit = function(message, opts)
 
 exports.connectWs = function(port)
 {
+	debug('Connecting GNOME websocket...');
 	var ws = new WebSocket(`ws://127.0.0.1:${port}/websocket/node`);
 
 	const onConnOpen = function()
 	{
+		debug('GNOME websocket connected');
 		ws.send('connected');
 	}
 
 	const onConnClose = function()
 	{
+		debug('GNOME websocket disconnected');
 		ws.removeAllListeners();
 		setTimeout(() => exports.connectWs(port), 5000);
 	}

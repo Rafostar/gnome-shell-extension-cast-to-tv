@@ -19,12 +19,14 @@ const _ = Gettext.gettext;
 let castMenu;
 let remoteMenu;
 let config;
-let serviceStarted;
 let signals;
 let serviceSignal;
 
 function refreshRemote(playbackData)
 {
+	if(!remoteMenu)
+		return;
+
 	let isShown = (playbackData && playbackData.isPlaying);
 	remoteMenu.playlist.remoteActive = isShown;
 
@@ -184,7 +186,6 @@ function updateTempConfig(schemaKey, valueType)
 				postData[confKey] = usedPort;
 				config[confKey] = usedPort;
 
-				Soup.server.createWebsocket();
 				Soup.client.postConfig(postData);
 			});
 			break;
@@ -250,15 +251,19 @@ function updatePlayercastName(name)
 
 function onBrowserData(browser)
 {
-	if(browser && browser.name && Widget.remoteNames.browser !== browser.name)
+	if(browser && browser.name)
 	{
 		Widget.remoteNames.browser = browser.name;
-		remoteMenu.refreshLabel();
+
+		if(remoteMenu)
+			remoteMenu.refreshLabel();
 	}
-	else if(!browser || !browser.name)
+	else
 	{
 		Widget.remoteNames.browser = null;
-		remoteMenu.refreshLabel();
+
+		if(remoteMenu)
+			remoteMenu.refreshLabel();
 	}
 }
 
@@ -360,22 +365,19 @@ function setIndicator(enable)
 
 function onNodeWebsocket(err, msg)
 {
+	if(!castMenu || !remoteMenu)
+		return;
+
 	if(err) return log('Cast to TV: ' + err.message);
 
-	switch(msg)
-	{
-		case 'connected':
-			castMenu.enableFullMenu(true);
-			setIndicator(true);
-			break;
-		case 'disconnected':
-			refreshRemote(false);
-			castMenu.enableFullMenu(false);
-			setIndicator(false);
-			break;
-		default:
-			break;
-	}
+	let enable = (msg && msg === 'connected');
+
+	if(!enable)
+		refreshRemote(false);
+
+	castMenu.enableFullMenu(enable);
+	setIndicator(enable);
+	Soup.server.emitIsServiceEnabled(enable);
 }
 
 function init()
@@ -390,10 +392,6 @@ function enable()
 
 	/* Get config object */
 	if(!config) config = Temp.getConfig();
-
-	/* Get remaining necessary settings */
-	//let serviceEnabled = Settings.get_boolean('service-enabled');
-	let serviceWanted = Settings.get_boolean('service-wanted');
 
 	/* Create main menu */
 	castMenu = new Widget.castMenu();
@@ -423,7 +421,6 @@ function enable()
 	signals.push(Settings.connect('changed::slider-icon-size', changeSlidersIconSize.bind(this)));
 	signals.push(Settings.connect('changed::remote-label', changeLabelVisibility.bind(this)));
 	signals.push(Settings.connect('changed::remote-label-fn', changeUseFriendlyName.bind(this)));
-	//signals.push(Settings.connect('changed::service-enabled', setIndicator.bind(this, null)));
 
 	/* Other signals */
 	serviceSignal = castMenu.serviceMenuItem.connect('activate', changeServiceEnabled.bind(this));
@@ -440,19 +437,19 @@ function enable()
 		{
 			if(!usedPort) return;
 
-			if(internalPort != usedPort)
-				return Settings.set_int('internal-port', usedPort);
-
-			Soup.server.createWebsocket();
+			/* Handlers should be set only once, port can still be changed */
 			Soup.server.addNodeHandler((err, msg) => onNodeWebsocket(err, msg));
+			Soup.server.onPlaybackData(data => refreshRemote(data));
+			Soup.server.onBrowserData(data => onBrowserData(data));
+			Soup.server.createWebsockets();
+
+			if(internalPort != usedPort)
+				Settings.set_int('internal-port', usedPort);
 		});
 	}
 
 	/* Create remote widget */
 	createRemote();
-
-	Soup.server.onPlaybackData(data => refreshRemote(data));
-	Soup.server.onBrowserData(data => onBrowserData(data));
 
 	/* Set insert position after network menu items */
 	let menuItems = AggregateMenu.menu._getMenuItems();
@@ -462,13 +459,14 @@ function enable()
 	AggregateMenu.menu.addMenuItem(castMenu, menuPosition);
 
 	/* Check if service should start */
-	if(!serviceStarted && serviceWanted)
+	if(Settings.get_boolean('service-wanted'))
 	{
-		enableService(true);
-		serviceStarted = true;
+		Soup.client.getIsServiceEnabled(data =>
+		{
+			if(!data || !data.isEnabled)
+				enableService(true);
+		});
 	}
-
-	//setIndicator(serviceEnabled);
 }
 
 function disable()
@@ -486,12 +484,11 @@ function disable()
 	{
 		/* Close background service */
 		enableService(false);
-		serviceStarted = false;
 		config = null;
 
-		/* Close Soup server and client */
-		Soup.closeServer();
+		/* Close Soup client and server */
 		Soup.closeClient();
+		Soup.closeServer();
 	}
 
 	/* Remove top bar indicator */
