@@ -13,6 +13,7 @@ const sender = require('./sender');
 const shared = require('../shared');
 
 var clientTimeout;
+var reconnectTimeout;
 var websocket;
 var wsConnected;
 
@@ -30,13 +31,21 @@ exports.emit = function(message, opts)
 	websocket.emit(message, opts);
 }
 
-exports.connectWs = function()
+exports.connectWs = function(port)
 {
 	if(gnome.isLockScreen || wsConnected)
 		return;
 
-	debug(`Connecting to GNOME websocket on port: ${bridge.config.internalPort}`);
-	var ws = new WebSocket(`ws://127.0.0.1:${bridge.config.internalPort}/websocket/node`);
+	if(reconnectTimeout)
+	{
+		clearTimeout(reconnectTimeout);
+		reconnectTimeout = null;
+	}
+
+	port = port || bridge.config.internalPort;
+
+	debug(`Connecting to GNOME websocket on port: ${port}`);
+	var ws = new WebSocket(`ws://127.0.0.1:${port}/websocket/node`);
 
 	const onConnOpen = function()
 	{
@@ -54,7 +63,16 @@ exports.connectWs = function()
 		sender.enabled = false;
 
 		if(!gnome.isLockScreen)
-			setTimeout(() => exports.connectWs(bridge.config.internalPort), 4200);
+		{
+			if(reconnectTimeout)
+				clearTimeout(reconnectTimeout);
+
+			reconnectTimeout = setTimeout(() =>
+			{
+				reconnectTimeout = null;
+				exports.connectWs(bridge.config.internalPort);
+			}, 4250);
+		}
 	}
 
 	ws.once('open', onConnOpen);
@@ -155,7 +173,11 @@ function handleMessages(socket)
 	{
 		if(socket.playercastName)
 		{
-			if(socket.playercastInvalid || !exports.playercasts.includes(socket.playercastName)) return;
+			if(
+				socket.playercastInvalid
+				|| !exports.playercasts.includes(socket.playercastName)
+			)
+				return;
 
 			var index = exports.playercasts.indexOf(socket.playercastName);
 			exports.playercasts.splice(index, 1);

@@ -105,10 +105,19 @@ exports.updateConfig = function(contents)
 		server.changePort(contents.listeningPort);
 	}
 
-	if(contents.internalPort && contents.internalPort !== sender.opts.port)
+	if(contents.internalPort)
 	{
-		debug(`Changing sender port to: ${contents.internalPort}`);
-		sender.opts.port = contents.internalPort;
+		if(contents.internalPort !== sender.opts.port)
+		{
+			debug(`Changing sender port to: ${contents.internalPort}`);
+			sender.opts.port = contents.internalPort;
+		}
+
+		if(contents.internalPort !== exports.config.internalPort)
+		{
+			debug(`Changing GNOME websocket port to: ${contents.internalPort}`);
+			socket.connectWs(contents.internalPort);
+		}
 	}
 
 	exports.config = { ...exports.config, ...contents };
