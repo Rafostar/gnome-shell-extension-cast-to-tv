@@ -194,8 +194,8 @@ class ServerMonitor
 	{
 		statusTimer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 30, () =>
 		{
-			restartCount = 0;
 			statusTimer = null;
+			restartCount = 0;
 		});
 	}
 }

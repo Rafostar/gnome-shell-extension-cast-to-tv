@@ -249,28 +249,9 @@ class fileChooser
 		};
 
 		Soup.createClient(config.listeningPort, config.internalPort);
-
-		Soup.client.connectWebsocket('filechooser', err =>
-		{
-			if(err) return log('Cast to TV: ' + err.message);
-
-			Soup.client.onWebsocketMsg((err, data) =>
-			{
-				if(err) return log('Cast to TV: ' + err.message);
-
-				if(data.hasOwnProperty('isPlaying'))
-				{
-					this.isPlaying = data.isPlaying;
-					this._setDevices();
-					this._checkPlaylistLabel();
-				}
-				else if(data.hasOwnProperty('isEnabled'))
-				{
-					if(!data.isEnabled && this.fileChooser)
-						this.fileChooser.destroy();
-				}
-			});
-		});
+		this.reconnectTimeout = null;
+		this._connectWs();
+		Settings.connect('changed::internal-port', () => this._delayReconnectWs());
 
 		let isServiceEnabled = this._getInitData();
 
@@ -417,6 +398,57 @@ class fileChooser
 		this.playlistAllowed = this._getAddPlaylistAllowed(data.selection);
 
 		return true;
+	}
+
+	_connectWs()
+	{
+		Soup.client.connectWebsocket('filechooser', err =>
+		{
+			if(err) return log('Cast to TV: ' + err.message);
+
+			Soup.client.onWebsocketMsg((err, data) =>
+			{
+				if(err) return log('Cast to TV: ' + err.message);
+
+				if(data.hasOwnProperty('isPlaying'))
+				{
+					this.isPlaying = data.isPlaying;
+					this._setDevices();
+					this._checkPlaylistLabel();
+				}
+				else if(data.hasOwnProperty('isEnabled'))
+				{
+					if(!data.isEnabled && this.fileChooser)
+						this.fileChooser.destroy();
+				}
+			});
+
+			Soup.client.wsConn.connect('closed', () => this._delayReconnectWs());
+		});
+	}
+
+	_delayReconnectWs()
+	{
+		if(this.reconnectTimeout)
+			GLib.source_remove(this.reconnectTimeout);
+
+		this.reconnectTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () =>
+		{
+			this.reconnectTimeout = null;
+			let wsPort = Settings.get_int('internal-port');
+
+			if(wsPort != Soup.client.wsPort)
+			{
+				Soup.client.setWsPort(wsPort);
+				this._connectWs();
+			}
+			else if(this.fileChooser)
+			{
+				this.fileChooser.destroy();
+			}
+
+			return GLib.SOURCE_REMOVE;
+		});
 	}
 
 	_getAddPlaylistAllowed(preSelection)
