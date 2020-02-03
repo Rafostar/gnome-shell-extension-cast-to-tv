@@ -92,24 +92,22 @@ exports.subsStream = function(req, res)
 	var subsPath = bridge.selection.subsPath;
 
 	/* Check if file is specified and exists */
-	if(subsPath)
-	{
-		if(
-			req._parsedUrl.pathname === '/subswebplayer'
-			&& !subsPath.endsWith('.vtt')
-		) {
-			return res.sendStatus(204);
-		}
-
-		fs.access(subsPath, fs.constants.F_OK, (err) =>
-		{
-			if(err) return res.sendStatus(404);
-
-			return res.sendFile(subsPath);
-		});
-	}
-	else
+	if(!subsPath)
 		return res.sendStatus(204);
+
+	if(
+		req._parsedUrl.pathname === '/subswebplayer'
+		&& !subsPath.endsWith('.vtt')
+	) {
+		return res.sendStatus(204);
+	}
+
+	fs.access(subsPath, fs.constants.F_OK, (err) =>
+	{
+		if(err) return res.sendStatus(404);
+
+		return res.sendFile(subsPath);
+	});	
 }
 
 exports.coverStream = function(req, res)
@@ -121,17 +119,8 @@ exports.coverStream = function(req, res)
 
 	var coverPath = bridge.mediaData.coverPath;
 
-	/* Playercast supports covers in media file */
-	if(
-		bridge.config.receiverType === 'playercast'
-		&& coverPath
-		&& coverPath === 'muxed_image'
-	) {
+	if(!coverPath)
 		return res.sendStatus(204);
-	}
-
-	/* Use default cover when other does not exists */
-	if(!coverPath) coverPath = path.join(__dirname + '/../webplayer/images/cover.png');
 
 	fs.access(coverPath, fs.constants.F_OK, (err) =>
 	{

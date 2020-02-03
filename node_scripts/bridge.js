@@ -215,7 +215,9 @@ function onSelectionUpdate()
 	if(exports.selection.streamType !== 'PICTURE')
 	{
 		var isCleared = controller.clearSlideshow();
-		if(isCleared) debug('Cleared slideshow timeout due to non-picture selection');
+
+		if(isCleared)
+			debug('Cleared slideshow timeout due to non-picture selection');
 	}
 
 	/* Refresh already visible remote widget to mark new playing item */
@@ -236,9 +238,6 @@ function onSelectionUpdate()
 	}
 	else if(exports.selection.filePath)
 	{
-		if(exports.config.receiverType === 'playercast')
-			return castFile();
-
 		processSelection(err =>
 		{
 			if(err) return notifyFromError(err);
@@ -262,37 +261,11 @@ function castFile()
 			chromecast.cast();
 			break;
 		case 'playercast':
-			if(socket.playercasts.length === 0)
-				return debug('No playercasts connected');
-
-			/* Temporary workaround for Playercast cover detection */
-			exports.mediaData.coverPath = 'muxed_image';
-
-			var playercastName = (exports.config.playercastName) ?
-				exports.config.playercastName : socket.playercasts[0];
-
-			if(
-				exports.selection.streamType === 'MUSIC'
-				&& !exports.config.musicVisualizer
-				&& !exports.addon
-			) {
-				extract.checkCoverIncluded(isIncluded =>
-				{
-					if(!isIncluded) extract.findCoverFile();
-
-					socket.emit('playercast', {
-						name: playercastName,
-						...exports.selection
-					});
-				});
-			}
-			else
-			{
-				socket.emit('playercast', {
-					name: playercastName,
-					...exports.selection
-				});
-			}
+			socket.emit('playercast', {
+				name: playercastName,
+				mediaData: exports.mediaData,
+				...exports.selection
+			});
 			break;
 		case 'other':
 			if(exports.selection.streamType !== 'PICTURE')
@@ -320,6 +293,13 @@ function notifyFromError(err)
 function processSelection(cb)
 {
 	exports.mediaData = Object.assign({}, mediaDataDefaults);
+
+	if(exports.config.receiverType === 'playercast')
+	{
+		remove.tempCover();
+		remove.tempSubs();
+		return processPlayercastSelection(cb);
+	}
 
 	switch(exports.selection.streamType)
 	{
@@ -381,7 +361,7 @@ function processVideoSelection(cb)
 			vttparser: true
 		};
 
-		debug('Converting subtitles file');
+		debug('Converting subtitles file...');
 		extract.video.subsToVtt(opts, (err) =>
 		{
 			if(err)
@@ -435,56 +415,6 @@ function processVideoSelection(cb)
 	}
 }
 
-function analyzeVideoFile(reusePath, cb)
-{
-	var ffprobeOpts = {
-		ffprobePath : exports.config.ffprobePath,
-		filePath: exports.selection.filePath
-	};
-
-	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
-	{
-		if(err)
-		{
-			exports.selection.subsPath = "";
-			remove.tempSubs();
-
-			return cb(err);
-		}
-
-		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
-
-		if(!exports.mediaData.isSubsMerged)
-		{
-			exports.selection.subsPath = "";
-			remove.tempSubs();
-
-			return cb(null);
-		}
-
-		var opts = {
-			file: exports.selection.filePath,
-			outPath: reusePath || shared.vttSubsPath,
-			overwrite: true,
-			vttparser: true
-		};
-
-		extract.video.videoToVtt(opts, (err) =>
-		{
-			if(err)
-			{
-				exports.selection.subsPath = "";
-				return cb(err);
-			}
-
-			exports.selection.subsPath = opts.outPath;
-			debug('Successfully extracted video subtitles');
-
-			return cb(null);
-		});
-	});
-}
-
 function processVideoTranscode(cb)
 {
 	extract.video.subsProcess = true;
@@ -532,9 +462,9 @@ function processVideoTranscode(cb)
 			exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
 
 			if(exports.mediaData.isSubsMerged)
-				debug('Found subtitles encoded in file');
+				debug('Found subtitles merged in file');
 			else
-				debug('No encoded subtitles detected');
+				debug('No merged subtitles detected');
 
 			return cb(null);
 		});
@@ -545,40 +475,15 @@ function processMusicSelection(cb)
 {
 	extract.music.coverProcess = true;
 
+	debug('Processing music file...');
+
 	if(exports.config.receiverType === 'other')
 		socket.emit('reload');
 
-	debug('Processing music file...');
-
-	var ffprobeOpts = {
-		ffprobePath : exports.config.ffprobePath,
-		filePath: exports.selection.filePath
-	};
-
-	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+	debug('Searching for music cover...');
+	analyzeMusicFile((err, parsedFile, ffprobeData) =>
 	{
-		if(err)
-		{
-			exports.mediaData.coverPath = null;
-			exports.mediaData.title = null;
-			remove.tempCover();
-
-			return cb(err);
-		}
-
-		var file = path.parse(exports.selection.filePath);
-		var metadata = extract.music.getMetadata(ffprobeData);
-
-		if(metadata)
-		{
-			debug('Obtained music metadata');
-			exports.mediaData.title = metadata.title;
-		}
-		else
-		{
-			debug('No music metadata');
-			exports.mediaData.title = file.name;
-		}
+		if(err) return cb(err);
 
 		if(exports.config.musicVisualizer)
 		{
@@ -589,13 +494,13 @@ function processMusicSelection(cb)
 			return cb(null);
 		}
 
-		extract.music.findCoverInDir(file.dir, coverNames, (err, cover) =>
+		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, cover) =>
 		{
 			if(!err)
 			{
-				exports.mediaData.coverPath = path.join(file.dir, cover);
-				debug(`Found cover file in music dir: ${cover}`);
+				exports.mediaData.coverPath = path.join(parsedFile.dir, cover);
 				remove.tempCover();
+				debug(`Found cover file in music dir: ${cover}`);
 
 				return cb(null);
 			}
@@ -627,8 +532,8 @@ function processMusicSelection(cb)
 				exports.mediaData.coverPath = path.join(
 					__dirname + '/../webplayer/images/cover.png'
 				);
-				debug('No cover found - using default image');
 				remove.tempCover();
+				debug('No cover found - using default image');
 
 				return cb(null);
 			}
@@ -636,14 +541,150 @@ function processMusicSelection(cb)
 	});
 }
 
+function processPlayercastSelection(cb)
+{
+	debug('Processing playercast file...');
+
+	if(socket.playercasts.length === 0)
+		return cb(new Error('No playercasts connected'));
+
+	var playercastName = (exports.config.playercastName) ?
+		exports.config.playercastName : socket.playercasts[0];
+
+	if(
+		exports.selection.streamType !== 'MUSIC'
+		|| exports.config.musicVisualizer
+	) {
+		return cb(null);
+	}
+
+	debug('Searching for music cover...');
+	analyzeMusicFile((err, parsedFile, ffprobeData) =>
+	{
+		if(err) return cb(err);
+
+		if(extract.music.getIsCoverMerged(ffprobeData))
+		{
+			debug('Found cover merged in file');
+
+			return cb(null);
+		}
+
+		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, cover) =>
+		{
+			if(!err)
+			{
+				exports.mediaData.coverPath = path.join(parsedFile.dir, cover);
+				debug(`Found cover file in music dir: ${cover}`);
+
+				return cb(null);
+			}
+
+			exports.mediaData.coverPath = path.join(
+				__dirname + '/../webplayer/images/cover.png'
+			);
+			debug('No cover found - using default image');
+
+			return cb(null);
+		});
+	});
+}
+
+function analyzeVideoFile(reusePath, cb)
+{
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+	{
+		if(err)
+		{
+			exports.selection.subsPath = "";
+			remove.tempSubs();
+
+			return cb(err);
+		}
+
+		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+
+		if(!exports.mediaData.isSubsMerged)
+		{
+			exports.selection.subsPath = "";
+			remove.tempSubs();
+			debug('No merged subtitles found');
+
+			return cb(null);
+		}
+
+		var opts = {
+			file: exports.selection.filePath,
+			outPath: reusePath || shared.vttSubsPath,
+			overwrite: true,
+			vttparser: true
+		};
+
+		debug('Extracting video subtitles...');
+		extract.video.videoToVtt(opts, (err) =>
+		{
+			if(err)
+			{
+				exports.selection.subsPath = "";
+				return cb(err);
+			}
+
+			exports.selection.subsPath = opts.outPath;
+			debug('Successfully extracted video subtitles');
+
+			return cb(null);
+		});
+	});
+}
+
+function analyzeMusicFile(cb)
+{
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+	{
+		if(err)
+		{
+			exports.mediaData.coverPath = null;
+			exports.mediaData.title = null;
+			remove.tempCover();
+
+			return cb(err);
+		}
+
+		var parsedFile = path.parse(exports.selection.filePath);
+		var metadata = extract.music.getMetadata(ffprobeData);
+
+		if(metadata)
+		{
+			debug('Obtained music metadata');
+			exports.mediaData.title = metadata.title;
+		}
+		else
+		{
+			debug('No music metadata');
+			exports.mediaData.title = parsedFile.name;
+		}
+
+		return cb(null, parsedFile, ffprobeData);
+	});
+}
+
 function closeAddon(selection, config)
 {
-	if(exports.addon)
-	{
-		exports.addon.closeStream(selection, config);
-		exports.addon = null;
-		debug('Closed Add-on');
-	}
+	if(!exports.addon) return;
+
+	exports.addon.closeStream(selection, config);
+	exports.addon = null;
+	debug('Closed Add-on');
 }
 
 function shutDown(err)
