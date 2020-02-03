@@ -89,7 +89,7 @@ exports.setSlideshow = function()
 
 	if(exports.slideshow && bridge.selection.streamType === 'PICTURE')
 	{
-		var time = gnome.getSetting('slideshow-time') * 1000;
+		var time = bridge.config.slideshowTime * 1000;
 
 		slideshowTimeout = setTimeout(() =>
 		{

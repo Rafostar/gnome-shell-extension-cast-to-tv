@@ -87,6 +87,7 @@ module.exports =
 			videoAcceleration: this.getSetting('video-acceleration'),
 			burnSubtitles: this.getBoolean('burn-subtitles'),
 			musicVisualizer: this.getBoolean('music-visualizer'),
+			slideshowTime: this.getSetting('slideshow-time'),
 			extractorReuse: this.getBoolean('extractor-reuse'),
 			extractorDir: this.getSetting('extractor-dir'),
 			chromecastName: this.getSetting('chromecast-name'),

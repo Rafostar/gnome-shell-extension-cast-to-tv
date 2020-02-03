@@ -407,14 +407,14 @@ function enable()
 	/* Prepare signals array */
 	signals = [];
 
-	let signalTypes = {
+	let nodeSignals = {
 		string: [
 			'ffmpeg-path', 'ffprobe-path', 'receiver-type',
 			'video-acceleration', 'extractor-dir', 'chromecast-name',
 			'playercast-name'
 		],
 		int: [
-			'listening-port', 'internal-port'
+			'listening-port', 'internal-port', 'slideshow-time'
 		],
 		double: [
 			'webplayer-subs', 'video-bitrate'
@@ -425,9 +425,9 @@ function enable()
 	};
 
 	/* Connect signals */
-	for(let type in signalTypes)
+	for(let type in nodeSignals)
 	{
-		for(let setting of signalTypes[type])
+		for(let setting of nodeSignals[type])
 		{
 			signals.push(Settings.connect(`changed::${setting}`,
 				updateTempConfig.bind(this, setting, type))
