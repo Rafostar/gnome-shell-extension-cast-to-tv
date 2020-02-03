@@ -1,9 +1,18 @@
 var websocket = io();
 
+var statusContents = {
+	playerState: 'PAUSED',
+	currentTime: 0,
+	media: { duration: 0 },
+	volume: getVolume()
+};
+
 function getVolume()
 {
-	if(player.muted) return 0;
-	else return player.volume;
+	if(typeof player === 'undefined' || player.muted)
+		return 0;
+	else
+		return player.volume;
 }
 
 /* Web player related websocket functions */
@@ -11,13 +20,6 @@ if(typeof player !== 'undefined')
 {
 	var progress = 0;
 	var playbackStarted = false;
-
-	var statusContents = {
-		playerState: 'PAUSED',
-		currentTime: 0,
-		media: { duration: 0 },
-		volume: getVolume()
-	};
 
 	websocket.emit('webplayer', 'webplayer-ask');
 
@@ -106,6 +108,7 @@ if(typeof player !== 'undefined')
 else
 {
 	websocket.emit('show-remote', true);
+	websocket.emit('status-update', statusContents);
 }
 
 websocket.on('reload', () =>

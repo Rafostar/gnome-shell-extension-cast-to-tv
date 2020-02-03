@@ -72,6 +72,16 @@ exports.getPlaybackData = function()
 	return playbackData;
 }
 
+exports.getRemoteButtons = function()
+{
+	var buttonsData = {
+		repeat: controller.repeat,
+		slideshow: controller.slideshow
+	};
+
+	return buttonsData;
+}
+
 exports.handleRemoteSignal = function(action, value)
 {
 	switch(exports.config.receiverType)

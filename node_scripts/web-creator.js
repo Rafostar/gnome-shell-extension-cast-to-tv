@@ -189,6 +189,9 @@ exports.getTemp = function(type, req, res)
 		case 'playback-data':
 			res.send(bridge.getPlaybackData());
 			break;
+		case 'remote-buttons':
+			res.send(bridge.getRemoteButtons());
+			break;
 		case 'is-enabled':
 			res.send({ isEnabled: true });
 			break;
