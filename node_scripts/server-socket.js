@@ -159,13 +159,15 @@ function handleMessages(socket)
 	socket.on('status-update', bridge.setGnomeStatus);
 	socket.on('show-remote', msg =>
 	{
-		if(msg) controller.setSlideshow();
+		if(msg)
+			controller.setSlideshow();
 		else
 		{
 			controller.clearSlideshow();
 			controller.slideshow = false;
 		}
 
+		debug('Received show-remote message');
 		bridge.setGnomeRemote(msg)
 	});
 

@@ -387,13 +387,11 @@ function startPlayback(mimeType)
 			if(!err)
 			{
 				playerVolume = volume;
-				debug(`Obtained volume value: ${volume}`);
+				return debug(`Obtained volume value: ${volume}`);
 			}
-			else
-			{
-				playerVolume = 1;
-				debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
-			}
+
+			playerVolume = 1;
+			debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
 		});
 	}
 
@@ -545,12 +543,16 @@ function closeCast(action)
 
 	if(action)
 	{
-		if(action == 'SKIP+') return controller.changeTrack(currentTrackID + 1);
-		else if(action == 'SKIP-') return controller.changeTrack(currentTrackID - 1);
+		if(action == 'SKIP+')
+			return controller.changeTrack(currentTrackID + 1);
+		else if(action == 'SKIP-')
+			return controller.changeTrack(currentTrackID - 1);
 	}
 
-	if(controller.repeat && currentTrackID === listLastID) return controller.changeTrack(1);
-	else if(action !== 'STOP' && currentTrackID < listLastID) return controller.changeTrack(currentTrackID + 1);
+	if(controller.repeat && currentTrackID === listLastID)
+		return controller.changeTrack(1);
+	else if(action !== 'STOP' && currentTrackID < listLastID)
+		return controller.changeTrack(currentTrackID + 1);
 
 	debug('Closing cast session...');
 	chromecast.close(err =>
