@@ -63,6 +63,9 @@ module.exports =
 	{
 		cb = cb || noop;
 
+		if(this.isLockScreen)
+			return cb(null);
+
 		debug(`Show remote widget: ${enable}`);
 
 		var data = { isPlaying: enable };

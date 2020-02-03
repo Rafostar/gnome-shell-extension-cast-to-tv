@@ -167,7 +167,6 @@ function handleMessages(socket)
 			controller.slideshow = false;
 		}
 
-		debug('Received show-remote message');
 		bridge.setGnomeRemote(msg)
 	});
 

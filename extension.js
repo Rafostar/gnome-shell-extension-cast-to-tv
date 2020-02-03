@@ -521,11 +521,8 @@ function disable()
 	if(lockingScreen)
 	{
 		/* Pause data communication with node client */
-		Soup.client.postIsLockScreen(true, (err) =>
+		Soup.client.postIsLockScreen(true, () =>
 		{
-			/* No return here cause we must continue cleanup anyway */
-			if(err) log('Cast to TV: ' + err.message);
-
 			Soup.server.disconnectWebsockets();
 		});
 	}
