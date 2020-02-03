@@ -27,9 +27,9 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
         self.ext_settings = None
-        self.is_service_enabled = None
         self.ws_conn = None
         self.ws_data = None
+        self.ws_connecting = False
         self.soup_client = Soup.Session(timeout=3)
 
         Gio_SSS = Gio.SettingsSchemaSource
@@ -42,10 +42,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         schema_obj = schema_source.lookup('org.gnome.shell.extensions.cast-to-tv', True)
         if schema_obj:
             self.ext_settings = Gio.Settings.new_full(schema_obj)
-            ws_port = self.ext_settings.get_int('internal-port')
-            url = 'ws://127.0.0.1:' + str(ws_port) + '/websocket/nautilus'
-            msg = Soup.Message.new('GET', url)
-            self.soup_client.websocket_connect_async(msg, None, None, None, self.websocket_cb)
 
         locale.setlocale(locale.LC_ALL, '')
         if os.path.exists(EXTENSION_PATH + '/locale'):
@@ -94,20 +90,33 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return False
 
+    def connect_websocket(self):
+        self.ws_connecting = True
+        ws_port = self.ext_settings.get_int('internal-port')
+        url = 'ws://127.0.0.1:' + str(ws_port) + '/websocket/nautilus'
+        msg = Soup.Message.new('GET', url)
+        self.soup_client.websocket_connect_async(msg, None, None, None, self.websocket_cb)
+
     def websocket_cb(self, session, res):
         self.ws_conn = self.soup_client.websocket_connect_finish(res)
+        self.ws_connecting = False
         if self.ws_conn:
             self.ws_conn.connect('message', self.websocket_msg_cb)
+            self.ws_conn.connect('closed', self.websocket_closed_cb)
 
     def websocket_msg_cb(self, socket, data_type, bytes):
         ws_text = bytes.get_data()
         if ws_text:
             ws_parsed_text = json.loads(ws_text)
-            if ws_parsed_text:
+            if ws_parsed_text and self.ws_data:
                 if 'isPlaying' in ws_parsed_text:
-                    self.ws_data = ws_parsed_text
+                    self.ws_data['isPlaying'] = ws_parsed_text['isPlaying']
                 elif 'isEnabled' in ws_parsed_text:
-                    self.is_service_enabled = ws_parsed_text['isEnabled']
+                    self.ws_data['isEnabled'] = ws_parsed_text['isEnabled']
+
+    def websocket_closed_cb(self, socket):
+        self.ws_conn = None
+        self.ws_data = None
 
     def create_menu_item(self, stream_type, files):
         cast_label="Cast Selected File"
@@ -373,25 +382,30 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         ):
             return
 
-        if self.is_service_enabled == None:
-            soup_data = self.get_soup_data('is-enabled')
-            if (
-                soup_data
-                and 'isEnabled' in soup_data
-            ):
-                self.is_service_enabled = soup_data['isEnabled']
-            else:
-                return
+        # Websocket connection takes priority
+        if not self.ws_conn:
+            if not self.ws_connecting:
+                self.connect_websocket()
+            return
 
+        # When data not yet emitted via ws
         if not self.ws_data:
             pb_data = self.get_soup_data('playback-data')
             if (
                 pb_data
                 and 'isPlaying' in pb_data
             ):
-                self.ws_data = {"isPlaying": pb_data['isPlaying']}
+                # Having playback response means service is enabled
+                self.ws_data = {
+                    "isEnabled": True,
+                    "isPlaying": pb_data['isPlaying']
+                }
             else:
                 return
+
+        # When websocket or server reported service disabled
+        if not self.ws_data['isEnabled']:
+            return
 
         stream_type = None
         is_video_and_subs = False
