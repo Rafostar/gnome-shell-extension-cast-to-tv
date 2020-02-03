@@ -205,3 +205,13 @@ function readOutputAsync(stream, callback)
 		}
 	});
 }
+
+function createDir(dirPath, permissions)
+{
+	permissions = permissions || 448 // 700 in octal
+
+	let dirExists = GLib.file_test(dirPath, GLib.FileTest.EXISTS);
+
+	if(!dirExists)
+		GLib.mkdir_with_parents(dirPath, permissions);
+}

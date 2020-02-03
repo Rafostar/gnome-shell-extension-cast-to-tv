@@ -395,9 +395,6 @@ function init()
 
 function enable()
 {
-	/* Create dir for temporary data */
-	Temp.createTempDir();
-
 	/* Get config object */
 	if(!config) config = Temp.getConfig();
 

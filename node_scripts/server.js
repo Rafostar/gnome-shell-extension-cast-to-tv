@@ -18,7 +18,8 @@ var server = app.listen(bridge.config.listeningPort, () =>
 	gettext.initTranslations();
 	sender.configure(bridge.config.internalPort);
 	socket.listen(server);
-	socket.connectWs();
+
+	bridge.createTempDir(() => socket.connectWs());
 });
 
 app.use(bodyParser.json());

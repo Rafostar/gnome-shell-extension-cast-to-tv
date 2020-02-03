@@ -1,7 +1,6 @@
 const { GLib } = imports.gi;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Settings = Local.imports.helper.getSettings(Local.path);
-const shared = Local.imports.shared.module.exports;
 
 function getConfig()
 {
@@ -29,10 +28,4 @@ function getRemoteOpts()
 	};
 
 	return opts;
-}
-
-function createTempDir()
-{
-	let dirExists = GLib.file_test(shared.tempDir, GLib.FileTest.EXISTS);
-	if(!dirExists) GLib.mkdir_with_parents(shared.tempDir, 448); // 700 in octal
 }

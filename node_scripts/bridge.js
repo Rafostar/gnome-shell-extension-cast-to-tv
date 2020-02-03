@@ -61,6 +61,22 @@ exports.setGnomeRemote = function(isShow, cb)
 	gnome.showRemote(true, exports.getPlaybackData(), cb);
 }
 
+exports.createTempDir = function(cb)
+{
+	fs.access(shared.tempDir, fs.constants.F_OK, (err) =>
+	{
+		if(!err) return cb(null);
+
+		fs.mkdir(shared.tempDir, (err) =>
+		{
+			if(!err) return cb(null);
+
+			debug(err);
+			return cb(err);
+		});
+	});
+}
+
 exports.getPlaybackData = function()
 {
 	var playbackData = {
