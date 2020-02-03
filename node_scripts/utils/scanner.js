@@ -8,3 +8,5 @@ scanner({ full_scan: true }, (err, devices) =>
 
 	gnome.setSetting('chromecast-devices', JSON.stringify(devices));
 });
+
+gnome.loadSchema();
