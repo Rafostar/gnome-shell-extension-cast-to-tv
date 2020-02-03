@@ -91,27 +91,16 @@ exports.subsStream = function(req, res)
 
 	var subsPath = bridge.selection.subsPath;
 
-	if(bridge.config.receiverType !== 'playercast')
-	{
-		if(!subsPath)
-			subsPath = shared.vttSubsPath;
-		else if(req._parsedUrl.pathname === '/subswebplayer')
-		{
-			var parsedSubs = path.parse(subsPath);
-
-			if(
-				!parsedSubs
-				|| !parsedSubs.ext
-				|| parsedSubs.ext.toLowerCase() !== '.vtt'
-			) {
-				subsPath = shared.vttSubsPath;
-			}
-		}
-	}
-
 	/* Check if file is specified and exists */
 	if(subsPath)
 	{
+		if(
+			req._parsedUrl.pathname === '/subswebplayer'
+			&& !subsPath.endsWith('.vtt')
+		) {
+			return res.sendStatus(204);
+		}
+
 		fs.access(subsPath, fs.constants.F_OK, (err) =>
 		{
 			if(err) return res.sendStatus(404);

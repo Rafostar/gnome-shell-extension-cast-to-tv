@@ -534,7 +534,6 @@ function processVideoTranscode(cb)
 function processMusicSelection(cb)
 {
 	extract.music.coverProcess = true;
-	exports.selection.subsPath = "";
 
 	if(exports.config.receiverType === 'other')
 		socket.emit('reload');
