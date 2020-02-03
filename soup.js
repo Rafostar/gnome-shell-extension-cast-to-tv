@@ -1,4 +1,5 @@
 const { Soup } = imports.gi;
+const ByteArray = imports.byteArray;
 const noop = () => {};
 
 var server = null;
@@ -121,7 +122,12 @@ class SoupServer extends Soup.Server
 					if(type !== Soup.WebsocketDataType.TEXT)
 						return;
 
-					let msg = String(bytes.get_data());
+					let msg = bytes.get_data();
+
+					if(msg instanceof Uint8Array)
+						msg = ByteArray.toString(msg);
+					else
+						msg = String(msg);
 
 					return cb(null, msg);
 				});
@@ -374,9 +380,14 @@ class SoupClient extends Soup.Session
 				if(type !== Soup.WebsocketDataType.TEXT)
 					return;
 
+				let msg = bytes.get_data();
+
+				if(msg instanceof Uint8Array)
+					msg = ByteArray.toString(msg);
+
 				let parsedData = null;
 				try {
-					parsedData = JSON.parse(bytes.get_data());
+					parsedData = JSON.parse(msg);
 				}
 				catch(err) {
 					return cb(new Error('Could not parse websocket data'));
