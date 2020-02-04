@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 15:48\n"
+"PO-Revision-Date: 2020-02-04 16:49\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -50,7 +50,7 @@ msgstr "Emitir Contenido"
 
 #: widget.js:341
 msgid "Browser"
-msgstr ""
+msgstr "Navegador"
 
 #: playlist.js:344
 msgid "Playlist"
@@ -76,7 +76,7 @@ msgstr "Transcodificar"
 
 #: file-chooser.js:81
 msgid "Audio"
-msgstr ""
+msgstr "Audio"
 
 #: file-chooser.js:82
 msgid "Video + Audio"
@@ -173,7 +173,7 @@ msgstr "Puerto"
 
 #: prefs.js:134
 msgid "Internal communication port"
-msgstr ""
+msgstr "Puerto de comunicación interno"
 
 #: prefs.js:203
 msgid "Access web player from devices on local network"
@@ -209,7 +209,7 @@ msgstr "Buscar Antes/Después (segundos)"
 
 #: prefs.js:251
 msgid "Slideshow time per picture (seconds)"
-msgstr ""
+msgstr "Tiempo en pantalla por imagen (segundos)"
 
 #: prefs.js:261
 msgid "Media control buttons size"
@@ -229,7 +229,7 @@ msgstr "Mostrar etiqueta del control"
 
 #: prefs.js:297
 msgid "Receiver name as label"
-msgstr ""
+msgstr "Etiqueta del receptor"
 
 #: prefs.js:347
 msgid "Chromecast Options"
@@ -286,7 +286,7 @@ msgstr "Color de fondo"
 
 #: prefs.js:540
 msgid "Encoder"
-msgstr ""
+msgstr "Decodificador"
 
 #: prefs.js:545
 msgid "Media Encoding"
@@ -306,38 +306,38 @@ msgstr "Bitrate (Mbps)"
 
 #: prefs.js:568
 msgid "Burn subtitles when transcoding video"
-msgstr ""
+msgstr "Grabar subtítulos al descodificar video"
 
 #. TRANSLATORS: "Players" as video players
 #: prefs.js:583
 msgid "Extractor"
-msgstr ""
+msgstr "Extractor"
 
 #: prefs.js:588
 msgid "Subtitles Extraction"
-msgstr ""
+msgstr "Extracción de subtítulos"
 
 #. TRANSLATORS: "vttextract" is the name of executable, do not change
 #: prefs.js:593
 msgid "Add vttextract executable"
-msgstr ""
+msgstr "Añadir ejecutable vttextract"
 
 #: prefs.js:602
 msgid "Reuse extracted subtitles"
-msgstr ""
+msgstr "Reutilizar subtítulos extraídos"
 
 #. TRANSLATORS: Destination folder to save subtitles
 #: prefs.js:611
 msgid "Save folder"
-msgstr ""
+msgstr "Guardar carpeta"
 
 #: prefs.js:613
 msgid "Select folder"
-msgstr ""
+msgstr "Seleccionar carpeta"
 
 #: prefs.js:654
 msgid "Misc"
-msgstr ""
+msgstr "Miscelánea"
 
 #: prefs.js:676
 msgid "Web Player"
@@ -481,7 +481,7 @@ msgstr "La ruta de FFprobe es incorrecta"
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:18
 msgid "Could not analyze selected file:"
-msgstr ""
+msgstr "No se pudo analizar el archivo seleccionado:"
 
 #: node_scripts/messages.js:20
 msgid "Speed"
