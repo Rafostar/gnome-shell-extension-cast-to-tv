@@ -127,28 +127,57 @@ function readFromFile(path)
 
 	if(fileExists)
 	{
-		let [readOk, readFile] = GLib.file_get_contents(path);
+		let [success, contents] = GLib.file_get_contents(path);
 
-		if(readOk)
+		if(success)
 		{
-			let data;
-
-			if(readFile instanceof Uint8Array)
+			if(contents instanceof Uint8Array)
 			{
-				try { data = JSON.parse(ByteArray.toString(readFile)); }
-				catch(err) { data = null; }
+				try { contents = JSON.parse(ByteArray.toString(contents)); }
+				catch(err) { contents = null; }
 			}
 			else
 			{
-				try { data = JSON.parse(readFile); }
-				catch(err) { data = null; }
+				try { contents = JSON.parse(contents); }
+				catch(err) { contents = null; }
 			}
 
-			return data;
+			return contents;
 		}
 	}
 
 	return null;
+}
+
+function readFromFileAsync(file, callback)
+{
+	/* Either filepath or Gio.File can be used */
+	if(file && typeof file === 'string')
+		file = Gio.file_new_for_path(file);
+
+	file.load_contents_async(null, (file, res) =>
+	{
+		let success, contents;
+
+		try {
+			[success, contents] = file.load_contents_finish(res);
+
+			if(success)
+			{
+				if(contents instanceof Uint8Array)
+					contents = JSON.parse(ByteArray.toString(contents));
+				else
+					contents = JSON.parse(contents);
+			}
+			else
+				contents = null;
+		}
+		catch(err) {
+			contents = null;
+		}
+
+		callback(contents);
+	});
 }
 
 function writeToFile(path, contents)
@@ -175,4 +204,14 @@ function readOutputAsync(stream, callback)
 			readOutputAsync(source, callback);
 		}
 	});
+}
+
+function createDir(dirPath, permissions)
+{
+	permissions = permissions || 448 // 700 in octal
+
+	let dirExists = GLib.file_test(dirPath, GLib.FileTest.EXISTS);
+
+	if(!dirExists)
+		GLib.mkdir_with_parents(dirPath, permissions);
 }

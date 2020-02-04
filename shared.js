@@ -9,13 +9,7 @@ var tempDir = '/tmp/.cast-to-tv';
 
 module.exports = {
 	tempDir: tempDir,
-	hlsDir: tempDir + '-stream',
-	configPath: tempDir + '/config.json',
-	selectionPath: tempDir + '/selection.json',
-	listPath: tempDir + '/playlist.json',
-	remotePath: tempDir + '/remote-controller.json',
-	statusPath: tempDir + '/chromecast-status.json',
-	playercastsPath: tempDir + '/playercasts.json',
+	hlsDir: tempDir + '/stream',
 	vttSubsPath: tempDir + '/webplayer_subs.vtt',
 	coverDefault: tempDir + '/cover',
 	escapeChars: [' ', '[', ']', '"', "'"],

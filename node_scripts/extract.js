@@ -1,211 +1,29 @@
-var fs = require('fs');
-var path = require('path');
-var { spawn } = require('child_process');
-var jschardet = require('jschardet');
-var bridge = require('./bridge');
-var ffprobe = require('./ffprobe');
-var remove = require('./remove');
-var notify = require('./notify');
-var messages = require('./messages.js');
-var shared = require('../shared');
+const ffprobe = require('./ffprobe');
+const extractVid = require('./extract/extract-video');
+const extractMus = require('./extract/extract-music');
+const noop = () => {};
 
-exports.subsProcess = null;
-exports.coverProcess = null;
-exports.coverPath;
-exports.metadata;
-exports.subtitlesBuiltIn;
-
-var coverFound;
-
-exports.detectSubsEncoding = function(subsFile)
+module.exports =
 {
-	var fileBuffer = fs.readFileSync(subsFile);
-	var charDet = jschardet.detect(fileBuffer);
-
-	convertSubsToVtt(subsFile, charDet.encoding);
+	video: extractVid,
+	music: extractMus,
+	analyzeFile: analyzeFile
 }
 
-exports.findCoverFile = function()
+function analyzeFile(opts, cb)
 {
-	var coverFile;
+	cb = cb || noop;
 
-	for(var i = 0; i < shared.coverNames.length; i++)
+	if(!opts.ffprobePath)
+		return cb(new Error('No path to ffprobe'));
+
+	if(!opts.filePath)
+		return cb(new Error('No file path to analyze'));
+
+	ffprobe(opts, (err, data) =>
 	{
-		for(var j = 0; j < shared.coverExtensions.length; j++)
-		{
-			var coverExists = checkCombinedCover(i,j);
-			if(coverExists) return coverFound = true;
-		}
-	}
+		if(err) return cb(err);
 
-	return coverFound = false;
-}
-
-exports.analyzeFile = function()
-{
-	exports.subtitlesBuiltIn = false;
-	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
-
-	ffprobePromise
-		.then(value => {
-			if(bridge.selection.streamType == 'MUSIC') checkMetadata(value);
-			else checkBuiltInSubs(value);
-		})
-		.catch(err => {
-			if(err.message == 'FFprobe process error')
-				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error')
-				notify('Cast to TV', messages.ffprobePath);
-
-			exports.subsProcess = null;
-			exports.coverProcess = null;
-		});
-}
-
-exports.checkCoverIncluded = function(cb)
-{
-	var ffprobePromise = ffprobe(bridge.selection.filePath, {path: bridge.config.ffprobePath});
-
-	ffprobePromise
-		.then(data => {
-			for(var i = 0; i < data.streams.length; i++)
-			{
-				if(data.streams[i].codec_name == 'mjpeg')
-					return cb(true);
-			}
-
-			cb(false);
-		})
-		.catch(err => {
-			if(err.message == 'FFprobe process error')
-				notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
-			else if(err.message == 'FFprobe exec error')
-				notify('Cast to TV', messages.ffprobePath);
-
-			cb(false);
-		});
-}
-
-function convertSubsToVtt(subsFile, subsEnc)
-{
-	exports.subsProcess = spawn(bridge.config.ffmpegPath, [
-		'-sub_charenc', subsEnc, '-i', subsFile, shared.vttSubsPath, '-y'
-	]);
-	exports.subsProcess.on('close', () => exports.subsProcess = null);
-}
-
-function extractCoverArt(extension)
-{
-	exports.coverPath = shared.coverDefault + extension;
-	exports.coverProcess = spawn(bridge.config.ffmpegPath, [
-		'-i', bridge.selection.filePath, '-c', 'copy', exports.coverPath, '-y'
-	]);
-	exports.coverProcess.on('close', () => exports.coverProcess = null);
-}
-
-function checkBuiltInSubs(ffprobeData)
-{
-	for(var i = 0; i < ffprobeData.streams.length; i++)
-	{
-		if(ffprobeData.streams[i].codec_type == 'subtitle')
-		{
-			if(bridge.selection.streamType == 'VIDEO')
-			{
-				convertSubsToVtt(bridge.selection.filePath, 'UTF-8');
-			}
-			else
-			{
-				exports.subtitlesBuiltIn = true;
-				remove.file(shared.vttSubsPath);
-				exports.subsProcess = null;
-			}
-
-			/* Return when subtiles found */
-			return;
-		}
-	}
-
-	/* Delete existing file if no new subtiles */
-	remove.file(shared.vttSubsPath);
-	exports.subsProcess = null;
-}
-
-function checkMetadata(ffprobeData)
-{
-	var metadata = ffprobeData.format.tags;
-
-	if(metadata.TITLE)
-	{
-		for(var i in metadata)
-		{
-			metadata[i.toLowerCase()] = metadata[i];
-			delete metadata[i];
-		}
-
-		exports.metadata = metadata;
-	}
-	else if(metadata.title) exports.metadata = metadata;
-	else exports.metadata = null;
-
-	if(!coverFound)
-	{
-		for(var i = 0; i < ffprobeData.streams.length; i++)
-		{
-			if(ffprobeData.streams[i].codec_name == 'mjpeg')
-			{
-				shared.coverExtensions.forEach(function(ext)
-				{
-					if(ext != '.jpg') remove.file(shared.coverDefault + ext);
-				});
-
-				extractCoverArt('.jpg');
-				return;
-			}
-		}
-
-		/* Delete existing cover if new cover not found */
-		remove.covers();
-	}
-
-	exports.coverProcess = null;
-}
-
-function checkCombinedCover(i,j)
-{
-	var coverCombined = shared.coverNames[i] + shared.coverExtensions[j];
-
-	for(var k = 1; k <= 3; k++)
-	{
-		switch(k)
-		{
-			case 1:
-				coverFile = path.dirname(bridge.selection.filePath) + '/' + coverCombined;
-				break
-			case 2:
-				coverFile = path.dirname(bridge.selection.filePath) + '/' +
-					coverCombined.charAt(0).toUpperCase() + coverCombined.slice(1);
-				break;
-			case 3:
-				coverFile = path.dirname(bridge.selection.filePath) + '/' +
-					shared.coverNames[i].toUpperCase() + shared.coverExtensions[j];
-				break;
-			default:
-				break;
-		}
-
-		if(fs.existsSync(coverFile))
-		{
-			shared.coverExtensions.forEach(function(ext)
-			{
-				if(ext != shared.coverExtensions[j]) remove.file(shared.coverDefault + ext);
-			});
-
-			exports.coverPath = shared.coverDefault + shared.coverExtensions[j];
-			fs.copyFileSync(coverFile, exports.coverPath);
-			return true;
-		}
-	}
-
-	exports.coverPath = "";
-	return false;
+		cb(null, data);
+	});
 }

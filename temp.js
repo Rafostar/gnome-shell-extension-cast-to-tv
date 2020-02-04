@@ -1,86 +1,31 @@
-const GLib = imports.gi.GLib;
+const { GLib } = imports.gi;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Settings = Local.imports.helper.getSettings(Local.path);
-const { writeToFile } = Local.imports.helper;
-const shared = Local.imports.shared.module.exports;
 
-function setConfigFile()
+function getConfig()
 {
-	let configContents = {
-		ffmpegPath: Settings.get_string('ffmpeg-path'),
-		ffprobePath: Settings.get_string('ffprobe-path'),
-		receiverType: Settings.get_string('receiver-type'),
+	/* Get only settings required by extension */
+	let config = {
 		listeningPort: Settings.get_int('listening-port'),
-		webplayerSubs: Settings.get_double('webplayer-subs').toFixed(1),
-		videoBitrate: Settings.get_double('video-bitrate').toFixed(1),
-		videoAcceleration: Settings.get_string('video-acceleration'),
-		musicVisualizer: Settings.get_boolean('music-visualizer'),
-		chromecastName: Settings.get_string('chromecast-name'),
-		playercastName: Settings.get_string('playercast-name')
+		internalPort: Settings.get_int('internal-port'),
+		musicVisualizer: Settings.get_boolean('music-visualizer')
 	};
 
-	/* Use default paths if custom paths are not defined */
-	if(!configContents.ffmpegPath) configContents.ffmpegPath = '/usr/bin/ffmpeg';
-	if(!configContents.ffprobePath) configContents.ffprobePath = '/usr/bin/ffprobe';
-
-	GLib.mkdir_with_parents(shared.tempDir, 448); // 700 in octal
-	writeToFile(shared.configPath, configContents);
-
-	return configContents;
+	return config;
 }
 
-function setSelectionFile()
+function getRemoteOpts()
 {
-	let selectionContents = {
-		streamType: '',
-		filePath: '',
-		subsPath: '',
-		transcodeAudio: false
+	let opts = {
+		mode: 'DIRECT',
+		seekTime: Settings.get_int('seek-time'),
+		isUnifiedSlider: Settings.get_boolean('unified-slider'),
+		isLabel: Settings.get_boolean('remote-label'),
+		receiverType: Settings.get_string('receiver-type'),
+		useFriendlyName: Settings.get_boolean('remote-label-fn'),
+		sliderIconSize: Settings.get_int('slider-icon-size'),
+		mediaButtonsSize: Settings.get_int('media-buttons-size')
 	};
 
-	writeToFile(shared.selectionPath, selectionContents);
-}
-
-function setListFile(list)
-{
-	let listContents = (list && Array.isArray(list)) ? list : [''];
-	writeToFile(shared.listPath, listContents);
-}
-
-function setRemoteFile()
-{
-	let remoteContents = {
-		action: '',
-		value: ''
-	};
-
-	writeToFile(shared.remotePath, remoteContents);
-}
-
-function setStatusFile()
-{
-	let statusContents = {
-		playerState: 'UNAVAILABLE',
-		currentTime: 0,
-		mediaDuration: 0,
-		volume: 0,
-		repeat: false,
-		slideshow: false
-	};
-
-	writeToFile(shared.statusPath, statusContents);
-
-	/* No status file means that Chromecast is not playing
-	This also prevents remote from showing after reboot */
-	Settings.set_boolean('chromecast-playing', false);
-}
-
-function setRemoteAction(castAction, castValue)
-{
-	let remoteContents = {
-		action: castAction,
-		value: castValue
-	};
-
-	writeToFile(shared.remotePath, remoteContents);
+	return opts;
 }

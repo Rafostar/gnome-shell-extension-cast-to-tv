@@ -1,35 +1,47 @@
-var fs = require('fs');
-var watch = require('node-watch');
-var debug = require('debug')('bridge');
-var server = require('./server');
-var encode = require('./encode');
-var extract = require('./extract');
-var remove = require('./remove');
-var chromecast = require('./chromecast');
-var gnome = require('./gnome');
-var controller = require('./remote-controller');
-var socket = require('./server-socket');
-var addons = require('./addons-importer');
-var shared = require('../shared');
-var remote = require(shared.remotePath);
+const fs = require('fs');
+const path = require('path');
+const debug = require('debug')('bridge');
+const server = require('./server');
+const sender = require('./sender');
+const encode = require('./encode');
+const extract = require('./extract');
+const remove = require('./remove');
+const chromecast = require('./chromecast');
+const gnome = require('./gnome');
+const notify = require('./notify');
+const messages = require('./messages.js');
+const controller = require('./remote-controller');
+const socket = require('./server-socket');
+const addons = require('./addons-importer');
+const shared = require('../shared');
 
-var watcherReady = false;
-var watcherError = false;
+const mediaDataDefaults = {
+	coverPath: null,
+	title: null,
+	isSubsMerged: false,
+	charEnc: null
+};
 
-var configTimeout;
-var playlistTimeout;
-var selectionTimeout;
-var writeTimeout;
+process.on('SIGINT', shutDownQuiet);
+process.on('SIGTERM', shutDownQuiet);
+process.on('uncaughtException', shutDown);
 
-exports.config = require(shared.configPath);
-exports.selection = require(shared.selectionPath);
-exports.list = require(shared.listPath);
+var coverNames = extract.music.getPossibleCoverNames(
+	shared.coverNames, shared.coverExtensions
+);
+
+gnome.loadSchema();
+
+exports.config = gnome.getTempConfig();
+exports.playlist = [];
+exports.selection = {};
+exports.status = {};
 exports.addon = null;
-gnome.showMenu(true);
+exports.mediaData = Object.assign({}, mediaDataDefaults);
 
-exports.setStatusFile = function(status)
+exports.setGnomeStatus = function(status)
 {
-	var statusContents = {
+	exports.status = {
 		playerState: status.playerState,
 		currentTime: status.currentTime,
 		mediaDuration: status.media.duration,
@@ -38,7 +50,55 @@ exports.setStatusFile = function(status)
 		slideshow: controller.slideshow
 	};
 
-	fs.writeFileSync(shared.statusPath, JSON.stringify(statusContents, null, 1));
+	sender.sendPlaybackStatus(exports.status);
+}
+
+exports.setGnomeRemote = function(isShow, cb)
+{
+	if(!isShow)
+	{
+		exports.status = {};
+		return gnome.showRemote(false, null, cb);
+	}
+
+	gnome.showRemote(true, exports.getPlaybackData(), cb);
+}
+
+exports.createTempDir = function(cb)
+{
+	fs.access(shared.tempDir, fs.constants.F_OK, (err) =>
+	{
+		if(!err) return cb(null);
+
+		fs.mkdir(shared.tempDir, (err) =>
+		{
+			if(!err) return cb(null);
+
+			debug(err);
+			return cb(err);
+		});
+	});
+}
+
+exports.getPlaybackData = function()
+{
+	var playbackData = {
+		isPlaying: gnome.isRemote,
+		selection: exports.selection,
+		playlist: exports.playlist
+	};
+
+	return playbackData;
+}
+
+exports.getRemoteButtons = function()
+{
+	var buttonsData = {
+		repeat: controller.repeat,
+		slideshow: controller.slideshow
+	};
+
+	return buttonsData;
 }
 
 exports.handleRemoteSignal = function(action, value)
@@ -54,175 +114,133 @@ exports.handleRemoteSignal = function(action, value)
 	}
 }
 
-var watcher = watch(shared.tempDir, { delay: 0 }, (eventType, filename) =>
+exports.updateConfig = function(contents)
 {
-	if(eventType == 'update')
+	/* Ignore posting same receiver name (nautilus fix) */
+	if(Object.keys(contents).length === 1)
 	{
-		switch(filename)
+		for(var recName of ['chromecastName', 'playercastName'])
 		{
-			case shared.configPath:
-				if(configTimeout) clearTimeout(configTimeout);
-				configTimeout = setTimeout(() =>
-				{
-					configTimeout = null;
-					updateConfig();
-				}, 125);
-				break;
-			case shared.listPath:
-				if(playlistTimeout) clearTimeout(playlistTimeout);
-				playlistTimeout = setTimeout(() =>
-				{
-					playlistTimeout = null;
-					updatePlaylist();
-				}, 100);
-				break;
-			case shared.selectionPath:
-				if(selectionTimeout) clearTimeout(selectionTimeout);
-				selectionTimeout = setTimeout(() =>
-				{
-					selectionTimeout = null;
-					updateSelection();
-				}, 150);
-				break;
-			case shared.remotePath:
-				updateRemote();
-				break;
-			default:
-				break;
+			if(contents[recName] && contents[recName] === exports.config[recName])
+				return;
 		}
 	}
-});
 
-watcher.once('ready', () => watcherReady = true);
-watcher.once('error', onWatcherError);
+	debug(`New config contents: ${JSON.stringify(contents)}`);
 
-function onWatcherError(err)
-{
-	watcherError = true;
-	exports.shutDown(err);
+	if(contents.listeningPort && contents.listeningPort !== exports.config.listeningPort)
+	{
+		debug(`Moving server to port: ${contents.listeningPort}`);
+		server.changePort(contents.listeningPort);
+	}
+
+	if(contents.internalPort)
+	{
+		if(contents.internalPort !== sender.opts.port)
+		{
+			debug(`Changing sender port to: ${contents.internalPort}`);
+			sender.opts.port = contents.internalPort;
+		}
+
+		if(contents.internalPort !== exports.config.internalPort)
+		{
+			debug(`Changing GNOME websocket port to: ${contents.internalPort}`);
+			socket.connectWs(contents.internalPort);
+		}
+	}
+
+	exports.config = { ...exports.config, ...contents };
+	debug(`New config: ${JSON.stringify(exports.config)}`);
 }
 
-exports.shutDown = function(err)
+exports.updatePlaylist = function(playlist, append)
 {
-	if(err) console.error(err);
-	else process.stdout.write('\n');
-
-	console.log('Cast to TV: closing node app...');
-	controller.clearSlideshow();
-
-	debug('Closing node server');
-	closeAddon();
-
-	var finish = () =>
+	if(Array.isArray(playlist))
 	{
-		watcher.close();
-		debug('Closed file watcher');
-
-		gnome.showMenu(false, () =>
+		if(append && Array.isArray(exports.playlist))
 		{
-			debug('Removed top bar indicator');
+			debug(`New playlist append: ${JSON.stringify(playlist)}`);
 
-			fs.writeFileSync(shared.selectionPath,
-				JSON.stringify({streamType: "", subsPath: "", filePath: ""}, null, 1));
-
-			debug('Cleaned selection temp file');
-
-			console.log('Cast to TV: closed successfully');
-			process.exit();
-		});
-	}
-
-	var closeWatcher = () =>
-	{
-		if(watcherReady || watcherError) finish();
-		else watcher.once('ready', finish);
-	}
-
-	if(gnome.isRemote())
-	{
-		gnome.showRemote(false);
-		exports.handleRemoteSignal('STOP');
-
-		setTimeout(() =>
+			playlist.forEach(item =>
+			{
+				if(!exports.playlist.includes(item))
+					exports.playlist.push(item);
+			});
+		}
+		else
 		{
-			/* Remote might be reshown before timeout executes */
-			gnome.showRemote(false);
-			closeWatcher();
-		}, 3000);
+			/* Ignore new playlist if it is not different */
+			if(
+				exports.playlist.length === playlist.length
+				&& JSON.stringify(exports.playlist) === JSON.stringify(playlist)
+			) {
+				return;
+			}
+
+			exports.playlist = playlist;
+		}
+
+		debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
+
+		/* Update remote widget with new playlist items */
+		if(gnome.isRemote) exports.setGnomeRemote(true);
 	}
 	else
-	{
-		closeWatcher();
-	}
+		debug('Received playlist is not an array');
 }
 
-exports.writePlayercasts = function()
+exports.updateSelection = function(contents)
 {
-	if(writeTimeout)
+	if(!contents)
+		return debug('No selection contents for update');
+	else if(!exports.playlist.length)
+		return debug('Ignoring selection because playlist is empty');
+	else if(typeof contents !== 'object')
+		return debug(`Ignoring invalid selection: ${contents}`);
+
+	if(contents !== exports.selection)
 	{
-		clearTimeout(writeTimeout);
-		writeTimeout = null;
-	}
-
-	writeTimeout = setTimeout(() =>
-	{
-		writeTimeout = null;
-
-		fs.writeFile(shared.playercastsPath, JSON.stringify(socket.playercasts), (err) =>
-		{
-			if(err)
-			{
-				var nextRetry = 60000;
-				console.error('Could not write Playercasts to temp file! ' +
-					`Next retry in ${nextRetry/1000} seconds.`
-				);
-				setTimeout(() => exports.writePlayercasts(), nextRetry);
-			}
-		});
-	}, 1000);
-}
-
-function updateConfig()
-{
-	var configContents = getContents(shared.configPath);
-	if(configContents === null) return;
-
-	exports.config = configContents;
-	debug(`New config contents: ${JSON.stringify(exports.config)}`);
-	server.refreshConfig();
-}
-
-function updatePlaylist()
-{
-	exports.list = getContents(shared.listPath);
-
-	if(exports.list)
-		debug(`New playlist contents: ${JSON.stringify(exports.list)}`);
-
-	/* Update remote widget with new playlist items */
-	if(gnome.isRemote()) gnome.showRemote(true);
-}
-
-function updateSelection()
-{
-	/* Prevent updating selection while playlist is still being read */
-	if(playlistTimeout)
-	{
-		setTimeout(() => updateSelection(), 150);
-		return;
+		exports.selection = contents;
+		debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
 	}
 
-	var selectionContents = getContents(shared.selectionPath);
-	if(selectionContents === null || exports.list === null) return;
+	onSelectionUpdate();
+}
 
-	exports.selection = selectionContents;
-	debug(`New selection contents: ${JSON.stringify(exports.selection)}`);
+exports.updateRemote = function(contents)
+{
+	if(!contents || !contents.action)
+		return debug('Invalid update remote contents');
 
+	debug(`New remote contents: ${JSON.stringify(contents)}`);
+	exports.handleRemoteSignal(contents.action, contents.value);
+}
+
+exports.updateLockScreen = function(contents)
+{
+	if(!contents || !contents.hasOwnProperty('isLockScreen'))
+		return debug('Invalid update lock screen state contents');
+
+	debug(`Received lock screen state: ${contents.isLockScreen}`);
+
+	gnome.isLockScreen = contents.isLockScreen;
+
+	if(!gnome.isLockScreen)
+		socket.connectWs();
+}
+
+function onSelectionUpdate()
+{
 	if(exports.selection.streamType !== 'PICTURE')
 	{
-		controller.clearSlideshow();
-		debug('Cleared slideshow timeout due to non-picture selection');
+		var isCleared = controller.clearSlideshow();
+
+		if(isCleared)
+			debug('Cleared slideshow timeout due to non-picture selection');
 	}
+
+	/* Refresh already visible remote widget to mark new playing item */
+	if(gnome.isRemote) exports.setGnomeRemote(true);
 
 	/* Close addon before selecting a new one */
 	closeAddon(exports.selection, exports.config);
@@ -234,125 +252,496 @@ function updateSelection()
 		if(exports.addon)
 			exports.addon.handleSelection(exports.selection, exports.config);
 
-		remove.covers();
-		remove.file(shared.vttSubsPath);
+		remove.tempCover();
+		remove.tempSubs();
 	}
-	else if(exports.selection.filePath && exports.config.receiverType !== 'playercast')
+	else if(exports.selection.filePath)
 	{
-		setProcesses();
-	}
-
-	if(exports.selection.filePath)
-	{
-		/* Refresh already visible remote widget to mark new playing item */
-		if(gnome.isRemote()) gnome.showRemote(true);
-
-		switch(exports.config.receiverType)
+		processSelection(err =>
 		{
-			case 'chromecast':
-				chromecast.cast();
-				break;
-			case 'playercast':
-				if(socket.playercasts.length > 0)
-				{
-					/* Temporary workaround for Playercast cover detection */
-					extract.coverPath = 'muxed_image';
+			if(err) return notifyFromError(err);
 
-					var playercastName = (exports.config.playercastName) ?
-						exports.config.playercastName : socket.playercasts[0];
+			extract.video.subsProcess = false;
+			extract.music.coverProcess = false;
+			debug('File processed successfully');
 
-					if(
-						exports.selection.streamType === 'MUSIC'
-						&& !exports.config.musicVisualizer
-						&& !exports.addon
-					) {
-						extract.checkCoverIncluded(isIncluded =>
-						{
-							if(!isIncluded) extract.findCoverFile();
-
-							socket.emit('playercast', {
-								name: playercastName,
-								...exports.selection
-							});
-						});
-					}
-					else
-					{
-						socket.emit('playercast', {
-							name: playercastName,
-							...exports.selection
-						});
-					}
-				}
-				break;
-			case 'other':
-				setTimeout(socket.emit, 250, 'reload');
-				break;
-			default:
-				break;
-		}
+			return castFile();
+		});
 	}
+	else
+		debug('No addon and file path in selection!');
 }
 
-function updateRemote()
+function castFile()
 {
-	var remoteContents = getContents(shared.remotePath);
-	if(remoteContents === null) return;
-
-	debug(`New remote contents: ${JSON.stringify(remoteContents)}`);
-	remote = remoteContents;
-
-	exports.handleRemoteSignal(remote.action, remote.value);
-}
-
-function getContents(path)
-{
-	var data;
-
-	delete require.cache[path];
-
-	try { data = require(path); }
-	catch(err)
+	switch(exports.config.receiverType)
 	{
-		debug(`Could not read file: ${path}`);
-		debug(err);
-		data = null
+		case 'chromecast':
+			chromecast.cast();
+			break;
+		case 'playercast':
+			socket.emit('playercast', {
+				name: exports.config.playercastName || socket.playercasts[0],
+				mediaData: exports.mediaData,
+				...exports.selection
+			});
+			break;
+		case 'other':
+			if(exports.selection.streamType !== 'PICTURE')
+				socket.emit('processes-done', true);
+			else
+				socket.emit('reload');
+			break;
+		default:
+			break;
 	}
-
-	return data;
 }
 
-function setProcesses()
+function notifyFromError(err)
 {
+	debug(err);
+
+	if(err.message.includes('FFprobe process error'))
+		notify('Cast to TV', messages.ffprobeError, exports.selection.filePath);
+	else if(err.message.includes('FFprobe exec error'))
+		notify('Cast to TV', messages.ffprobePath);
+	else if(err.message === 'No playercasts connected')
+		notify('Playercast', messages.chromecast.notFound);
+	else
+		notify('Cast to TV', messages.extractError, exports.selection.filePath);
+}
+
+function processSelection(cb)
+{
+	exports.mediaData = Object.assign({}, mediaDataDefaults);
+
+	if(exports.config.receiverType === 'playercast')
+	{
+		remove.tempCover();
+		remove.tempSubs();
+		return processPlayercastSelection(cb);
+	}
+
 	switch(exports.selection.streamType)
 	{
 		case 'MUSIC':
-			extract.coverProcess = true;
-			extract.findCoverFile();
-			extract.analyzeFile();
-			remove.file(shared.vttSubsPath);
+			remove.tempSubs();
+			processMusicSelection(cb);
 			break;
 		case 'PICTURE':
-			remove.covers();
-			remove.file(shared.vttSubsPath);
+			remove.tempCover();
+			remove.tempSubs();
+			cb(null);
+			break;
+		case 'VIDEO':
+		case 'VIDEO_AUDIOENC':
+			remove.tempCover();
+			processVideoSelection(cb);
 			break;
 		default:
-			extract.subsProcess = true;
-			if(exports.selection.subsPath)
-				extract.detectSubsEncoding(exports.selection.subsPath);
+			remove.tempCover();
+			if(exports.config.burnSubtitles)
+			{
+				remove.tempSubs();
+				processVideoTranscode(cb);
+			}
 			else
-				extract.analyzeFile();
-			remove.covers();
+				processVideoSelection(cb);
 			break;
 	}
+}
+
+function processVideoSelection(cb)
+{
+	extract.video.subsProcess = true;
+
+	if(exports.config.receiverType === 'other')
+		socket.emit('reload');
+
+	debug('Processing video file...');
+
+	if(exports.selection.subsPath)
+	{
+		var subs = path.parse(exports.selection.subsPath);
+		var isVtt = (subs.ext.toLowerCase() === '.vtt');
+
+		if(isVtt)
+		{
+			debug('Selected "vtt" subtitles - no conversion needed');
+
+			if(exports.selection.subsPath !== shared.vttSubsPath)
+				remove.tempSubs();
+
+			return cb(null);
+		}
+
+		var opts = {
+			file: exports.selection.subsPath,
+			outPath: shared.vttSubsPath,
+			overwrite: true,
+			vttparser: true
+		};
+
+		debug('Converting subtitles file...');
+		extract.video.subsToVtt(opts, (err) =>
+		{
+			if(err)
+			{
+				exports.selection.subsPath = "";
+				remove.tempSubs();
+
+				return cb(err);
+			}
+
+			exports.selection.subsPath = opts.outPath;
+			debug('Successfully converted subtitles file');
+
+			return cb(null);
+		});
+	}
+	else
+	{
+		if(
+			!exports.config.extractorReuse
+			|| !exports.config.extractorDir
+		) {
+			return analyzeVideoFile(null, cb);
+		}
+
+		fs.access(exports.config.extractorDir, fs.constants.F_OK, (err) =>
+		{
+			if(err)
+			{
+				debug('Could not access reusable subtitles dir');
+				return analyzeVideoFile(null, cb);
+			}
+
+			var file = path.parse(exports.selection.filePath);
+			var reusePath = path.join(exports.config.extractorDir, file.name + '.vtt');
+
+			fs.access(reusePath, fs.constants.F_OK, (err) =>
+			{
+				if(err)
+				{
+					debug('No reusable subtitles file');
+					return analyzeVideoFile(reusePath, cb);
+				}
+
+				debug('Found reusable subtitles file');
+				exports.selection.subsPath = reusePath;
+
+				return cb(null);
+			});
+		});
+	}
+}
+
+function processVideoTranscode(cb)
+{
+	extract.video.subsProcess = true;
+
+	debug('Processing file for transcoding...');
+
+	if(exports.config.receiverType === 'other')
+		socket.emit('reload');
+
+	if(exports.selection.subsPath)
+	{
+		var subs = path.parse(exports.selection.subsPath);
+		var isVtt = (subs.ext.toLowerCase() === '.vtt');
+
+		if(isVtt)
+		{
+			debug('Selected "vtt" subtitles - no conversion needed');
+			return cb(null);
+		}
+
+		extract.video.getSubsCharEnc(exports.selection.subsPath, (err, charEnc) =>
+		{
+			if(err) return cb(err);
+
+			debug(`Detected subs char encoding: ${charEnc}`);
+
+			/* ffmpeg uses UTF-8 by default */
+			if(charEnc !== 'UTF-8')
+				exports.mediaData.charEnc = charEnc;
+
+			return cb(null);
+		});
+	}
+	else
+	{
+		var ffprobeOpts = {
+			ffprobePath : exports.config.ffprobePath,
+			filePath: exports.selection.filePath
+		};
+
+		extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+		{
+			if(err) return cb(err);
+
+			exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+
+			if(exports.mediaData.isSubsMerged)
+				debug('Found subtitles merged in file');
+			else
+				debug('No merged subtitles detected');
+
+			return cb(null);
+		});
+	}
+}
+
+function processMusicSelection(cb)
+{
+	extract.music.coverProcess = true;
+
+	debug('Processing music file...');
+
+	if(exports.config.receiverType === 'other')
+		socket.emit('reload');
+
+	debug('Searching for music cover...');
+	analyzeMusicFile((err, parsedFile, ffprobeData) =>
+	{
+		if(err) return cb(err);
+
+		if(exports.config.musicVisualizer)
+		{
+			exports.mediaData.coverPath = null;
+			remove.tempCover();
+			debug('Music visualizer enabled - skipping cover search');
+
+			return cb(null);
+		}
+
+		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, cover) =>
+		{
+			if(!err)
+			{
+				exports.mediaData.coverPath = path.join(parsedFile.dir, cover);
+				remove.tempCover();
+				debug(`Found cover file in music dir: ${cover}`);
+
+				return cb(null);
+			}
+
+			if(extract.music.getIsCoverMerged(ffprobeData))
+			{
+				var opts = {
+					file: exports.selection.filePath,
+					outPath: shared.coverDefault + '.jpg',
+					overwrite: true
+				};
+
+				extract.music.coverToJpg(opts, (err) =>
+				{
+					if(err)
+					{
+						exports.mediaData.coverPath = null;
+						return cb(err);
+					}
+
+					exports.mediaData.coverPath = opts.outPath;
+					debug('Using music cover extracted from file');
+
+					return cb(null);
+				});
+			}
+			else
+			{
+				exports.mediaData.coverPath = path.join(
+					__dirname + '/../webplayer/images/cover.png'
+				);
+				remove.tempCover();
+				debug('No cover found - using default image');
+
+				return cb(null);
+			}
+		});
+	});
+}
+
+function processPlayercastSelection(cb)
+{
+	debug('Processing playercast file...');
+
+	if(socket.playercasts.length === 0)
+		return cb(new Error('No playercasts connected'));
+
+	if(
+		exports.selection.streamType !== 'MUSIC'
+		|| exports.config.musicVisualizer
+	) {
+		return cb(null);
+	}
+
+	debug('Searching for music cover...');
+	analyzeMusicFile((err, parsedFile, ffprobeData) =>
+	{
+		if(err) return cb(err);
+
+		if(extract.music.getIsCoverMerged(ffprobeData))
+		{
+			debug('Found cover merged in file');
+
+			return cb(null);
+		}
+
+		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, cover) =>
+		{
+			if(!err)
+			{
+				exports.mediaData.coverPath = path.join(parsedFile.dir, cover);
+				debug(`Found cover file in music dir: ${cover}`);
+
+				return cb(null);
+			}
+
+			exports.mediaData.coverPath = path.join(
+				__dirname + '/../webplayer/images/cover.png'
+			);
+			debug('No cover found - using default image');
+
+			return cb(null);
+		});
+	});
+}
+
+function analyzeVideoFile(reusePath, cb)
+{
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+	{
+		if(err)
+		{
+			exports.selection.subsPath = "";
+			remove.tempSubs();
+
+			return cb(err);
+		}
+
+		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+
+		if(!exports.mediaData.isSubsMerged)
+		{
+			exports.selection.subsPath = "";
+			remove.tempSubs();
+			debug('No merged subtitles found');
+
+			return cb(null);
+		}
+
+		var opts = {
+			file: exports.selection.filePath,
+			outPath: reusePath || shared.vttSubsPath,
+			overwrite: true,
+			vttparser: true
+		};
+
+		debug('Extracting video subtitles...');
+		extract.video.videoToVtt(opts, (err) =>
+		{
+			if(err)
+			{
+				exports.selection.subsPath = "";
+				return cb(err);
+			}
+
+			exports.selection.subsPath = opts.outPath;
+			debug('Successfully extracted video subtitles');
+
+			return cb(null);
+		});
+	});
+}
+
+function analyzeMusicFile(cb)
+{
+	var ffprobeOpts = {
+		ffprobePath : exports.config.ffprobePath,
+		filePath: exports.selection.filePath
+	};
+
+	extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+	{
+		if(err)
+		{
+			exports.mediaData.coverPath = null;
+			exports.mediaData.title = null;
+			remove.tempCover();
+
+			return cb(err);
+		}
+
+		var parsedFile = path.parse(exports.selection.filePath);
+		var metadata = extract.music.getMetadata(ffprobeData);
+
+		if(metadata)
+		{
+			debug('Obtained music metadata');
+			exports.mediaData.title = metadata.title;
+		}
+		else
+		{
+			debug('No music metadata');
+			exports.mediaData.title = parsedFile.name;
+		}
+
+		return cb(null, parsedFile, ffprobeData);
+	});
 }
 
 function closeAddon(selection, config)
 {
-	if(exports.addon)
+	if(!exports.addon) return;
+
+	exports.addon.closeStream(selection, config);
+	exports.addon = null;
+	debug('Closed Add-on');
+}
+
+function shutDown(err)
+{
+	process.removeListener('SIGINT', shutDownQuiet);
+	process.removeListener('SIGTERM', shutDownQuiet);
+	process.removeListener('uncaughtException', shutDown);
+
+	if(err) console.error(err);
+	else process.stdout.write('\n');
+
+	console.log('Cast to TV: closing node app...');
+	encode.enabled = false;
+	sender.enabled = false;
+	controller.clearSlideshow();
+
+	debug('Closing node server');
+	closeAddon();
+
+	const finish = function()
 	{
-		exports.addon.closeStream(selection, config);
-		exports.addon = null;
-		debug('Closed Add-on');
+		console.log('Cast to TV: closed successfully');
+
+		var code = (err) ? 1 : 0;
+		process.exit(code);
 	}
+
+	if(gnome.isRemote)
+	{
+		exports.handleRemoteSignal('STOP');
+
+		/* Give receiver time to stop playback */
+		return setTimeout(() => finish(), 3000);
+	}
+
+	finish();
+}
+
+function shutDownQuiet()
+{
+	shutDown(null);
 }

@@ -17,6 +17,10 @@
       <default>4000</default>
       <summary>Port used for incoming connections</summary>
     </key>
+    <key name="internal-port" type="i">
+      <default>9200</default>
+      <summary>Port used for internal communication</summary>
+    </key>
     <!-- Remote -->
     <key name="remote-position" type="s">
       <default>"right"</default>
@@ -37,6 +41,10 @@
     <key name="remote-label" type="b">
       <default>true</default>
       <summary>Show label next to remote controller</summary>
+    </key>
+    <key name="remote-label-fn" type="b">
+      <default>false</default>
+      <summary>Show receiver friendly name as remote controller label</summary>
     </key>
     <key name="media-buttons-size" type="i">
       <default>20</default>
@@ -64,6 +72,28 @@
       <default>""</default>
       <summary>Playercast device name</summary>
     </key>
+    <!-- Encoder -->
+    <key name="video-acceleration" type="s">
+      <default>"none"</default>
+      <summary>Video streaming hardware acceleration</summary>
+    </key>
+    <key name="video-bitrate" type="d">
+      <default>5.0</default>
+      <summary>Media encoding video bitrate</summary>
+    </key>
+    <key name="burn-subtitles" type="b">
+      <default>false</default>
+      <summary>Burn subtitles into video during transcode</summary>
+    </key>
+    <!-- Extractor -->
+    <key name="extractor-reuse" type="b">
+      <default>true</default>
+      <summary>Enable reusing subtitles from extractor dir</summary>
+    </key>
+    <key name="extractor-dir" type="s">
+      <default>"/tmp"</default>
+      <summary>Extractor save folder</summary>
+    </key>
     <!-- Other -->
     <key name="music-visualizer" type="b">
       <default>false</default>
@@ -73,27 +103,15 @@
       <default>1.0</default>
       <summary>Web player subtitles size</summary>
     </key>
-    <key name="video-acceleration" type="s">
-      <default>"none"</default>
-      <summary>Video streaming hardware acceleration</summary>
-    </key>
-    <key name="video-bitrate" type="d">
-      <default>5.0</default>
-      <summary>Media encoding video bitrate</summary>
-    </key>
-    <!-- Status -->
-    <key name="chromecast-playing" type="b">
-      <default>false</default>
-      <summary>Chromecast playing state</summary>
-    </key>
     <!-- Service -->
-    <key name="service-enabled" type="b">
-      <default>false</default>
-      <summary>Enable local service process</summary>
-    </key>
     <key name="service-wanted" type="b">
       <default>false</default>
       <summary>Remember last service state</summary>
+    </key>
+    <!-- Restore -->
+    <key name="last-transcode" type="i">
+      <default>0</default>
+      <summary>Restore previous transcode option in file chooser</summary>
     </key>
   </schema>
 </schemalist>

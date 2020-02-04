@@ -1,10 +1,11 @@
 #!/bin/sh
 //bin/false || exec "$(command -v nodejs || command -v node)" "$0"
 
-var fs = require('fs');
-var path = require('path');
-var { execSync } = require('child_process');
-var extensionsPath = path.join(__dirname + '/../../..');
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const extensionsPath = path.join(__dirname + '/../../..');
 
 /* Add-ons should be installed synchronously */
 var extensions = fs.readdirSync(extensionsPath);
@@ -19,7 +20,8 @@ extensions.forEach(folder =>
 
 		if(isPackage)
 		{
-			var installText = `Installing: Cast to TV - ${addonName[0].toUpperCase() + addonName.slice(1)} Add-on`;
+			var addonText = addonName[0].toUpperCase() + addonName.slice(1);
+			var installText = `Installing: Cast to TV - ${addonText} Add-on`;
 			var textLength = installText.length;
 
 			while(textLength)

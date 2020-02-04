@@ -1,16 +1,21 @@
-var io = require('socket.io');
-var fs = require('fs');
-var bridge = require('./bridge');
-var encode = require('./encode');
-var extract = require('./extract');
-var gettext = require('./gettext');
-var messages = require('./messages');
-var gnome = require('./gnome');
-var controller = require('./remote-controller');
-var shared = require('../shared');
+const fs = require('fs');
+const io = require('socket.io');
+const WebSocket = require('ws');
+const debug = require('debug')('socket');
+const bridge = require('./bridge');
+const encode = require('./encode');
+const extract = require('./extract');
+const gettext = require('./gettext');
+const messages = require('./messages');
+const gnome = require('./gnome');
+const controller = require('./remote-controller');
+const sender = require('./sender');
+const shared = require('../shared');
 
 var clientTimeout;
+var reconnectTimeout;
 var websocket;
+var wsConnected;
 
 exports.activeConnections = 0;
 exports.playercasts = [];
@@ -24,6 +29,55 @@ exports.listen = function(server)
 exports.emit = function(message, opts)
 {
 	websocket.emit(message, opts);
+}
+
+exports.connectWs = function(port)
+{
+	if(gnome.isLockScreen || wsConnected)
+		return;
+
+	if(reconnectTimeout)
+	{
+		clearTimeout(reconnectTimeout);
+		reconnectTimeout = null;
+	}
+
+	port = port || bridge.config.internalPort;
+
+	debug(`Connecting to GNOME websocket on port: ${port}`);
+	var ws = new WebSocket(`ws://127.0.0.1:${port}/websocket/node`);
+
+	const onConnOpen = function()
+	{
+		debug('GNOME websocket connected');
+		ws.send('connected');
+		wsConnected = true;
+		sender.enabled = true;
+	}
+
+	const onConnClose = function()
+	{
+		debug('GNOME websocket disconnected');
+		ws.removeAllListeners();
+		wsConnected = false;
+		sender.enabled = false;
+
+		if(!gnome.isLockScreen)
+		{
+			if(reconnectTimeout)
+				clearTimeout(reconnectTimeout);
+
+			reconnectTimeout = setTimeout(() =>
+			{
+				reconnectTimeout = null;
+				exports.connectWs(bridge.config.internalPort);
+			}, 4250);
+		}
+	}
+
+	ws.once('open', onConnOpen);
+	ws.once('close', onConnClose);
+	ws.once('error', onConnClose);
 }
 
 function handleMessages(socket)
@@ -42,14 +96,16 @@ function handleMessages(socket)
 		{
 			case 'webplayer-ask':
 				initWebPlayer();
-				gnome.showRemote(true);
 				controller.setSlideshow();
 				break;
 			case 'track-ended':
 				controller.checkNextTrack();
 				break;
 			case 'processes-ask':
-				if(!extract.subsProcess && !extract.coverProcess) websocket.emit('processes-done');
+				if(!extract.video.subsProcess && !extract.music.coverProcess)
+					websocket.emit('processes-done', true);
+				else
+					websocket.emit('processes-done', false);
 				break;
 			case 'loading-ask':
 				websocket.emit('loading-text', gettext.translate(messages.loading));
@@ -73,7 +129,6 @@ function handleMessages(socket)
 		{
 			exports.playercasts.push(socket.playercastName);
 			socket.emit('invalid', false);
-			bridge.writePlayercasts();
 		}
 		else
 		{
@@ -101,28 +156,32 @@ function handleMessages(socket)
 		}
 	});
 
-	socket.on('status-update', msg => bridge.setStatusFile(msg));
+	socket.on('status-update', bridge.setGnomeStatus);
 	socket.on('show-remote', msg =>
 	{
-		if(msg) controller.setSlideshow();
+		if(msg)
+			controller.setSlideshow();
 		else
 		{
 			controller.clearSlideshow();
 			controller.slideshow = false;
 		}
 
-		gnome.showRemote(msg)
+		bridge.setGnomeRemote(msg)
 	});
 
 	socket.on('disconnect', msg =>
 	{
 		if(socket.playercastName)
 		{
-			if(socket.playercastInvalid || !exports.playercasts.includes(socket.playercastName)) return;
+			if(
+				socket.playercastInvalid
+				|| !exports.playercasts.includes(socket.playercastName)
+			)
+				return;
 
 			var index = exports.playercasts.indexOf(socket.playercastName);
 			exports.playercasts.splice(index, 1);
-			bridge.writePlayercasts();
 		}
 		else
 			checkClients(msg);
@@ -134,13 +193,22 @@ function initWebPlayer()
 	var initType = 'VIDEO';
 	var isSub = false;
 
-	if(bridge.selection.streamType != 'MUSIC')
-	{
-		if(bridge.selection.subsPath || bridge.selection.subsSrc) isSub = true;
-		else if(bridge.selection.streamType == 'VIDEO') isSub = fs.existsSync(shared.vttSubsPath);
+	if(
+		bridge.selection.streamType !== 'MUSIC'
+		&& bridge.selection.streamType !== 'PICTURE'
+	) {
+		if(bridge.selection.subsPath || bridge.selection.subsSrc)
+		{
+			if(
+				bridge.selection.streamType === 'VIDEO'
+				|| !bridge.config.burnSubtitles
+			)
+				isSub = true;
+		}
 	}
 
-	if(bridge.selection.streamType == 'MUSIC' && !bridge.config.musicVisualizer) initType = 'MUSIC';
+	if(bridge.selection.streamType === 'MUSIC' && !bridge.config.musicVisualizer)
+		initType = 'MUSIC';
 
 	var webData = {
 		type: initType,
@@ -152,6 +220,9 @@ function initWebPlayer()
 	}
 
 	websocket.emit('webplayer-init', webData);
+
+	if(!gnome.isRemote)
+		bridge.setGnomeRemote(true);
 }
 
 function checkClients()
@@ -167,7 +238,7 @@ function checkClients()
 		{
 			controller.clearSlideshow();
 			controller.slideshow = false;
-			gnome.showRemote(false);
+			bridge.setGnomeRemote(false);
 		}
 	}, 2500);
 }

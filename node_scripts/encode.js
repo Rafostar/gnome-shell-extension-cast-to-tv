@@ -1,28 +1,39 @@
-var { spawn } = require('child_process');
-var debug = require('debug')('ffmpeg');
-var bridge = require('./bridge');
-var extract = require('./extract');
-var notify = require('./notify');
-var messages = require('./messages.js');
-var shared = require('../shared');
-var stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
+const { spawn } = require('child_process');
+const debug = require('debug')('ffmpeg');
+const bridge = require('./bridge');
+const notify = require('./notify');
+const messages = require('./messages.js');
+const shared = require('../shared');
+const stdioConf = (debug.enabled) ? 'inherit' : 'ignore';
 
 exports.streamProcess = null;
+exports.enabled = true;
+var notifyError = false;
 
 String.prototype.replaceAt = function(index, replacement)
 {
 	return this.substr(0, index) + replacement + this.substr(index + 1);
 }
 
-function getSubsPath()
+function getSubsOptions()
 {
 	var subsPathEscaped = (bridge.selection.subsPath) ? bridge.selection.subsPath : bridge.selection.filePath;
 	var index = subsPathEscaped.length;
+
+	debug('Parsing subtitles path...');
 
 	while(index--)
 	{
 		if(shared.escapeChars.includes(subsPathEscaped.charAt(index)))
 			subsPathEscaped = subsPathEscaped.replaceAt(index, '\\' + subsPathEscaped.charAt(index));
+	}
+
+	debug(`Parsed subtitles path: ${subsPathEscaped}`);
+
+	if(bridge.mediaData.charEnc)
+	{
+		subsPathEscaped += ':charenc=' + bridge.mediaData.charEnc;
+		debug(`Added ${bridge.mediaData.charEnc} char encoding to subtitles options`);
 	}
 
 	return subsPathEscaped;
@@ -33,31 +44,72 @@ function getAudioOptsArray()
 	return (bridge.selection.transcodeAudio) ? ['flac', '-ac', '2'] : ['copy'];
 }
 
+function getPlayerOptsArray()
+{
+	if(bridge.config.receiverType !== 'playercast')
+	{
+		return [
+			'-frag_duration', '1000000',
+			'-movflags', '+empty_moov',
+			'-strict', '-2',
+			'-f', 'mp4',
+		];
+	}
+
+	return ['-f', 'matroska'];
+}
+
 function createEncodeProcess(encodeOpts)
 {
+	debug(`Starting FFmpeg with opts: ${JSON.stringify(encodeOpts)}`);
+
 	exports.streamProcess = spawn(bridge.config.ffmpegPath, encodeOpts,
 	{ stdio: ['ignore', 'pipe', stdioConf] });
 
-	var notifyError = false;
-
-	exports.streamProcess.once('close', (code) =>
-	{
-		if(code && !notifyError)
-			notify('Cast to TV', messages.ffmpegError, bridge.selection.filePath);
-
-		exports.streamProcess = null;
-	});
-
-	exports.streamProcess.once('error', (error) =>
-	{
-		if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
-		{
-			notify('Cast to TV', messages.ffmpegPath);
-			notifyError = true;
-		}
-	});
+	notifyError = false;
+	exports.streamProcess.once('exit', onAutoExit);
+	exports.streamProcess.once('error', onEncodeError);
 
 	return exports.streamProcess.stdout;
+}
+
+function onAutoExit(code)
+{
+	if(!notifyError)
+	{
+		exports.streamProcess.removeListener('error', onEncodeError);
+
+		if(code) notify('Cast to TV', messages.ffmpegError, bridge.selection.filePath);
+	}
+
+	exports.streamProcess = null;
+
+	if(code !== null)
+		debug(`FFmpeg exited with code: ${code}`);
+
+	debug('FFmpeg auto exit');
+}
+
+function onManualExit(code)
+{
+	if(!notifyError)
+		exports.streamProcess.removeListener('error', onEncodeError);
+
+	exports.streamProcess = null;
+	debug('FFmpeg manual exit');
+}
+
+function onEncodeError(error)
+{
+	if(error.message == 'spawn ' + bridge.config.ffmpegPath + ' ENOENT')
+	{
+		notify('Cast to TV', messages.ffmpegPath);
+		notifyError = true;
+	}
+
+	exports.streamProcess = null;
+	debug('FFmpeg had error!');
+	debug(error);
 }
 
 exports.video = function()
@@ -71,12 +123,19 @@ exports.video = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
-	'-f', 'matroska',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-		encodeOpts.splice(encodeOpts.indexOf('libx264') + 1, 0, '-vf', 'subtitles=' + getSubsPath(), '-sn');
+	if(
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) {
+		encodeOpts.splice(
+			encodeOpts.indexOf('libx264') + 1, 0,
+			'-vf', 'subtitles=' + getSubsOptions(), '-sn'
+		);
+	}
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -90,15 +149,24 @@ exports.videoVaapi = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
-	'-f', 'matroska',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		encodeOpts.unshift('-hwaccel', 'vaapi', '-hwaccel_device', '/dev/dri/renderD128', '-hwaccel_output_format', 'vaapi');
-		encodeOpts.splice(encodeOpts.indexOf('h264_vaapi') + 1, 0,
-			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' + getSubsPath() + ',hwmap', '-sn');
+	if(
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) {
+		encodeOpts.unshift(
+			'-hwaccel', 'vaapi',
+			'-hwaccel_device', '/dev/dri/renderD128',
+			'-hwaccel_output_format', 'vaapi'
+		);
+		encodeOpts.splice(
+			encodeOpts.indexOf('h264_vaapi') + 1, 0,
+			'-vf', 'scale_vaapi,hwmap=mode=read+write,format=nv12,subtitles=' +
+			getSubsOptions() + ',hwmap', '-sn'
+		);
 	}
 	else
 	{
@@ -118,15 +186,33 @@ exports.videoNvenc = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
-	'-f', 'matroska',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
-	if(extract.subtitlesBuiltIn || bridge.selection.subsPath)
-	{
-		encodeOpts.splice(encodeOpts.indexOf('h264_nvenc') + 1, 0,
-			'-vf', 'subtitles=' + getSubsPath(), '-sn');
+	if(
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) {
+		encodeOpts.splice(
+			encodeOpts.indexOf('h264_nvenc') + 1, 0,
+			'-vf', 'subtitles=' + getSubsOptions(), '-sn'
+		);
 	}
+
+	return createEncodeProcess(encodeOpts);
+}
+
+exports.audio = function()
+{
+	var encodeOpts = [
+	'-i', bridge.selection.filePath,
+	'-c:v', 'copy',
+	'-c:a', ...getAudioOptsArray(),
+	'-metadata', 'title=Cast to TV - Audio Encoded Stream',
+	...getPlayerOptsArray(),
+	'pipe:1'
+	];
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -165,7 +251,7 @@ exports.musicVisualizer = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', 'copy',
 	'-metadata', 'title=Cast to TV - Music Visualizer',
-	'-f', 'matroska',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
@@ -174,9 +260,34 @@ exports.musicVisualizer = function()
 
 exports.closeStreamProcess = function()
 {
-	if(exports.streamProcess)
+	if(!exports.streamProcess) return;
+
+	if(exports.streamProcess.stdout)
 	{
-		try { process.kill(exports.streamProcess.pid, 'SIGHUP'); }
-		catch(err) {}
+		exports.streamProcess.removeListener('exit', onAutoExit);
+		exports.streamProcess.once('exit', onManualExit);
+
+		if(!exports.streamProcess.stdout.destroyed)
+		{
+			exports.streamProcess.stdout.destroy();
+			debug('Destroyed stream process remaining stdout data');
+		}
+		else
+			debug('Stream process stdout was destroyed earlier');
+
+		exports.streamProcess.stdout = null;
+	}
+	else
+	{
+		debug('Force killing stream process...');
+
+		try {
+			process.kill(exports.streamProcess.pid, 'SIGHUP');
+			debug('Force killed stream process');
+		}
+		catch(err) {
+			debug('Could not kill stream process!');
+			debug(err);
+		}
 	}
 }

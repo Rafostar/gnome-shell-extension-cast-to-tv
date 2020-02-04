@@ -5,6 +5,7 @@ const Gettext = imports.gettext.domain('cast-to-tv');
 
 const LOCAL_PATH = GLib.get_current_dir();
 imports.searchPath.unshift(LOCAL_PATH);
+const Soup = imports.soup;
 const Helper = imports.helper;
 const shared = imports.shared.module.exports;
 imports.searchPath.shift();
@@ -12,7 +13,7 @@ imports.searchPath.shift();
 const Settings = Helper.getSettings(LOCAL_PATH);
 const _ = Gettext.gettext;
 
-const STREAM_TYPE = ARGV[0];
+const STREAM_TYPE = (ARGV[0]) ? ARGV[0] : null;
 /* TRANSLATORS: Button text when selected SINGLE file */
 const CAST_LABEL_SINGLE = _("Cast Selected File");
 /* TRANSLATORS: Button text when selected MULTIPLE files */
@@ -26,6 +27,7 @@ class fileChooser
 		GLib.set_prgname('Cast to TV');
 		Helper.initTranslations(LOCAL_PATH);
 		this.application = new Gtk.Application();
+		this.filePathChosen = [];
 		this.application.connect('activate', () => this._openDialog());
 		this.application.connect('startup', () => this._buildUI());
 		this.application.run([]);
@@ -42,10 +44,18 @@ class fileChooser
 		});
 
 		let iconTheme = Gtk.IconTheme.get_default();
-		if(iconTheme.has_icon('cast-to-tv')) this.fileChooser.set_icon_name('cast-to-tv');
-		else {
-			try { this.fileChooser.set_icon_from_file(LOCAL_PATH + '/appIcon/cast-to-tv.svg'); }
-			catch(err) { this.fileChooser.set_icon_name('application-x-executable'); }
+		if(iconTheme.has_icon('cast-to-tv'))
+			this.fileChooser.set_icon_name('cast-to-tv');
+		else
+		{
+			try {
+				this.fileChooser.set_icon_from_file(
+					LOCAL_PATH + '/appIcon/cast-to-tv.svg'
+				);
+			}
+			catch(err) {
+				this.fileChooser.set_icon_name('application-x-executable');
+			}
 		}
 	}
 
@@ -68,9 +78,10 @@ class fileChooser
 
 		this.comboBoxConvert = new Gtk.ComboBoxText({ margin_right: 8 });
 		this.comboBoxConvert.append('video', _("Video"));
-		//this.comboBoxConvert.append('audio', _("Audio"));
+		this.comboBoxConvert.append('audio', _("Audio"));
 		this.comboBoxConvert.append('video+audio', _("Video + Audio"));
-		this.comboBoxConvert.set_active(0);
+		this.comboBoxConvert.set_active(Settings.get_int('last-transcode'));
+		Settings.bind('last-transcode', this.comboBoxConvert, 'active', Gio.SettingsBindFlags.DEFAULT);
 		this.comboBoxConvert.set_sensitive(false);
 
 		this.buttonConvert.connect('toggled', () =>
@@ -130,16 +141,21 @@ class fileChooser
 			this.chromecastSelect.remove_all();
 			this.chromecastSelect.append('', _("Automatic"));
 
-			this.setDevicesSignal = Settings.connect('changed::chromecast-devices', this._setDevices.bind(this));
+			this.setDevicesSignal = Settings.connect(
+				'changed::chromecast-devices', this._setDevices.bind(this)
+			);
 			Helper.setDevicesWidget(this.chromecastSelect, devices, activeText);
 
 			if(!this.boundChromecastDevices)
 			{
-				Settings.bind('chromecast-name', this.chromecastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+				Settings.bind(
+					'chromecast-name', this.chromecastSelect,
+					'active-id', Gio.SettingsBindFlags.DEFAULT
+				);
 				this.boundChromecastDevices = true;
 			}
 
-			if(!this.chromecastPlaying)
+			if(!this.isPlaying)
 			{
 				this.deviceSelectLabel.show();
 				this.playercastSelect.hide();
@@ -153,25 +169,30 @@ class fileChooser
 			this.deviceSelectLabel.label = 'Playercast:';
 			activeText = this.playercastSelect.get_active_text();
 
-			devices = Helper.readFromFile(shared.playercastsPath);
-			this.playercastSelect.remove_all();
-			this.playercastSelect.append('', _("Automatic"));
-			Helper.setDevicesWidget(this.playercastSelect, devices, activeText);
-
-			if(!this.boundPlayercastDevices)
+			Soup.client.getPlayercasts(devices =>
 			{
-				Settings.bind('playercast-name', this.playercastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-				this.boundPlayercastDevices = true;
-			}
+				this.playercastSelect.remove_all();
+				this.playercastSelect.append('', _("Automatic"));
+				Helper.setDevicesWidget(this.playercastSelect, devices, activeText);
 
-			if(!this.chromecastPlaying)
-			{
-				this.deviceSelectLabel.show();
-				this.chromecastSelect.hide();
-				this.playercastSelect.show();
-			}
-			else
-				hideDeviceSelection();
+				if(!this.boundPlayercastDevices)
+				{
+					Settings.bind(
+						'playercast-name', this.playercastSelect,
+						'active-id', Gio.SettingsBindFlags.DEFAULT
+					);
+					this.boundPlayercastDevices = true;
+				}
+
+				if(!this.isPlaying)
+				{
+					this.deviceSelectLabel.show();
+					this.chromecastSelect.hide();
+					this.playercastSelect.show();
+				}
+				else
+					hideDeviceSelection();
+			});
 		}
 		else
 		{
@@ -179,11 +200,14 @@ class fileChooser
 		}
 	}
 
-	_getEncodeTypeString(configContents)
+	_getEncodeTypeString(config)
 	{
-		if(this.comboBoxConvert && this.comboBoxConvert.active_id !== 'audio')
+		if(this.comboBoxConvert)
 		{
-			switch(configContents.videoAcceleration)
+			if(this.comboBoxConvert.active_id === 'audio')
+				return '_AUDIOENC';
+
+			switch(config.videoAcceleration)
 			{
 				case 'vaapi':
 					return '_VAAPI';
@@ -202,72 +226,92 @@ class fileChooser
 		let isTranscodeAudioEnabled = false;
 
 		if(this.comboBoxConvert)
-			isTranscodeAudioEnabled = (this.comboBoxConvert.active_id !== 'video') ? true : false;
+			isTranscodeAudioEnabled = (this.comboBoxConvert.active_id !== 'video');
 
 		return isTranscodeAudioEnabled;
 	}
 
 	_openDialog()
 	{
-		let configContents = Helper.readFromFile(shared.configPath);
-		if(!configContents || !STREAM_TYPE) return;
+		if(!STREAM_TYPE)
+			return log('Cast to TV: cannot open file chooser without stream type');
 
-		let selectionContents = {
+		let config = {
+			receiverType: Settings.get_string('receiver-type'),
+			videoAcceleration: Settings.get_string('video-acceleration'),
+			listeningPort: Settings.get_int('listening-port'),
+			internalPort: Settings.get_int('internal-port')
+		};
+
+		let selection = {
 			streamType: STREAM_TYPE,
 			subsPath: ''
 		};
 
+		Soup.createClient(config.listeningPort, config.internalPort);
+		this.reconnectTimeout = null;
+		this._connectWs();
+		Settings.connect('changed::internal-port', () => this._delayReconnectWs());
+
+		let isServiceEnabled = this._getInitData();
+
+		if(!isServiceEnabled)
+		{
+			if(this.fileChooser)
+				this.fileChooser.destroy();
+
+			return log('Cast to TV: file chooser - node service is disabled');
+		}
+
 		this.isSubsDialog = false;
 		this.fileFilter = new Gtk.FileFilter();
-
-		if(configContents.receiverType == 'other' && selectionContents.streamType == 'PICTURE')
-		{
-			this.fileChooser.set_select_multiple(false);
-		}
-		else
-		{
-			this.fileChooser.set_select_multiple(true);
-		}
-
+		this.fileChooser.set_select_multiple(true);
 		this.fileChooser.set_action(Gtk.FileChooserAction.OPEN);
 		this.fileChooser.add_button(_("Cancel"), Gtk.ResponseType.CANCEL);
-
-		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
-		this.playlistAllowed = this._getAddPlaylistAllowed();
-		this.playlistSignal = Settings.connect('changed::chromecast-playing', () => this._onChromecastPlayingChange());
 
 		let castButtonText = (this.playlistAllowed) ? _(ADD_PLAYLIST_LABEL) : _(CAST_LABEL_SINGLE);
 		this.buttonCast = this.fileChooser.add_button(castButtonText, Gtk.ResponseType.OK);
 
-		switch(selectionContents.streamType)
+		switch(selection.streamType)
 		{
 			case 'VIDEO':
-				this.buttonSubs = this.fileChooser.add_button(_("Add Subtitles"), Gtk.ResponseType.APPLY);
+				this.buttonSubs = this.fileChooser.add_button(
+					_("Add Subtitles"), Gtk.ResponseType.APPLY
+				);
 				this.fileChooser.set_title(_("Select Video"));
-				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS));
-
+				this.fileChooser.set_current_folder(
+					GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_VIDEOS)
+				);
 				this.fileFilter.set_name(_("Video Files"));
 				this.fileFilter.add_mime_type('video/*');
 
-				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onVideoSel());
+				this.fileSelectionChanged = this.fileChooser.connect(
+					'selection-changed', this._onVideoSel.bind(this)
+				);
 				break;
 			case 'MUSIC':
 				this.fileChooser.set_title(_("Select Music"));
-				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC));
-
+				this.fileChooser.set_current_folder(
+					GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_MUSIC)
+				);
 				this.fileFilter.set_name(_("Audio Files"));
 				this.fileFilter.add_mime_type('audio/*');
 
-				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onMusicAndPicSel());
+				this.fileSelectionChanged = this.fileChooser.connect(
+					'selection-changed', this._onMusicAndPicSel.bind(this)
+				);
 				break;
 			case 'PICTURE':
 				this.fileChooser.set_title(_("Select Picture"));
-				this.fileChooser.set_current_folder(GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES));
-
+				this.fileChooser.set_current_folder(
+					GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES)
+				);
 				this.fileFilter.set_name(_("Pictures"));
 				this.fileFilter.add_pixbuf_formats();
 
-				this.fileSelectionChanged = this.fileChooser.connect('selection-changed', () => this._onMusicAndPicSel());
+				this.fileSelectionChanged = this.fileChooser.connect(
+					'selection-changed', this._onMusicAndPicSel.bind(this)
+				);
 				break;
 			default:
 				return;
@@ -275,66 +319,45 @@ class fileChooser
 
 		this.fileChooser.set_extra_widget(this._getExtraWidget());
 		this.fileChooser.add_filter(this.fileFilter);
-		this.fileChooser.connect('response', () => this._onResponse());
+		this.fileChooser.connect('response', this._onResponse.bind(this));
 
 		let DialogResponse = this.fileChooser.run();
 
-		Settings.disconnect(this.playlistSignal);
-
 		let filesList = this.filePathChosen.sort();
-		selectionContents.filePath = filesList[0];
+		selection.filePath = filesList[0];
 
 		if(DialogResponse !== Gtk.ResponseType.OK)
 		{
-			if(DialogResponse === Gtk.ResponseType.APPLY)
-			{
-				selectionContents.subsPath = this._selectSubtitles();
-				if(!selectionContents.subsPath) return;
-			}
-			else
-			{
-				return;
-			}
+			if(DialogResponse !== Gtk.ResponseType.APPLY) return;
+
+			this.fileChooser.disconnect(this.fileSelectionChanged);
+			selection.subsPath = this._selectSubtitles();
+
+			if(!selection.subsPath) return;
 		}
 
-		this.fileChooser.disconnect(this.fileSelectionChanged);
+		Soup.client.disconnectWebsocket();
 
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
 		{
-			selectionContents.streamType += this._getEncodeTypeString(configContents);
-			selectionContents.transcodeAudio = this._getTranscodeAudioEnabled();
+			selection.streamType += this._getEncodeTypeString(config);
+			selection.transcodeAudio = this._getTranscodeAudioEnabled();
 		}
 		else
-			selectionContents.transcodeAudio = false;
+			selection.transcodeAudio = false;
 
 		this.fileChooser.destroy();
 
-		let setTempFiles = () =>
-		{
-			/* Set playback list */
-			Helper.writeToFile(shared.listPath, filesList);
-
-			/* Save selection to file */
-			Helper.writeToFile(shared.selectionPath, selectionContents);
-		}
-
-		/* Playlist does not support external subtitles */
 		if(this.playlistAllowed)
-		{
-			let playlist = Helper.readFromFile(shared.listPath);
-			if(!playlist) return setTempFiles();
-
-			filesList.forEach(filepath =>
-			{
-				if(!playlist.includes(filepath))
-					playlist.push(filepath);
-			});
-
-			Helper.writeToFile(shared.listPath, playlist);
-		}
+			Soup.client.postPlaylistSync(filesList, true);
 		else
-			setTempFiles();
+		{
+			Soup.client.postPlaybackDataSync({
+				playlist: filesList,
+				selection: selection
+			});
+		}
 	}
 
 	_selectSubtitles()
@@ -350,7 +373,7 @@ class fileChooser
 		/* Add supported subtitles formats to filter */
 		subsFilter.set_name(_("Subtitle Files"));
 
-		shared.subsFormats.forEach(function(extension)
+		shared.subsFormats.forEach(extension =>
 		{
 			subsFilter.add_pattern('*.' + extension);
 		});
@@ -359,23 +382,85 @@ class fileChooser
 		this.fileChooser.remove_filter(this.fileFilter);
 		this.fileChooser.add_filter(subsFilter);
 
-		if(this.fileChooser.run() == Gtk.ResponseType.OK) return this.filePathChosen[0];
-		else return null;
+		if(this.fileChooser.run() == Gtk.ResponseType.OK)
+			return this.filePathChosen[0];
+		else
+			return null;
 	}
 
-	_getAddPlaylistAllowed()
+	_getInitData()
+	{
+		let data = Soup.client.getPlaybackDataSync();
+
+		if(!data) return null;
+
+		this.isPlaying = data.isPlaying;
+		this.playlistAllowed = this._getAddPlaylistAllowed(data.selection);
+
+		return true;
+	}
+
+	_connectWs()
+	{
+		Soup.client.connectWebsocket('filechooser', (err) =>
+		{
+			if(err) return this._delayReconnectWs();
+
+			Soup.client.onWebsocketMsg((err, data) =>
+			{
+				if(err) return log('Cast to TV: ' + err.message);
+
+				if(data.hasOwnProperty('isPlaying'))
+				{
+					this.isPlaying = data.isPlaying;
+					this._setDevices();
+					this._checkPlaylistLabel();
+				}
+				else if(data.hasOwnProperty('isEnabled'))
+				{
+					if(!data.isEnabled && this.fileChooser)
+						this.fileChooser.destroy();
+				}
+			});
+
+			Soup.client.wsConn.connect('closed', () => this._delayReconnectWs());
+		});
+	}
+
+	_delayReconnectWs()
+	{
+		if(this.reconnectTimeout)
+			GLib.source_remove(this.reconnectTimeout);
+
+		this.reconnectTimeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () =>
+		{
+			this.reconnectTimeout = null;
+			let wsPort = Settings.get_int('internal-port');
+
+			if(wsPort != Soup.client.wsPort)
+				Soup.client.setWsPort(wsPort);
+
+			this._connectWs();
+
+			return GLib.SOURCE_REMOVE;
+		});
+	}
+
+	_getAddPlaylistAllowed(preSelection)
 	{
 		let allowed = false;
 
-		if(this.chromecastPlaying)
+		if(this.isPlaying)
 		{
-			if(this.isSubsDialog || (this.buttonConvert && this.buttonConvert.get_active()))
-			{
+			if(
+				this.isSubsDialog
+				|| (this.buttonConvert && this.buttonConvert.get_active())
+			) {
 				allowed = false;
 			}
 			else
 			{
-				let preSelection = Helper.readFromFile(shared.selectionPath);
+				preSelection = preSelection || Soup.client.getSelectionSync();
 
 				if(
 					preSelection
@@ -402,7 +487,7 @@ class fileChooser
 			if(this.playlistAllowed && this.buttonCast)
 				this.buttonCast.label = _(ADD_PLAYLIST_LABEL);
 			else
-				this.fileChooser.emit('selection-changed');
+				this._onVideoSel();
 		}
 	}
 
@@ -421,6 +506,7 @@ class fileChooser
 		{
 			this.buttonCast.label = _(CAST_LABEL_SINGLE);
 			this.buttonSubs.show();
+			this.buttonSubs.set_sensitive(selectedNumber === 1);
 		}
 	}
 
@@ -437,13 +523,6 @@ class fileChooser
 	_onResponse()
 	{
 		this.filePathChosen = this.fileChooser.get_filenames();
-	}
-
-	_onChromecastPlayingChange()
-	{
-		this.chromecastPlaying = Settings.get_boolean('chromecast-playing');
-		this._setDevices();
-		this._checkPlaylistLabel();
 	}
 }
 

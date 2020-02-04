@@ -1,15 +1,13 @@
-var fs = require('fs');
-var path = require('path');
-var debug = require('debug')('chromecast');
-var chromecast = require('chromecast-controller');
-var internalIp = require('internal-ip').v4;
-var bridge = require('./bridge');
-var extract = require('./extract');
-var gnome = require('./gnome');
-var notify = require('./notify');
-var controller = require('./remote-controller');
-var messages = require('./messages');
-var shared = require('../shared');
+const path = require('path');
+const debug = require('debug')('chromecast');
+const chromecast = require('chromecast-controller');
+const internalIp = require('internal-ip').v4;
+const bridge = require('./bridge');
+const controller = require('./remote-controller');
+const gnome = require('./gnome');
+const notify = require('./notify');
+const messages = require('./messages');
+const shared = require('../shared');
 
 var playerStatus = {};
 var playerVolume = 1;
@@ -32,30 +30,14 @@ exports.cast = function()
 	}
 
 	debug('NEW SELECTION');
-
-	if(!extract.subsProcess && !extract.coverProcess)
-		return initChromecast();
-
-	debug('Waiting for extract processes to finish...');
-
-	var checkInterval = setInterval(() =>
-	{
-		/* Cast after extract processes are done */
-		if(!extract.subsProcess && !extract.coverProcess)
-		{
-			debug('Processes finished extracting');
-
-			clearInterval(checkInterval);
-			initChromecast();
-		}
-	}, 100);
+	initChromecast();
 }
 
 exports.remote = function(action, value)
 {
 	if(remoteBusy) return;
 
-	if(!isNaN(value) || typeof value == 'boolean')
+	if(!isNaN(value) || typeof value === 'boolean')
 		debug(`Signal from remote. ACTION: ${action}, VALUE: ${value}`);
 	else
 		debug(`Signal from remote. ACTION: ${action}`);
@@ -73,7 +55,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.playerState = 'PLAYING';
-					bridge.setStatusFile(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -84,7 +66,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.playerState = 'PAUSED';
-					bridge.setStatusFile(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -96,7 +78,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.currentTime = position;
-					bridge.setStatusFile(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -110,7 +92,7 @@ exports.remote = function(action, value)
 					if(!err)
 					{
 						playerStatus.currentTime = position;
-						bridge.setStatusFile(playerStatus);
+						bridge.setGnomeStatus(playerStatus);
 					}
 					unsetBusy();
 				});
@@ -124,7 +106,7 @@ exports.remote = function(action, value)
 				if(!err)
 				{
 					playerStatus.currentTime = position;
-					bridge.setStatusFile(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
@@ -132,7 +114,7 @@ exports.remote = function(action, value)
 		case 'SKIP+':
 		case 'SKIP-':
 			playerStatus.currentTime = 0;
-			bridge.setStatusFile(playerStatus);
+			bridge.setGnomeStatus(playerStatus);
 			return closeCast(action);
 			break;
 		case 'REPEAT':
@@ -157,14 +139,14 @@ exports.remote = function(action, value)
 				{
 					playerVolume = volume.level;
 					playerStatus.volume = playerVolume;
-					bridge.setStatusFile(playerStatus);
+					bridge.setGnomeStatus(playerStatus);
 				}
 				unsetBusy();
 			});
 			break;
 		case 'SLIDESHOW':
 			controller.slideshow = value;
-			if(value)
+			if(controller.slideshow)
 				controller.setSlideshow();
 			else
 				controller.clearSlideshow();
@@ -219,15 +201,9 @@ function initChromecast()
 			break;
 	}
 
-	var getTextTrackStyle = () =>
-	{
-		const subsConf = gnome.getJSON('chromecast-subtitles');
-		return { ...shared.chromecast.subsStyle, ...subsConf };
-	}
-
 	var getTitle = () =>
 	{
-		if(mimeType === 'audio/*' && extract.metadata) return extract.metadata.title;
+		if(mimeType === 'audio/*' && bridge.mediaData.title) return bridge.mediaData.title;
 		else if(bridge.selection.title) return bridge.selection.title;
 		else return path.parse(bridge.selection.filePath).name;
 	}
@@ -237,7 +213,10 @@ function initChromecast()
 		case 'video/*':
 			trackIds = [1];
 			mediaTracks = {
-				textTrackStyle: getTextTrackStyle(),
+				textTrackStyle: {
+					...shared.chromecast.subsStyle,
+					...bridge.config.chromecastSubtitles
+				},
 				tracks: shared.chromecast.tracks,
 				metadata: {
 					metadataType: 1,
@@ -298,25 +277,19 @@ function initChromecast()
 
 	var getChromecastIp = () =>
 	{
-		if(bridge.config.chromecastName)
-		{
-			const devices = gnome.getJSON('chromecast-devices');
+		if(!bridge.config.chromecastName)
+			return null;
 
-			if(Array.isArray(devices))
-			{
-				for(var i = 0; i < devices.length; i++)
-				{
-					if(
-						devices[i].ip
-						&& devices[i].name === bridge.config.chromecastName
-					) {
-						return devices[i].ip;
-					}
-				}
-			}
-		}
+		var devices = bridge.config.chromecastDevices;
 
-		return null;
+		if(!Array.isArray(devices))
+			return null;
+
+		var foundDevice = devices.find(dev =>
+			(dev.ip && dev.name === bridge.config.chromecastName)
+		);
+
+		return (foundDevice) ? foundDevice.ip : null;
 	}
 
 	var media = {
@@ -405,13 +378,11 @@ function startPlayback(mimeType)
 			if(!err)
 			{
 				playerVolume = volume;
-				debug(`Obtained volume value: ${volume}`);
+				return debug(`Obtained volume value: ${volume}`);
 			}
-			else
-			{
-				playerVolume = 1;
-				debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
-			}
+
+			playerVolume = 1;
+			debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
 		});
 	}
 
@@ -424,18 +395,17 @@ function startPlayback(mimeType)
 
 			chromecast.play(err =>
 			{
-				if(!err)
-				{
-					debug('Playback started');
-					startCastInterval();
-					/* Show on refresh is handled in bridge.js */
-					if(!gnome.isRemote()) gnome.showRemote(true);
-				}
-				else
+				if(err)
 				{
 					debug('Could not play!');
+					debug(err);
 					return closeCast();
 				}
+
+				debug('Playback started');
+				startCastInterval();
+				/* Refresh is handled in bridge.js */
+				if(!gnome.isRemote) bridge.setGnomeRemote(true);
 			});
 		}
 
@@ -464,8 +434,8 @@ function startPlayback(mimeType)
 
 		startCastInterval();
 
-		/* Show on refresh is handled in bridge.js */
-		if(!gnome.isRemote()) gnome.showRemote(true);
+		/* Refresh is handled in bridge.js */
+		if(!gnome.isRemote) bridge.setGnomeRemote(true);
 	}
 }
 
@@ -511,7 +481,7 @@ function handleChromecastStatus(status)
 	}
 
 	if(!remoteBusy)
-		bridge.setStatusFile(playerStatus);
+		bridge.setGnomeStatus(playerStatus);
 }
 
 function showIdleError()
@@ -558,17 +528,21 @@ function closeCast(action)
 	chromecast._player.removeListener('close', finishCast);
 	chromecast._player.removeListener('status', handleChromecastStatus);
 
-	var currentTrackID = bridge.list.indexOf(bridge.selection.filePath) + 1;
-	var listLastID = bridge.list.length;
+	var currentTrackID = bridge.playlist.indexOf(bridge.selection.filePath) + 1;
+	var listLastID = bridge.playlist.length;
 
 	if(action)
 	{
-		if(action == 'SKIP+') return controller.changeTrack(currentTrackID + 1);
-		else if(action == 'SKIP-') return controller.changeTrack(currentTrackID - 1);
+		if(action == 'SKIP+')
+			return controller.changeTrack(currentTrackID + 1);
+		else if(action == 'SKIP-')
+			return controller.changeTrack(currentTrackID - 1);
 	}
 
-	if(controller.repeat && currentTrackID === listLastID) return controller.changeTrack(1);
-	else if(action !== 'STOP' && currentTrackID < listLastID) return controller.changeTrack(currentTrackID + 1);
+	if(controller.repeat && currentTrackID === listLastID)
+		return controller.changeTrack(1);
+	else if(action !== 'STOP' && currentTrackID < listLastID)
+		return controller.changeTrack(currentTrackID + 1);
 
 	debug('Closing cast session...');
 	chromecast.close(err =>
@@ -576,7 +550,7 @@ function closeCast(action)
 		if(!err) debug('Session closed');
 		else debug('Could not close session!');
 
-		gnome.showRemote(false);
+		bridge.setGnomeRemote(false);
 		debug('Cast finished!');
 	});
 }
@@ -591,6 +565,6 @@ function finishCast()
 	/* 'close' listener is auto removed as it is a 'once' event performed here */
 	chromecast._player.removeListener('status', handleChromecastStatus);
 
-	gnome.showRemote(false);
+	bridge.setGnomeRemote(false);
 	debug('Cast finished due to close event!');
 }

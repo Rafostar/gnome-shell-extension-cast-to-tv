@@ -1,31 +1,35 @@
-var express = require('express');
-var app = express();
-var path = require('path');
-var bridge = require('./bridge');
-var webcreator = require('./web-creator');
-var socket = require('./server-socket');
-var encode = require('./encode');
-var extract = require('./extract');
-var gettext = require('./gettext');
-var listeningPort = bridge.config.listeningPort;
-var server = app.listen(listeningPort);
+const express = require('express');
+const bodyParser = require('body-parser');
+const bowser = require("bowser");
+const path = require('path');
+const bridge = require('./bridge');
+const webcreator = require('./web-creator');
+const sender = require('./sender');
+const socket = require('./server-socket');
+const encode = require('./encode');
+const extract = require('./extract');
+const gettext = require('./gettext');
 
-socket.listen(server);
-gettext.initTranslations();
+const app = express();
 
-process.on('SIGINT', () => bridge.shutDown());
-process.on('SIGTERM', () => bridge.shutDown());
-process.on('uncaughtException', (err) => bridge.shutDown(err));
-
-exports.refreshConfig = function()
+var userAgent = null;
+var server = app.listen(bridge.config.listeningPort, () =>
 {
-	if(listeningPort != bridge.config.listeningPort)
-	{
-		server.close();
-		listeningPort = bridge.config.listeningPort;
-		server = app.listen(listeningPort);
-		socket.listen(server);
-	}
+	gettext.initTranslations();
+	sender.configure(bridge.config.internalPort);
+	socket.listen(server);
+
+	bridge.createTempDir(() => socket.connectWs());
+});
+
+app.use(bodyParser.json());
+
+exports.changePort = function(port)
+{
+	server.close();
+
+	server = app.listen(port);
+	socket.listen(server);
 }
 
 function checkMessagePage(req, res)
@@ -50,13 +54,26 @@ function checkMessagePage(req, res)
 		return true;
 	}
 
-	if(extract.subsProcess || extract.coverProcess)
+	if(extract.video.subsProcess || extract.music.coverProcess)
 	{
 		res.sendFile(path.join(__dirname + '/../webplayer/loading.html'));
 		return true;
 	}
 
 	return false;
+}
+
+function getBrowserName()
+{
+	if(!userAgent)
+		return null;
+
+	var parsedAgent = bowser.parse(userAgent);
+
+	if(parsedAgent && parsedAgent.browser && parsedAgent.browser.name)
+		return parsedAgent.browser.name;
+
+	return null;
 }
 
 app.get('/', function(req, res)
@@ -68,6 +85,14 @@ app.get('/', function(req, res)
 
 	var isMessage = checkMessagePage(req, res);
 	if(isMessage) return;
+
+	if(
+		bridge.config.receiverType === 'other'
+		&& userAgent !== req.headers['user-agent']
+	) {
+		userAgent = req.headers['user-agent'];
+		sender.sendBrowserName(getBrowserName());
+	}
 
 	switch(bridge.selection.streamType)
 	{
@@ -93,27 +118,25 @@ app.get('/cast', function(req, res)
 		/* Send to add-on if available, otherwise ignore request */
 		if(bridge.addon)
 			bridge.addon.fileStream(req, res, bridge.selection, bridge.config);
-	}
-	else
-	{
-		switch(bridge.selection.streamType)
-		{
-			case 'MUSIC':
-				if(bridge.config.musicVisualizer)
-					webcreator.encodedStream(req, res);
-				else
-					webcreator.fileStream(req, res);
-				break;
-			case 'VIDEO':
-			case 'PICTURE':
-				webcreator.fileStream(req, res);
-				break;
-			default:
-				webcreator.encodedStream(req, res);
-				break;
-		}
 
-		req.once('close', encode.closeStreamProcess);
+		return;
+	}
+
+	switch(bridge.selection.streamType)
+	{
+		case 'MUSIC':
+			if(bridge.config.musicVisualizer)
+				webcreator.encodedStream(req, res);
+			else
+				webcreator.fileStream(req, res);
+			break;
+		case 'VIDEO':
+		case 'PICTURE':
+			webcreator.fileStream(req, res);
+			break;
+		default:
+			webcreator.encodedStream(req, res);
+			break;
 	}
 });
 
@@ -138,6 +161,19 @@ app.get('/webplayer/webconfig.css', function(req, res)
 	webcreator.webConfig(req, res);
 });
 
+app.get('/temp/*', function(req, res)
+{
+	if(req.params[0] === 'browser')
+		res.send({ name: getBrowserName() });
+	else
+		webcreator.getTemp(req.params[0], req, res);
+});
+
+app.post('/temp/*', function(req, res)
+{
+	webcreator.postTemp(req.params[0], req, res);
+});
+
 app.get('/segment*', function(req, res)
 {
 	webcreator.hlsStream(req, res);
@@ -148,5 +184,5 @@ app.use('/plyr', express.static(__dirname + '/../node_modules/plyr/dist'));
 
 app.get('/*', function(req, res)
 {
-	webcreator.pageWrong(req, res);
+	res.redirect('/');
 });

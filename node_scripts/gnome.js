@@ -1,25 +1,26 @@
-var fs = require('fs');
-var path = require('path');
-var { spawn, spawnSync } = require('child_process');
-var debug = require('debug')('gnome');
+const fs = require('fs');
+const path = require('path');
+const { spawn, spawnSync } = require('child_process');
+const debug = require('debug')('gnome');
+const sender = require('./sender');
+const noop = () => {};
 
 var schemaName = 'org.gnome.shell.extensions.cast-to-tv';
 var schemaDir = path.join(__dirname + '/../schemas');
-var isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
-debug(`Local settings schema available: ${isSchema}`);
+var isSchema = false;
 
-const noop = () => {};
-var isRemoteVisible = null;
-
-var gnome =
+module.exports =
 {
+	isRemote: false,
+	isLockScreen: false,
+
 	loadSchema: function(customName, customPath)
 	{
-		schemaName = customName;
-		schemaDir = customPath;
+		schemaName = customName || schemaName;
+		schemaDir = customPath || schemaDir;
 
-		isSchema = fs.existsSync(`${customPath}/gschemas.compiled`);
-		debug(`Custom settings schema available: ${isSchema}`);
+		isSchema = fs.existsSync(`${schemaDir}/gschemas.compiled`);
+		debug(`Settings schema available: ${isSchema}`);
 	},
 
 	setSetting: function(setting, value, cb)
@@ -49,7 +50,7 @@ var gnome =
 	getBoolean: function(setting)
 	{
 		var value = this.getSetting(setting);
-		return (value === 'true' || value === true) ? true : false;
+		return (value === 'true' || value === true);
 	},
 
 	getJSON: function(setting)
@@ -58,24 +59,50 @@ var gnome =
 		return JSON.parse(value);
 	},
 
-	showRemote: function(enable, cb)
+	showRemote: function(enable, playbackData, cb)
 	{
-		isRemoteVisible = enable;
-		this.setSetting('chromecast-playing', enable, cb);
+		cb = cb || noop;
+
+		if(this.isLockScreen)
+			return cb(null);
+
+		debug(`Show remote widget: ${enable}`);
+
+		var data = { isPlaying: enable };
+
+		if(playbackData)
+			data = { ...playbackData, ...data };
+
+		this.isRemote = enable;
+		sender.sendPlaybackData(data, cb);
 	},
 
-	showMenu: function(enable, cb)
+	getTempConfig: function()
 	{
-		this.setSetting('service-enabled', enable, cb);
-	},
+		var config = {
+			ffmpegPath: this.getSetting('ffmpeg-path'),
+			ffprobePath: this.getSetting('ffprobe-path'),
+			receiverType: this.getSetting('receiver-type'),
+			listeningPort: this.getSetting('listening-port'),
+			internalPort: this.getSetting('internal-port'),
+			webplayerSubs: parseFloat(this.getSetting('webplayer-subs')).toFixed(1),
+			videoBitrate: parseFloat(this.getSetting('video-bitrate')).toFixed(1),
+			videoAcceleration: this.getSetting('video-acceleration'),
+			burnSubtitles: this.getBoolean('burn-subtitles'),
+			musicVisualizer: this.getBoolean('music-visualizer'),
+			slideshowTime: this.getSetting('slideshow-time'),
+			extractorReuse: this.getBoolean('extractor-reuse'),
+			extractorDir: this.getSetting('extractor-dir'),
+			chromecastName: this.getSetting('chromecast-name'),
+			playercastName: this.getSetting('playercast-name'),
+			chromecastDevices: this.getJSON('chromecast-devices'),
+			chromecastSubtitles: this.getJSON('chromecast-subtitles')
+		};
 
-	isRemote: function()
-	{
-		isRemoteVisible = (isRemoteVisible === true || isRemoteVisible === false) ?
-			isRemoteVisible : this.getBoolean('chromecast-playing');
+		/* Use default paths if custom paths are not defined */
+		if(!config.ffmpegPath) config.ffmpegPath = '/usr/bin/ffmpeg';
+		if(!config.ffprobePath) config.ffprobePath = '/usr/bin/ffprobe';
 
-		return isRemoteVisible;
+		return config;
 	}
 }
-
-module.exports = gnome;

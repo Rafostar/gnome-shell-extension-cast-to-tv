@@ -1,10 +1,11 @@
-const { Gio, GLib, St, Clutter } = imports.gi;
+const { GLib, St, Clutter } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const { AltPopupBase } = Local.imports.compat;
+const Soup = Local.imports.soup;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
 const Helper = Local.imports.helper;
@@ -15,8 +16,11 @@ const ICON_NAME = 'tv-symbolic';
 const MIN_DELAY = 3;
 const MAX_DELAY = 5;
 
-var isUnifiedSlider = true;
-var seekTime = 10;
+var remoteNames = {
+	chromecast: {},
+	playercast: null,
+	browser: null
+};
 
 var statusIcon = new St.Icon({ icon_name: ICON_NAME, style_class: 'system-status-icon' });
 
@@ -25,16 +29,17 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 	constructor()
 	{
 		super();
+
 		this.extensionId = Local.metadata['extension-id'];
-		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Media"), true);
+		this.castSubMenu = new PopupMenu.PopupSubMenuMenuItem(_("Cast Off"), true);
 		this.castSubMenu.icon.icon_name = ICON_NAME;
-		this.isServiceEnabled = true;
+		this.isServiceEnabled = false;
 
 		/* Expandable menu */
 		this.videoMenuItem = new PopupMenu.PopupImageMenuItem(_("Video"), 'folder-videos-symbolic');
 		this.musicMenuItem = new PopupMenu.PopupImageMenuItem(_("Music"), 'folder-music-symbolic');
 		this.pictureMenuItem = new PopupMenu.PopupImageMenuItem(_("Picture"), 'folder-pictures-symbolic');
-		this.serviceMenuItem = new PopupMenu.PopupMenuItem(_("Turn Off"));
+		this.serviceMenuItem = new PopupMenu.PopupMenuItem(_("Turn On"));
 		this.settingsMenuItem = new PopupMenu.PopupMenuItem(_("Cast Settings"));
 
 		/* Assemble all menu items */
@@ -43,6 +48,16 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 		this.castSubMenu.menu.addMenuItem(this.pictureMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.serviceMenuItem);
 		this.castSubMenu.menu.addMenuItem(this.settingsMenuItem);
+
+		/* Start with turned off state with media items hidden */
+		let mediaItems = ['videoMenuItem', 'musicMenuItem', 'pictureMenuItem'];
+		mediaItems.forEach(item =>
+		{
+			if(this[item].hasOwnProperty('actor'))
+				this[item].actor.hide();
+			else
+				this[item].hide();
+		});
 
 		/* Functions */
 		this.spawnFileChooser = (streamType) =>
@@ -122,10 +137,14 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 {
-	constructor()
+	constructor(opts)
 	{
 		super(0.5, "Cast to TV Remote", false);
-		this.mode = 'DIRECT';
+
+		this.opts = opts;
+		this.isActor = (this.hasOwnProperty('actor'));
+		this.currentProgress = 0;
+		this.currentVolume = 1;
 
 		this.box = new St.BoxLayout();
 		this.icon = new St.Icon({ icon_name: 'input-dialpad-symbolic', style_class: 'system-status-icon' });
@@ -150,7 +169,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		this.trackTitle = new trackTitleItem();
-		this.positionSlider = new SliderItem('folder-videos-symbolic', isUnifiedSlider, false);
+		this.positionSlider = new SliderItem('folder-videos-symbolic', this.opts.isUnifiedSlider, false);
 		this.volumeSlider = new SliderItem('audio-volume-high-symbolic', false, true);
 		this.togglePlayButton = new MediaControlButton('media-playback-pause-symbolic');
 		this.stopButton = new MediaControlButton('media-playback-stop-symbolic');
@@ -194,27 +213,29 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		{
 			this[sliderName].delay = MIN_DELAY;
 			let action = (this[sliderName].isVolume) ? 'VOLUME' : 'SEEK';
-			Temp.setRemoteAction(action, this[sliderName].getValue());
-			this[sliderName].busy = false;
+			let value = this[sliderName].getValue();
+
+			Soup.client.postRemote(action, value, () => this[sliderName].busy = false);
 		}
 
-		this.sliderButtonAction = () =>
+		this.refreshSliders = () =>
 		{
-			this.positionSlider.delay = 0;
-			this.positionSlider.isVolume ^= true;
-
-			let statusContents = Helper.readFromFile(shared.statusPath);
-
 			if(this.positionSlider.isVolume)
 			{
 				this.positionSlider.setIcon(this.positionSlider.volumeIcon);
-				if(statusContents) this.setVolume(statusContents);
+				this.positionSlider.setValue(this.currentVolume);
 			}
 			else
 			{
 				this.positionSlider.setIcon(this.positionSlider.defaultIcon);
-				if(statusContents) this.setProgress(statusContents);
+				this.positionSlider.setValue(this.currentProgress);
 			}
+		}
+
+		this.sliderButtonAction = () =>
+		{
+			this.positionSlider.isVolume ^= true;
+			this.refreshSliders();
 		}
 
 		/* Signals connections */
@@ -244,55 +265,49 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this[sliderName]._slider.connect('drag-end', this.sliderAction.bind(this, sliderName))
 			);
 
-			if(isUnifiedSlider && sliderName === 'positionSlider')
+			if(sliderName === 'positionSlider')
 			{
-				this[sliderName].button._signalIds.push(
-					this[sliderName].button.connect('clicked', this.sliderButtonAction.bind(this))
+				this[sliderName]._sliderButton._signalIds.push(
+					this[sliderName]._sliderButton.connect('clicked', this.sliderButtonAction.bind(this))
 				);
 			}
 		}
-
-		connectSliderSignals('positionSlider');
-		connectSliderSignals('volumeSlider');
 
 		this.slideshowButton._signalIds.push(
 			this.slideshowButton.connect('clicked', () =>
 			{
 				this.repeatButton.reactive = this.slideshowButton.turnedOn;
-				Temp.setRemoteAction('SLIDESHOW', this.slideshowButton.turnedOn);
+				Soup.client.postRemote('SLIDESHOW', this.slideshowButton.turnedOn);
 			})
 		);
 		this.repeatButton._signalIds.push(
 			this.repeatButton.connect('clicked', () =>
 			{
-				Temp.setRemoteAction('REPEAT', this.repeatButton.turnedOn);
+				Soup.client.postRemote('REPEAT', this.repeatButton.turnedOn);
 			})
 		);
 		this.togglePlayButton._signalIds.push(
 			this.togglePlayButton.connect('clicked', () =>
 			{
 				let toggleAction = (this.togglePlayButton.isPause) ? 'PAUSE' : 'PLAY';
-				Temp.setRemoteAction(toggleAction);
+				Soup.client.postRemote(toggleAction);
 			})
 		);
 		this.seekForwardButton._signalIds.push(
-			this.seekForwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK+', seekTime))
+			this.seekForwardButton.connect('clicked', () => Soup.client.postRemote('SEEK+', this.opts.seekTime))
 		);
 		this.seekBackwardButton._signalIds.push(
-			this.seekBackwardButton.connect('clicked', () => Temp.setRemoteAction('SEEK-', seekTime))
+			this.seekBackwardButton.connect('clicked', () => Soup.client.postRemote('SEEK-', this.opts.seekTime))
 		);
 		this.stopButton._signalIds.push(
-			this.stopButton.connect('clicked', () => Temp.setRemoteAction('STOP'))
+			this.stopButton.connect('clicked', () => Soup.client.postRemote('STOP'))
 		);
 		this.skipBackwardButton._signalIds.push(
-			this.skipBackwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP-'))
+			this.skipBackwardButton.connect('clicked', () => Soup.client.postRemote('SKIP-'))
 		);
 		this.skipForwardButton._signalIds.push(
-			this.skipForwardButton.connect('clicked', () => Temp.setRemoteAction('SKIP+'))
+			this.skipForwardButton.connect('clicked', () => Soup.client.postRemote('SKIP+'))
 		);
-
-		this.statusFile = Gio.file_new_for_path(shared.statusPath);
-		this.statusMonitor = this.statusFile.monitor(Gio.FileMonitorFlags.NONE, null);
 
 		let handleSliderDelay = (sliderName) =>
 		{
@@ -301,116 +316,145 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 				this.sliderAction(sliderName);
 		}
 
-		this.updateRemote = (monitor, file, otherFile, event) =>
+		this.refreshLabel = () =>
 		{
-			if(event !== Gio.FileMonitorEvent.CHANGES_DONE_HINT) return;
-
-			let statusContents = Helper.readFromFile(shared.statusPath);
-			if(statusContents)
+			/* Change remote label */
+			switch(this.opts.receiverType)
 			{
-				if(
-					statusContents.hasOwnProperty('repeat')
-					&& this.repeatButton.turnedOn !== statusContents.repeat
-				) {
-					this.repeatButton.turnOn(statusContents.repeat);
-				}
-
-				if(
-					this.mode === 'PICTURE'
-					&& statusContents.hasOwnProperty('slideshow')
-					&& this.slideshowButton.turnedOn !== statusContents.slideshow
-				) {
-					this.slideshowButton.turnOn(statusContents.slideshow);
-					this.repeatButton.reactive = statusContents.slideshow;
-				}
-
-				if(this.mode === 'PICTURE') return;
-
-				this.checkPlaying(statusContents);
-
-				if(this.positionSlider.delay > 0)
-					handleSliderDelay('positionSlider');
-
-				if(this.volumeSlider.delay > 0)
-					handleSliderDelay('volumeSlider');
-
-				this.setVolume(statusContents);
-
-				if(
-					this.positionSlider.getVisible()
-					&& !this.positionSlider.isVolume
-					&& this.positionSlider.delay == 0
-					&& !this.positionSlider.busy
-				) {
-					this.setProgress(statusContents);
-				}
+				case 'chromecast':
+					if(this.opts.useFriendlyName && remoteNames.chromecast.friendlyName)
+						this.toplabel.text = remoteNames.chromecast.friendlyName;
+					else
+						this.toplabel.text = "Chromecast";
+					break;
+				case 'playercast':
+					if(this.opts.useFriendlyName && remoteNames.playercast)
+						this.toplabel.text = remoteNames.playercast;
+					else
+						this.toplabel.text = "Playercast";
+					break;
+				case 'other':
+					/* TRANSLATORS: Web browser label for top bar remote */
+					if(this.opts.useFriendlyName && remoteNames.browser)
+						this.toplabel.text = remoteNames.browser;
+					else
+						this.toplabel.text = _("Browser");
+					break;
+				default:
+					break;
 			}
 		}
 
-		this.monitorSignal = this.statusMonitor.connect('changed', this.updateRemote.bind(this));
-
-		this.setPlaying = (value) =>
+		this.updateRemote = (status) =>
 		{
-			if(this.togglePlayButton.isPause !== value)
-			{
-				if(value) this.togglePlayButton.setIcon('media-playback-pause-symbolic');
-				else this.togglePlayButton.setIcon('media-playback-start-symbolic');
+			if(!status) return;
 
-				this.togglePlayButton.isPause = value;
+			if(
+				status.hasOwnProperty('repeat')
+				&& this.repeatButton.turnedOn !== status.repeat
+			) {
+				this.repeatButton.turnOn(status.repeat);
+			}
+
+			if(
+				this.opts.mode === 'PICTURE'
+				&& status.hasOwnProperty('slideshow')
+				&& this.slideshowButton.turnedOn !== status.slideshow
+			) {
+				this.slideshowButton.turnOn(status.slideshow);
+				this.repeatButton.reactive = status.slideshow;
+			}
+
+			if(this.opts.mode === 'PICTURE') return;
+
+			if(status.mediaDuration > 0 && status.currentTime <= status.mediaDuration)
+				this.currentProgress = status.currentTime / status.mediaDuration;
+
+			this.currentVolume = status.volume;
+			this.checkPlaying(status);
+
+			if(this.positionSlider.delay > 0)
+				handleSliderDelay('positionSlider');
+
+			if(this.volumeSlider.delay > 0)
+				handleSliderDelay('volumeSlider');
+
+			if(status.volume >= 0 && status.volume <= 1)
+				this.setVolumeCheck();
+
+			this.setProgressCheck();
+		}
+
+		this.setPlaying = (isPlaying) =>
+		{
+			if(this.togglePlayButton.isPause !== isPlaying)
+			{
+				let name = (isPlaying) ? 'pause' : 'start';
+
+				this.togglePlayButton.setIcon('media-playback-' + name + '-symbolic');
+				this.togglePlayButton.isPause = isPlaying;
 			}
 		}
 
-		this.checkPlaying = (statusContents) =>
+		this.checkPlaying = (status) =>
 		{
-			if(statusContents.playerState == 'PLAYING') this.setPlaying(true);
-			else if(statusContents.playerState == 'PAUSED') this.setPlaying(false);
+			if(status.playerState == 'PLAYING') this.setPlaying(true);
+			else if(status.playerState == 'PAUSED') this.setPlaying(false);
 		}
 
-		this.setProgress = (statusContents) =>
+		this.setProgressCheck = () =>
 		{
-			if(statusContents.mediaDuration > 0)
-			{
-				let sliderValue = statusContents.currentTime / statusContents.mediaDuration;
-				this.positionSlider.setValue(sliderValue);
+			if(
+				this.positionSlider.getVisible()
+				&& !this.positionSlider.isVolume
+				&& this.positionSlider.delay == 0
+				&& !this.positionSlider.busy
+			) {
+				this.positionSlider.setValue(this.currentProgress);
 			}
 		}
 
-		this.setVolume = (statusContents) =>
+		this.setVolumeCheck = () =>
 		{
-			if(statusContents.volume >= 0 && statusContents.volume <= 1)
-			{
-				if(
-					this.volumeSlider.getVisible()
-					&& this.volumeSlider.delay == 0
-					&& !this.volumeSlider.busy
-				) {
-					this.volumeSlider.setValue(statusContents.volume);
-				}
-				else if(
-					this.positionSlider.isVolume
-					&& this.positionSlider.delay == 0
-					&& !this.positionSlider.busy
-				) {
-					this.positionSlider.setValue(statusContents.volume);
-				}
+			if(
+				this.volumeSlider.getVisible()
+				&& this.volumeSlider.delay == 0
+				&& !this.volumeSlider.busy
+			) {
+				this.volumeSlider.setValue(this.currentVolume);
+			}
+			else if(
+				this.positionSlider.isVolume
+				&& this.positionSlider.delay == 0
+				&& !this.positionSlider.busy
+			) {
+				this.positionSlider.setValue(this.currentVolume);
 			}
 		}
 
-		this.setMode = (value, icon) =>
+		this.setMode = (value, icon, force) =>
 		{
-			this.mode = value;
+			if(
+				!force
+				&& this.opts.mode === value
+				&& (!icon || this.positionSlider.defaultIcon === icon)
+			) {
+				return;
+			}
+
+			this.opts.mode = value;
 			let shownItems = [];
 
 			/* Items that might be shown or hidden depending on media content */
 			let changableItems = ['positionSlider', 'volumeSlider', 'togglePlayButton',
 				'seekBackwardButton', 'seekForwardButton', 'repeatButton', 'slideshowButton'];
 
-			switch(this.mode)
+			switch(this.opts.mode)
 			{
 				case 'DIRECT':
 					shownItems = ['positionSlider', 'repeatButton', 'togglePlayButton',
 						'seekBackwardButton', 'seekForwardButton'];
-					if(!isUnifiedSlider) shownItems.push('volumeSlider');
+					if(!this.opts.isUnifiedSlider) shownItems.push('volumeSlider');
 					break;
 				case 'ENCODE':
 					shownItems = ['volumeSlider', 'repeatButton', 'togglePlayButton'];
@@ -425,7 +469,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 					break;
 			}
 
-			this.repeatButton.reactive = (this.mode !== 'PICTURE') ? true
+			this.repeatButton.reactive = (this.opts.mode !== 'PICTURE') ? true
 				: (this.slideshowButton.turnedOn) ? true : false;
 
 			changableItems.forEach(item =>
@@ -446,11 +490,13 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(icon) this.positionSlider.defaultIcon = icon;
 
-			Playlist.seekAllowed = (this.mode === 'DIRECT') ? true : false;
+			Playlist.seekAllowed = (this.opts.mode === 'DIRECT') ? true : false;
 		}
 
 		this.setMediaButtonsSize = (size) =>
 		{
+			this.opts.mediaButtonsSize = size;
+
 			this.togglePlayButton.child.icon_size = size;
 			this.stopButton.child.icon_size = size;
 			this.seekBackwardButton.child.icon_size = size;
@@ -463,16 +509,55 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 		this.setSlidersIconSize = (size) =>
 		{
+			this.opts.sliderIconSize = size;
+
 			this.positionSlider.setIconSize(size);
 			this.volumeSlider.setIconSize(size);
 		}
 
+		this.setUnifiedSlider = (value) =>
+		{
+			this.opts.isUnifiedSlider = value;
+			let isActor = (this.volumeSlider.hasOwnProperty('actor'));
+
+			if(isActor)
+			{
+				if(value) this.volumeSlider.actor.hide();
+				else this.volumeSlider.actor.show();
+			}
+			else
+			{
+				if(value) this.volumeSlider.hide();
+				else this.volumeSlider.show();
+			}
+
+			this.positionSlider.setToggle(value);
+
+			if(!value)
+				this.positionSlider.isVolume = false;
+
+			this.refreshSliders();
+		}
+
+		/* Should be here until ported to GObject */
+		connectSliderSignals('positionSlider');
+		connectSliderSignals('volumeSlider');
+		this.setMode(this.opts.mode, null, true);
+		this.setMediaButtonsSize(this.opts.mediaButtonsSize);
+		this.setSlidersIconSize(this.opts.sliderIconSize);
+		this.setUnifiedSlider(this.opts.isUnifiedSlider);
+
+		if(this.opts.isLabel)
+			this.refreshLabel();
+		else
+			this.toplabel.hide();
+
+		/* Hide remote by default */
+		(this.isActor) ? this.actor.hide() : this.hide();
+
 		this.destroy = () =>
 		{
-			this.statusMonitor.disconnect(this.monitorSignal);
-			this.statusMonitor.cancel();
 			this.playlist.destroy();
-
 			super.destroy();
 		}
 	}
@@ -541,31 +626,32 @@ class SliderItem extends AltPopupBase
 		super();
 		this.defaultIcon = icon;
 		this.volumeIcon = 'audio-volume-high-symbolic';
-		this._toggle = toggle;
-		this._slider = new Slider.Slider(0);
-
-		this.button = (this._toggle) ?
-			new MediaControlButton(this.defaultIcon, false, 16) :
-			new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
-
 		this.delay = 0;
 		this.busy = false;
 		this.isVolume = isVolume || false;
 
+		this._slider = new Slider.Slider(0);
+		this._sliderIcon = new St.Icon({ style_class: 'popup-menu-icon', icon_size: 16, icon_name: icon });
+		this._sliderButton = new MediaControlButton(icon, false, 16);
+
 		if(this.hasOwnProperty('actor'))
 		{
-			this.actor.add(this.button);
+			this.actor.add(this._sliderIcon);
+			this.actor.add(this._sliderButton);
 			this.actor.add(this._slider.actor, { expand: true });
 			this.actor.visible = true;
 		}
 		else
 		{
-			this.add(this.button);
+			this.add(this._sliderIcon);
+			this.add(this._sliderButton);
 			this.add(this._slider, { expand: true });
 			this.visible = true;
 		}
 
-		this.button.style = 'margin-right: 2px;';
+		this._sliderIcon.style = 'margin-right: 2px;';
+		this._sliderButton.style = 'margin-right: 2px;';
+		(toggle) ? this._sliderIcon.hide() : this._sliderButton.hide();
 
 		/* Actor signals for backward compatibility */
 		this._actorSignalIds = [];
@@ -594,8 +680,8 @@ class SliderItem extends AltPopupBase
 
 		this.setIconSize = (size) =>
 		{
-			if(this._toggle) this.button.child.icon_size = size;
-			else this.button.icon_size = size;
+			this._sliderButton.child.icon_size = size;
+			this._sliderIcon.icon_size = size;
 		}
 
 		this.getValue = () =>
@@ -613,8 +699,22 @@ class SliderItem extends AltPopupBase
 
 		this.setIcon = (iconName) =>
 		{
-			if(this._toggle) this.button.child.icon_name = iconName;
-			else this.button.icon_name = iconName;
+			this._sliderButton.child.icon_name = iconName;
+			this._sliderIcon.icon_name = iconName;
+		}
+
+		this.setToggle = (value) =>
+		{
+			if(value)
+			{
+				this._sliderIcon.hide();
+				this._sliderButton.show();
+			}
+			else
+			{
+				this._sliderButton.hide();
+				this._sliderIcon.show();
+			}
 		}
 	}
 }

@@ -2,15 +2,16 @@ imports.gi.versions.Gtk = '3.0';
 imports.gi.versions.Gdk = '3.0';
 
 const { Gio, Gtk, GLib, Gdk, Vte, Pango, GObject } = imports.gi;
-const ByteArray = imports.byteArray;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const { SettingLabel, addToGrid } = Local.imports.prefs_shared;
+const Soup = Local.imports.soup;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path);
 const shared = Local.imports.shared.module.exports;
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const _ = Gettext.gettext;
 
+const HOME_DIR = GLib.get_home_dir();
 const NODE_PATH = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 const NPM_PATH = GLib.find_program_in_path('npm');
 const FILE_MANAGERS = ['nautilus', 'nemo'];
@@ -46,7 +47,7 @@ class StreamingNotification extends Gtk.VBox
 {
 	constructor()
 	{
-		super({height_request: 420, spacing: 10, margin: 20});
+		super({height_request: 380, spacing: 10, margin: 10});
 		let label = null;
 
 		label = new Gtk.Label({
@@ -54,7 +55,7 @@ class StreamingNotification extends Gtk.VBox
 			use_markup: true,
 			vexpand: true,
 			valign: Gtk.Align.END,
-			margin_top: 20
+			margin_top: 10
 		});
 		this.pack_start(label, true, true, 0);
 
@@ -64,7 +65,7 @@ class StreamingNotification extends Gtk.VBox
 			use_markup: true,
 			vexpand: true,
 			valign: Gtk.Align.START,
-			margin_bottom: 30
+			margin_bottom: 0
 		});
 		this.pack_start(label, true, true, 0);
 
@@ -129,13 +130,21 @@ class MainSettings extends Gtk.VBox
 		Settings.bind('listening-port', this.portWidget, 'value', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(grid, label, this.portWidget);
 
+		/* Internal Port */
+		label = new SettingLabel(_("Internal communication port"));
+		this.intPortWidget = new Gtk.SpinButton({halign:Gtk.Align.END});
+		this.intPortWidget.set_sensitive(true);
+		this.intPortWidget.set_range(1, 65535);
+		this.intPortWidget.set_value(Settings.get_int('internal-port'));
+		this.intPortWidget.set_increments(1, 2);
+		Settings.bind('internal-port', this.intPortWidget, 'value', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(grid, label, this.intPortWidget);
+
 		/* Web player link */
 		this.linkButton = new Gtk.LinkButton({
 			expand: false,
 			halign:Gtk.Align.CENTER
 		});
-
-		this.hostIp = getHostIp();
 
 		this.updateLink = () =>
 		{
@@ -153,12 +162,6 @@ class MainSettings extends Gtk.VBox
 
 		this.infoLabel = new Gtk.Label();
 
-		if(this.hostIp)
-		{
-			this.infoLabel.label = _("Access web player from devices on local network");
-			this.updateLink();
-		}
-
 		box.pack_start(this.infoLabel, false, false, 0);
 		box.pack_start(this.linkButton, false, false, 0);
 		this.pack_end(box, false, false, 0);
@@ -167,9 +170,19 @@ class MainSettings extends Gtk.VBox
 
 		this.checkService = () =>
 		{
-			let serviceEnabled = Settings.get_boolean('service-enabled');
+			Soup.client.getIsServiceEnabled(data =>
+			{
+				if(data && data.isEnabled)
+					this.setDisplayInfo(true);
+				else
+					this.setDisplayInfo(false);
+			});
+		}
 
-			if(serviceEnabled && this.hostIp)
+		this.setDisplayInfo = (isEnabled) =>
+		{
+			/* No point in displaying without host IP */
+			if(isEnabled && this.hostIp)
 			{
 				this.infoLabel.show();
 				this.linkButton.show();
@@ -181,11 +194,20 @@ class MainSettings extends Gtk.VBox
 			}
 		}
 
-		this.serviceSignal = Settings.connect('changed::service-enabled', () => this.checkService());
+		getHostIpAsync(hostIp =>
+		{
+			this.hostIp = hostIp;
+
+			if(this.hostIp)
+			{
+				this.infoLabel.label = _("Access web player from devices on local network");
+				this.updateLink();
+				this.checkService();
+			}
+		});
 
 		this.destroy = () =>
 		{
-			Settings.disconnect(this.serviceSignal);
 			this.portWidget.disconnect(this.linkSignal);
 
 			super.destroy();
@@ -265,11 +287,31 @@ class RemoteSettings extends Gtk.Grid
 
 		/* Remote Label */
 		label = new SettingLabel(_("Show remote label"));
-		widget = new Gtk.Switch({halign:Gtk.Align.END});
-		widget.set_sensitive(true);
-		widget.set_active(Settings.get_boolean('remote-label'));
-		Settings.bind('remote-label', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-		addToGrid(this, label, widget);
+		this.remoteSwitch = new Gtk.Switch({halign:Gtk.Align.END});
+		this.remoteSwitch.set_sensitive(true);
+		this.remoteSwitch.set_active(Settings.get_boolean('remote-label'));
+		Settings.bind('remote-label', this.remoteSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, this.remoteSwitch);
+
+		/* Remote Label */
+		label = new SettingLabel(_("Receiver name as label"));
+		this.nameSwitch = new Gtk.Switch({halign:Gtk.Align.END});
+		this.nameSwitch.set_sensitive(true);
+		this.nameSwitch.set_active(Settings.get_boolean('remote-label-fn'));
+		Settings.bind('remote-label-fn', this.nameSwitch, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, this.nameSwitch);
+
+		this.remoteSwitchSignal = this.remoteSwitch.connect('notify::active', () =>
+		{
+			this.nameSwitch.set_sensitive(this.remoteSwitch.active);
+		});
+
+		this.destroy = () =>
+		{
+			this.remoteSwitch.disconnect(this.remoteSwitchSignal);
+
+			super.destroy();
+		}
 	}
 }
 
@@ -319,7 +361,7 @@ class ChromecastSettings extends Gtk.Grid
 		let onDevEdit = (widget) =>
 		{
 			let activeText = widget.get_active_text();
-			setDevices(widget, null, activeText);
+			setDevices(widget, false, activeText);
 		}
 
 		this.devChangeSignal = Settings.connect('changed::chromecast-devices', onDevEdit.bind(this, widget));
@@ -457,11 +499,45 @@ class ChromecastSettings extends Gtk.Grid
 	}
 }
 
-class OtherSettings extends Gtk.Grid
+class OtherSettings extends Gtk.Notebook
+{
+	constructor()
+	{
+		super();
+		let widget = null;
+		this.createdWidgets = [];
+
+		let otherWidgets = [
+			EncoderSettings,
+			ExtractorSettings,
+			MiscSettings
+		];
+
+		otherWidgets.forEach(OtherWidget =>
+		{
+			widget = new OtherWidget();
+			this.append_page(widget, widget.title);
+			this.createdWidgets.push(widget);
+		});
+
+		this.destroy = () =>
+		{
+			this.createdWidgets.forEach(createdWidget =>
+			{
+				createdWidget.destroy();
+			});
+
+			super.destroy();
+		}
+	}
+}
+
+class EncoderSettings extends Gtk.Grid
 {
 	constructor()
 	{
 		super({margin: 20, row_spacing: 6});
+		this.title = new Gtk.Label({ label: _("Encoder") });
 		let label = null;
 		let widget = null;
 
@@ -488,6 +564,114 @@ class OtherSettings extends Gtk.Grid
 		Settings.bind('video-bitrate', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
 
+		/* Burn Subtitles */
+		label = new SettingLabel(_("Burn subtitles when transcoding video"));
+		widget = new Gtk.Switch({halign:Gtk.Align.END});
+		widget.set_sensitive(true);
+		widget.set_active(Settings.get_boolean('burn-subtitles'));
+		Settings.bind('burn-subtitles', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, widget);
+	}
+}
+
+class ExtractorSettings extends Gtk.Grid
+{
+	constructor()
+	{
+		super({margin: 20, row_spacing: 6});
+		/* TRANSLATORS: "Players" as video players */
+		this.title = new Gtk.Label({ label: _("Extractor") });
+		let label = null;
+		let widget = null;
+
+		/* Label: Extractor Settings */
+		label = new SettingLabel(_("Subtitles Extraction"), true);
+		addToGrid(this, label);
+
+		/* Add vttextract */
+		/* TRANSLATORS: "vttextract" is the name of executable, do not change */
+		label = new SettingLabel(_("Add vttextract executable"));
+		this.installExtractor = new Gtk.Switch({halign:Gtk.Align.END});
+		this.installExtractor.set_sensitive(true);
+		this.installExtractor.set_active(
+			GLib.file_test(HOME_DIR + '/.local/bin/vttextract', GLib.FileTest.EXISTS)
+		);
+		addToGrid(this, label, this.installExtractor);
+
+		/* Reuse Extracted Subtitles */
+		label = new SettingLabel(_("Reuse extracted subtitles"));
+		this.extractorSave = new Gtk.Switch({halign:Gtk.Align.END});
+		this.extractorSave.set_sensitive(true);
+		this.extractorSave.set_active(Settings.get_boolean('extractor-reuse'));
+		Settings.bind('extractor-reuse', this.extractorSave, 'active', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, this.extractorSave);
+
+		/* Save Folder */
+		/* TRANSLATORS: Destination folder to save subtitles */
+		label = new SettingLabel(_("Save folder"));
+		this.extractorChooser = Gtk.FileChooserButton.new(
+			_("Select folder"), Gtk.FileChooserAction.SELECT_FOLDER
+		);
+		let startupDir = Settings.get_string('extractor-dir');
+		this.extractorChooser.set_filename(startupDir);
+		this.extractorChooser.set_sensitive(this.extractorSave.active);
+		addToGrid(this, label, this.extractorChooser);
+
+		this.chooserSignal = this.extractorChooser.connect('file-set', () =>
+		{
+			let filename = this.extractorChooser.get_filename();
+
+			if(filename && filename.length > 1)
+				Settings.set_string('extractor-dir', filename);
+		});
+
+		this.installExtractorSignal = this.installExtractor.connect('notify::active', () =>
+		{
+			enableCmdTool(this.installExtractor.active, 'vttextract');
+		});
+
+		this.enableExtractorSignal = this.extractorSave.connect('notify::active', () =>
+		{
+			this.extractorChooser.set_sensitive(this.extractorSave.active);
+		});
+
+		this.destroy = () =>
+		{
+			this.extractorChooser.disconnect(this.chooserSignal);
+			this.installExtractor.disconnect(this.installExtractorSignal);
+			this.extractorSave.disconnect(this.enableExtractorSignal);
+
+			super.destroy();
+		}
+	}
+}
+
+class MiscSettings extends Gtk.Grid
+{
+	constructor()
+	{
+		super({margin: 20, row_spacing: 6});
+		this.title = new Gtk.Label({ label: _("Misc") });
+		let label = null;
+		let widget = null;
+
+		/* Label: Playercast */
+		label = new SettingLabel(_("Playercast app"), true);
+		addToGrid(this, label);
+
+		/* Playercast device name */
+		label = new SettingLabel(_("Device selection"));
+		widget = new Gtk.ComboBoxText();
+		setDevices(widget, true);
+		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+		let currentPlayercast = Settings.get_string('playercast-name');
+		if(widget.active_id != currentPlayercast)
+		{
+			widget.append(currentPlayercast, currentPlayercast);
+			widget.active_id = currentPlayercast;
+		}
+		addToGrid(this, label, widget);
+
 		/* Label: Web Player */
 		label = new SettingLabel(_("Web Player"), true, true);
 		addToGrid(this, label);
@@ -500,23 +684,6 @@ class OtherSettings extends Gtk.Grid
 		widget.set_value(Settings.get_double('webplayer-subs'));
 		widget.set_increments(0.1, 0.2);
 		Settings.bind('webplayer-subs', widget, 'value', Gio.SettingsBindFlags.DEFAULT);
-		addToGrid(this, label, widget);
-
-		/* Label: Playercast */
-		label = new SettingLabel(_("Playercast app"), true, true);
-		addToGrid(this, label);
-
-		/* Playercast device name */
-		label = new SettingLabel(_("Device selection"));
-		widget = new Gtk.ComboBoxText();
-		setDevices(widget, shared.playercastsPath);
-		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		let currentPlayercast = Settings.get_string('playercast-name');
-		if(widget.active_id != currentPlayercast)
-		{
-			widget.append(currentPlayercast, currentPlayercast);
-			widget.active_id = currentPlayercast;
-		}
 		addToGrid(this, label, widget);
 
 		/* Label: Miscellaneous */
@@ -539,13 +706,12 @@ class OtherSettings extends Gtk.Grid
 
 		let isFmExtEnabled = () =>
 		{
-			let homeDir = GLib.get_home_dir();
-			if(!homeDir) return false;
+			if(!HOME_DIR) return false;
 
 			for(let fm of FILE_MANAGERS)
 			{
 				if(
-					GLib.file_test(homeDir + '/.local/share/' + fm +
+					GLib.file_test(HOME_DIR + '/.local/share/' + fm +
 						'-python/extensions/nautilus-cast-to-tv.py', GLib.FileTest.EXISTS)
 				) {
 					return true;
@@ -827,11 +993,57 @@ class CastToTvSettings extends Gtk.VBox
 		this.notification = new StreamingNotification();
 		this.pack_start(this.notification, true, true, 0);
 
-		this.streamingSignal = Settings.connect('changed::chromecast-playing', () =>
-		{
-			let chromecastPlaying = Settings.get_boolean('chromecast-playing');
+		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
 
-			if(chromecastPlaying)
+		this.timeout = null;
+		this.createWebsocketConn = () =>
+		{
+			Soup.client.connectWebsocket('prefs', (err) =>
+			{
+				if(err) return this.delayReconnect();
+
+				Soup.client.onWebsocketMsg((err, data) =>
+				{
+					if(err) return log('Cast to TV: '+ err.message);
+
+					if(data.hasOwnProperty('isPlaying'))
+						this._onPlayingChange(data);
+					else if(data.hasOwnProperty('isEnabled'))
+						this.notebook.mainWidget.setDisplayInfo(data.isEnabled);
+				});
+
+				Soup.client.wsConn.connect('closed', () => this.delayReconnect());
+			});
+		}
+
+		this.delayReconnect = () =>
+		{
+			if(this.timeout)
+				GLib.source_remove(this.timeout);
+
+			this.timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () =>
+			{
+				this.timeout = null;
+				let wsPort = Settings.get_int('internal-port');
+
+				if(wsPort != Soup.client.wsPort)
+					Soup.client.setWsPort(wsPort);
+
+				this.createWebsocketConn();
+
+				return GLib.SOURCE_REMOVE;
+			});
+		}
+
+		this.intPortSignal = Settings.connect('changed::internal-port', () => this.delayReconnect());
+
+		this.createWebsocketConn();
+
+		this._onPlayingChange = (data) =>
+		{
+			if(!data) return;
+
+			if(data.isPlaying)
 			{
 				this.notebook.hide();
 				this.notification.show();
@@ -841,12 +1053,11 @@ class CastToTvSettings extends Gtk.VBox
 				this.notification.hide();
 				this.notebook.show();
 			}
-		});
+		}
 
 		this.destroy = () =>
 		{
-			Settings.disconnect(this.streamingSignal);
-
+			Settings.disconnect(this.intPortSignal);
 			this.notebook.destroy();
 			this.notification.destroy();
 
@@ -1066,62 +1277,60 @@ function scanDevices(widget, buttons)
 	});
 }
 
-function setDevices(widget, filePath, activeText)
+function setDevices(widget, isPlayercasts, activeText)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
 	let devices = [];
 
-	if(filePath && typeof filePath === 'string')
-		devices = Helper.readFromFile(filePath);
+	if(isPlayercasts)
+	{
+		Soup.client.getPlayercasts(playercasts =>
+		{
+			if(playercasts)
+				devices = playercasts;
+
+			Helper.setDevicesWidget(widget, devices, activeText);
+		});
+	}
 	else
 	{
 		/* Restore empty devices list if someone messed it externally */
 		try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
 		catch(err) { Settings.set_string('chromecast-devices', "[]"); }
-	}
 
-	Helper.setDevicesWidget(widget, devices, activeText);
+		Helper.setDevicesWidget(widget, devices, activeText);
+	}
 }
 
-function getHostIp()
+function getHostIpAsync(cb)
 {
-	try {
-		let ip4;
+	let ip4 = '';
 
-		/* synchronous because must be obtained before widget is shown */
-		let [res, stdout] = GLib.spawn_sync(
-			nodeDir, [nodeBin, Local.path + '/node_scripts/utils/local-ip'],
-			null, 0, null);
+	let [res, pid, stdin, stdout, stderr] = GLib.spawn_async_with_pipes(
+		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/local-ip'],
+		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null
+	);
 
-		if(res && stdout)
-		{
-			if(stdout instanceof Uint8Array) ip4 = ByteArray.toString(stdout);
-			else ip4 = stdout.toString();
+	let stream = new Gio.DataInputStream({ base_stream: new Gio.UnixInputStream({ fd: stdout }) });
 
-			return ip4.replace(/\n/, '');
-		}
-		else
-		{
-			return null;
-		}
-	}
-	catch(err) {
-		return null;
-	}
+	Helper.readOutputAsync(stream, (out) => ip4 += out);
+
+	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
+	{
+		if(ip4) ip4 = ip4.replace(/\n/, '');
+
+		return cb(ip4);
+	});
 }
 
 function enableNautilusExtension(enabled)
 {
-	let userDataDir = GLib.get_user_data_dir();
 	let srcPath = Local.path + '/nautilus/nautilus-cast-to-tv.py';
+	if(!GLib.file_test(srcPath, GLib.FileTest.EXISTS)) return;
 
-	if(
-		(enabled && !GLib.file_test(srcPath, GLib.FileTest.EXISTS))
-		|| !userDataDir
-	) {
-		return;
-	}
+	let userDataDir = GLib.get_user_data_dir();
+	if(!userDataDir) return;
 
 	FILE_MANAGERS.forEach(fm =>
 	{
@@ -1131,13 +1340,35 @@ function enableNautilusExtension(enabled)
 		if(enabled && GLib.find_program_in_path(fm) && !destFile.query_exists(null))
 		{
 			GLib.mkdir_with_parents(installPath, 493); // 755 in octal
-			destFile.make_symbolic_link(Local.path + '/nautilus/nautilus-cast-to-tv.py', null);
+			destFile.make_symbolic_link(srcPath, null);
 		}
 		else if(!enabled && destFile.query_exists(null))
 		{
 			destFile.delete(null);
 		}
 	});
+}
+
+function enableCmdTool(enabled, toolName)
+{
+	if(!toolName) return;
+
+	let srcPath = Local.path + '/node_scripts/utils/' + toolName + '.js';
+	if(!HOME_DIR || !GLib.file_test(srcPath, GLib.FileTest.EXISTS)) return;
+
+	let installPath = HOME_DIR + '/.local/bin';
+	let destFile = Gio.File.new_for_path(installPath).get_child(toolName);
+
+	if(enabled && !destFile.query_exists(null))
+	{
+		GLib.mkdir_with_parents(installPath, 493); // 755 in octal
+		destFile.make_symbolic_link(srcPath, null);
+		GLib.spawn_command_line_async('chmod +x "' + srcPath + '"');
+	}
+	else if(!enabled && destFile.query_exists(null))
+	{
+		destFile.delete(null);
+	}
 }
 
 function hashToColor(colorHash)
@@ -1182,13 +1413,16 @@ function buildPrefsWidget()
 	nodeDir = NODE_PATH.substring(0, NODE_PATH.lastIndexOf('/'));
 	nodeBin = NODE_PATH.substring(NODE_PATH.lastIndexOf('/') + 1);
 
+	if(!Soup.client)
+	{
+		let listeningPort = Settings.get_int('listening-port');
+		let wsPort = Settings.get_int('internal-port');
+		Soup.createClient(listeningPort, wsPort);
+	}
+
 	widget = new CastToTvSettings();
 	widget.show_all();
-
-	widget.notebook.mainWidget.checkService();
-
-	if(Settings.get_boolean('chromecast-playing')) widget.notebook.hide();
-	else widget.notification.hide();
+	widget.notification.hide();
 
 	return widget;
 }
