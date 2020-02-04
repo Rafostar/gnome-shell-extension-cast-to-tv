@@ -94,7 +94,9 @@ module.exports =
 			extractorReuse: this.getBoolean('extractor-reuse'),
 			extractorDir: this.getSetting('extractor-dir'),
 			chromecastName: this.getSetting('chromecast-name'),
-			playercastName: this.getSetting('playercast-name')
+			playercastName: this.getSetting('playercast-name'),
+			chromecastDevices: this.getJSON('chromecast-devices'),
+			chromecastSubtitles: this.getJSON('chromecast-subtitles')
 		};
 
 		/* Use default paths if custom paths are not defined */

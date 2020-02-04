@@ -195,6 +195,14 @@ function updateTempConfig(schemaKey, valueType)
 
 			Soup.client.postConfig(postData);
 			break;
+		case 'chromecastDevices':
+		case 'chromecastSubtitles':
+			try { postData[confKey] = JSON.parse(postData[confKey]); }
+			catch(err) { postData[confKey] = null; }
+
+			if(postData[confKey])
+				Soup.client.postConfig(postData);
+			break;
 		case 'musicVisualizer':
 			config[confKey] = postData[confKey];
 			Soup.client.postConfig(postData);
@@ -411,8 +419,8 @@ function enable()
 	let nodeSignals = {
 		string: [
 			'ffmpeg-path', 'ffprobe-path', 'receiver-type',
-			'video-acceleration', 'extractor-dir', 'chromecast-name',
-			'playercast-name'
+			'video-acceleration', 'extractor-dir', 'playercast-name',
+			'chromecast-name', 'chromecast-devices', 'chromecast-subtitles'
 		],
 		int: [
 			'listening-port', 'internal-port', 'slideshow-time'

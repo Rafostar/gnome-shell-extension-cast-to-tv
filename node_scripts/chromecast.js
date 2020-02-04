@@ -201,12 +201,6 @@ function initChromecast()
 			break;
 	}
 
-	var getTextTrackStyle = () =>
-	{
-		const subsConf = gnome.getJSON('chromecast-subtitles');
-		return { ...shared.chromecast.subsStyle, ...subsConf };
-	}
-
 	var getTitle = () =>
 	{
 		if(mimeType === 'audio/*' && bridge.mediaData.title) return bridge.mediaData.title;
@@ -219,7 +213,10 @@ function initChromecast()
 		case 'video/*':
 			trackIds = [1];
 			mediaTracks = {
-				textTrackStyle: getTextTrackStyle(),
+				textTrackStyle: {
+					...shared.chromecast.subsStyle,
+					...bridge.config.chromecastSubtitles
+				},
 				tracks: shared.chromecast.tracks,
 				metadata: {
 					metadataType: 1,
@@ -280,25 +277,19 @@ function initChromecast()
 
 	var getChromecastIp = () =>
 	{
-		if(bridge.config.chromecastName)
-		{
-			const devices = gnome.getJSON('chromecast-devices');
+		if(!bridge.config.chromecastName)
+			return null;
 
-			if(Array.isArray(devices))
-			{
-				for(var i = 0; i < devices.length; i++)
-				{
-					if(
-						devices[i].ip
-						&& devices[i].name === bridge.config.chromecastName
-					) {
-						return devices[i].ip;
-					}
-				}
-			}
-		}
+		var devices = bridge.config.chromecastDevices;
 
-		return null;
+		if(!Array.isArray(devices))
+			return null;
+
+		var foundDevice = devices.find(dev =>
+			(dev.ip && dev.name === bridge.config.chromecastName)
+		);
+
+		return (foundDevice) ? foundDevice.ip : null;
 	}
 
 	var media = {
@@ -404,18 +395,17 @@ function startPlayback(mimeType)
 
 			chromecast.play(err =>
 			{
-				if(!err)
-				{
-					debug('Playback started');
-					startCastInterval();
-					/* Refresh is handled in bridge.js */
-					if(!gnome.isRemote) bridge.setGnomeRemote(true);
-				}
-				else
+				if(err)
 				{
 					debug('Could not play!');
+					debug(err);
 					return closeCast();
 				}
+
+				debug('Playback started');
+				startCastInterval();
+				/* Refresh is handled in bridge.js */
+				if(!gnome.isRemote) bridge.setGnomeRemote(true);
 			});
 		}
 
