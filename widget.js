@@ -155,8 +155,6 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.box.add(this.toplabel);
 		this.box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
-		(this.opts.isLabel) ? this.toplabel.show() : this.toplabel.hide();
-
 		if(this.hasOwnProperty('actor'))
 			this.actor.add_child(this.box);
 		else
@@ -540,6 +538,11 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		this.setMediaButtonsSize(this.opts.mediaButtonsSize);
 		this.setSlidersIconSize(this.opts.sliderIconSize);
 		this.setUnifiedSlider(this.opts.isUnifiedSlider);
+
+		if(this.opts.isLabel)
+			this.refreshLabel();
+		else
+			this.toplabel.hide();
 
 		/* Hide remote by default */
 		(this.isActor) ? this.actor.hide() : this.hide();

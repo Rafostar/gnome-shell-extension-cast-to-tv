@@ -1010,6 +1010,8 @@ class CastToTvSettings extends Gtk.VBox
 					else if(data.hasOwnProperty('isEnabled'))
 						this.notebook.mainWidget.setDisplayInfo(data.isEnabled);
 				});
+
+				Soup.client.wsConn.connect('closed', () => this.delayReconnect());
 			});
 		}
 

@@ -8,13 +8,11 @@ const Main = imports.ui.main;
 const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 const Indicator = AggregateMenu._network.indicators;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
-const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const Soup = Local.imports.soup;
 const Widget = Local.imports.widget;
 const Helper = Local.imports.helper;
 const Settings = Helper.getSettings(Local.path);
 const Temp = Local.imports.temp;
-const _ = Gettext.gettext;
 
 let castMenu;
 let remoteMenu;
@@ -44,8 +42,6 @@ function refreshRemote(playbackData)
 		|| !playbackData.playlist
 	)
 		return;
-
-	remoteMenu.refreshLabel();
 
 	let selection = playbackData.selection;
 	let playlist = playbackData.playlist;
@@ -140,8 +136,6 @@ function setRemotePosition()
 
 	/* Place remote on top bar */
 	Main.panel.addToStatusArea('cast-to-tv-remote', remoteMenu, itemIndex, remotePosition);
-
-	Soup.client.getPlaybackData(data => refreshRemote(data));
 }
 
 function updateTempConfig(schemaKey, valueType)
@@ -190,11 +184,15 @@ function updateTempConfig(schemaKey, valueType)
 			});
 			break;
 		case 'chromecastName':
-			updateChromecastName(postData[confKey]);
+			if(remoteMenu.opts.useFriendlyName)
+				updateChromecastName(postData[confKey]);
+
 			Soup.client.postConfig(postData);
 			break;
 		case 'playercastName':
-			updatePlayercastName(postData[confKey]);
+			if(remoteMenu.opts.useFriendlyName)
+				updatePlayercastName(postData[confKey]);
+
 			Soup.client.postConfig(postData);
 			break;
 		case 'musicVisualizer':
@@ -209,7 +207,7 @@ function updateTempConfig(schemaKey, valueType)
 			else if(confKey === 'ffprobePath' && !postData[confKey])
 				postData[confKey] = '/usr/bin/ffprobe';
 			else if(confKey === 'receiverType')
-				setReceiverName(postData[confKey]);
+				updateReceiverName(postData[confKey]);
 
 			Soup.client.postConfig(postData);
 			break;
@@ -224,7 +222,7 @@ function updateChromecastName(name)
 		Widget.remoteNames.chromecast.name
 		&& Widget.remoteNames.chromecast.name === name
 	)
-		return;
+		return remoteMenu.refreshLabel();
 
 	let castDevices = null;
 
@@ -236,40 +234,40 @@ function updateChromecastName(name)
 	let myDevice = castDevices.find(device => device.name === name);
 
 	if(myDevice)
+	{
 		Widget.remoteNames.chromecast = myDevice;
+		remoteMenu.refreshLabel();
+	}
 }
 
 function updatePlayercastName(name)
 {
 	name = name || Settings.get_string('playercast-name');
 
-	if(Widget.remoteNames.playercast === name)
-		return;
-
-	Widget.remoteNames.playercast = name;
+	Widget.remoteNames.playercast = (name) ? name : null;
+	remoteMenu.refreshLabel();
 }
 
 function onBrowserData(browser)
 {
 	if(browser && browser.name)
-	{
 		Widget.remoteNames.browser = browser.name;
-
-		if(remoteMenu)
-			remoteMenu.refreshLabel();
-	}
 	else
-	{
 		Widget.remoteNames.browser = null;
 
-		if(remoteMenu)
-			remoteMenu.refreshLabel();
-	}
+	if(remoteMenu)
+		remoteMenu.refreshLabel();
 }
 
-function setReceiverName(receiverType)
+function updateReceiverName(receiverType)
 {
-	remoteMenu.opts.receiverType = receiverType;
+	if(receiverType)
+		remoteMenu.opts.receiverType = receiverType;
+	else
+		receiverType = remoteMenu.opts.receiverType;
+
+	if(!remoteMenu.opts.useFriendlyName)
+		return remoteMenu.refreshLabel();
 
 	switch(receiverType)
 	{
@@ -320,7 +318,7 @@ function changeLabelVisibility()
 function changeUseFriendlyName()
 {
 	remoteMenu.opts.useFriendlyName = Settings.get_boolean('remote-label-fn');
-	remoteMenu.refreshLabel();
+	updateReceiverName();
 }
 
 function createRemote()
@@ -333,6 +331,12 @@ function createRemote()
 
 	/* Add remote to top bar */
 	setRemotePosition();
+
+	/* Refresh label only once after create */
+	updateReceiverName();
+
+	/* Refresh initial status */
+	Soup.client.getPlaybackData(data => refreshRemote(data));
 }
 
 function changeServiceEnabled()
