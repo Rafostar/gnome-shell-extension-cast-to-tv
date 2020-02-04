@@ -607,6 +607,7 @@ class ExtractorSettings extends Gtk.Grid
 		addToGrid(this, label, this.extractorSave);
 
 		/* Save Folder */
+		/* TRANSLATORS: Destination folder to save subtitles */
 		label = new SettingLabel(_("Save folder"));
 		this.extractorChooser = Gtk.FileChooserButton.new(
 			_("Select folder"), Gtk.FileChooserAction.SELECT_FOLDER
