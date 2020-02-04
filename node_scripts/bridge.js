@@ -299,11 +299,13 @@ function notifyFromError(err)
 	debug(err);
 
 	if(err.message.includes('FFprobe process error'))
-		notify('Cast to TV', messages.ffprobeError, bridge.selection.filePath);
+		notify('Cast to TV', messages.ffprobeError, exports.selection.filePath);
 	else if(err.message.includes('FFprobe exec error'))
 		notify('Cast to TV', messages.ffprobePath);
+	else if(err.message === 'No playercasts connected')
+		notify('Playercast', messages.chromecast.notFound);
 	else
-		notify('Cast to TV', messages.extractError, bridge.selection.filePath);
+		notify('Cast to TV', messages.extractError, exports.selection.filePath);
 }
 
 function processSelection(cb)
