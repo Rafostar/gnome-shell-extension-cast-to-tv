@@ -74,7 +74,10 @@ class SoupServer extends Soup.Server
 
 				for(let conn in this.wsConns)
 				{
-					if(!this.wsConns[conn])
+					if(
+						!this.wsConns[conn]
+						|| this.wsConns[conn].get_state() !== Soup.WebsocketState.OPEN
+					)
 						continue;
 
 					this.wsConns[conn].send_text(JSON.stringify({
@@ -132,7 +135,11 @@ class SoupServer extends Soup.Server
 					return cb(null, msg);
 				});
 
-				this.wsConns.node.connect('closed', () => cb(null, 'disconnected'));
+				this.wsConns.node.connect('closed', () =>
+				{
+					this.wsConns.node = null;
+					cb(null, 'disconnected');
+				});
 			});
 		}
 
@@ -140,7 +147,10 @@ class SoupServer extends Soup.Server
 		{
 			for(let conn in this.wsConns)
 			{
-				if(!this.wsConns[conn])
+				if(
+					!this.wsConns[conn]
+					|| this.wsConns[conn].get_state() !== Soup.WebsocketState.OPEN
+				)
 					continue;
 
 				this.wsConns[conn].close(Soup.WebsocketCloseCode.NORMAL, null);
@@ -151,7 +161,10 @@ class SoupServer extends Soup.Server
 		{
 			for(let conn in this.wsConns)
 			{
-				if(!this.wsConns[conn])
+				if(
+					!this.wsConns[conn]
+					|| this.wsConns[conn].get_state() !== Soup.WebsocketState.OPEN
+				)
 					continue;
 
 				var msg = (isEnabled) ? 'enabled' : 'disabled';
@@ -357,7 +370,10 @@ class SoupClient extends Soup.Session
 		{
 			cb = cb || noop;
 
-			if(!this.wsConn)
+			if(
+				!this.wsConn
+				|| this.wsConn.get_state() !== Soup.WebsocketState.OPEN
+			)
 				return cb(null);
 
 			this.wsConn.connect('closed', () =>
