@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 15:48\n"
+"PO-Revision-Date: 2020-02-04 18:56\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -76,7 +76,7 @@ msgstr "Transcodifica"
 
 #: file-chooser.js:81
 msgid "Audio"
-msgstr ""
+msgstr "Audio"
 
 #: file-chooser.js:82
 msgid "Video + Audio"
@@ -173,7 +173,7 @@ msgstr "Porta di ascolto"
 
 #: prefs.js:134
 msgid "Internal communication port"
-msgstr ""
+msgstr "Porta di comunicazione interna"
 
 #: prefs.js:203
 msgid "Access web player from devices on local network"
