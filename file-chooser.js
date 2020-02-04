@@ -402,9 +402,9 @@ class fileChooser
 
 	_connectWs()
 	{
-		Soup.client.connectWebsocket('filechooser', err =>
+		Soup.client.connectWebsocket('filechooser', (err) =>
 		{
-			if(err) return log('Cast to TV: ' + err.message);
+			if(err) return this._delayReconnectWs();
 
 			Soup.client.onWebsocketMsg((err, data) =>
 			{
@@ -438,14 +438,9 @@ class fileChooser
 			let wsPort = Settings.get_int('internal-port');
 
 			if(wsPort != Soup.client.wsPort)
-			{
 				Soup.client.setWsPort(wsPort);
-				this._connectWs();
-			}
-			else if(this.fileChooser)
-			{
-				this.fileChooser.destroy();
-			}
+
+			this._connectWs();
 
 			return GLib.SOURCE_REMOVE;
 		});

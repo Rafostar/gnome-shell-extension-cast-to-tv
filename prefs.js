@@ -997,9 +997,9 @@ class CastToTvSettings extends Gtk.VBox
 		this.timeout = null;
 		this.createWebsocketConn = () =>
 		{
-			Soup.client.connectWebsocket('prefs', err =>
+			Soup.client.connectWebsocket('prefs', (err) =>
 			{
-				if(err) return log('Cast to TV: '+ err.message);
+				if(err) return this.delayReconnect();
 
 				Soup.client.onWebsocketMsg((err, data) =>
 				{
@@ -1020,22 +1020,21 @@ class CastToTvSettings extends Gtk.VBox
 			if(this.timeout)
 				GLib.source_remove(this.timeout);
 
-			this.timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 520, () =>
+			this.timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () =>
 			{
 				this.timeout = null;
 				let wsPort = Settings.get_int('internal-port');
 
 				if(wsPort != Soup.client.wsPort)
-				{
 					Soup.client.setWsPort(wsPort);
-					this.createWebsocketConn();
-				}
+
+				this.createWebsocketConn();
 
 				return GLib.SOURCE_REMOVE;
 			});
 		}
 
-		Settings.connect('changed::internal-port', () => this.delayReconnect());
+		this.intPortSignal = Settings.connect('changed::internal-port', () => this.delayReconnect());
 
 		this.createWebsocketConn();
 
@@ -1057,6 +1056,7 @@ class CastToTvSettings extends Gtk.VBox
 
 		this.destroy = () =>
 		{
+			Settings.disconnect(this.intPortSignal);
 			this.notebook.destroy();
 			this.notification.destroy();
 
