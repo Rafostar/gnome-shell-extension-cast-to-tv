@@ -278,7 +278,7 @@ function castFile()
 			break;
 		case 'playercast':
 			socket.emit('playercast', {
-				name: playercastName,
+				name: exports.config.playercastName || socket.playercasts[0],
 				mediaData: exports.mediaData,
 				...exports.selection
 			});
@@ -565,9 +565,6 @@ function processPlayercastSelection(cb)
 
 	if(socket.playercasts.length === 0)
 		return cb(new Error('No playercasts connected'));
-
-	var playercastName = (exports.config.playercastName) ?
-		exports.config.playercastName : socket.playercasts[0];
 
 	if(
 		exports.selection.streamType !== 'MUSIC'

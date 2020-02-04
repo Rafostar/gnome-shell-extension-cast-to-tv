@@ -44,6 +44,21 @@ function getAudioOptsArray()
 	return (bridge.selection.transcodeAudio) ? ['flac', '-ac', '2'] : ['copy'];
 }
 
+function getPlayerOptsArray()
+{
+	if(bridge.config.receiverType !== 'playercast')
+	{
+		return [
+			'-frag_duration', '1000000',
+			'-movflags', '+empty_moov',
+			'-strict', '-2',
+			'-f', 'mp4',
+		];
+	}
+
+	return ['-f', 'matroska'];
+}
+
 function createEncodeProcess(encodeOpts)
 {
 	debug(`Starting FFmpeg with opts: ${JSON.stringify(encodeOpts)}`);
@@ -108,10 +123,7 @@ exports.video = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
-	'-frag_duration', '1000000',
-	'-movflags', '+empty_moov',
-	'-strict', '-2',
-	'-f', 'mp4',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
@@ -137,10 +149,7 @@ exports.videoVaapi = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
-	'-frag_duration', '1000000',
-	'-movflags', '+empty_moov',
-	'-strict', '-2',
-	'-f', 'mp4',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
@@ -177,10 +186,7 @@ exports.videoNvenc = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
-	'-frag_duration', '1000000',
-	'-movflags', '+empty_moov',
-	'-strict', '-2',
-	'-f', 'mp4',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
@@ -204,10 +210,7 @@ exports.audio = function()
 	'-c:v', 'copy',
 	'-c:a', ...getAudioOptsArray(),
 	'-metadata', 'title=Cast to TV - Audio Encoded Stream',
-	'-frag_duration', '1000000',
-	'-movflags', '+empty_moov',
-	'-strict', '-2',
-	'-f', 'mp4',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 
@@ -248,10 +251,7 @@ exports.musicVisualizer = function()
 	'-b:v', bridge.config.videoBitrate + 'M',
 	'-c:a', 'copy',
 	'-metadata', 'title=Cast to TV - Music Visualizer',
-	'-frag_duration', '1000000',
-	'-movflags', '+empty_moov',
-	'-strict', '-2',
-	'-f', 'mp4',
+	...getPlayerOptsArray(),
 	'pipe:1'
 	];
 

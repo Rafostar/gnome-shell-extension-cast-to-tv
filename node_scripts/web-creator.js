@@ -184,6 +184,9 @@ exports.getTemp = function(type, req, res)
 		case 'is-enabled':
 			res.send({ isEnabled: true });
 			break;
+		case 'media-data':
+			res.send(bridge.mediaData);
+			break;
 		default:
 			res.sendStatus(404);
 			break;
