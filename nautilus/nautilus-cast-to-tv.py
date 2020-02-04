@@ -98,11 +98,15 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         self.soup_client.websocket_connect_async(msg, None, None, None, self.websocket_cb)
 
     def websocket_cb(self, session, res):
-        self.ws_conn = self.soup_client.websocket_connect_finish(res)
-        self.ws_connecting = False
-        if self.ws_conn:
-            self.ws_conn.connect('message', self.websocket_msg_cb)
-            self.ws_conn.connect('closed', self.websocket_closed_cb)
+        try:
+            self.ws_conn = self.soup_client.websocket_connect_finish(res)
+        except:
+            pass
+        finally:
+            self.ws_connecting = False
+            if self.ws_conn:
+                self.ws_conn.connect('message', self.websocket_msg_cb)
+                self.ws_conn.connect('closed', self.websocket_closed_cb)
 
     def websocket_msg_cb(self, socket, data_type, bytes):
         ws_text = bytes.get_data()
