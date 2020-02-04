@@ -432,8 +432,16 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 			}
 		}
 
-		this.setMode = (value, icon) =>
+		this.setMode = (value, icon, force) =>
 		{
+			if(
+				!force
+				&& this.opts.mode === value
+				&& (!icon || this.positionSlider.defaultIcon === icon)
+			) {
+				return;
+			}
+
 			this.opts.mode = value;
 			let shownItems = [];
 
@@ -534,7 +542,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 		/* Should be here until ported to GObject */
 		connectSliderSignals('positionSlider');
 		connectSliderSignals('volumeSlider');
-		this.setMode(this.opts.mode);
+		this.setMode(this.opts.mode, null, true);
 		this.setMediaButtonsSize(this.opts.mediaButtonsSize);
 		this.setSlidersIconSize(this.opts.sliderIconSize);
 		this.setUnifiedSlider(this.opts.isUnifiedSlider);
