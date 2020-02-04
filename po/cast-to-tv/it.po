@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 18:56\n"
+"PO-Revision-Date: 2020-02-04 19:55\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -50,7 +50,7 @@ msgstr "Condividi media"
 
 #: widget.js:341
 msgid "Browser"
-msgstr ""
+msgstr "Browser"
 
 #: playlist.js:344
 msgid "Playlist"
@@ -209,7 +209,7 @@ msgstr "Cerca indietro/avanti (secondi)"
 
 #: prefs.js:251
 msgid "Slideshow time per picture (seconds)"
-msgstr ""
+msgstr "Durata slideshow per immagine (secondi)"
 
 #: prefs.js:261
 msgid "Media control buttons size"
@@ -229,7 +229,7 @@ msgstr "Mostra etichetta remota"
 
 #: prefs.js:297
 msgid "Receiver name as label"
-msgstr ""
+msgstr "Nome destinatario come etichetta"
 
 #: prefs.js:347
 msgid "Chromecast Options"
@@ -286,7 +286,7 @@ msgstr "Colore di sfondo"
 
 #: prefs.js:540
 msgid "Encoder"
-msgstr ""
+msgstr "Codifica"
 
 #: prefs.js:545
 msgid "Media Encoding"
@@ -306,34 +306,34 @@ msgstr "Bitrate (Mbps)"
 
 #: prefs.js:568
 msgid "Burn subtitles when transcoding video"
-msgstr ""
+msgstr "Riserva i sottotitoli durante la transcodifica video"
 
 #. TRANSLATORS: "Players" as video players
 #: prefs.js:583
 msgid "Extractor"
-msgstr ""
+msgstr "Estrattore"
 
 #: prefs.js:588
 msgid "Subtitles Extraction"
-msgstr ""
+msgstr "Estrazione sottotitoli"
 
 #. TRANSLATORS: "vttextract" is the name of executable, do not change
 #: prefs.js:593
 msgid "Add vttextract executable"
-msgstr ""
+msgstr "Aggiungi eseguibile vttextract"
 
 #: prefs.js:602
 msgid "Reuse extracted subtitles"
-msgstr ""
+msgstr "Riutilizza i sottotitoli estratti"
 
 #. TRANSLATORS: Destination folder to save subtitles
 #: prefs.js:611
 msgid "Save folder"
-msgstr ""
+msgstr "Salva cartella"
 
 #: prefs.js:613
 msgid "Select folder"
-msgstr ""
+msgstr "Seleziona cartella"
 
 #: prefs.js:654
 msgid "Misc"
@@ -481,7 +481,7 @@ msgstr "Il percorso per FFprobe non è corretto"
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:18
 msgid "Could not analyze selected file:"
-msgstr ""
+msgstr "Impossibile analizzare il file selezionato:"
 
 #: node_scripts/messages.js:20
 msgid "Speed"
