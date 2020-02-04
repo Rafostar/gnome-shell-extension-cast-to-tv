@@ -56,7 +56,10 @@ exports.setGnomeStatus = function(status)
 exports.setGnomeRemote = function(isShow, cb)
 {
 	if(!isShow)
+	{
+		exports.status = {};
 		return gnome.showRemote(false, null, cb);
+	}
 
 	gnome.showRemote(true, exports.getPlaybackData(), cb);
 }

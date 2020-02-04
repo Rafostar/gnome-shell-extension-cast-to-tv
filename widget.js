@@ -367,7 +367,7 @@ var remoteMenu = class CastRemoteMenu extends PanelMenu.Button
 
 			if(this.opts.mode === 'PICTURE') return;
 
-			if(status.mediaDuration > 0)
+			if(status.mediaDuration > 0 && status.currentTime <= status.mediaDuration)
 				this.currentProgress = status.currentTime / status.mediaDuration;
 
 			this.currentVolume = status.volume;
