@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 15:48\n"
+"PO-Revision-Date: 2020-02-04 16:49\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -50,7 +50,7 @@ msgstr "Medien wiedergeben"
 
 #: widget.js:341
 msgid "Browser"
-msgstr ""
+msgstr "Browser"
 
 #: playlist.js:344
 msgid "Playlist"
@@ -76,7 +76,7 @@ msgstr "Umwandeln"
 
 #: file-chooser.js:81
 msgid "Audio"
-msgstr ""
+msgstr "Audio"
 
 #: file-chooser.js:82
 msgid "Video + Audio"
@@ -173,7 +173,7 @@ msgstr "Zu überwachender Port"
 
 #: prefs.js:134
 msgid "Internal communication port"
-msgstr ""
+msgstr "Interner Kommunikations-Port"
 
 #: prefs.js:203
 msgid "Access web player from devices on local network"
@@ -209,7 +209,7 @@ msgstr "Rückwärts/Vorwärts suchen (Sekunden)"
 
 #: prefs.js:251
 msgid "Slideshow time per picture (seconds)"
-msgstr ""
+msgstr "Slideshow Zeit pro Bild (Sekunden)"
 
 #: prefs.js:261
 msgid "Media control buttons size"
@@ -286,7 +286,7 @@ msgstr "Hintergrundfarbe"
 
 #: prefs.js:540
 msgid "Encoder"
-msgstr ""
+msgstr "Encoder"
 
 #: prefs.js:545
 msgid "Media Encoding"
@@ -311,11 +311,11 @@ msgstr ""
 #. TRANSLATORS: "Players" as video players
 #: prefs.js:583
 msgid "Extractor"
-msgstr ""
+msgstr "Extraktor"
 
 #: prefs.js:588
 msgid "Subtitles Extraction"
-msgstr ""
+msgstr "Untertitel-Extraktion"
 
 #. TRANSLATORS: "vttextract" is the name of executable, do not change
 #: prefs.js:593
@@ -324,20 +324,20 @@ msgstr ""
 
 #: prefs.js:602
 msgid "Reuse extracted subtitles"
-msgstr ""
+msgstr "Extrahierte Untertitel wiederverwenden"
 
 #. TRANSLATORS: Destination folder to save subtitles
 #: prefs.js:611
 msgid "Save folder"
-msgstr ""
+msgstr "Ordner speichern"
 
 #: prefs.js:613
 msgid "Select folder"
-msgstr ""
+msgstr "Ordner auswählen"
 
 #: prefs.js:654
 msgid "Misc"
-msgstr ""
+msgstr "Sonstiges"
 
 #: prefs.js:676
 msgid "Web Player"
@@ -481,7 +481,7 @@ msgstr "FFmpeg Pfad ist ungültig"
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:18
 msgid "Could not analyze selected file:"
-msgstr ""
+msgstr "Ausgewählte Datei konnte nicht analysiert werden:"
 
 #: node_scripts/messages.js:20
 msgid "Speed"
