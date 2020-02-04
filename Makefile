@@ -32,12 +32,12 @@ mergepo:
 compilemo:
 	for i in $(MSGSRC); do \
 		mkdir -p ./locale/`basename $$i .po`/LC_MESSAGES; \
-		msgfmt -c -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
+		msgfmt -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
 	done;
 	for i in $(POFOLDERS); do \
 		for j in $$i/*.po; do \
 			mkdir -p ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES; \
-			msgfmt -c -o ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES/`basename $$i`.mo $$j; \
+			msgfmt -o ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES/`basename $$i`.mo $$j; \
 		done; \
 	done;
 
