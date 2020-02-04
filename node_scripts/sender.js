@@ -45,12 +45,12 @@ module.exports =
 
 		var req = http.request(this.opts, () => {});
 		req.on('error', debug);
-
-		req.end(dataString, () =>
+		req.once('response', () =>
 		{
-			req.removeListener('error', debug);
-			cb(null);
+			debug('Received response');
+			req.removeListener('error', debug)
 		});
+		req.end(dataString, cb);
 
 		debug(`Send data: ${dataString}`);
 	},
