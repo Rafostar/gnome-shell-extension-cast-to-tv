@@ -270,10 +270,11 @@ function onSelectionUpdate()
 	{
 		processSelection(err =>
 		{
-			if(err) return notifyFromError(err);
-
 			extract.video.subsProcess = false;
 			extract.music.coverProcess = false;
+
+			if(err) return notifyFromError(err);
+
 			debug('File processed successfully');
 
 			return castFile();
