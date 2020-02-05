@@ -789,31 +789,12 @@ class ModulesSettings extends Gtk.VBox
 	{
 		super({margin: 10});
 
-		let TermWidget = new Vte.Terminal({
-			height_request: 320,
-			scroll_on_output: true,
-			margin_bottom: 10
-		});
-
-		let background = new Gdk.RGBA({red: 0.96, green: 0.96, blue: 0.96, alpha: 1});
-		let foreground = new Gdk.RGBA({red: 0, green: 0, blue: 0, alpha: 1});
-
-		TermWidget.set_color_background(background);
-		TermWidget.set_color_foreground(foreground);
-		TermWidget.set_color_cursor(background);
-		TermWidget.set_cursor_shape(Vte.CursorShape.IBEAM);
-		TermWidget.set_cursor_blink_mode(Vte.CursorBlinkMode.OFF);
-		TermWidget.set_sensitive(false);
-
-		this.pack_start(TermWidget, true, true, 0);
 		let installLabel = _("Install npm modules");
-
 		this.installButton = new Gtk.Button({
 			label: _(installLabel),
 			expand: false,
 			halign: Gtk.Align.CENTER
 		});
-		this.pack_start(this.installButton, false, false, 0);
 
 		let installCallback = () =>
 		{
@@ -824,34 +805,70 @@ class ModulesSettings extends Gtk.VBox
 			this.installButton.set_sensitive(true);
 		}
 
+		let ptyCallback = (pty, spawnRes) =>
+		{
+			let [res, pid] = pty.spawn_finish(spawnRes);
+			this.termWidget.watch_child(pid);
+		}
+
 		let installModules = () =>
 		{
-			TermWidget.reset(true, true);
+			if(!this.termWidget)
+				return;
+
+			this.termWidget.reset(true, true);
 			/* Stops both server and monitor service */
 			GLib.spawn_command_line_sync('pkill -SIGINT -f ' + Local.path);
 			this.installButton.set_sensitive(false);
 			this.installButton.label = _("Installing...");
 
-			try {
-				TermWidget.spawn_async(
-					Vte.PtyFlags.DEFAULT, Local.path, [NPM_PATH, 'install'],
-					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null, (res, pid) =>
-						GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback()));
-			}
-			catch(err) {
-				let [res, pid] = TermWidget.spawn_sync(
-					Vte.PtyFlags.DEFAULT, Local.path, [NPM_PATH, 'install'],
-					null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, null);
+			let pty = Vte.Pty.new_sync(Vte.PtyFlags.DEFAULT, null);
+			this.termWidget.set_pty(pty);
 
-				GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () => installCallback());
-			}
+			pty.spawn_async(
+				Local.path, [NPM_PATH, 'install'], null,
+				GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null,
+				(self, res) => ptyCallback(self, res)
+			);
 		}
+
+		/*
+			Creating new Vte.Terminal on prefs init causes weird misbehaviour
+			of prefs window. Adding it after small delay makes it work.
+		*/
+		GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () =>
+		{
+			this.termWidget = new Vte.Terminal({
+				height_request: 320,
+				scroll_on_output: true,
+				margin_bottom: 10
+			});
+
+			let background = new Gdk.RGBA({red: 0.96, green: 0.96, blue: 0.96, alpha: 1});
+			let foreground = new Gdk.RGBA({red: 0, green: 0, blue: 0, alpha: 1});
+
+			this.termWidget.set_color_background(background);
+			this.termWidget.set_color_foreground(foreground);
+			this.termWidget.set_color_cursor(background);
+			this.termWidget.set_cursor_shape(Vte.CursorShape.IBEAM);
+			this.termWidget.set_cursor_blink_mode(Vte.CursorBlinkMode.OFF);
+			this.termWidget.set_sensitive(false);
+
+			this.installFinishSignal = this.termWidget.connect('child-exited', installCallback.bind(this));
+
+			this.pack_start(this.termWidget, true, true, 0);
+			this.pack_start(this.installButton, false, false, 0);
+			this.show_all();
+		});
 
 		this.installSignal = this.installButton.connect('clicked', installModules.bind(this));
 
 		this.destroy = () =>
 		{
 			this.installButton.disconnect(this.installSignal);
+
+			if(this.termWidget && this.installFinishSignal)
+				this.termWidget.disconnect(this.installFinishSignal);
 
 			super.destroy();
 		}
