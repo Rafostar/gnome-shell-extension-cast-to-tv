@@ -155,38 +155,39 @@ exports.updateConfig = function(contents)
 
 exports.updatePlaylist = function(playlist, append)
 {
-	if(Array.isArray(playlist))
+	if(!Array.isArray(playlist))
+		return debug('Received playlist is not an array');
+
+	if(append)
 	{
-		if(append && Array.isArray(exports.playlist))
+		debug(`New playlist append: ${JSON.stringify(playlist)}`);
+
+		playlist.forEach(item =>
 		{
-			debug(`New playlist append: ${JSON.stringify(playlist)}`);
-
-			playlist.forEach(item =>
-			{
-				if(!exports.playlist.includes(item))
-					exports.playlist.push(item);
-			});
-		}
-		else
-		{
-			/* Ignore new playlist if it is not different */
-			if(
-				exports.playlist.length === playlist.length
-				&& JSON.stringify(exports.playlist) === JSON.stringify(playlist)
-			) {
-				return;
-			}
-
-			exports.playlist = playlist;
-		}
-
-		debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
-
-		/* Update remote widget with new playlist items */
-		if(gnome.isRemote) exports.setGnomeRemote(true);
+			if(!exports.playlist.includes(item))
+				exports.playlist.push(item);
+		});
 	}
 	else
-		debug('Received playlist is not an array');
+	{
+		if(extract.video.subsProcess || extract.music.coverProcess)
+			return debug('Ignoring playlist update during file loading');
+
+		/* Ignore new playlist if it is not different */
+		if(
+			exports.playlist.length === playlist.length
+			&& JSON.stringify(exports.playlist) === JSON.stringify(playlist)
+		) {
+			return;
+		}
+
+		exports.playlist = playlist;
+	}
+
+	debug(`Full playlist: ${JSON.stringify(exports.playlist)}`);
+
+	/* Update remote widget with new playlist items */
+	if(gnome.isRemote) exports.setGnomeRemote(true);
 }
 
 exports.updateSelection = function(contents)
