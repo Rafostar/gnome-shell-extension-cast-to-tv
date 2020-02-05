@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 15:48\n"
+"PO-Revision-Date: 2020-02-05 15:55\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -50,7 +50,7 @@ msgstr "Medya Oynatıcı"
 
 #: widget.js:341
 msgid "Browser"
-msgstr ""
+msgstr "Tarayıcı"
 
 #: playlist.js:344
 msgid "Playlist"
@@ -76,7 +76,7 @@ msgstr "Dönüştür"
 
 #: file-chooser.js:81
 msgid "Audio"
-msgstr ""
+msgstr "Ses"
 
 #: file-chooser.js:82
 msgid "Video + Audio"
@@ -173,7 +173,7 @@ msgstr "Dinleme portu"
 
 #: prefs.js:134
 msgid "Internal communication port"
-msgstr ""
+msgstr "Dahili iletişim portu"
 
 #: prefs.js:203
 msgid "Access web player from devices on local network"
@@ -209,7 +209,7 @@ msgstr "İleri/geri atlama (saniye)"
 
 #: prefs.js:251
 msgid "Slideshow time per picture (seconds)"
-msgstr ""
+msgstr "Resim başına slayt gösterisi süresi (saniye)"
 
 #: prefs.js:261
 msgid "Media control buttons size"
@@ -229,7 +229,7 @@ msgstr "Uzak etiketi göster"
 
 #: prefs.js:297
 msgid "Receiver name as label"
-msgstr ""
+msgstr "Etiket olarak alıcı ismi"
 
 #: prefs.js:347
 msgid "Chromecast Options"
@@ -286,7 +286,7 @@ msgstr "Arka plan rengi"
 
 #: prefs.js:540
 msgid "Encoder"
-msgstr ""
+msgstr "Kodlayıcı"
 
 #: prefs.js:545
 msgid "Media Encoding"
@@ -306,38 +306,38 @@ msgstr "Bit Hızı (Mbps)"
 
 #: prefs.js:568
 msgid "Burn subtitles when transcoding video"
-msgstr ""
+msgstr "Videoyu dönüştürürken alt yazıları dahil et"
 
 #. TRANSLATORS: "Players" as video players
 #: prefs.js:583
 msgid "Extractor"
-msgstr ""
+msgstr "Çıkarıcı"
 
 #: prefs.js:588
 msgid "Subtitles Extraction"
-msgstr ""
+msgstr "Alt Yazıları Çıkarma"
 
 #. TRANSLATORS: "vttextract" is the name of executable, do not change
 #: prefs.js:593
 msgid "Add vttextract executable"
-msgstr ""
+msgstr "vttextract çalıştırılabilir dosyasını ekle"
 
 #: prefs.js:602
 msgid "Reuse extracted subtitles"
-msgstr ""
+msgstr "Çıkarılan alt yazıları yeniden kullan"
 
 #. TRANSLATORS: Destination folder to save subtitles
 #: prefs.js:611
 msgid "Save folder"
-msgstr ""
+msgstr "Klasöre kaydet"
 
 #: prefs.js:613
 msgid "Select folder"
-msgstr ""
+msgstr "Klasör seç"
 
 #: prefs.js:654
 msgid "Misc"
-msgstr ""
+msgstr "Çeşitli"
 
 #: prefs.js:676
 msgid "Web Player"
@@ -481,7 +481,7 @@ msgstr "FFprobe yolu yanlış"
 #. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:18
 msgid "Could not analyze selected file:"
-msgstr ""
+msgstr "Seçilen dosya analiz edilemedi:"
 
 #: node_scripts/messages.js:20
 msgid "Speed"
