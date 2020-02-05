@@ -62,6 +62,7 @@ module.exports =
 	showRemote: function(enable, playbackData, cb)
 	{
 		cb = cb || noop;
+		this.isRemote = enable;
 
 		if(this.isLockScreen)
 			return cb(null);
@@ -73,7 +74,6 @@ module.exports =
 		if(playbackData)
 			data = { ...playbackData, ...data };
 
-		this.isRemote = enable;
 		sender.sendPlaybackData(data, cb);
 	},
 
