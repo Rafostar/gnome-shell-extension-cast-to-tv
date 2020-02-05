@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { spawn } = require('child_process');
+const debug = require('debug')('extract');
 const vttparser = require('./vtt-parser');
 
 exports.findInStreams = function(ffprobeData, name, value)
@@ -30,6 +31,8 @@ exports.convertFile = function(opts, cb)
 		opts.spawnArgs.push('pipe:1');
 	else
 		opts.spawnArgs.push(opts.outPath, '-y');
+
+	debug(`Convert opts: ${JSON.stringify(opts)}`);
 
 	var called = false;
 	var spawnProcess = spawn(opts.ffmpegPath, opts.spawnArgs);

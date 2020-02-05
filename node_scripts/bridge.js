@@ -460,8 +460,6 @@ function processVideoTranscode(cb)
 		{
 			if(err) return cb(err);
 
-			debug(`Detected subs char encoding: ${charEnc}`);
-
 			/* ffmpeg uses UTF-8 by default */
 			if(charEnc !== 'UTF-8')
 				exports.mediaData.charEnc = charEnc;

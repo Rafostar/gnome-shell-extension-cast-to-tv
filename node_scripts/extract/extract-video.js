@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const jschardet = require('jschardet');
+const chardet = require('chardet');
+const debug = require('debug')('extract');
 const extractShared = require('./extract-shared');
 const noop = () => {};
 
@@ -81,10 +82,13 @@ exports.getSubsCharEnc = function(filePath, cb)
 			return cb(err);
 		}
 
-		var charDet = jschardet.detect(data);
+		var foundChar = chardet.detect(data);
 
-		if(charDet && charDet.encoding)
-			return cb(null, charDet.encoding);
+		if(foundChar)
+		{
+			debug(`Detected subs char encoding: ${foundChar}`);
+			return cb(null, foundChar);
+		}
 		else
 		{
 			exports.subsProcess = false;
