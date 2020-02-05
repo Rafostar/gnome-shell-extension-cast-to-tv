@@ -101,12 +101,12 @@ exports.getMetadata = function(ffprobeData)
 	const metadata = ffprobeData.format.tags;
 	var parsedMetadata = {};
 
-	if(metadata.TITLE)
+	if(metadata && metadata.TITLE)
 	{
 		for(var name in metadata)
 			parsedMetadata[name.toLowerCase()] = metadata[name];
 	}
-	else if(metadata.title)
+	else if(metadata && metadata.title)
 		parsedMetadata = metadata;
 	else
 		parsedMetadata = null;
