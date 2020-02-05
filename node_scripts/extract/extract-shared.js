@@ -43,6 +43,8 @@ exports.convertFile = function(opts, cb)
 
 		if(called) return;
 
+		debug('Finished extracting');
+
 		if(code)
 		{
 			called = true;

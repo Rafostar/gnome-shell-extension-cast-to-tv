@@ -197,6 +197,8 @@ exports.updateSelection = function(contents)
 		return debug('Ignoring selection because playlist is empty');
 	else if(typeof contents !== 'object')
 		return debug(`Ignoring invalid selection: ${contents}`);
+	else if(extract.video.subsProcess || extract.music.coverProcess)
+		return debug('Ignoring selection during file loading');
 
 	if(contents !== exports.selection)
 	{
@@ -211,6 +213,14 @@ exports.updateRemote = function(contents)
 {
 	if(!contents || !contents.action)
 		return debug('Invalid update remote contents');
+
+	if(
+		contents.action !== 'REPEAT'
+		&& contents.action !== 'SLIDESHOW'
+		&& (extract.video.subsProcess
+		|| extract.music.coverProcess)
+	)
+		return debug('Ignoring remote input during file loading');
 
 	debug(`New remote contents: ${JSON.stringify(contents)}`);
 	exports.handleRemoteSignal(contents.action, contents.value);
