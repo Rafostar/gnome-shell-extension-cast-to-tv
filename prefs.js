@@ -942,24 +942,34 @@ class CastNotebook extends Gtk.Notebook
 	constructor()
 	{
 		super({margin: 5});
-		let label = null;
+		let delay = 0;
+
+		let addToNotebook = (widget, name) =>
+		{
+			delay += 10;
+
+			GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () =>
+			{
+				let label = new Gtk.Label({ label: _(name) });
+				this.append_page(widget, label);
+				widget.show_all();
+
+				return GLib.SOURCE_REMOVE;
+			});
+		}
 
 		this.mainWidget = new MainSettings();
-		label = new Gtk.Label({ label: _("Main") });
-		this.append_page(this.mainWidget, label);
+		addToNotebook(this.mainWidget, _("Main"));
 
 		this.remoteWidget = new RemoteSettings();
-		label = new Gtk.Label({ label: _("Remote") });
-		this.append_page(this.remoteWidget, label);
+		addToNotebook(this.remoteWidget, _("Remote"));
 
 		this.chromecastWidget = new ChromecastSettings();
-		label = new Gtk.Label({ label: "Chromecast" });
-		this.append_page(this.chromecastWidget, label);
+		addToNotebook(this.chromecastWidget, "Chromecast");
 
 		this.otherWidget = new OtherSettings();
 		/* TRANSLATORS: Other extension settings */
-		label = new Gtk.Label({ label: _("Other") });
-		this.append_page(this.otherWidget, label);
+		addToNotebook(this.otherWidget, _("Other"));
 
 		this.addonsWidget = new AddonsSettings();
 		let addonsNumber = this.addonsWidget.get_n_pages();
@@ -971,17 +981,14 @@ class CastNotebook extends Gtk.Notebook
 		}
 		else
 		{
-			label = new Gtk.Label({ label: _("Add-ons") });
-			this.append_page(this.addonsWidget, label);
+			addToNotebook(this.addonsWidget, _("Add-ons"));
 		}
 
 		this.modulesWidget = new ModulesSettings();
-		label = new Gtk.Label({ label: _("Modules") });
-		this.append_page(this.modulesWidget, label);
+		addToNotebook(this.modulesWidget, _("Modules"));
 
 		this.aboutWidget = new AboutPage();
-		label = new Gtk.Label({ label: _("About") });
-		this.append_page(this.aboutWidget, label);
+		addToNotebook(this.aboutWidget, _("About"));
 
 		this.destroy = () =>
 		{
