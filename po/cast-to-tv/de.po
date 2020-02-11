@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 16:49\n"
+"PO-Revision-Date: 2020-02-11 15:48\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -229,7 +229,7 @@ msgstr "Fernbedienungsbeschriftung anzeigen"
 
 #: prefs.js:297
 msgid "Receiver name as label"
-msgstr ""
+msgstr "Empfängername als Bezeichnung"
 
 #: prefs.js:347
 msgid "Chromecast Options"
@@ -306,7 +306,7 @@ msgstr "Bitrate (Mbps)"
 
 #: prefs.js:568
 msgid "Burn subtitles when transcoding video"
-msgstr ""
+msgstr "Untertitel beim Umwandeln des Videos einfügen"
 
 #. TRANSLATORS: "Players" as video players
 #: prefs.js:583
