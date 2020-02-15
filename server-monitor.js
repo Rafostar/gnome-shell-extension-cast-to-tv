@@ -115,32 +115,42 @@ class ServerMonitor
 		sourceDir = sourceDir || LOCAL_PATH;
 
 		let modulesPath = `${sourceDir}/node_modules`;
+		let notifyPath = GLib.find_program_in_path('notify-send');
 
 		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
 		if(!folderExists)
 		{
-			log('Cast to TV: npm modules not installed!');
+			let notInstText = 'Cast to TV: npm modules not installed!';
+
+			if(notifyPath)
+				GLib.spawn_sync(null, [notifyPath, 'Cast to TV', notInstText], null, 0, null);
+
+			log(notInstText);
 
 			return false;
 		}
 
 		let dependencies = this._getDependencies(sourceDir);
-		if(dependencies)
-		{
-			for(let module in dependencies)
-			{
-				let moduleExists = GLib.file_test(`${modulesPath}/${module}`, GLib.FileTest.EXISTS);
-				if(!moduleExists)
-				{
-					log(`Cast to TV: missing npm module: ${module}`);
-					return false;
-				}
-			}
 
-			return true;
+		if(!dependencies)
+			return false;
+
+		for(let module in dependencies)
+		{
+			let moduleExists = GLib.file_test(`${modulesPath}/${module}`, GLib.FileTest.EXISTS);
+			if(!moduleExists)
+			{
+				let notExistText = `Cast to TV: missing npm module: ${module}`;
+
+				if(notifyPath)
+					GLib.spawn_sync(null, [notifyPath, 'Cast to TV', notExistText], null, 0, null);
+
+				log(notExistText);
+				return false;
+			}
 		}
 
-		return false;
+		return true;
 	}
 
 	_checkAddons()
