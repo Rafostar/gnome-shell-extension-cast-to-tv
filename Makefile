@@ -45,12 +45,17 @@ compilemo:
 zip-file: _build
 	zip -qr $(UUID).zip $(ZIPFILES)
 
-# Build and install #
-install: compilemo
+# Update metadata #
+metadata:
+ifeq ($(CUSTOMPATH),)
 	LASTCOMMIT=$(shell git rev-parse --short HEAD); \
 	grep -q '"git":' metadata.json \
 	&& sed -i "/\"git\":/c \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json \
 	|| sed -i "/uuid/a \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json
+endif
+
+# Build and install #
+install: compilemo metadata
 ifeq ($(CUSTOMPATH),)
 	glib-compile-schemas ./schemas/
 	mkdir -p $(INSTALLPATH)/$(UUID)
