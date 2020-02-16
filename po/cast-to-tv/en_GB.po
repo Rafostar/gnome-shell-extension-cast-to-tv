@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-02 13:42+0200\n"
-"PO-Revision-Date: 2019-12-29 09:03\n"
-"Last-Translator: Rafostar\n"
+"POT-Creation-Date: 2020-02-04 16:20+0100\n"
+"PO-Revision-Date: 2020-02-04 15:48\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: English, United Kingdom\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
@@ -15,116 +15,114 @@ msgstr ""
 "X-Crowdin-Language: en-GB\n"
 "X-Crowdin-File: /master/po/cast-to-tv/cast-to-tv.pot\n"
 
-#. TRANSLATORS: "Playercast" is a name of an app, so do not change it
-#: extension.js:35
-msgid "Playercast Remote"
-msgstr ""
-
-#. TRANSLATORS: Can be translated as "Browser Remote" if it makes it shorter
-#: extension.js:39
-msgid "Web Player Remote"
-msgstr ""
-
-#: extension.js:42
-msgid "Chromecast Remote"
-msgstr ""
-
-#: widget.js:30 widget.js:83
-msgid "Cast Media"
-msgstr ""
-
-#: widget.js:35 file-chooser.js:59
-msgid "Video"
-msgstr ""
-
-#: widget.js:36
-msgid "Music"
-msgstr ""
-
-#: widget.js:37
-msgid "Picture"
-msgstr ""
-
-#: widget.js:38 widget.js:82
-msgid "Turn Off"
-msgstr ""
-
-#: widget.js:39
-msgid "Cast Settings"
-msgstr ""
-
-#: widget.js:99
-msgid "Turn On"
-msgstr ""
-
 #. TRANSLATORS: When "Cast Media" service is turned off
-#: widget.js:101
+#: widget.js:34 widget.js:111
 msgid "Cast Off"
 msgstr ""
 
-#: playlist.js:336
+#: widget.js:39 file-chooser.js:80
+msgid "Video"
+msgstr ""
+
+#: widget.js:40
+msgid "Music"
+msgstr ""
+
+#: widget.js:41
+msgid "Picture"
+msgstr ""
+
+#: widget.js:42 widget.js:109
+msgid "Turn On"
+msgstr ""
+
+#: widget.js:43
+msgid "Cast Settings"
+msgstr ""
+
+#: widget.js:92
+msgid "Turn Off"
+msgstr ""
+
+#: widget.js:93
+msgid "Cast Media"
+msgstr ""
+
+#: widget.js:341
+msgid "Browser"
+msgstr ""
+
+#: playlist.js:344
 msgid "Playlist"
 msgstr ""
 
 #. TRANSLATORS: Button text when selected SINGLE file
-#: file-chooser.js:20
+#: file-chooser.js:18
 msgid "Cast Selected File"
 msgstr ""
 
 #. TRANSLATORS: Button text when selected MULTIPLE files
-#: file-chooser.js:22
+#: file-chooser.js:20
 msgid "Cast Selected Files"
 msgstr ""
 
-#: file-chooser.js:23
+#: file-chooser.js:21
 msgid "Add to Playlist"
 msgstr ""
 
-#: file-chooser.js:56
+#: file-chooser.js:77
 msgid "Transcode"
 msgstr ""
 
-#: file-chooser.js:61
+#: file-chooser.js:81
+msgid "Audio"
+msgstr ""
+
+#: file-chooser.js:82
 msgid "Video + Audio"
 msgstr ""
 
-#: file-chooser.js:131
+#: file-chooser.js:142 file-chooser.js:175 prefs.js:1283
+msgid "Automatic"
+msgstr ""
+
+#: file-chooser.js:270
 msgid "Cancel"
 msgstr ""
 
-#: file-chooser.js:143
+#: file-chooser.js:279
 msgid "Add Subtitles"
 msgstr ""
 
-#: file-chooser.js:144
+#: file-chooser.js:281
 msgid "Select Video"
 msgstr ""
 
-#: file-chooser.js:148
+#: file-chooser.js:285
 msgid "Video Files"
 msgstr ""
 
-#: file-chooser.js:154
+#: file-chooser.js:293
 msgid "Select Music"
 msgstr ""
 
-#: file-chooser.js:157
+#: file-chooser.js:297
 msgid "Audio Files"
 msgstr ""
 
-#: file-chooser.js:163
+#: file-chooser.js:305
 msgid "Select Picture"
 msgstr ""
 
-#: file-chooser.js:166
+#: file-chooser.js:309
 msgid "Pictures"
 msgstr ""
 
-#: file-chooser.js:245
+#: file-chooser.js:370
 msgid "Select Subtitles"
 msgstr ""
 
-#: file-chooser.js:249
+#: file-chooser.js:374
 msgid "Subtitle Files"
 msgstr ""
 
@@ -151,7 +149,7 @@ msgid "Receiver type"
 msgstr ""
 
 #. TRANSLATORS: "Playercast" is a name of an app, so do not change it
-#: prefs.js:102 prefs.js:517
+#: prefs.js:102 prefs.js:659
 msgid "Playercast app"
 msgstr ""
 
@@ -161,233 +159,280 @@ msgstr ""
 msgid "Web browser | Media player"
 msgstr ""
 
-#: prefs.js:111
+#: prefs.js:110
 msgid "FFmpeg path"
 msgstr ""
 
-#: prefs.js:119
+#: prefs.js:117
 msgid "FFprobe path"
 msgstr ""
 
-#: prefs.js:127
+#: prefs.js:124
 msgid "Listening port"
 msgstr ""
 
-#: prefs.js:163
+#: prefs.js:134
+msgid "Internal communication port"
+msgstr ""
+
+#: prefs.js:203
 msgid "Access web player from devices on local network"
 msgstr ""
 
-#: prefs.js:210
+#: prefs.js:227
 msgid "Remote Controller"
 msgstr ""
 
-#: prefs.js:214
+#: prefs.js:231
 msgid "Remote position"
 msgstr ""
 
-#: prefs.js:216
+#: prefs.js:233
 msgid "Left"
 msgstr ""
 
-#: prefs.js:217
+#: prefs.js:234
 msgid "Center (left side)"
 msgstr ""
 
-#: prefs.js:218
+#: prefs.js:235
 msgid "Center (right side)"
 msgstr ""
 
-#: prefs.js:219
+#: prefs.js:236
 msgid "Right"
 msgstr ""
 
-#: prefs.js:225
+#: prefs.js:241
 msgid "Seek backward/forward (seconds)"
 msgstr ""
 
-#: prefs.js:236
+#: prefs.js:251
+msgid "Slideshow time per picture (seconds)"
+msgstr ""
+
+#: prefs.js:261
 msgid "Media control buttons size"
 msgstr ""
 
-#: prefs.js:247
+#: prefs.js:271
 msgid "Slider icon size"
 msgstr ""
 
-#: prefs.js:258
+#: prefs.js:281
 msgid "Unify sliders"
 msgstr ""
 
-#: prefs.js:267
+#: prefs.js:289
 msgid "Show remote label"
 msgstr ""
 
-#: prefs.js:306
+#: prefs.js:297
+msgid "Receiver name as label"
+msgstr ""
+
+#: prefs.js:347
 msgid "Chromecast Options"
 msgstr ""
 
-#: prefs.js:310 prefs.js:521
+#: prefs.js:351 prefs.js:663
 msgid "Device selection"
 msgstr ""
 
-#: prefs.js:338
+#: prefs.js:378
 msgid "Subtitles"
 msgstr ""
 
-#: prefs.js:342
+#: prefs.js:382
 msgid "Font family"
 msgstr ""
 
-#: prefs.js:362
+#: prefs.js:401
 msgid "Font style"
 msgstr ""
 
 #. TRANSLATORS: One of "Speed" setting value
-#: prefs.js:364 node_scripts/messages.js:20
+#: prefs.js:403 node_scripts/messages.js:22
 msgid "Normal"
 msgstr ""
 
-#: prefs.js:365
+#: prefs.js:404
 msgid "Bold"
 msgstr ""
 
-#: prefs.js:366
+#: prefs.js:405
 msgid "Italic"
 msgstr ""
 
-#: prefs.js:367
+#: prefs.js:406
 msgid "Bold italic"
 msgstr ""
 
-#: prefs.js:378
+#: prefs.js:416
 msgid "Scale factor"
 msgstr ""
 
-#: prefs.js:393
+#: prefs.js:430
 msgid "Font color"
 msgstr "Font colour"
 
-#: prefs.js:406
+#: prefs.js:442
 msgid "Font outline"
 msgstr ""
 
-#: prefs.js:437
+#: prefs.js:472
 msgid "Background color"
 msgstr "Background colour"
 
-#: prefs.js:477
+#: prefs.js:540
+msgid "Encoder"
+msgstr ""
+
+#: prefs.js:545
 msgid "Media Encoding"
 msgstr ""
 
-#: prefs.js:481
+#: prefs.js:549
 msgid "Hardware acceleration"
 msgstr ""
 
-#: prefs.js:483 prefs.js:943
+#: prefs.js:551 prefs.js:1141
 msgid "None"
 msgstr ""
 
-#: prefs.js:491
+#: prefs.js:558
 msgid "Bitrate (Mbps)"
 msgstr ""
 
-#: prefs.js:502
+#: prefs.js:568
+msgid "Burn subtitles when transcoding video"
+msgstr ""
+
+#. TRANSLATORS: "Players" as video players
+#: prefs.js:583
+msgid "Extractor"
+msgstr ""
+
+#: prefs.js:588
+msgid "Subtitles Extraction"
+msgstr ""
+
+#. TRANSLATORS: "vttextract" is the name of executable, do not change
+#: prefs.js:593
+msgid "Add vttextract executable"
+msgstr ""
+
+#: prefs.js:602
+msgid "Reuse extracted subtitles"
+msgstr ""
+
+#. TRANSLATORS: Destination folder to save subtitles
+#: prefs.js:611
+msgid "Save folder"
+msgstr ""
+
+#: prefs.js:613
+msgid "Select folder"
+msgstr ""
+
+#: prefs.js:654
+msgid "Misc"
+msgstr ""
+
+#: prefs.js:676
 msgid "Web Player"
 msgstr ""
 
-#: prefs.js:506
+#: prefs.js:680
 msgid "Subtitles scale factor"
 msgstr ""
 
 #. TRANSLATORS: The rest of extension settings
-#: prefs.js:536
+#: prefs.js:691
 msgid "Miscellaneous"
 msgstr ""
 
-#: prefs.js:540
+#: prefs.js:695
 msgid "Music visualizer"
 msgstr ""
 
-#: prefs.js:549
+#: prefs.js:703
 msgid "Nautilus/Nemo integration"
 msgstr ""
 
-#: prefs.js:657
+#: prefs.js:809
 msgid "Install npm modules"
 msgstr ""
 
-#: prefs.js:681
+#: prefs.js:833
 msgid "Installing..."
 msgstr ""
 
-#: prefs.js:734
+#: prefs.js:887
 msgid "version:"
 msgstr ""
 
-#: prefs.js:741
+#: prefs.js:894
 msgid "Developed by"
 msgstr ""
 
-#: prefs.js:750
+#: prefs.js:903
 msgid "Extension Homepage"
 msgstr ""
 
-#: prefs.js:757
+#: prefs.js:910
 msgid "Playercast Homepage"
 msgstr ""
 
-#: prefs.js:764
+#: prefs.js:917
 msgid "Donate"
 msgstr ""
 
-#: prefs.js:778
+#: prefs.js:931
 msgid "Main"
 msgstr ""
 
-#: prefs.js:782
+#: prefs.js:935
 msgid "Remote"
 msgstr ""
 
 #. TRANSLATORS: Other extension settings
-#: prefs.js:791
+#: prefs.js:944
 msgid "Other"
 msgstr ""
 
-#: prefs.js:804
+#: prefs.js:957
 msgid "Add-ons"
 msgstr ""
 
-#: prefs.js:809
+#: prefs.js:962
 msgid "Modules"
 msgstr ""
 
-#: prefs.js:813
+#: prefs.js:966
 msgid "About"
 msgstr ""
 
-#: prefs.js:876
+#: prefs.js:1074
 msgid "Manual IP Config"
 msgstr ""
 
-#: prefs.js:933
+#: prefs.js:1131
 msgid "Auto"
 msgstr ""
 
-#: prefs.js:934
+#: prefs.js:1132
 msgid "Name"
 msgstr ""
 
 #. TRANSLATORS: Text field temporary text
-#: prefs.js:950
+#: prefs.js:1148
 msgid "Insert name"
 msgstr ""
 
 #. TRANSLATORS: Shown when scan for Chromecast devices is running
-#: prefs.js:1065
+#: prefs.js:1263
 msgid "Scanning..."
-msgstr ""
-
-#: prefs.js:1085
-msgid "Automatic"
 msgstr ""
 
 #: node_scripts/messages.js:4
@@ -433,32 +478,37 @@ msgstr ""
 msgid "FFprobe path is incorrect"
 msgstr ""
 
+#. TRANSLATORS: This sentence will contain file path after end
 #: node_scripts/messages.js:18
+msgid "Could not analyze selected file:"
+msgstr "Could not analyse selected file:"
+
+#: node_scripts/messages.js:20
 msgid "Speed"
 msgstr ""
 
-#: node_scripts/messages.js:23
+#: node_scripts/messages.js:25
 msgid "Device not found"
 msgstr ""
 
-#: node_scripts/messages.js:24
+#: node_scripts/messages.js:26
 msgid "Failed to load media"
 msgstr ""
 
-#: node_scripts/messages.js:25
+#: node_scripts/messages.js:27
 msgid "Could not connect to device"
 msgstr ""
 
-#: node_scripts/messages.js:26
+#: node_scripts/messages.js:28
 msgid "Verify device IP in extension preferences"
 msgstr ""
 
 #. TRANSLATORS: This sentence will contain file path after end
-#: node_scripts/messages.js:28
+#: node_scripts/messages.js:30
 msgid "Could not play file:"
 msgstr ""
 
-#: node_scripts/messages.js:29
+#: node_scripts/messages.js:31
 msgid "Try again with transcoding enabled"
 msgstr ""
 
