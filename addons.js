@@ -113,6 +113,12 @@ function disableAddon(addonName)
 		if(!lockingScreen && castMenu)
 			setLastMenuItem(castMenu, addonMenuItems[addonName]);
 
+		/* Force GUI refresh by hiding item before removal */
+		if(addonMenuItems[addonName].hasOwnProperty('actor'))
+			addonMenuItems[addonName].actor.hide();
+		else
+			addonMenuItems[addonName].hide();
+
 		addonMenuItems[addonName].destroy();
 		addonMenuItems[addonName] = null;
 	}
