@@ -252,6 +252,9 @@ class fileChooser
 		this.reconnectTimeout = null;
 		this._connectWs();
 		Settings.connect('changed::internal-port', () => this._delayReconnectWs());
+		Settings.connect('changed::listening-port', () =>
+			Soup.client.setNodePort(Settings.get_int('listening-port'))
+		);
 
 		let isServiceEnabled = this._getInitData();
 
