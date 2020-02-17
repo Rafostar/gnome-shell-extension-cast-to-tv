@@ -232,8 +232,8 @@ class SoupClient extends Soup.Session
 	{
 		super({ timeout: 3 });
 
-		this.nodePort = (nodePort > 0) ? parseInt(nodePort) : null;
-		this.wsPort = (wsPort > 0) ? parseInt(wsPort) : null;
+		this.nodePort = (nodePort && nodePort > 0) ? parseInt(nodePort) : null;
+		this.wsPort = (wsPort && wsPort > 0) ? parseInt(wsPort) : null;
 		this.wsConn = null;
 
 		this.setNodePort = (port) =>
@@ -524,7 +524,7 @@ class SoupClient extends Soup.Session
 			return this._getRequestSync('playback-data');
 		}
 
-		this.postPlaybackData = (data) =>
+		this.postPlaybackData = (data, cb) =>
 		{
 			cb = cb || noop;
 			this._postRequest('playback-data', data, null, cb);
