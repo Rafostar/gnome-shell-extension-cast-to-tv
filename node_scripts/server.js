@@ -34,22 +34,12 @@ exports.changePort = function(port)
 
 function checkMessagePage(req, res)
 {
-	var showMessage;
-
 	if(
 		bridge.config.receiverType != 'other'
 		|| !bridge.selection.filePath
 		|| encode.streamProcess
 		|| socket.activeConnections > 0
 	) {
-		showMessage = true;
-	}
-	else {
-		showMessage = false;
-	}
-
-	if(showMessage)
-	{
 		res.sendFile(path.join(__dirname + '/../webplayer/message.html'));
 		return true;
 	}

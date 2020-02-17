@@ -170,21 +170,19 @@ function handleMessages(socket)
 		bridge.setGnomeRemote(msg)
 	});
 
-	socket.on('disconnect', msg =>
+	socket.on('disconnect', () =>
 	{
-		if(socket.playercastName)
-		{
-			if(
-				socket.playercastInvalid
-				|| !exports.playercasts.includes(socket.playercastName)
-			)
-				return;
+		if(!socket.playercastName)
+			return checkClients();
 
-			var index = exports.playercasts.indexOf(socket.playercastName);
-			exports.playercasts.splice(index, 1);
-		}
-		else
-			checkClients(msg);
+		if(
+			socket.playercastInvalid
+			|| !exports.playercasts.includes(socket.playercastName)
+		)
+			return;
+
+		var index = exports.playercasts.indexOf(socket.playercastName);
+		exports.playercasts.splice(index, 1);
 	});
 }
 
@@ -207,7 +205,10 @@ function initWebPlayer()
 		}
 	}
 
-	if(bridge.selection.streamType === 'MUSIC' && !bridge.config.musicVisualizer)
+	if(
+		bridge.selection.streamType === 'MUSIC'
+		&& !bridge.config.musicVisualizer
+	)
 		initType = 'MUSIC';
 
 	var webData = {
