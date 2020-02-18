@@ -778,6 +778,9 @@ class AddonsSettings extends Gtk.Notebook
 				addonPrefs.init();
 				let widget = addonPrefs.buildPrefsWidget();
 				this.append_page(widget, widget.title);
+
+				if(!widget.visible && !widget.get_realized())
+					widget.realize();
 			}
 		});
 	}
@@ -839,7 +842,6 @@ class ModulesSettings extends Gtk.VBox
 		GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () =>
 		{
 			this.termWidget = new Vte.Terminal({
-				height_request: 320,
 				scroll_on_output: true,
 				margin_bottom: 10
 			});
@@ -952,6 +954,10 @@ class CastNotebook extends Gtk.Notebook
 			{
 				let label = new Gtk.Label({ label: _(name) });
 				this.append_page(widget, label);
+
+				if(!widget.visible && !widget.get_realized())
+					widget.realize();
+
 				widget.show_all();
 
 				return GLib.SOURCE_REMOVE;
