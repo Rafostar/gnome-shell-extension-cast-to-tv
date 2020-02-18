@@ -223,8 +223,21 @@ var CastPlaylist = class
 	_onDragBegin(menuItem)
 	{
 		this.draggedItem = menuItem;
-
 		let menuItems = this.subMenu.menu._getMenuItems();
+		let heighArr = [];
+
+		menuItems.forEach(menuItem =>
+		{
+			/* Ignore non-playlist item and continue */
+			if(!menuItem.filepath)
+				return;
+
+			let height = (menuItem.isActor) ?
+				menuItem.actor.height : menuItem.height;
+
+			if(!heighArr.includes(height))
+				heighArr.push(height);
+		});
 
 		this.subMenu.menu.moveMenuItem(this.tempMenuItem, menuItems.indexOf(menuItem));
 
@@ -232,6 +245,20 @@ var CastPlaylist = class
 			this.tempMenuItem.actor.show();
 		else
 			this.tempMenuItem.show();
+
+		let maxHeight = Math.max.apply(null, heighArr);
+
+		/* Temp item cannot be shorter than any playlist item */
+		if(this.tempMenuItem.isActor)
+		{
+			if(this.tempMenuItem.actor.height != maxHeight)
+				this.tempMenuItem.actor.height = maxHeight;
+		}
+		else
+		{
+			if(this.tempMenuItem.height != maxHeight)
+				this.tempMenuItem.height = maxHeight;
+		}
 	}
 
 	_onDragCancelled()
@@ -344,10 +371,11 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 		super(_("Playlist"), true);
 
 		this.icon.icon_name = PLAYLIST_MENU_ICON;
+		this.isActor = (this.hasOwnProperty('actor'));
 
 		let callback = () =>
 		{
-			if(this.hasOwnProperty('actor'))
+			if(this.isActor)
 				this.actor.opacity = (this.actor.hover) ? 255 : (this.menu.isOpen) ? 255 : 130;
 			else
 				this.opacity = (this.hover) ? 255 : (this.menu.isOpen) ? 255 : 130;
@@ -355,7 +383,7 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 
 		this._openChangedSignal = this.menu.connect('open-state-changed', callback);
 
-		if(this.hasOwnProperty('actor'))
+		if(this.isActor)
 		{
 			this.actor.opacity = 130;
 			this.hoverSignal = this.actor.connect('notify::hover', callback);
@@ -370,7 +398,7 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 		{
 			this.menu.disconnect(this._openChangedSignal);
 
-			if(this.hasOwnProperty('actor'))
+			if(this.isActor)
 				this.actor.disconnect(this.hoverSignal);
 			else
 				this.disconnect(this.hoverSignal);
@@ -389,8 +417,9 @@ class CastPlaylistItem extends AltPopupImage
 		this.isPlaylistItem = true;
 		this.isPlaying = false;
 		this.filepath = filepath;
+		this.isActor = (this.hasOwnProperty('actor'));
 
-		if(this.hasOwnProperty('actor'))
+		if(this.isActor)
 			this.drag = DND.makeDraggable(this.actor);
 		else
 			this.drag = DND.makeDraggable(this);
@@ -432,13 +461,14 @@ class CastTempPlaylistItem extends AltPopupImage
 		this.isTempPlaylistItem = true;
 		this.isActor = (this.hasOwnProperty('actor'));
 
-		if(this.isActor) this.actor.visible = true;
-		else this.visible = true;
+		if(this.isActor)
+			this.actor.visible = true;
+		else
+			this.visible = true;
 
 		if(!isShown)
 		{
-			if(this.isActor) this.actor.hide();
-			else this.hide();
+			(this.isActor) ? this.actor.hide() : this.hide();
 		}
 
 		/* This function is called by DND */
