@@ -1,9 +1,14 @@
 var websocket = io();
-websocket.emit('webplayer', 'message-ask');
+websocket.once('connect', onWebsocketConnect);
+websocket.on('message-refresh', refreshMessage);
+websocket.on('message-clear', changePage);
+var msgCheckInterval = null;
 
-var msgCheckInterval = setInterval(() => { websocket.emit('webplayer', 'message-ask'); }, 1000);
-websocket.on('message-refresh', msg => refreshMessage(msg));
-websocket.on('message-clear', () => changePage());
+function onWebsocketConnect()
+{
+	websocket.emit('webplayer', 'message-ask');
+	msgCheckInterval = setInterval(() => { websocket.emit('webplayer', 'message-ask'); }, 1000);
+}
 
 function refreshMessage(msg)
 {
@@ -13,7 +18,9 @@ function refreshMessage(msg)
 
 function changePage()
 {
-	clearInterval(msgCheckInterval);
+	if(msgCheckInterval)
+		clearInterval(msgCheckInterval);
+
 	websocket.disconnect();
-	location.reload(true);
+	setTimeout(() => location.reload(true), 250);
 }

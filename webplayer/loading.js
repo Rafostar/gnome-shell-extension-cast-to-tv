@@ -1,19 +1,23 @@
 var websocket = io();
-
+websocket.once('connect', onWebsocketConnect);
 websocket.on('loading-text', onLoadingText);
 websocket.on('processes-done', onProcessesDone);
-websocket.emit('webplayer', 'processes-ask');
+
+function onWebsocketConnect()
+{
+	websocket.emit('webplayer', 'loading-ask');
+}
 
 function onLoadingText(text)
 {
 	document.getElementById('msg').innerHTML = text;
+	websocket.emit('webplayer', 'processes-ask');
 }
 
 function onProcessesDone(isDone)
 {
-	if(!isDone)
-		return websocket.emit('webplayer', 'loading-ask');
+	if(!isDone) return;
 
 	websocket.disconnect();
-	location.reload(true);
+	setTimeout(() => location.reload(true), 250);
 }
