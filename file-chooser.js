@@ -503,13 +503,19 @@ class fileChooser
 		if(selectedNumber > 1)
 		{
 			this.buttonCast.label = _(CAST_LABEL_MULTI);
-			this.buttonSubs.hide();
+
+			if(this.buttonSubs)
+				this.buttonSubs.hide();
 		}
 		else
 		{
 			this.buttonCast.label = _(CAST_LABEL_SINGLE);
-			this.buttonSubs.show();
-			this.buttonSubs.set_sensitive(selectedNumber === 1);
+
+			if(this.buttonSubs)
+			{
+				this.buttonSubs.show();
+				this.buttonSubs.set_sensitive(selectedNumber === 1);
+			}
 		}
 	}
 
