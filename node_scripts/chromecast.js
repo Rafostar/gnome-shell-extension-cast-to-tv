@@ -321,49 +321,43 @@ function launchCast(media, castOpts)
 		if(err)
 		{
 			debug(`Could not cast: ${err.message}`);
-			showTranslatedError(err, castOpts);
+			return showTranslatedError(err, castOpts);
 		}
-		else
-		{
-			chromecast._player.once('close', finishCast);
-			chromecast._player.on('status', handleChromecastStatus);
 
-			debug('Cast started');
+		chromecast._player.once('close', finishCast);
+		chromecast._player.on('status', handleChromecastStatus);
 
-			startPlayback(media.contentType);
-		}
+		debug('Cast started');
+		startPlayback(media.contentType);
 	});
 }
 
 function startCastInterval()
 {
-	if(!castInterval)
-	{
-		castInterval = setInterval(() => getChromecastStatus(), 1000);
-		debug('Started status interval');
-	}
+	if(castInterval) return;
+
+	castInterval = setInterval(() => getChromecastStatus(), 1000);
+	debug('Started status interval');
 }
 
 function stopCastInterval()
 {
-	if(castInterval)
-	{
-		clearInterval(castInterval);
-		castInterval = null;
+	if(!castInterval) return;
 
-		debug('Stopped status interval');
-	}
+	clearInterval(castInterval);
+	castInterval = null;
+
+	debug('Stopped status interval');
 }
 
 function clearPlayTimeout()
 {
-	if(playTimeout)
-	{
-		clearTimeout(playTimeout);
-		playTimeout = null;
+	if(!playTimeout) return;
 
-		debug('Stopped delayed playback');
-	}
+	clearTimeout(playTimeout);
+	playTimeout = null;
+
+	debug('Stopped delayed playback');
 }
 
 function startPlayback(mimeType)
