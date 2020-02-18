@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: cast-to-tv\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-02-04 16:20+0100\n"
-"PO-Revision-Date: 2020-02-04 15:48\n"
+"PO-Revision-Date: 2020-02-18 17:46\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -324,7 +324,7 @@ msgstr "Dodaj plik wykonywalny vttextract"
 
 #: prefs.js:602
 msgid "Reuse extracted subtitles"
-msgstr "Ponownie używaj wypakowanych napisów"
+msgstr "Używaj ponownie wypakowane napisy"
 
 #. TRANSLATORS: Destination folder to save subtitles
 #: prefs.js:611
