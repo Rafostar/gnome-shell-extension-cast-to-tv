@@ -24,11 +24,17 @@ function init()
 	Helper.initTranslations(Local.path);
 }
 
+let MissingNotification = GObject.registerClass(
 class MissingNotification extends Gtk.VBox
 {
-	constructor(dependName)
+	_init(dependName)
 	{
-		super({height_request: 380, spacing: 10, margin: 20});
+		super._init({
+			height_request: 380,
+			spacing: 10,
+			margin: 20
+		});
+
 		let label = null;
 
 		label = new Gtk.Label({
@@ -41,13 +47,19 @@ class MissingNotification extends Gtk.VBox
 		this.pack_start(label, true, true, 0);
 		this.show_all();
 	}
-}
+});
 
+let StreamingNotification = GObject.registerClass(
 class StreamingNotification extends Gtk.VBox
 {
-	constructor()
+	_init()
 	{
-		super({height_request: 380, spacing: 10, margin: 10});
+		super._init({
+			height_request: 380,
+			spacing: 10,
+			margin: 10
+		});
+
 		let label = null;
 
 		label = new Gtk.Label({
@@ -72,13 +84,15 @@ class StreamingNotification extends Gtk.VBox
 		let remoteWidget = new RemoteSettings();
 		this.pack_start(remoteWidget, true, true, 0);
 	}
-}
+});
 
+let MainSettings = GObject.registerClass(
 class MainSettings extends Gtk.VBox
 {
-	constructor()
+	_init()
 	{
-		super();
+		super._init();
+
 		let label = null;
 		let widget = null;
 		let button = null;
@@ -146,13 +160,6 @@ class MainSettings extends Gtk.VBox
 			halign:Gtk.Align.CENTER
 		});
 
-		this.updateLink = () =>
-		{
-			let link = 'http://' + this.hostIp + ':' + this.portWidget.value;
-			this.linkButton.uri = link;
-			this.linkButton.label = link;
-		}
-
 		box = new Gtk.VBox({
 			margin: 5,
 			hexpand: true,
@@ -168,32 +175,6 @@ class MainSettings extends Gtk.VBox
 
 		this.linkSignal = this.portWidget.connect('value-changed', () => this.updateLink());
 
-		this.checkService = () =>
-		{
-			Soup.client.getIsServiceEnabled(data =>
-			{
-				if(data && data.isEnabled)
-					this.setDisplayInfo(true);
-				else
-					this.setDisplayInfo(false);
-			});
-		}
-
-		this.setDisplayInfo = (isEnabled) =>
-		{
-			/* No point in displaying without host IP */
-			if(isEnabled && this.hostIp)
-			{
-				this.infoLabel.show();
-				this.linkButton.show();
-			}
-			else
-			{
-				this.infoLabel.hide();
-				this.linkButton.hide();
-			}
-		}
-
 		getHostIpAsync(hostIp =>
 		{
 			this.hostIp = hostIp;
@@ -205,21 +186,59 @@ class MainSettings extends Gtk.VBox
 				this.checkService();
 			}
 		});
+	}
 
-		this.destroy = () =>
+	updateLink()
+	{
+		let link = 'http://' + this.hostIp + ':' + this.portWidget.value;
+		this.linkButton.uri = link;
+		this.linkButton.label = link;
+	}
+
+	checkService()
+	{
+		Soup.client.getIsServiceEnabled(data =>
 		{
-			this.portWidget.disconnect(this.linkSignal);
+			if(data && data.isEnabled)
+				this.setDisplayInfo(true);
+			else
+				this.setDisplayInfo(false);
+		});
+	}
 
-			super.destroy();
+	setDisplayInfo(isEnabled)
+	{
+		/* No point in displaying without host IP */
+		if(isEnabled && this.hostIp)
+		{
+			this.infoLabel.show();
+			this.linkButton.show();
+		}
+		else
+		{
+			this.infoLabel.hide();
+			this.linkButton.hide();
 		}
 	}
-}
 
+	destroy()
+	{
+		this.portWidget.disconnect(this.linkSignal);
+
+		super.destroy();
+	}
+});
+
+let RemoteSettings = GObject.registerClass(
 class RemoteSettings extends Gtk.Grid
 {
-	constructor()
+	_init()
 	{
-		super({margin: 20, row_spacing: 6});
+		super._init({
+			margin: 20,
+			row_spacing: 6
+		});
+
 		let label = null;
 		let widget = null;
 
@@ -305,43 +324,37 @@ class RemoteSettings extends Gtk.Grid
 		{
 			this.nameSwitch.set_sensitive(this.remoteSwitch.active);
 		});
-
-		this.destroy = () =>
-		{
-			this.remoteSwitch.disconnect(this.remoteSwitchSignal);
-
-			super.destroy();
-		}
 	}
-}
 
+	destroy()
+	{
+		this.remoteSwitch.disconnect(this.remoteSwitchSignal);
+
+		super.destroy();
+	}
+});
+
+let ChromecastSettings = GObject.registerClass(
 class ChromecastSettings extends Gtk.Grid
 {
-	constructor()
+	_init()
 	{
-		super({margin: 20, row_spacing: 6});
+		super._init({
+			margin: 20,
+			row_spacing: 6
+		});
+
+		this.subsConfig = {};
+
 		let label = null;
 		let widget = null;
 		let box = null;
 		let button = null;
 		let rgba = new Gdk.RGBA();
 
-		let subsConfig = {};
-		let sharedSubsConfig = shared.chromecast.subsStyle;
-
 		/* Restore default subtitles values if someone messed them externally */
-		try { subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles')); }
+		try { this.subsConfig = JSON.parse(Settings.get_string('chromecast-subtitles')); }
 		catch(err) { Settings.set_string('chromecast-subtitles', "{}"); }
-
-		let getSubsConfig = (confName) =>
-		{
-			return subsConfig[confName] || sharedSubsConfig[confName];
-		}
-
-		let setSubsConfig = () =>
-		{
-			Settings.set_string('chromecast-subtitles', JSON.stringify(subsConfig));
-		}
 
 		/* Label: Chromecast Options */
 		label = new SettingLabel(_("Chromecast Options"), true);
@@ -358,13 +371,7 @@ class ChromecastSettings extends Gtk.Grid
 		box.pack_end(widget, false, false, 0);
 		setDevices(widget);
 
-		let onDevEdit = (widget) =>
-		{
-			let activeText = widget.get_active_text();
-			setDevices(widget, false, activeText);
-		}
-
-		this.devChangeSignal = Settings.connect('changed::chromecast-devices', onDevEdit.bind(this, widget));
+		this.devChangeSignal = Settings.connect('changed::chromecast-devices', this.onDevEdit.bind(this, widget));
 		this.scanSignal = this.scanButton.connect('clicked',
 			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton])
 		);
@@ -388,12 +395,12 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontFamily.append('CASUAL', "Short Stack");
 		this.fontFamily.append('CURSIVE', "Quintessential");
 		this.fontFamily.append('SMALL_CAPITALS', "Alegreya Sans SC");
-		this.fontFamily.active_id = getSubsConfig('fontGenericFamily');
+		this.fontFamily.active_id = this.getSubsConfig('fontGenericFamily');
 		this.familySignal = this.fontFamily.connect('changed', () =>
 		{
-			subsConfig.fontFamily = this.fontFamily.get_active_text();
-			subsConfig.fontGenericFamily = this.fontFamily.active_id;
-			setSubsConfig();
+			this.subsConfig.fontFamily = this.fontFamily.get_active_text();
+			this.subsConfig.fontGenericFamily = this.fontFamily.active_id;
+			this.setSubsConfig();
 		});
 		addToGrid(this, label, this.fontFamily);
 
@@ -404,11 +411,11 @@ class ChromecastSettings extends Gtk.Grid
 		this.fontStyle.append('BOLD', _("Bold"));
 		this.fontStyle.append('ITALIC', _("Italic"));
 		this.fontStyle.append('BOLD_ITALIC', _("Bold italic"));
-		this.fontStyle.active_id = getSubsConfig('fontStyle');
+		this.fontStyle.active_id = this.getSubsConfig('fontStyle');
 		this.styleSignal = this.fontStyle.connect('changed', () =>
 		{
-			subsConfig.fontStyle = this.fontStyle.active_id;
-			setSubsConfig();
+			this.subsConfig.fontStyle = this.fontStyle.active_id;
+			this.setSubsConfig();
 		});
 		addToGrid(this, label, this.fontStyle);
 
@@ -417,24 +424,24 @@ class ChromecastSettings extends Gtk.Grid
 		this.scaleButton = new Gtk.SpinButton({halign:Gtk.Align.END, digits:1});
 		this.scaleButton.set_sensitive(true);
 		this.scaleButton.set_range(0.1, 5.0);
-		this.scaleButton.set_value(getSubsConfig('fontScale'));
+		this.scaleButton.set_value(this.getSubsConfig('fontScale'));
 		this.scaleButton.set_increments(0.1, 0.2);
 		this.scaleSignal = this.scaleButton.connect('value-changed', () =>
 		{
-			subsConfig.fontScale = this.scaleButton.value.toFixed(1);
-			setSubsConfig();
+			this.subsConfig.fontScale = this.scaleButton.value.toFixed(1);
+			this.setSubsConfig();
 		});
 		addToGrid(this, label, this.scaleButton);
 
 		/* Font Color */
 		label = new SettingLabel(_("Font color"));
-		rgba.parse(hashToColor(getSubsConfig('foregroundColor')));
+		rgba.parse(hashToColor(this.getSubsConfig('foregroundColor')));
 		this.fontColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.fontColor.set_sensitive(true);
 		this.fontColorSignal = this.fontColor.connect('color-set', () =>
 		{
-			subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
-			setSubsConfig();
+			this.subsConfig.foregroundColor = colorToHash(this.fontColor.rgba.to_string());
+			this.setSubsConfig();
 		});
 		addToGrid(this, label, this.fontColor);
 
@@ -445,24 +452,26 @@ class ChromecastSettings extends Gtk.Grid
 		this.outlineSwitch.set_sensitive(true);
 		this.checkActive = () =>
 		{
-			return (getSubsConfig('edgeType') === "OUTLINE") ? true : false;
+			return (this.getSubsConfig('edgeType') === "OUTLINE") ? true : false;
 		}
 		this.outlineSwitch.set_active(this.checkActive());
 		this.outlineSignal = this.outlineSwitch.connect('notify::active', () =>
 		{
-			if(this.outlineSwitch.active) subsConfig.edgeType = "OUTLINE";
-			else subsConfig.edgeType = "NONE";
+			if(this.outlineSwitch.active)
+				this.subsConfig.edgeType = "OUTLINE";
+			else
+				this.subsConfig.edgeType = "NONE";
 
-			setSubsConfig();
+			this.setSubsConfig();
 		});
 
-		rgba.parse(hashToColor(getSubsConfig('edgeColor')));
+		rgba.parse(hashToColor(this.getSubsConfig('edgeColor')));
 		this.edgeColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true});
 		this.edgeColor.set_sensitive(true);
 		this.edgeSignal = this.edgeColor.connect('color-set', () =>
 		{
-			subsConfig.edgeColor = colorToHash(this.edgeColor.rgba.to_string());
-			setSubsConfig();
+			this.subsConfig.edgeColor = colorToHash(this.edgeColor.rgba.to_string());
+			this.setSubsConfig();
 		});
 		box.pack_end(this.edgeColor, false, false, 0);
 		box.pack_end(this.outlineSwitch, false, false, 8);
@@ -470,40 +479,58 @@ class ChromecastSettings extends Gtk.Grid
 
 		/* Background color */
 		label = new SettingLabel(_("Background color"));
-		rgba.parse(hashToColor(getSubsConfig('backgroundColor')));
+		rgba.parse(hashToColor(this.getSubsConfig('backgroundColor')));
 		this.bgColor = new Gtk.ColorButton({halign:Gtk.Align.END, rgba: rgba, show_editor: true, use_alpha: true});
 		this.bgColor.set_sensitive(true);
 		this.bgSignal = this.bgColor.connect('color-set', () =>
 		{
-			subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
-			setSubsConfig();
+			this.subsConfig.backgroundColor = colorToHash(this.bgColor.rgba.to_string());
+			this.setSubsConfig();
 		});
 		addToGrid(this, label, this.bgColor);
-
-		this.destroy = () =>
-		{
-			Settings.disconnect(this.devChangeSignal);
-
-			this.scanButton.disconnect(this.scanSignal);
-			this.ipConfButton.disconnect(this.ipConfSignal);
-			this.fontFamily.disconnect(this.familySignal);
-			this.fontStyle.disconnect(this.styleSignal);
-			this.scaleButton.disconnect(this.scaleSignal);
-			this.fontColor.disconnect(this.fontColorSignal);
-			this.outlineSignal.disconnect(this.outlineSignal);
-			this.edgeColor.disconnect(this.edgeSignal);
-			this.bgColor.disconnect(this.bgSignal);
-
-			super.destroy();
-		}
 	}
-}
 
+	getSubsConfig(confName)
+	{
+		return this.subsConfig[confName] || shared.chromecast.subsStyle[confName];
+	}
+
+	setSubsConfig()
+	{
+		Settings.set_string('chromecast-subtitles', JSON.stringify(this.subsConfig));
+	}
+
+	onDevEdit(widget)
+	{
+		let activeText = widget.get_active_text();
+		setDevices(widget, false, activeText);
+	}
+
+	destroy()
+	{
+		Settings.disconnect(this.devChangeSignal);
+
+		this.scanButton.disconnect(this.scanSignal);
+		this.ipConfButton.disconnect(this.ipConfSignal);
+		this.fontFamily.disconnect(this.familySignal);
+		this.fontStyle.disconnect(this.styleSignal);
+		this.scaleButton.disconnect(this.scaleSignal);
+		this.fontColor.disconnect(this.fontColorSignal);
+		this.outlineSignal.disconnect(this.outlineSignal);
+		this.edgeColor.disconnect(this.edgeSignal);
+		this.bgColor.disconnect(this.bgSignal);
+
+		super.destroy();
+	}
+});
+
+let OtherSettings = GObject.registerClass(
 class OtherSettings extends Gtk.Notebook
 {
-	constructor()
+	_init()
 	{
-		super();
+		super._init();
+
 		let widget = null;
 		this.createdWidgets = [];
 
@@ -519,24 +546,29 @@ class OtherSettings extends Gtk.Notebook
 			this.append_page(widget, widget.title);
 			this.createdWidgets.push(widget);
 		});
-
-		this.destroy = () =>
-		{
-			this.createdWidgets.forEach(createdWidget =>
-			{
-				createdWidget.destroy();
-			});
-
-			super.destroy();
-		}
 	}
-}
 
+	destroy()
+	{
+		this.createdWidgets.forEach(createdWidget =>
+		{
+			createdWidget.destroy();
+		});
+
+		super.destroy();
+	}
+});
+
+let EncoderSettings = GObject.registerClass(
 class EncoderSettings extends Gtk.Grid
 {
-	constructor()
+	_init()
 	{
-		super({margin: 20, row_spacing: 6});
+		super._init({
+			margin: 20,
+			row_spacing: 6
+		});
+
 		this.title = new Gtk.Label({ label: _("Encoder") });
 		let label = null;
 		let widget = null;
@@ -572,13 +604,18 @@ class EncoderSettings extends Gtk.Grid
 		Settings.bind('burn-subtitles', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
 	}
-}
+});
 
+let ExtractorSettings = GObject.registerClass(
 class ExtractorSettings extends Gtk.Grid
 {
-	constructor()
+	_init()
 	{
-		super({margin: 20, row_spacing: 6});
+		super._init({
+			margin: 20,
+			row_spacing: 6
+		});
+
 		/* TRANSLATORS: "Players" as video players */
 		this.title = new Gtk.Label({ label: _("Extractor") });
 		let label = null;
@@ -634,23 +671,28 @@ class ExtractorSettings extends Gtk.Grid
 		{
 			this.extractorChooser.set_sensitive(this.extractorSave.active);
 		});
-
-		this.destroy = () =>
-		{
-			this.extractorChooser.disconnect(this.chooserSignal);
-			this.installExtractor.disconnect(this.installExtractorSignal);
-			this.extractorSave.disconnect(this.enableExtractorSignal);
-
-			super.destroy();
-		}
 	}
-}
 
+	destroy()
+	{
+		this.extractorChooser.disconnect(this.chooserSignal);
+		this.installExtractor.disconnect(this.installExtractorSignal);
+		this.extractorSave.disconnect(this.enableExtractorSignal);
+
+		super.destroy();
+	}
+});
+
+let MiscSettings = GObject.registerClass(
 class MiscSettings extends Gtk.Grid
 {
-	constructor()
+	_init()
 	{
-		super({margin: 20, row_spacing: 6});
+		super._init({
+			margin: 20,
+			row_spacing: 6
+		});
+
 		this.title = new Gtk.Label({ label: _("Misc") });
 		let label = null;
 		let widget = null;
@@ -704,24 +746,7 @@ class MiscSettings extends Gtk.Grid
 		this.nautilusSwitch = new Gtk.Switch({halign:Gtk.Align.END});
 		this.nautilusSwitch.set_sensitive(true);
 
-		let isFmExtEnabled = () =>
-		{
-			if(!HOME_DIR) return false;
-
-			for(let fm of FILE_MANAGERS)
-			{
-				if(
-					GLib.file_test(HOME_DIR + '/.local/share/' + fm +
-						'-python/extensions/nautilus-cast-to-tv.py', GLib.FileTest.EXISTS)
-				) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		this.nautilusSwitch.set_active(isFmExtEnabled());
+		this.nautilusSwitch.set_active(this.getIsFmEnabled());
 
 		this.nautilusSignal = this.nautilusSwitch.connect('notify::active', () =>
 		{
@@ -729,23 +754,41 @@ class MiscSettings extends Gtk.Grid
 		});
 
 		addToGrid(this, label, this.nautilusSwitch);
-
-		this.destroy = () =>
-		{
-			this.nautilusSwitch.disconnect(this.nautilusSignal);
-
-			super.destroy();
-		}
 	}
-}
 
+	getIsFmEnabled()
+	{
+		if(!HOME_DIR) return false;
+
+		for(let fm of FILE_MANAGERS)
+		{
+			if(
+				GLib.file_test(HOME_DIR + '/.local/share/' + fm +
+					'-python/extensions/nautilus-cast-to-tv.py', GLib.FileTest.EXISTS)
+			) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	destroy()
+	{
+		this.nautilusSwitch.disconnect(this.nautilusSignal);
+
+		super.destroy();
+	}
+});
+
+let AddonsSettings = GObject.registerClass(
 class AddonsSettings extends Gtk.Notebook
 {
-	constructor()
+	_init()
 	{
-		super();
-		let label = null;
+		super._init();
 
+		let label = null;
 		let extPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
 		let extDir = Gio.File.new_for_path(extPath);
 		let dirEnum = extDir.enumerate_children('standard::name,standard::type', 0, null);
@@ -784,13 +827,14 @@ class AddonsSettings extends Gtk.Notebook
 			}
 		});
 	}
-}
+});
 
+let ModulesSettings = GObject.registerClass(
 class ModulesSettings extends Gtk.VBox
 {
-	constructor()
+	_init()
 	{
-		super({margin: 10});
+		super._init({ margin: 10 });
 
 		let installLabel = _("Install npm modules");
 		this.installButton = new Gtk.Button({
@@ -864,24 +908,29 @@ class ModulesSettings extends Gtk.VBox
 		});
 
 		this.installSignal = this.installButton.connect('clicked', installModules.bind(this));
-
-		this.destroy = () =>
-		{
-			this.installButton.disconnect(this.installSignal);
-
-			if(this.termWidget && this.installFinishSignal)
-				this.termWidget.disconnect(this.installFinishSignal);
-
-			super.destroy();
-		}
 	}
-}
 
+	destroy()
+	{
+		this.installButton.disconnect(this.installSignal);
+
+		if(this.termWidget && this.installFinishSignal)
+			this.termWidget.disconnect(this.installFinishSignal);
+
+		super.destroy();
+	}
+});
+
+let AboutPage = GObject.registerClass(
 class AboutPage extends Gtk.VBox
 {
-	constructor()
+	_init()
 	{
-		super({valign: Gtk.Align.CENTER, halign: Gtk.Align.CENTER});
+		super._init({
+			valign: Gtk.Align.CENTER,
+			halign: Gtk.Align.CENTER
+		});
+
 		let label = null;
 		let linkButton = null;
 
@@ -937,45 +986,29 @@ class AboutPage extends Gtk.VBox
 		});
 		this.pack_start(linkButton, false, false, 20);
 	}
-}
+});
 
+let CastNotebook = GObject.registerClass(
 class CastNotebook extends Gtk.Notebook
 {
-	constructor()
+	_init()
 	{
-		super({margin: 5});
-		let delay = 0;
+		super._init({ margin: 5 });
 
-		let addToNotebook = (widget, name) =>
-		{
-			delay += 10;
-
-			GLib.timeout_add(GLib.PRIORITY_DEFAULT, delay, () =>
-			{
-				let label = new Gtk.Label({ label: _(name) });
-				this.append_page(widget, label);
-
-				if(!widget.visible && !widget.get_realized())
-					widget.realize();
-
-				widget.show_all();
-
-				return GLib.SOURCE_REMOVE;
-			});
-		}
+		this.delay = 0;
 
 		this.mainWidget = new MainSettings();
-		addToNotebook(this.mainWidget, _("Main"));
+		this.addToNotebook(this.mainWidget, _("Main"));
 
 		this.remoteWidget = new RemoteSettings();
-		addToNotebook(this.remoteWidget, _("Remote"));
+		this.addToNotebook(this.remoteWidget, _("Remote"));
 
 		this.chromecastWidget = new ChromecastSettings();
-		addToNotebook(this.chromecastWidget, "Chromecast");
+		this.addToNotebook(this.chromecastWidget, "Chromecast");
 
 		this.otherWidget = new OtherSettings();
 		/* TRANSLATORS: Other extension settings */
-		addToNotebook(this.otherWidget, _("Other"));
+		this.addToNotebook(this.otherWidget, _("Other"));
 
 		this.addonsWidget = new AddonsSettings();
 		let addonsNumber = this.addonsWidget.get_n_pages();
@@ -987,36 +1020,56 @@ class CastNotebook extends Gtk.Notebook
 		}
 		else
 		{
-			addToNotebook(this.addonsWidget, _("Add-ons"));
+			this.addToNotebook(this.addonsWidget, _("Add-ons"));
 		}
 
 		this.modulesWidget = new ModulesSettings();
-		addToNotebook(this.modulesWidget, _("Modules"));
+		this.addToNotebook(this.modulesWidget, _("Modules"));
 
 		this.aboutWidget = new AboutPage();
-		addToNotebook(this.aboutWidget, _("About"));
-
-		this.destroy = () =>
-		{
-			this.mainWidget.destroy();
-			this.otherWidget.destroy();
-			this.remoteWidget.destroy();
-			this.chromecastWidget.destroy();
-			this.modulesWidget.destroy();
-			this.aboutWidget.destroy();
-			if(this.addonsWidget) this.addonsWidget.destroy();
-
-			super.destroy();
-		}
+		this.addToNotebook(this.aboutWidget, _("About"));
 	}
-}
 
+	addToNotebook(widget, name)
+	{
+		this.delay += 10;
+
+		GLib.timeout_add(GLib.PRIORITY_DEFAULT, this.delay, () =>
+		{
+			let label = new Gtk.Label({ label: _(name) });
+			this.append_page(widget, label);
+
+			if(!widget.visible && !widget.get_realized())
+				widget.realize();
+
+			widget.show_all();
+
+			return GLib.SOURCE_REMOVE;
+		});
+	}
+
+	destroy()
+	{
+		this.mainWidget.destroy();
+		this.otherWidget.destroy();
+		this.remoteWidget.destroy();
+		this.chromecastWidget.destroy();
+		this.modulesWidget.destroy();
+		this.aboutWidget.destroy();
+		if(this.addonsWidget) this.addonsWidget.destroy();
+
+		super.destroy();
+	}
+});
+
+let CastToTvSettings = GObject.registerClass(
 class CastToTvSettings extends Gtk.VBox
 {
-	constructor()
+	_init()
 	{
-		super();
+		super._init();
 
+		this.timeout = null;
 		this.notebook = new CastNotebook();
 		this.pack_start(this.notebook, true, true, 0);
 
@@ -1025,85 +1078,84 @@ class CastToTvSettings extends Gtk.VBox
 
 		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
 
-		this.timeout = null;
-		this.createWebsocketConn = (isRefresh) =>
-		{
-			Soup.client.connectWebsocket('prefs', (err) =>
-			{
-				if(err) return this.delayReconnect();
-
-				if(isRefresh)
-					Soup.client.getPlaybackData(data => this._onPlayingChange(data));
-
-				Soup.client.onWebsocketMsg((err, data) =>
-				{
-					if(err) return log('Cast to TV: '+ err.message);
-
-					if(data.hasOwnProperty('isPlaying'))
-						this._onPlayingChange(data);
-					else if(data.hasOwnProperty('isEnabled'))
-						this.notebook.mainWidget.setDisplayInfo(data.isEnabled);
-				});
-
-				Soup.client.wsConn.connect('closed', () => this.delayReconnect());
-			});
-		}
-
-		this.delayReconnect = () =>
-		{
-			if(this.timeout)
-				GLib.source_remove(this.timeout);
-
-			this.timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () =>
-			{
-				this.timeout = null;
-				let wsPort = Settings.get_int('internal-port');
-
-				if(wsPort != Soup.client.wsPort)
-					Soup.client.setWsPort(wsPort);
-
-				this.createWebsocketConn(true);
-
-				return GLib.SOURCE_REMOVE;
-			});
-		}
-
 		this.intPortSignal = Settings.connect('changed::internal-port', () => this.delayReconnect());
-
 		this.createWebsocketConn();
+	}
 
-		this._onPlayingChange = (data) =>
+	createWebsocketConn(isRefresh)
+	{
+		Soup.client.connectWebsocket('prefs', (err) =>
 		{
-			if(!data) return;
+			if(err) return this.delayReconnect();
 
-			if(data.isPlaying)
-			{
-				this.notebook.hide();
-				this.notification.show();
-			}
-			else
-			{
-				this.notification.hide();
-				this.notebook.show();
-			}
+			if(isRefresh)
+				Soup.client.getPlaybackData(data => this._onPlayingChange(data));
+
+			Soup.client.onWebsocketMsg((err, data) =>
+				{
+				if(err) return log('Cast to TV: '+ err.message);
+
+				if(data.hasOwnProperty('isPlaying'))
+					this._onPlayingChange(data);
+				else if(data.hasOwnProperty('isEnabled'))
+					this.notebook.mainWidget.setDisplayInfo(data.isEnabled);
+			});
+
+			Soup.client.wsConn.connect('closed', () => this.delayReconnect());
+		});
+	}
+
+	delayReconnect()
+	{
+		if(this.timeout)
+			GLib.source_remove(this.timeout);
+
+		this.timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () =>
+		{
+			this.timeout = null;
+			let wsPort = Settings.get_int('internal-port');
+
+			if(wsPort != Soup.client.wsPort)
+				Soup.client.setWsPort(wsPort);
+
+			this.createWebsocketConn(true);
+
+			return GLib.SOURCE_REMOVE;
+		});
+	}
+
+	_onPlayingChange(data)
+	{
+		if(!data) return;
+
+		if(data.isPlaying)
+		{
+			this.notebook.hide();
+			this.notification.show();
 		}
-
-		this.destroy = () =>
+		else
 		{
-			Settings.disconnect(this.intPortSignal);
-			this.notebook.destroy();
-			this.notification.destroy();
-
-			super.destroy();
+			this.notification.hide();
+			this.notebook.show();
 		}
 	}
-}
 
+	destroy()
+	{
+		Settings.disconnect(this.intPortSignal);
+		this.notebook.destroy();
+		this.notification.destroy();
+
+		super.destroy();
+	}
+});
+
+let ChromecastIpSettings = GObject.registerClass(
 class ChromecastIpSettings extends Gtk.Dialog
 {
-	constructor(parent)
+	_init(parent)
 	{
-		super({
+		super._init({
 			title: _("Manual IP Config"),
 			transient_for: parent.get_toplevel(),
 			default_width: 420,
@@ -1120,45 +1172,21 @@ class ChromecastIpSettings extends Gtk.Dialog
 			expand: true
 		});
 
-		let listStore = new Gtk.ListStore();
-		listStore.set_column_types([
+		this.listStore = new Gtk.ListStore();
+		this.listStore.set_column_types([
 			GObject.TYPE_BOOLEAN,
 			GObject.TYPE_STRING,
 			GObject.TYPE_STRING
 		]);
 
-		let devices = [];
-		let devIndex = -1;
-
-		let loadStoreList = () =>
-		{
-			/* Restore empty devices list if someone messed it externally */
-			try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
-			catch(err) {
-				devices = [];
-				Settings.set_string('chromecast-devices', "[]");
-			}
-
-			listStore.clear();
-
-			devices.forEach(device =>
-			{
-				let devIp = device.ip || '';
-				let isAuto = (device.hasOwnProperty('name') && device.name.endsWith('.local'));
-
-				listStore.set(
-					listStore.append(),
-					[0, 1, 2], [isAuto, device.friendlyName, devIp]
-				);
-			});
-		}
-
-		loadStoreList();
+		this.devices = [];
+		this.devIndex = -1;
+		this.loadStoreList();
 
 		let treeView = new Gtk.TreeView({
 			expand: true,
 			enable_search: false,
-			model: listStore
+			model: this.listStore
 		});
 
 		let local = new Gtk.TreeViewColumn({title: _("Auto")});
@@ -1181,30 +1209,9 @@ class ChromecastIpSettings extends Gtk.Dialog
 			placeholder_text: _("Insert name")
 		});
 
-		this.normalCellSignal = this.normalCell.connect('edited', (cell, path, newText) =>
-		{
-			newText = newText.trim();
+		this.normalCellSignal = this.normalCell.connect('edited', this._onNormalCellEdit.bind(this));
 
-			if(devices[path].ip !== newText)
-			{
-				devices[path].ip = newText;
-				Settings.set_string('chromecast-devices', JSON.stringify(devices));
-				loadStoreList();
-			}
-		});
-
-		this.boldCellSignal = this.boldCell.connect('edited', (cell, path, newText) =>
-		{
-			newText = newText.trim();
-
-			if(devices[path].friendlyName !== newText)
-			{
-				devices[path].name = newText;
-				devices[path].friendlyName = newText;
-				Settings.set_string('chromecast-devices', JSON.stringify(devices));
-				loadStoreList();
-			}
-		});
+		this.boldCellSignal = this.boldCell.connect('edited', this._onBoldCellEdit.bind(this));
 
 		local.pack_start(this.activeCell, true);
 		friendlyName.pack_start(this.boldCell, true);
@@ -1221,23 +1228,8 @@ class ChromecastIpSettings extends Gtk.Dialog
 		box.pack_start(treeView, true, true, 0);
 
 		this.treeSelection = treeView.get_selection();
-		this.treeSelectionSignal = this.treeSelection.connect('changed', () =>
-		{
-			let [isSelected, model, iter] = this.treeSelection.get_selected();
-			devIndex = -1;
 
-			if(isSelected)
-			{
-				devIndex = listStore.get_string_from_iter(iter);
-				if(devIndex >= 0)
-				{
-					this.removeButton.set_sensitive(true);
-					return;
-				}
-			}
-
-			this.removeButton.set_sensitive(false);
-		});
+		this.treeSelectionSignal = this.treeSelection.connect('changed', this._onTreeSelectionChanged.bind(this));
 
 		let grid = new Gtk.Grid({
 			valign: Gtk.Align.CENTER,
@@ -1248,24 +1240,12 @@ class ChromecastIpSettings extends Gtk.Dialog
 		});
 
 		this.addButton = Gtk.Button.new_from_icon_name('list-add-symbolic', 4);
-		this.addButtonSignal = this.addButton.connect('clicked', () =>
-		{
-			devices.push({ name: '', friendlyName: '', ip: '' });
-			Settings.set_string('chromecast-devices', JSON.stringify(devices));
-			loadStoreList();
-		});
+		this.addButtonSignal = this.addButton.connect('clicked', this._onAddButtonClicked.bind(this));
 
 		this.removeButton = Gtk.Button.new_from_icon_name('list-remove-symbolic', 4);
 		this.removeButton.set_sensitive(false);
-		this.removeButtonSignal = this.removeButton.connect('clicked', () =>
-		{
-			if(devIndex >= 0)
-			{
-				devices.splice(devIndex, 1);
-				Settings.set_string('chromecast-devices', JSON.stringify(devices));
-				loadStoreList();
-			}
-		});
+
+		this.removeButtonSignal = this.removeButton.connect('clicked', this._onRemoveButtonClicked.bind(this));
 
 		grid.attach(this.removeButton, 0, 0, 1, 1);
 		grid.attach(this.addButton, 1, 0, 1, 1);
@@ -1273,19 +1253,102 @@ class ChromecastIpSettings extends Gtk.Dialog
 
 		this.get_content_area().add(box);
 		this.show_all();
+	}
 
-		this.destroy = () =>
+	loadStoreList()
+	{
+		/* Restore empty devices list if someone messed it externally */
+		try { this.devices = JSON.parse(Settings.get_string('chromecast-devices')); }
+		catch(err) {
+			this.devices = [];
+			Settings.set_string('chromecast-devices', "[]");
+		}
+
+		this.listStore.clear();
+
+		this.devices.forEach(device =>
 		{
-			this.treeSelection.disconnect(this.treeSelectionSignal);
-			this.normalCell.disconnect(this.normalCellSignal);
-			this.boldCell.disconnect(this.boldCellSignal);
-			this.addButton.disconnect(this.addButtonSignal);
-			this.removeButton.disconnect(this.removeButtonSignal);
+			let devIp = device.ip || '';
+			let isAuto = (device.hasOwnProperty('name') && device.name.endsWith('.local'));
 
-			super.destroy();
+			this.listStore.set(
+				this.listStore.append(),
+				[0, 1, 2], [isAuto, device.friendlyName, devIp]
+			);
+		});
+	}
+
+	_onNormalCellEdit(cell, path, newText)
+	{
+		newText = newText.trim();
+
+		if(this.devices[path].ip !== newText)
+		{
+			this.devices[path].ip = newText;
+			Settings.set_string('chromecast-devices', JSON.stringify(this.devices));
+			this.loadStoreList();
 		}
 	}
-}
+
+	_onBoldCellEdit(cell, path, newText)
+	{
+		newText = newText.trim();
+
+		if(this.devices[path].friendlyName !== newText)
+		{
+			this.devices[path].name = newText;
+			this.devices[path].friendlyName = newText;
+			Settings.set_string('chromecast-devices', JSON.stringify(this.devices));
+			this.loadStoreList();
+		}
+	}
+
+	_onTreeSelectionChanged()
+	{
+		let [isSelected, model, iter] = this.treeSelection.get_selected();
+		this.devIndex = -1;
+
+		if(isSelected)
+		{
+			this.devIndex = this.listStore.get_string_from_iter(iter);
+			if(this.devIndex >= 0)
+			{
+				this.removeButton.set_sensitive(true);
+				return;
+			}
+		}
+
+		this.removeButton.set_sensitive(false);
+	}
+
+	_onAddButtonClicked()
+	{
+		this.devices.push({ name: '', friendlyName: '', ip: '' });
+		Settings.set_string('chromecast-devices', JSON.stringify(this.devices));
+		this.loadStoreList();
+	}
+
+	_onRemoveButtonClicked()
+	{
+		if(this.devIndex >= 0)
+		{
+			this.devices.splice(this.devIndex, 1);
+			Settings.set_string('chromecast-devices', JSON.stringify(this.devices));
+			this.loadStoreList();
+		}
+	}
+
+	destroy()
+	{
+		this.treeSelection.disconnect(this.treeSelectionSignal);
+		this.normalCell.disconnect(this.normalCellSignal);
+		this.boldCell.disconnect(this.boldCellSignal);
+		this.addButton.disconnect(this.addButtonSignal);
+		this.removeButton.disconnect(this.removeButtonSignal);
+
+		super.destroy();
+	}
+});
 
 function scanDevices(widget, buttons)
 {
