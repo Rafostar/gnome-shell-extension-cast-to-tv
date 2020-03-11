@@ -1026,11 +1026,14 @@ class CastToTvSettings extends Gtk.VBox
 		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
 
 		this.timeout = null;
-		this.createWebsocketConn = () =>
+		this.createWebsocketConn = (isRefresh) =>
 		{
 			Soup.client.connectWebsocket('prefs', (err) =>
 			{
 				if(err) return this.delayReconnect();
+
+				if(isRefresh)
+					Soup.client.getPlaybackData(data => this._onPlayingChange(data));
 
 				Soup.client.onWebsocketMsg((err, data) =>
 				{
@@ -1059,7 +1062,7 @@ class CastToTvSettings extends Gtk.VBox
 				if(wsPort != Soup.client.wsPort)
 					Soup.client.setWsPort(wsPort);
 
-				this.createWebsocketConn();
+				this.createWebsocketConn(true);
 
 				return GLib.SOURCE_REMOVE;
 			});
