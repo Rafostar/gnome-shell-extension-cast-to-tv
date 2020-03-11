@@ -258,13 +258,28 @@ function onSelectionUpdate()
 
 	if(exports.selection.addon)
 	{
-		exports.addon = addons(exports.selection.addon.toLowerCase());
+		var addonNameLower = exports.selection.addon.toLowerCase();
+		debug(`Starting ${addonNameLower} add-on...`);
 
-		if(exports.addon)
-			exports.addon.handleSelection(exports.selection, exports.config);
-
+		exports.addon = addons(addonNameLower);
 		remove.tempCover();
 		remove.tempSubs();
+
+		if(!exports.addon)
+			return debug('Add-on init failed');
+
+		debug('Send selection to add-on');
+		var addonPromise = exports.addon.handleSelection(exports.selection, exports.config);
+
+		if(!addonPromise)
+			return castFile();
+
+		debug('Waiting for add-on init...');
+		addonPromise.then(() =>
+		{
+			debug('Add-on init completed');
+			castFile();
+		});
 	}
 	else if(exports.selection.filePath)
 	{
