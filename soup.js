@@ -33,8 +33,11 @@ class SoupServer extends Soup.Server
 
 			this._findFreePort(port, (usedPort) =>
 			{
+				if(!usedPort)
+					return cb(null);
+
 				this.isConnected = true;
-				this.usedPort = port;
+				this.usedPort = usedPort;
 
 				return cb(usedPort);
 			});
@@ -563,7 +566,7 @@ class SoupClient extends Soup.Session
 			this._getRequest('browser', cb);
 		}
 
-		this.getBrowserSync = (cb) =>
+		this.getBrowserSync = () =>
 		{
 			let browser = this._getRequestSync('browser');
 			return (browser && browser.name) ?  browser.name : null;
