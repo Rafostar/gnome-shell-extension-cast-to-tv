@@ -1,4 +1,4 @@
-const { Clutter } = imports.gi;
+const { Clutter, GObject } = imports.gi;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
@@ -364,11 +364,12 @@ var CastPlaylist = class
 	}
 }
 
+let CastPlaylistSubMenu = GObject.registerClass(
 class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 {
-	constructor()
+	_init()
 	{
-		super(_("Playlist"), true);
+		super._init(_("Playlist"), true);
 
 		this.icon.icon_name = PLAYLIST_MENU_ICON;
 		this.isActor = (this.hasOwnProperty('actor'));
@@ -393,26 +394,27 @@ class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 			this.opacity = 130;
 			this.hoverSignal = this.connect('notify::hover', callback);
 		}
-
-		this.destroy = () =>
-		{
-			this.menu.disconnect(this._openChangedSignal);
-
-			if(this.isActor)
-				this.actor.disconnect(this.hoverSignal);
-			else
-				this.disconnect(this.hoverSignal);
-
-			super.destroy();
-		}
 	}
-}
 
+	destroy()
+	{
+		this.menu.disconnect(this._openChangedSignal);
+
+		if(this.isActor)
+			this.actor.disconnect(this.hoverSignal);
+		else
+			this.disconnect(this.hoverSignal);
+
+		super.destroy();
+	}
+});
+
+let CastPlaylistItem = GObject.registerClass(
 class CastPlaylistItem extends AltPopupImage
 {
-	constructor(title, filepath)
+	_init(title, filepath)
 	{
-		super(title, PLAYLIST_ITEM_INACTIVE_ICON);
+		super._init(title, PLAYLIST_ITEM_INACTIVE_ICON);
 
 		this.isPlaylistItem = true;
 		this.isPlaying = false;
@@ -423,40 +425,41 @@ class CastPlaylistItem extends AltPopupImage
 			this.drag = DND.makeDraggable(this.actor);
 		else
 			this.drag = DND.makeDraggable(this);
+	}
 
-		this.setPlaying = (isPlaying) =>
+	setPlaying(isPlaying)
+	{
+		if(isPlaying)
+			this._icon.icon_name = PLAYLIST_ITEM_ACTIVE_ICON;
+		else
+			this._icon.icon_name = PLAYLIST_ITEM_INACTIVE_ICON;
+
+		this.isPlaying = isPlaying;
+	}
+
+	_onItemClicked()
+	{
+		/* When clicked active track seeking to zero is faster than reloading file */
+		if(this.isPlaying)
 		{
-			let activate = (isPlaying === true) ? true : false;
-
-			if(activate) this._icon.icon_name = PLAYLIST_ITEM_ACTIVE_ICON;
-			else this._icon.icon_name = PLAYLIST_ITEM_INACTIVE_ICON;
-
-			this.isPlaying = activate;
+			if(seekAllowed)
+				Soup.client.postRemote('SEEK', 0);
 		}
-
-		this._onItemClicked = () =>
+		else
 		{
-			/* When clicked active track seeking to zero is faster than reloading file */
-			if(this.isPlaying)
-			{
-				if(seekAllowed)
-					Soup.client.postRemote('SEEK', 0);
-			}
-			else
-			{
-				if(!Soup.client) return;
+			if(!Soup.client) return;
 
-				Soup.client.updateSelection(this.filepath);
-			}
+			Soup.client.updateSelection(this.filepath);
 		}
 	}
-}
+});
 
+let CastTempPlaylistItem = GObject.registerClass(
 class CastTempPlaylistItem extends AltPopupImage
 {
-	constructor(isShown)
+	_init(isShown)
 	{
-		super(' ', TEMP_INSERT_ICON);
+		super._init(' ', TEMP_INSERT_ICON);
 
 		this.isTempPlaylistItem = true;
 		this.isActor = (this.hasOwnProperty('actor'));
@@ -470,28 +473,30 @@ class CastTempPlaylistItem extends AltPopupImage
 		{
 			(this.isActor) ? this.actor.hide() : this.hide();
 		}
-
-		/* This function is called by DND */
-		this.acceptDrop = (source, actor, x, y, time) =>
-		{
-			source.drag.meta = {
-				text: source.label.text,
-				filepath: source.filepath,
-				active: source.isPlaying
-			};
-
-			source.drag.emit('drag-end', time, true);
-
-			if(actor) actor.destroy();
-			else source.destroy();
-		}
-
-		this.getVisible = () =>
-		{
-			if(this.isActor)
-				return this.actor.visible;
-			else
-				return this.visible;
-		}
 	}
-}
+
+	/* This function is called by DND */
+	acceptDrop(source, actor, x, y, time)
+	{
+		source.drag.meta = {
+			text: source.label.text,
+			filepath: source.filepath,
+			active: source.isPlaying
+		};
+
+		source.drag.emit('drag-end', time, true);
+
+		if(actor)
+			actor.destroy();
+		else
+			source.destroy();
+	}
+
+	getVisible()
+	{
+		if(this.isActor)
+			return this.actor.visible;
+		else
+			return this.visible;
+	}
+});

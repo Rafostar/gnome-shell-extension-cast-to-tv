@@ -335,7 +335,7 @@ function createRemote()
 	if(remoteMenu) remoteMenu.destroy();
 
 	let opts = Temp.getRemoteOpts();
-	remoteMenu = new Widget.remoteMenu(opts);
+	remoteMenu = new Widget.CastRemoteMenu(opts);
 
 	/* Add remote to top bar */
 	setRemotePosition();
@@ -411,7 +411,7 @@ function enable()
 	if(!config) config = Temp.getConfig();
 
 	/* Create main menu */
-	castMenu = new Widget.castMenu();
+	castMenu = new Widget.CastMainMenu();
 
 	/* Prepare signals array */
 	signals = [];
