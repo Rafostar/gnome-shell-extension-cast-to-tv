@@ -48,7 +48,7 @@ module.exports =
 		req.once('response', () =>
 		{
 			debug('Received response');
-			req.removeListener('error', debug)
+			req.removeListener('error', debug);
 		});
 		req.end(dataString, cb);
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const bowser = require("bowser");
+const bowser = require('bowser');
 const path = require('path');
 const bridge = require('./bridge');
 const webcreator = require('./web-creator');
@@ -90,8 +90,10 @@ app.get('/', function(req, res)
 			res.sendFile(path.join(__dirname + '/../webplayer/webplayer_direct.html'));
 			break;
 		case 'MUSIC':
-			if(bridge.config.musicVisualizer) res.sendFile(path.join(__dirname + '/../webplayer/webplayer_encode.html'));
-			else res.sendFile(path.join(__dirname + '/../webplayer/webplayer_direct.html'));
+			if(bridge.config.musicVisualizer)
+				res.sendFile(path.join(__dirname + '/../webplayer/webplayer_encode.html'));
+			else
+				res.sendFile(path.join(__dirname + '/../webplayer/webplayer_direct.html'));
 			break;
 		case 'PICTURE':
 			res.sendFile(path.join(__dirname + '/../webplayer/picture.html'));
