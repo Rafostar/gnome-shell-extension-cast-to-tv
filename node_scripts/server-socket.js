@@ -188,28 +188,19 @@ function handleMessages(socket)
 
 function initWebPlayer()
 {
-	var initType = 'VIDEO';
-	var isSub = false;
-
-	if(
-		bridge.selection.streamType !== 'MUSIC'
-		&& bridge.selection.streamType !== 'PICTURE'
-	) {
-		if(bridge.selection.subsPath || bridge.selection.subsSrc)
-		{
-			if(
-				bridge.selection.streamType === 'VIDEO'
-				|| !bridge.config.burnSubtitles
-			)
-				isSub = true;
-		}
-	}
-
-	if(
+	var initType = (
 		bridge.selection.streamType === 'MUSIC'
 		&& !bridge.config.musicVisualizer
-	)
-		initType = 'MUSIC';
+	) ? 'MUSIC' : 'VIDEO';
+
+	var isSub = (
+		bridge.selection.streamType !== 'MUSIC'
+		&& bridge.selection.streamType !== 'PICTURE'
+		&& (bridge.selection.subsPath || bridge.selection.subsSrc)
+		&& (bridge.selection.streamType === 'VIDEO'
+		|| bridge.selection.streamType === 'VIDEO_AUDIOENC'
+		|| !bridge.config.burnSubtitles)
+	);
 
 	var webData = {
 		type: initType,
