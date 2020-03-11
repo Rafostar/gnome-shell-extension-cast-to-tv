@@ -5,11 +5,8 @@
   "name": "Cast to TV", 
   "settings-schema": "org.gnome.shell.extensions.cast-to-tv", 
   "shell-version": [
-    "3.26", 
-    "3.28", 
-    "3.30", 
-    "3.32", 
-    "3.34"
+    "3.34", 
+    "3.36"
   ], 
   "url": "https://rafostar.github.io/gnome-shell-extension-cast-to-tv", 
   "uuid": "cast-to-tv@rafostar.github.com", 
