@@ -37,62 +37,66 @@ function setLastMenuItem(extMenu, item, endOffset)
 
 function enableAddon(addonName, Widget)
 {
-	if(!addonName || !Widget) return;
+	if(
+		!addonName
+		|| !Widget
+		|| timeouts[addonName]
+	) {
+		return;
+	}
 
-	if(!timeouts[addonName])
+	/* Give main extension time to finish startup */
+	timeouts[addonName] = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2500, () =>
 	{
-		/* Give main extension time to finish startup */
-		timeouts[addonName] = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2500, () =>
+		timeouts[addonName] = null;
+
+		castMenu = findCastToTv();
+
+		if(!castMenu)
+			return GLib.SOURCE_REMOVE;
+
+		addonMenuItems[addonName] = new Widget.addonMenuItem();
+
+		let castMenuItems = castMenu.castSubMenu.menu._getMenuItems();
+		let insertIndex = castMenuItems.length - 1;
+
+		let prevMenuItem = castMenuItems.find(item =>
 		{
-			timeouts[addonName] = null;
-
-			castMenu = findCastToTv();
-			if(castMenu)
-			{
-				addonMenuItems[addonName] = new Widget.addonMenuItem();
-
-				let castMenuItems = castMenu.castSubMenu.menu._getMenuItems();
-				let insertIndex = castMenuItems.length - 1;
-
-				let prevMenuItem = castMenuItems.find(item =>
-				{
-					if(
-						item.hasOwnProperty('isDesktopStream')
-						|| (castMenuItems.indexOf(item) > 2
-						&& addonMenuItems[addonName].label.text < item.label.text)
-					) {
-						return true;
-					}
-
-					return false;
-				});
-
-				/* Desktop streaming should be last on the list (experimental feature) */
-				if(prevMenuItem && !addonMenuItems[addonName].hasOwnProperty('isDesktopStream'))
-					insertIndex = castMenuItems.indexOf(prevMenuItem);
-
-				castMenu.castSubMenu.menu.addMenuItem(addonMenuItems[addonName], insertIndex);
-
-				if(
-					castMenu.hasOwnProperty('isServiceEnabled')
-					&& castMenu.isServiceEnabled === false
-				) {
-					if(addonMenuItems[addonName].hasOwnProperty('actor'))
-						addonMenuItems[addonName].actor.hide();
-					else
-						addonMenuItems[addonName].hide();
-				}
-
-				if(castMenu.hasOwnProperty('serviceMenuItem'))
-					setLastMenuItem(castMenu, castMenu.serviceMenuItem);
-
-				if(castMenu.hasOwnProperty('settingsMenuItem'))
-					setLastMenuItem(castMenu, castMenu.settingsMenuItem);
+			if(
+				item.hasOwnProperty('isDesktopStream')
+				|| (castMenuItems.indexOf(item) > 2
+				&& addonMenuItems[addonName].label.text < item.label.text)
+			) {
+				return true;
 			}
 
-			return GLib.SOURCE_REMOVE;
+			return false;
 		});
-	}
+
+		/* Desktop streaming should be last on the list (experimental feature) */
+		if(prevMenuItem && !addonMenuItems[addonName].hasOwnProperty('isDesktopStream'))
+			insertIndex = castMenuItems.indexOf(prevMenuItem);
+
+		castMenu.castSubMenu.menu.addMenuItem(addonMenuItems[addonName], insertIndex);
+
+		if(
+			castMenu.hasOwnProperty('isServiceEnabled')
+			&& castMenu.isServiceEnabled === false
+		) {
+			if(addonMenuItems[addonName].hasOwnProperty('actor'))
+				addonMenuItems[addonName].actor.hide();
+			else
+				addonMenuItems[addonName].hide();
+		}
+
+		if(castMenu.hasOwnProperty('serviceMenuItem'))
+			setLastMenuItem(castMenu, castMenu.serviceMenuItem);
+
+		if(castMenu.hasOwnProperty('settingsMenuItem'))
+			setLastMenuItem(castMenu, castMenu.settingsMenuItem);
+
+		return GLib.SOURCE_REMOVE;
+	});
 }
 
 function disableAddon(addonName)
@@ -103,23 +107,25 @@ function disableAddon(addonName)
 		timeouts[addonName] = null;
 	}
 
-	if(addonMenuItems[addonName])
-	{
-		/* No need to reorder menu items when locking screen,
-		as whole cast menu will be destroyed then anyway */
-		let lockingScreen = (Main.sessionMode.currentMode == 'unlock-dialog'
-			|| Main.sessionMode.currentMode == 'lock-screen');
+	if(!addonMenuItems[addonName])
+		return;
 
-		if(!lockingScreen && castMenu)
-			setLastMenuItem(castMenu, addonMenuItems[addonName]);
+	/* No need to reorder menu items when locking screen,
+	as whole cast menu will be destroyed then anyway */
+	let lockingScreen = (
+		Main.sessionMode.currentMode == 'unlock-dialog'
+		|| Main.sessionMode.currentMode == 'lock-screen'
+	);
 
-		/* Force GUI refresh by hiding item before removal */
-		if(addonMenuItems[addonName].hasOwnProperty('actor'))
-			addonMenuItems[addonName].actor.hide();
-		else
-			addonMenuItems[addonName].hide();
+	if(!lockingScreen && castMenu)
+		setLastMenuItem(castMenu, addonMenuItems[addonName]);
 
-		addonMenuItems[addonName].destroy();
-		addonMenuItems[addonName] = null;
-	}
+	/* Force GUI refresh by hiding item before removal */
+	if(addonMenuItems[addonName].hasOwnProperty('actor'))
+		addonMenuItems[addonName].actor.hide();
+	else
+		addonMenuItems[addonName].hide();
+
+	addonMenuItems[addonName].destroy();
+	addonMenuItems[addonName] = null;
 }

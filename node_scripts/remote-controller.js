@@ -72,15 +72,13 @@ exports.checkNextTrack = function()
 
 exports.clearSlideshow = function()
 {
-	if(slideshowTimeout)
-	{
-		clearTimeout(slideshowTimeout);
-		slideshowTimeout = null;
+	if(!slideshowTimeout)
+		return false;
 
-		return true;
-	}
+	clearTimeout(slideshowTimeout);
+	slideshowTimeout = null;
 
-	return false;
+	return true;
 }
 
 exports.setSlideshow = function()
