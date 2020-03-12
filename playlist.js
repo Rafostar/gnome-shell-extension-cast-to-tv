@@ -312,7 +312,7 @@ var CastPlaylist = class
 
 	_onDragMotion(dragEvent)
 	{
-		/* Updating label before and after move fixes moveMenuItem() on GNOME 3.32 */
+		/* Updating label before and after move fixes moveMenuItem() */
 		this.tempMenuItem.label.hide();
 
 		let targetItem = (dragEvent.targetActor.hasOwnProperty('_delegate')) ?
@@ -342,7 +342,7 @@ var CastPlaylist = class
 				this.tempMenuItem.hide();
 		}
 
-		/* Must be here for GNOME 3.32 moveMenuItem() fix */
+		/* Must be here for moveMenuItem() fix */
 		this.tempMenuItem.label.show();
 
 		return DND.DragMotionResult.CONTINUE;
