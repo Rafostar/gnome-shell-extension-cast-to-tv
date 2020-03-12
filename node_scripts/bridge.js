@@ -361,7 +361,7 @@ function processSelection(cb)
 			cb(null);
 			break;
 		case 'VIDEO':
-		case 'VIDEO_AUDIOENC':
+		case 'VIDEO_AENC':
 			remove.tempCover();
 			processVideoSelection(cb);
 			break;

@@ -62,7 +62,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def get_soup_data(self, data_type):
         port = self.ext_settings.get_int('listening-port')
-        url = 'http://127.0.0.1:' + str(port) + '/temp/' + data_type
+        url = 'http://127.0.0.1:' + str(port) + '/api/' + data_type
         msg = Soup.Message.new('GET', url)
         response = self.soup_client.send_message(msg)
         if response == 200:
@@ -72,7 +72,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def post_soup_data(self, data_type, data, is_append):
         port = self.ext_settings.get_int('listening-port')
-        url = 'http://127.0.0.1:' + str(port) + '/temp/' + data_type
+        url = 'http://127.0.0.1:' + str(port) + '/api/' + data_type
 
         if (data_type == 'playlist' and is_append):
             url += '?append=true'
@@ -183,12 +183,12 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
                     playlist_allowed = self.get_playlist_allowed(stream_type)
 
         cast_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=_(cast_label))
-        cast_item.connect('activate', self.cast_files_cb, files, stream_type, False, device_config_name)
+        cast_item.connect('activate', self.cast_files_cb, files, stream_type, device_config_name)
         cast_submenu.append_item(cast_item)
 
         if playlist_allowed:
             playlist_item = FileManager.MenuItem(name='CastToTVMenu::AddToPlaylist', label=_("Add to Playlist"))
-            playlist_item.connect('activate', self.add_to_playlist_cb, files, stream_type, False)
+            playlist_item.connect('activate', self.add_to_playlist_cb, files, stream_type)
             cast_submenu.append_item(playlist_item)
 
         if stream_type == 'VIDEO':
@@ -201,7 +201,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             transcode_submenu.append_item(video_only_item)
 
             audio_only_item = FileManager.MenuItem(name='CastTranscodeMenu::Audio', label=_("Audio"))
-            audio_only_item.connect('activate', self.transcode_audio_cb, files, stream_type, True, device_config_name)
+            audio_only_item.connect('activate', self.transcode_audio_cb, files, stream_type, device_config_name)
             transcode_submenu.append_item(audio_only_item)
 
             video_audio_item = FileManager.MenuItem(name='CastTranscodeMenu::Video+Audio', label=_("Video + Audio"))
@@ -315,7 +315,7 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         return parsed_files
 
-    def cast_files_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
+    def cast_files_cb(self, menu, files, stream_type, device_config_name):
         if device_config_name != None:
             receiver_type = self.ext_settings.get_string('receiver-type')
             if receiver_type == 'chromecast':
@@ -332,36 +332,32 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             "selection": {
                 "streamType": stream_type,
                 "subsPath": self.subs_path,
-                "filePath": playlist[0],
-                "transcodeAudio": is_transcode_audio
+                "filePath": playlist[0]
             }
         }
 
         self.post_soup_data('playback-data', playback_data, False)
 
-    def add_to_playlist_cb(self, menu, files, stream_type, is_transcode_audio):
+    def add_to_playlist_cb(self, menu, files, stream_type):
         # Check if Chromecast did not stop playing before option select
         playlist_allowed = self.get_playlist_allowed(stream_type)
         if playlist_allowed:
             playlist = self.get_parsed_playlist(files)
             self.post_soup_data('playlist', playlist, True)
         else:
-            self.cast_files_cb(menu, files, stream_type, is_transcode_audio, None)
+            self.cast_files_cb(menu, files, stream_type, None)
 
     def transcode_video_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
-        video_acceleration = self.ext_settings.get_string('video-acceleration')
-        if video_acceleration == 'vaapi':
-            stream_type += '_VAAPI'
-        elif video_acceleration == 'nvenc':
-            stream_type += '_NVENC'
-        else:
-            stream_type += '_ENCODE'
+        stream_type += '_VENC'
 
-        self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
+        if is_transcode_audio:
+            stream_type += '_AENC'
 
-    def transcode_audio_cb(self, menu, files, stream_type, is_transcode_audio, device_config_name):
-        stream_type += '_AUDIOENC'
-        self.cast_files_cb(menu, files, stream_type, is_transcode_audio, device_config_name)
+        self.cast_files_cb(menu, files, stream_type, device_config_name)
+
+    def transcode_audio_cb(self, menu, files, stream_type, device_config_name):
+        stream_type += '_AENC'
+        self.cast_files_cb(menu, files, stream_type, device_config_name)
 
     def get_playlist_allowed(self, stream_type):
         if self.ws_data and self.ws_data['isPlaying']:
@@ -371,8 +367,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
                 preselection
                 and not 'addon' in preselection
                 and preselection['streamType'] == stream_type
-                and 'transcodeAudio' in preselection
-                and not preselection['transcodeAudio']
             ):
                 return True
 

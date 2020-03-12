@@ -41,7 +41,7 @@ module.exports =
 			return cb(null);
 
 		lastData = dataString;
-		this.opts.path = '/temp/' + type;
+		this.opts.path = '/api/' + type;
 
 		var req = http.request(this.opts, () => {});
 		req.on('error', debug);

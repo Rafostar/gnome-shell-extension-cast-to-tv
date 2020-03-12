@@ -198,7 +198,7 @@ function initWebPlayer()
 		&& bridge.selection.streamType !== 'PICTURE'
 		&& (bridge.selection.subsPath || bridge.selection.subsSrc)
 		&& (bridge.selection.streamType === 'VIDEO'
-		|| bridge.selection.streamType === 'VIDEO_AUDIOENC'
+		|| bridge.selection.streamType === 'VIDEO_AENC'
 		|| !bridge.config.burnSubtitles)
 	);
 
