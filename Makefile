@@ -28,12 +28,18 @@ mergepo:
 		msgmerge -U $$i $(POTFILE); \
 	done;
 
-# Compile .mo files #
-compilemo:
+# Compile all .mo files #
+compilemo: compilemo-base compilemo-addons
+
+# Compile extension .mo files #
+compilemo-base:
 	for i in $(MSGSRC); do \
 		mkdir -p ./locale/`basename $$i .po`/LC_MESSAGES; \
 		msgfmt -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
 	done;
+
+# Compile addons .mo files #
+compilemo-addons:
 	for i in $(POFOLDERS); do \
 		for j in $$i/*.po; do \
 			mkdir -p ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES; \
@@ -55,7 +61,7 @@ ifeq ($(CUSTOMPATH),)
 endif
 
 # Build and install #
-install: compilemo metadata
+install: compilemo-base metadata
 ifeq ($(CUSTOMPATH),)
 	glib-compile-schemas ./schemas/
 	mkdir -p $(INSTALLPATH)/$(UUID)
@@ -76,5 +82,5 @@ else
 	chmod 777 $(CUSTOMPATH)/$(UUID)/node_modules
 endif
 
-_build: glib-schemas compilemo
+_build: glib-schemas compilemo-base
 
