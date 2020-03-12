@@ -235,7 +235,10 @@ class CastClient extends Soup.Session
 {
 	_init(nodePort, wsPort)
 	{
-		super._init({ timeout: 3 });
+		super._init({
+			timeout: 3,
+			use_thread_context: true
+		});
 
 		this.nodePort = (nodePort && nodePort > 0) ? parseInt(nodePort) : null;
 		this.wsPort = (wsPort && wsPort > 0) ? parseInt(wsPort) : null;
