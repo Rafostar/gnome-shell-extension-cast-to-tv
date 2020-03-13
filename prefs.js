@@ -1029,9 +1029,13 @@ class CastNotebook extends Gtk.Notebook
 			this.otherWidget.destroy();
 			this.remoteWidget.destroy();
 			this.chromecastWidget.destroy();
-			this.modulesWidget.destroy();
 			this.aboutWidget.destroy();
-			if(this.addonsWidget) this.addonsWidget.destroy();
+
+			if(this.modulesWidget)
+				this.modulesWidget.destroy();
+
+			if(this.addonsWidget)
+				this.addonsWidget.destroy();
 
 			super.destroy();
 		}
