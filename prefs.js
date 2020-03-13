@@ -828,11 +828,31 @@ class ModulesSettings extends Gtk.VBox
 			let pty = Vte.Pty.new_sync(Vte.PtyFlags.DEFAULT, null);
 			this.termWidget.set_pty(pty);
 
-			pty.spawn_async(
-				Local.path, [NPM_PATH, 'install'], null,
-				GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null,
-				(self, res) => ptyCallback(self, res)
-			);
+			try {
+				pty.spawn_async(
+					Local.path, [NPM_PATH, 'install'], null,
+					GLib.SpawnFlags.DO_NOT_REAP_CHILD, null, 120000, null,
+					(self, res) => ptyCallback(self, res)
+				);
+			}
+			catch(err) {
+				let extPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
+
+				let errMsg = [
+					'Error: Could not spawn VTE terminal',
+					'Reason: ' + err.message,
+					'',
+					'Try installing from terminal with:',
+					'cd ' + extPath,
+					'npm install',
+					'\0'
+				].join('\n');
+
+				this.termWidget.feed_child(errMsg, -1);
+
+				this.installButton.label = _(installLabel);
+				this.installButton.set_sensitive(true);
+			}
 		}
 
 		/*
