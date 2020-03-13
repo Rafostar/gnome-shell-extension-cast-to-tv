@@ -39,9 +39,9 @@ function getSubsOptions()
 	return subsPathEscaped;
 }
 
-function getAudioOptsArray()
+function getAudioOptsArray(isEncodeAudio)
 {
-	return (bridge.selection.transcodeAudio) ? ['flac', '-ac', '2'] : ['copy'];
+	return (isEncodeAudio && isEncodeAudio === true) ? ['flac', '-ac', '2'] : ['copy'];
 }
 
 function getPlayerOptsArray()
@@ -112,7 +112,7 @@ function onEncodeError(error)
 	debug(error);
 }
 
-exports.video = function()
+exports.video = function(isEncodeAudio)
 {
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
@@ -121,7 +121,7 @@ exports.video = function()
 	'-preset', 'superfast',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', ...getAudioOptsArray(),
+	'-c:a', ...getAudioOptsArray(isEncodeAudio),
 	'-metadata', 'title=Cast to TV - Software Encoded Stream',
 	...getPlayerOptsArray(),
 	'pipe:1'
@@ -140,14 +140,14 @@ exports.video = function()
 	return createEncodeProcess(encodeOpts);
 }
 
-exports.videoVaapi = function()
+exports.videoVaapi = function(isEncodeAudio)
 {
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
 	'-c:v', 'h264_vaapi',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', ...getAudioOptsArray(),
+	'-c:a', ...getAudioOptsArray(isEncodeAudio),
 	'-metadata', 'title=Cast to TV - VAAPI Encoded Stream',
 	...getPlayerOptsArray(),
 	'pipe:1'
@@ -177,14 +177,14 @@ exports.videoVaapi = function()
 	return createEncodeProcess(encodeOpts);
 }
 
-exports.videoNvenc = function()
+exports.videoNvenc = function(isEncodeAudio)
 {
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
 	'-c:v', 'h264_nvenc',
 	'-level:v', '4.1',
 	'-b:v', bridge.config.videoBitrate + 'M',
-	'-c:a', ...getAudioOptsArray(),
+	'-c:a', ...getAudioOptsArray(isEncodeAudio),
 	'-metadata', 'title=Cast to TV - NVENC Encoded Stream',
 	...getPlayerOptsArray(),
 	'pipe:1'
@@ -208,7 +208,7 @@ exports.audio = function()
 	var encodeOpts = [
 	'-i', bridge.selection.filePath,
 	'-c:v', 'copy',
-	'-c:a', ...getAudioOptsArray(),
+	'-c:a', ...getAudioOptsArray(true),
 	'-metadata', 'title=Cast to TV - Audio Encoded Stream',
 	...getPlayerOptsArray(),
 	'pipe:1'

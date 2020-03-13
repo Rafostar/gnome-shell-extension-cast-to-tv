@@ -200,35 +200,20 @@ class fileChooser
 		}
 	}
 
-	_getEncodeTypeString(config)
+	_getEncodeTypeString()
 	{
-		if(this.comboBoxConvert)
+		if(!this.comboBoxConvert)
+			return '';
+
+		switch(this.comboBoxConvert.active_id)
 		{
-			if(this.comboBoxConvert.active_id === 'audio')
-				return '_AUDIOENC';
-
-			switch(config.videoAcceleration)
-			{
-				case 'vaapi':
-					return '_VAAPI';
-				case 'nvenc':
-					return '_NVENC';
-				default:
-					return '_ENCODE';
-			}
+			case 'video':
+				return '_VENC';
+			case 'audio':
+				return '_AENC';
+			default:
+				return '_VENC_AENC';
 		}
-
-		return '';
-	}
-
-	_getTranscodeAudioEnabled()
-	{
-		let isTranscodeAudioEnabled = false;
-
-		if(this.comboBoxConvert)
-			isTranscodeAudioEnabled = (this.comboBoxConvert.active_id !== 'video');
-
-		return isTranscodeAudioEnabled;
 	}
 
 	_openDialog()
@@ -343,12 +328,7 @@ class fileChooser
 
 		/* Handle convert button */
 		if(this.buttonConvert && this.buttonConvert.get_active())
-		{
-			selection.streamType += this._getEncodeTypeString(config);
-			selection.transcodeAudio = this._getTranscodeAudioEnabled();
-		}
-		else
-			selection.transcodeAudio = false;
+			selection.streamType += this._getEncodeTypeString();
 
 		this.fileChooser.destroy();
 
@@ -469,8 +449,6 @@ class fileChooser
 					preSelection
 					&& !preSelection.hasOwnProperty('addon')
 					&& preSelection.streamType === STREAM_TYPE
-					&& preSelection.hasOwnProperty('transcodeAudio')
-					&& !preSelection.transcodeAudio
 				)
 					allowed = true;
 			}

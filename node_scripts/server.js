@@ -153,17 +153,17 @@ app.get('/webplayer/webconfig.css', function(req, res)
 	webcreator.webConfig(req, res);
 });
 
-app.get('/temp/*', function(req, res)
+app.get('/api/*', function(req, res)
 {
 	if(req.params[0] === 'browser')
 		res.send({ name: getBrowserName() });
 	else
-		webcreator.getTemp(req.params[0], req, res);
+		webcreator.apiGet(req.params[0], req, res);
 });
 
-app.post('/temp/*', function(req, res)
+app.post('/api/*', function(req, res)
 {
-	webcreator.postTemp(req.params[0], req, res);
+	webcreator.apiPost(req.params[0], req, res);
 });
 
 app.get('/segment*', function(req, res)

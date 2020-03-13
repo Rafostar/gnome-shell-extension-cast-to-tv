@@ -58,19 +58,29 @@ exports.encodedStream = function(req, res)
 			'Connection': 'close',
 			'Content-Type': 'video/mp4'
 		});
-
 		switch(streamType)
 		{
-			case 'VIDEO_VAAPI':
-				encode.videoVaapi().pipe(res);
-				break;
-			case 'VIDEO_NVENC':
-				encode.videoNvenc().pipe(res);
-				break;
 			case 'MUSIC':
 				encode.musicVisualizer().pipe(res);
 				break;
-			case 'VIDEO_AUDIOENC':
+			case 'VIDEO_VENC':
+			case 'VIDEO_VENC_AENC':
+			case 'VIDEO_AENC_VENC':
+				var audioEnc = streamType.includes('_AENC');
+				switch(bridge.config.videoAcceleration)
+				{
+					case 'vaapi':
+						encode.videoVaapi(audioEnc).pipe(res);
+						break;
+					case 'nvenc':
+						encode.videoNvenc(audioEnc).pipe(res);
+						break;
+					default:
+						encode.video(audioEnc).pipe(res);
+						break;
+				}
+				break;
+			case 'VIDEO_AENC':
 				encode.audio().pipe(res);
 				break;
 			default:
@@ -162,7 +172,7 @@ exports.webConfig = function(req, res)
 	res.send(webConfig);
 }
 
-exports.getTemp = function(type, req, res)
+exports.apiGet = function(type, req, res)
 {
 	switch(type)
 	{
@@ -193,7 +203,7 @@ exports.getTemp = function(type, req, res)
 	}
 }
 
-exports.postTemp = function(type, req, res)
+exports.apiPost = function(type, req, res)
 {
 	switch(type)
 	{
