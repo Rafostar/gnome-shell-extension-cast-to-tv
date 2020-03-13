@@ -54,10 +54,15 @@ zip-file: _build
 # Update metadata #
 metadata:
 ifeq ($(CUSTOMPATH),)
+ifeq ($(PKGDIR),)
 	LASTCOMMIT=$(shell git rev-parse --short HEAD); \
 	grep -q '"git":' metadata.json \
 	&& sed -i "/\"git\":/c \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json \
 	|| sed -i "/uuid/a \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json
+else
+	grep -q '"custom-install":' metadata.json \
+	|| sed -i "/uuid/a \ \ \"custom-install\": true," metadata.json
+endif
 endif
 
 # Build and install #
@@ -69,15 +74,15 @@ ifeq ($(CUSTOMPATH),)
 else
 	mkdir -p $(CUSTOMPATH)/$(UUID)
 	cp -r $(filter-out schemas locale README.md COPYING, $(ZIPFILES)) $(CUSTOMPATH)/$(UUID)
-	mkdir -p /usr/share/glib-2.0/schemas
-	cp -r ./schemas/*.gschema.* /usr/share/glib-2.0/schemas/
-	glib-compile-schemas /usr/share/glib-2.0/schemas 2>/dev/null
-	mkdir -p /usr/share/locale
-	cp -r ./locale/* /usr/share/locale/
-	mkdir -p /usr/share/doc/$(EXTNAME)
-	cp ./README.md /usr/share/doc/$(EXTNAME)/
-	mkdir -p /usr/share/licenses/$(EXTNAME)
-	cp ./COPYING /usr/share/licenses/$(EXTNAME)/
+	mkdir -p $(PKGDIR)/usr/share/glib-2.0/schemas
+	cp -r ./schemas/*.gschema.* $(PKGDIR)/usr/share/glib-2.0/schemas/
+	glib-compile-schemas $(PKGDIR)/usr/share/glib-2.0/schemas 2>/dev/null
+	mkdir -p $(PKGDIR)/usr/share/locale
+	cp -r ./locale/* $(PKGDIR)/usr/share/locale/
+	mkdir -p $(PKGDIR)/usr/share/doc/$(EXTNAME)
+	cp ./README.md $(PKGDIR)/usr/share/doc/$(EXTNAME)/
+	mkdir -p $(PKGDIR)/usr/share/licenses/$(EXTNAME)
+	cp ./COPYING $(PKGDIR)/usr/share/licenses/$(EXTNAME)/
 	mkdir -p $(CUSTOMPATH)/$(UUID)/node_modules
 	chmod 777 $(CUSTOMPATH)/$(UUID)/node_modules
 endif
