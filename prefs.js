@@ -699,6 +699,17 @@ class MiscSettings extends Gtk.Grid
 		Settings.bind('music-visualizer', widget, 'active', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
 
+		this.destroy = () =>
+		{
+			if(this.nautilusSwitch)
+				this.nautilusSwitch.disconnect(this.nautilusSignal);
+
+			super.destroy();
+		}
+
+		if(Local.metadata['custom-install'])
+			return;
+
 		/* Nautilus/Nemo Integration */
 		label = new SettingLabel(_("Nautilus/Nemo integration"));
 		this.nautilusSwitch = new Gtk.Switch({halign:Gtk.Align.END});
@@ -729,13 +740,6 @@ class MiscSettings extends Gtk.Grid
 		});
 
 		addToGrid(this, label, this.nautilusSwitch);
-
-		this.destroy = () =>
-		{
-			this.nautilusSwitch.disconnect(this.nautilusSignal);
-
-			super.destroy();
-		}
 	}
 }
 
@@ -1010,8 +1014,11 @@ class CastNotebook extends Gtk.Notebook
 			addToNotebook(this.addonsWidget, _("Add-ons"));
 		}
 
-		this.modulesWidget = new ModulesSettings();
-		addToNotebook(this.modulesWidget, _("Modules"));
+		if(!Local.metadata['custom-install'])
+		{
+			this.modulesWidget = new ModulesSettings();
+			addToNotebook(this.modulesWidget, _("Modules"));
+		}
 
 		this.aboutWidget = new AboutPage();
 		addToNotebook(this.aboutWidget, _("About"));
