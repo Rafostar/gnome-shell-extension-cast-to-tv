@@ -54,10 +54,15 @@ zip-file: _build
 # Update metadata #
 metadata:
 ifeq ($(CUSTOMPATH),)
+ifeq ($(PKGDIR),)
 	LASTCOMMIT=$(shell git rev-parse --short HEAD); \
 	grep -q '"git":' metadata.json \
 	&& sed -i "/\"git\":/c \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json \
 	|| sed -i "/uuid/a \ \ \"git\": \"$$LASTCOMMIT\"," metadata.json
+else
+	grep -q '"custom-install":' metadata.json \
+	|| sed -i "/uuid/a \ \ \"custom-install\": true," metadata.json
+endif
 endif
 
 # Build and install #
