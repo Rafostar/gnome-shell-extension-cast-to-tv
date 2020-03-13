@@ -279,6 +279,10 @@ function onSelectionUpdate()
 		{
 			debug('Add-on init completed');
 			castFile();
+		}).catch(err =>
+		{
+			debug(err);
+			notify(`Cast to TV - ${addonNameLower} add-on`, err.message);
 		});
 	}
 	else if(exports.selection.filePath)
