@@ -73,9 +73,9 @@ class CastServer extends Soup.Server
 	/* Should not be used in extension more than once */
 	onPlaybackData(cb)
 	{
-		this.remove_handler('/temp/data');
+		this.remove_handler('/api/data');
 
-		this.add_handler('/temp/data', (self, msg) =>
+		this.add_handler('/api/data', (self, msg) =>
 		{
 			let parsedMsg = this.parseMessage(msg);
 
@@ -185,9 +185,9 @@ class CastServer extends Soup.Server
 	onPlaybackStatus(cb)
 	{
 		/* Must remove previous handler on new remote creation */
-		this.remove_handler('/temp/status');
+		this.remove_handler('/api/status');
 
-		this.add_handler('/temp/status', (self, msg) =>
+		this.add_handler('/api/status', (self, msg) =>
 		{
 			cb(this.parseMessage(msg));
 		});
@@ -195,9 +195,9 @@ class CastServer extends Soup.Server
 
 	onBrowserData(cb)
 	{
-		this.remove_handler('/temp/browser');
+		this.remove_handler('/api/browser');
 
-		this.add_handler('/temp/browser', (self, msg) =>
+		this.add_handler('/api/browser', (self, msg) =>
 		{
 			cb(this.parseMessage(msg));
 		});
@@ -214,9 +214,9 @@ class CastServer extends Soup.Server
 			this.remove_handler('/websocket/' + conn);
 
 		this.disconnectWebsockets();
-		this.remove_handler('/temp/data');
-		this.remove_handler('/temp/status');
-		this.remove_handler('/temp/browser');
+		this.remove_handler('/api/data');
+		this.remove_handler('/api/status');
+		this.remove_handler('/api/browser');
 	}
 
 	closeCleanup()
@@ -260,7 +260,7 @@ class CastClient extends Soup.Session
 		cb = cb || noop;
 
 		let message = Soup.Message.new(
-			'GET', 'http://127.0.0.1:' + this.nodePort + '/temp/' + type
+			'GET', 'http://127.0.0.1:' + this.nodePort + '/api/' + type
 		);
 
 		this.queue_message(message, () =>
@@ -286,7 +286,7 @@ class CastClient extends Soup.Session
 		let result = null;
 
 		let message = Soup.Message.new(
-			'GET', 'http://127.0.0.1:' + this.nodePort + '/temp/' + type
+			'GET', 'http://127.0.0.1:' + this.nodePort + '/api/' + type
 		);
 
 		this.send_message(message);
@@ -308,7 +308,7 @@ class CastClient extends Soup.Session
 	{
 		cb = cb || noop;
 
-		let url = 'http://127.0.0.1:' + this.nodePort + '/temp/' + type;
+		let url = 'http://127.0.0.1:' + this.nodePort + '/api/' + type;
 
 		if(query) url += '?' + query;
 
@@ -331,7 +331,7 @@ class CastClient extends Soup.Session
 
 	_postRequestSync(type, data, query)
 	{
-		let url = 'http://127.0.0.1:' + this.nodePort + '/temp/' + type;
+		let url = 'http://127.0.0.1:' + this.nodePort + '/api/' + type;
 
 		if(query) url += '?' + query;
 
