@@ -145,7 +145,7 @@ function extractFromFile(filePath)
 					data, config.subsPreferred
 				);
 
-				if(!extOpts.streamIndex)
+				if(!extOpts.streamIndex && config.subsFallback)
 				{
 					extOpts.streamIndex = extract.video.getSubsTrackIndex(
 						data, config.subsFallback

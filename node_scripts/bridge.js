@@ -682,9 +682,8 @@ function analyzeVideoFile(reusePath, cb)
 				exports.config.subsPreferred
 			);
 
-			if(!opts.streamIndex)
+			if(!opts.streamIndex && exports.config.subsFallback)
 			{
-				debug('Preferred subs not found');
 				debug(`Searching for fallback subtitles: ${exports.config.subsFallback}`);
 
 				opts.streamIndex = extract.video.getSubsTrackIndex(
@@ -695,6 +694,8 @@ function analyzeVideoFile(reusePath, cb)
 
 			if(opts.streamIndex)
 				debug('Found requested subtitles track');
+			else
+				debug('Requested subtitles track not found');
 		}
 
 		debug('Extracting video subtitles...');
