@@ -107,11 +107,6 @@ module.exports =
 
 		if(!config.subsPreferred)
 			config.subsPreferred = 'eng/English';
-		else
-			config.subsPreferred = config.subsPreferred.toLowerCase();
-
-		if(config.subsFallback)
-			config.subsFallback = config.subsFallback.toLowerCase();
 
 		return config;
 	}
