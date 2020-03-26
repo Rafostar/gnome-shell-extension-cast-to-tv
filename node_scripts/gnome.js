@@ -92,6 +92,8 @@ module.exports =
 			musicVisualizer: this.getBoolean('music-visualizer'),
 			slideshowTime: this.getSetting('slideshow-time'),
 			extractorReuse: this.getBoolean('extractor-reuse'),
+			subsPreferred: this.getSetting('subs-preferred'),
+			subsFallback: this.getSetting('subs-fallback'),
 			extractorDir: this.getSetting('extractor-dir'),
 			chromecastName: this.getSetting('chromecast-name'),
 			playercastName: this.getSetting('playercast-name'),
@@ -102,6 +104,14 @@ module.exports =
 		/* Use default paths if custom paths are not defined */
 		if(!config.ffmpegPath) config.ffmpegPath = '/usr/bin/ffmpeg';
 		if(!config.ffprobePath) config.ffprobePath = '/usr/bin/ffprobe';
+
+		if(!config.subsPreferred)
+			config.subsPreferred = 'eng/English';
+		else
+			config.subsPreferred = config.subsPreferred.toLowerCase();
+
+		if(config.subsFallback)
+			config.subsFallback = config.subsFallback.toLowerCase();
 
 		return config;
 	}

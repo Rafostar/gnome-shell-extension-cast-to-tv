@@ -420,7 +420,8 @@ function enable()
 		string: [
 			'ffmpeg-path', 'ffprobe-path', 'receiver-type',
 			'video-acceleration', 'extractor-dir', 'playercast-name',
-			'chromecast-name', 'chromecast-devices', 'chromecast-subtitles'
+			'chromecast-name', 'chromecast-devices', 'chromecast-subtitles',
+			'subs-preferred', 'subs-fallback'
 		],
 		int: [
 			'listening-port', 'internal-port', 'slideshow-time'

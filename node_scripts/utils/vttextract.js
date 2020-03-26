@@ -2,8 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const ffprobe = require('../ffprobe');
-const extractVid = require('../extract/extract-video');
+const extract = require('ffmpeg-extract');
 const remove = require('../remove');
 const gnome = require('../gnome');
 const metadata = require('../../metadata');
@@ -16,6 +15,7 @@ var opts = {
 	recursive: false
 };
 
+var config = {};
 var currOutPath = null;
 var filesCount = 0;
 
@@ -112,7 +112,7 @@ function extractFromFile(filePath)
 			filePath: filePath
 		};
 
-		ffprobe(ffprobeOpts, (err, data) =>
+		extract.analyzeFile(ffprobeOpts, (err, data) =>
 		{
 			if(err)
 			{
@@ -123,7 +123,7 @@ function extractFromFile(filePath)
 					return reject(err);
 			}
 
-			if(!extractVid.getIsSubsMerged(data))
+			if(!extract.video.getIsSubsMerged(data))
 				return resolve();
 
 			var parsed = path.parse(filePath);
@@ -139,6 +139,20 @@ function extractFromFile(filePath)
 				vttparser: true
 			};
 
+			if(data.streams.length > 3)
+			{
+				extOpts.streamIndex = extract.video.getSubsTrackIndex(
+					data, config.subsPreferred
+				);
+
+				if(!extOpts.streamIndex)
+				{
+					extOpts.streamIndex = extract.video.getSubsTrackIndex(
+						data, config.subsFallback
+					);
+				}
+			}
+
 			fs.access(extOpts.outPath, fs.constants.F_OK, (err) =>
 			{
 				if(!err) return resolve();
@@ -150,7 +164,7 @@ function extractFromFile(filePath)
 
 				currOutPath = extOpts.outPath;
 
-				extractVid.videoToVtt(extOpts, (err) =>
+				extract.video.videoToVtt(extOpts, (err) =>
 				{
 					currOutPath = null;
 
@@ -256,8 +270,9 @@ function startExtract()
 	if(!opts.outDir)
 		return console.error('Could not obtain save dir setting');
 
-	const ffprobePath = gnome.getSetting('ffprobe-path');
-	opts.ffprobePath = ffprobePath || '/usr/bin/ffprobe';
+	opts.ffprobePath = gnome.getSetting('ffprobe-path') || '/usr/bin/ffprobe';
+	config.subsPreferred = gnome.getSetting('subs-preferred') || 'eng/English';
+	config.subsFallback = gnome.getSetting('subs-fallback');
 
 	process.on('SIGINT', () => onFinish(true));
 	process.on('SIGTERM', () => onFinish(true));

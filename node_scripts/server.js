@@ -2,12 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bowser = require('bowser');
 const path = require('path');
+const extract = require('ffmpeg-extract');
 const bridge = require('./bridge');
 const webcreator = require('./web-creator');
 const sender = require('./sender');
 const socket = require('./server-socket');
 const encode = require('./encode');
-const extract = require('./extract');
 const gettext = require('./gettext');
 
 const app = express();

@@ -6,11 +6,11 @@
       <summary>Device receiving media</summary>
     </key>
     <key name="ffmpeg-path" type="s">
-      <default>""</default>
+      <default>"/usr/bin/ffmpeg"</default>
       <summary>Custom path to FFmpeg</summary>
     </key>
     <key name="ffprobe-path" type="s">
-      <default>""</default>
+      <default>"/usr/bin/ffprobe"</default>
       <summary>Custom path to FFprobe</summary>
     </key>
     <key name="listening-port" type="i">
@@ -93,6 +93,14 @@
     <key name="extractor-dir" type="s">
       <default>"/tmp"</default>
       <summary>Extractor save folder</summary>
+    </key>
+    <key name="subs-preferred" type="s">
+      <default>"eng/English"</default>
+      <summary>Preferred subtitles language</summary>
+    </key>
+    <key name="subs-fallback" type="s">
+      <default>""</default>
+      <summary>Fallback subtitles language</summary>
     </key>
     <!-- Other -->
     <key name="music-visualizer" type="b">

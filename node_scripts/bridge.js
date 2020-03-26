@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const extract = require('ffmpeg-extract');
 const debug = require('debug')('bridge');
 const server = require('./server');
 const sender = require('./sender');
 const encode = require('./encode');
-const extract = require('./extract');
 const remove = require('./remove');
 const chromecast = require('./chromecast');
 const gnome = require('./gnome');
@@ -671,6 +671,31 @@ function analyzeVideoFile(reusePath, cb)
 			overwrite: true,
 			vttparser: true
 		};
+
+		/* Search for subs only when multiple subtitle tracks */
+		if(ffprobeData.streams.length > 3)
+		{
+			debug(`Searching for preferred subtitles: ${exports.config.subsPreferred}`);
+
+			opts.streamIndex = extract.video.getSubsTrackIndex(
+				ffprobeData,
+				exports.config.subsPreferred
+			);
+
+			if(!opts.streamIndex)
+			{
+				debug('Preferred subs not found');
+				debug(`Searching for fallback subtitles: ${exports.config.subsFallback}`);
+
+				opts.streamIndex = extract.video.getSubsTrackIndex(
+					ffprobeData,
+					exports.config.subsFallback
+				);
+			}
+
+			if(opts.streamIndex)
+				debug('Found requested subtitles track');
+		}
 
 		debug('Extracting video subtitles...');
 		extract.video.videoToVtt(opts, (err) =>

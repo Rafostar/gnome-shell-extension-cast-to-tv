@@ -643,6 +643,20 @@ class ExtractorSettings extends Gtk.Grid
 		Settings.bind('extractor-reuse', this.extractorSave, 'active', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, this.extractorSave);
 
+		/* Preferred Subtitles Language */
+		label = new SettingLabel(_("Preferred language"));
+		widget = new Gtk.Entry({halign:Gtk.Align.END});
+		widget.set_placeholder_text("eng/English");
+		Settings.bind('subs-preferred', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, widget);
+
+		/* Fallback Subtitles Language */
+		label = new SettingLabel(_("Fallback language"));
+		widget = new Gtk.Entry({halign:Gtk.Align.END});
+		widget.set_placeholder_text(_("none"));
+		Settings.bind('subs-fallback', widget, 'text', Gio.SettingsBindFlags.DEFAULT);
+		addToGrid(this, label, widget);
+
 		/* Save Folder */
 		/* TRANSLATORS: Destination folder to save subtitles */
 		label = new SettingLabel(_("Save folder"));
