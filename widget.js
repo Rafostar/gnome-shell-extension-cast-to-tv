@@ -158,9 +158,9 @@ class CastRemoteMenu extends PanelMenu.Button
 		});
 
 		/* Display app icon, label and dropdown arrow */
-		this.box.add(this.icon);
-		this.box.add(this.toplabel);
-		this.box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
+		this.box.add_actor(this.icon);
+		this.box.add_actor(this.toplabel);
+		this.box.add_actor(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
 		if(this.isActor)
 			this.actor.add_child(this.box);
@@ -192,23 +192,23 @@ class CastRemoteMenu extends PanelMenu.Button
 		this.stopButton.style = 'padding: 0px, 6px, 0px, 6px; margin-left: 2px; margin-right: 46px;';
 
 		/* Assemble playback controls */
-		this.controlsButtonBox.add(this.slideshowButton);
-		this.controlsButtonBox.add(this.repeatButton);
-		this.controlsButtonBox.add(this.stopButton);
-		this.controlsButtonBox.add(this.skipBackwardButton);
-		this.controlsButtonBox.add(this.seekBackwardButton);
-		this.controlsButtonBox.add(this.togglePlayButton);
-		this.controlsButtonBox.add(this.seekForwardButton);
-		this.controlsButtonBox.add(this.skipForwardButton);
+		this.controlsButtonBox.add_actor(this.slideshowButton);
+		this.controlsButtonBox.add_actor(this.repeatButton);
+		this.controlsButtonBox.add_actor(this.stopButton);
+		this.controlsButtonBox.add_actor(this.skipBackwardButton);
+		this.controlsButtonBox.add_actor(this.seekBackwardButton);
+		this.controlsButtonBox.add_actor(this.togglePlayButton);
+		this.controlsButtonBox.add_actor(this.seekForwardButton);
+		this.controlsButtonBox.add_actor(this.skipForwardButton);
 
 		this.menu.addMenuItem(this.trackTitle);
 		this.menu.addMenuItem(this.positionSlider);
 		this.menu.addMenuItem(this.volumeSlider);
 
 		if(this.popupBase.hasOwnProperty('actor'))
-			this.popupBase.actor.add(this.controlsButtonBox);
+			this.popupBase.actor.add_actor(this.controlsButtonBox);
 		else
-			this.popupBase.add(this.controlsButtonBox);
+			this.popupBase.add_actor(this.controlsButtonBox);
 
 		this.menu.addMenuItem(this.popupBase);
 		this.menu.addMenuItem(this.playlist.subMenu);
@@ -650,15 +650,15 @@ class CastSliderItem extends AltPopupBase
 
 		if(this.isActor)
 		{
-			this.actor.add(this._sliderIcon);
-			this.actor.add(this._sliderButton);
+			this.actor.add_actor(this._sliderIcon);
+			this.actor.add_actor(this._sliderButton);
 			this.actor.add(this._slider.actor, { expand: true });
 			this.actor.visible = true;
 		}
 		else
 		{
-			this.add(this._sliderIcon);
-			this.add(this._sliderButton);
+			this.add_actor(this._sliderIcon);
+			this.add_actor(this._sliderButton);
 			this.add(this._slider, { expand: true });
 			this.visible = true;
 		}
@@ -742,7 +742,7 @@ class CastTitleItem extends AltPopupBase
 			x_expand: true
 		});
 
-		this.add(this._title);
+		this.add_actor(this._title);
 	}
 
 	setText(text)
