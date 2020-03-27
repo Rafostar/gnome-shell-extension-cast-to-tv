@@ -220,9 +220,9 @@ var CastPlaylist = class
 		menuItem.drag.connect('drag-end', this._onDragEnd.bind(this));
 	}
 
-	_onDragBegin(menuItem)
+	_onDragBegin(obj)
 	{
-		this.draggedItem = menuItem;
+		this.draggedItem = obj;
 		let menuItems = this.subMenu.menu._getMenuItems();
 		let heighArr = [];
 
@@ -239,7 +239,9 @@ var CastPlaylist = class
 				heighArr.push(height);
 		});
 
-		this.subMenu.menu.moveMenuItem(this.tempMenuItem, menuItems.indexOf(menuItem));
+		this.subMenu.menu.moveMenuItem(
+			this.tempMenuItem, menuItems.indexOf(this.draggedItem)
+		);
 
 		if(this.tempMenuItem.isActor)
 			this.tempMenuItem.actor.show();
@@ -285,21 +287,27 @@ var CastPlaylist = class
 	{
 		/* DND automatically destroys or restores item depending on drag success */
 		this.draggedItem = null;
-
-		let menuItems = this.subMenu.menu._getMenuItems();
+		let menuItems;
 
 		if(res && obj.meta && typeof obj.meta === 'object')
 		{
+			menuItems = this.subMenu.menu._getMenuItems();
 			let newPlaylistItem = new CastPlaylistItem(obj.meta.text, obj.meta.filepath);
 			this._connectDragSigals(newPlaylistItem);
 
-			if(obj.meta.active) newPlaylistItem.setPlaying(true);
+			if(obj.meta.active)
+				newPlaylistItem.setPlaying(true);
 
 			this.subMenu.menu.addMenuItem(newPlaylistItem, menuItems.indexOf(this.tempMenuItem));
 		}
 		else
 		{
 			this.subMenu.menu.moveMenuItem(obj, 0);
+
+			/* Force removal of active style */
+			menuItems = this.subMenu.menu._getMenuItems();
+			menuItems[0].active = true;
+			menuItems[0].active = false;
 		}
 
 		if(this.tempMenuItem.isActor)
