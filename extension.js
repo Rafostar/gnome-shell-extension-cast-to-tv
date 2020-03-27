@@ -6,7 +6,7 @@ Extension GitHub: https://github.com/Rafostar/gnome-shell-extension-cast-to-tv
 
 const Main = imports.ui.main;
 const AggregateMenu = Main.panel.statusArea.aggregateMenu;
-const Indicator = AggregateMenu._network.indicators;
+const NetworkMenu = AggregateMenu._network;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
 const Soup = Local.imports.soup;
 const Widget = Local.imports.widget;
@@ -372,14 +372,18 @@ function enableService(enable)
 
 function setIndicator(enable)
 {
-	let children = Indicator.get_children();
+	/* Compatibility with GNOME pre-3.36 */
+	let indicator = (NetworkMenu.hasOwnProperty('indicators')) ?
+		NetworkMenu.indicators : NetworkMenu;
+
+	let children = indicator.get_children();
 
 	if(children && children.length)
 	{
 		if(enable && !children.includes(Widget.statusIcon))
-			Indicator.add_child(Widget.statusIcon);
+			indicator.add_child(Widget.statusIcon);
 		else if(!enable && children.includes(Widget.statusIcon))
-			Indicator.remove_child(Widget.statusIcon);
+			indicator.remove_child(Widget.statusIcon);
 	}
 }
 
