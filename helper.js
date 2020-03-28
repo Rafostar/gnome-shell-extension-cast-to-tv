@@ -7,6 +7,8 @@ const { Gio, GLib } = imports.gi;
 const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 
+const NOTIFY_PATH = GLib.find_program_in_path('notify-send');
+
 function getSettings(localPath, schemaName)
 {
 	if(!localPath) return null;
@@ -208,10 +210,18 @@ function readOutputAsync(stream, callback)
 
 function createDir(dirPath, permissions)
 {
-	permissions = permissions || 448 // 700 in octal
+	permissions = permissions || 493 // 755 in octal
 
 	let dirExists = GLib.file_test(dirPath, GLib.FileTest.EXISTS);
 
 	if(!dirExists)
 		GLib.mkdir_with_parents(dirPath, permissions);
+}
+
+function notify(summary, mainBody)
+{
+	if(NOTIFY_PATH)
+		GLib.spawn_async(null, [NOTIFY_PATH, summary, mainBody], null, 0, null);
+
+	log(summary + ': ' + mainBody);
 }
