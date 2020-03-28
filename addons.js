@@ -4,6 +4,7 @@ const AggregateMenu = Main.panel.statusArea.aggregateMenu;
 
 let castMenu;
 let addonMenuItems = {};
+let addonMenuSignals = {};
 let timeouts = {};
 
 function findCastToTv()
@@ -35,11 +36,11 @@ function setLastMenuItem(extMenu, item, endOffset)
 	extMenu.castSubMenu.menu.moveMenuItem(item, lastItemIndex - endOffset);
 }
 
-function enableAddon(addonName, Widget)
+function enableAddon(addonName, AddonMenuItem)
 {
 	if(
 		!addonName
-		|| !Widget
+		|| !AddonMenuItem
 		|| timeouts[addonName]
 	) {
 		return;
@@ -51,11 +52,23 @@ function enableAddon(addonName, Widget)
 		timeouts[addonName] = null;
 
 		castMenu = findCastToTv();
+		let mainExtension = Main.extensionManager.lookup('cast-to-tv@rafostar.github.com');
 
-		if(!castMenu)
+		if(!castMenu || !mainExtension)
 			return GLib.SOURCE_REMOVE;
 
-		addonMenuItems[addonName] = new Widget.addonMenuItem();
+		let { helper, soup, shared } = mainExtension.imports;
+
+		addonMenuItems[addonName] = new AddonMenuItem({
+			helper: helper,
+			soupClient: soup.client,
+			shared: shared.module.exports,
+			path: mainExtension.path
+		});
+
+		addonMenuSignals[addonName] = addonMenuItems[addonName].connect(
+			'activate', helper.closeOtherApps.bind(this, mainExtension.path, false)
+		);
 
 		let castMenuItems = castMenu.castSubMenu.menu._getMenuItems();
 		let insertIndex = castMenuItems.length - 1;
@@ -109,6 +122,12 @@ function disableAddon(addonName)
 
 	if(!addonMenuItems[addonName])
 		return;
+
+	if(addonMenuSignals[addonName])
+	{
+		addonMenuItems[addonName].disconnect(addonMenuSignals[addonName]);
+		addonMenuSignals[addonName] = null;
+	}
 
 	/* No need to reorder menu items when locking screen,
 	as whole cast menu will be destroyed then anyway */
