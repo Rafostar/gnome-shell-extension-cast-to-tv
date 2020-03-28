@@ -1480,7 +1480,7 @@ function enableNautilusExtension(enabled)
 
 		if(enabled && GLib.find_program_in_path(fm) && !destFile.query_exists(null))
 		{
-			GLib.mkdir_with_parents(installPath, 493); // 755 in octal
+			Helper.createDir(installPath);
 			destFile.make_symbolic_link(srcPath, null);
 		}
 		else if(!enabled && destFile.query_exists(null))
@@ -1502,7 +1502,7 @@ function enableCmdTool(enabled, toolName)
 
 	if(enabled && !destFile.query_exists(null))
 	{
-		GLib.mkdir_with_parents(installPath, 493); // 755 in octal
+		Helper.createDir(installPath);
 		destFile.make_symbolic_link(srcPath, null);
 		GLib.spawn_command_line_async('chmod +x "' + srcPath + '"');
 	}
