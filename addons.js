@@ -66,9 +66,19 @@ function enableAddon(addonName, AddonMenuItem)
 			path: mainExtension.path
 		});
 
-		addonMenuSignals[addonName] = addonMenuItems[addonName].connect(
-			'activate', helper.closeOtherApps.bind(this, mainExtension.path, false)
-		);
+		addonMenuSignals[addonName] = [
+			addonMenuItems[addonName].connect('activate', () =>
+				helper.closeOtherApps(mainExtension.path)
+			),
+			addonMenuItems[addonName].connect('destroy', () =>
+			{
+				addonMenuSignals[addonName].forEach(signal =>
+					addonMenuItems[addonName].disconnect(signal))
+
+				addonMenuSignals[addonName] = null;
+				addonMenuItems[addonName].destroyed = true;
+			})
+		];
 
 		let castMenuItems = castMenu.castSubMenu.menu._getMenuItems();
 		let insertIndex = castMenuItems.length - 1;
@@ -120,14 +130,8 @@ function disableAddon(addonName)
 		timeouts[addonName] = null;
 	}
 
-	if(!addonMenuItems[addonName])
+	if(!addonMenuItems[addonName] || addonMenuItems[addonName].destroyed)
 		return;
-
-	if(addonMenuSignals[addonName])
-	{
-		addonMenuItems[addonName].disconnect(addonMenuSignals[addonName]);
-		addonMenuSignals[addonName] = null;
-	}
 
 	/* No need to reorder menu items when locking screen,
 	as whole cast menu will be destroyed then anyway */
