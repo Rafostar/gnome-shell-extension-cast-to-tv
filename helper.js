@@ -202,9 +202,11 @@ function readOutputAsync(stream, callback)
 			else
 				outStr = out_fd.toString();
 
-			callback(outStr);
-			readOutputAsync(source, callback);
+			callback(outStr, false);
+			return readOutputAsync(source, callback);
 		}
+
+		callback('', true);
 	});
 }
 
