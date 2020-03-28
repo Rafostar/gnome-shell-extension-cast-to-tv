@@ -196,6 +196,8 @@ class ServerMonitor
 		{
 			statusTimer = null;
 			restartCount = 0;
+
+			return GLib.SOURCE_REMOVE;
 		});
 	}
 }
