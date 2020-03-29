@@ -149,8 +149,13 @@ exports.hlsStream = function(req, res)
 	/* Check if stream segment exists */
 	fs.access(filePath, fs.constants.F_OK, (err) =>
 	{
-		if(err) return res.sendStatus(404);
+		if(err)
+		{
+			debug(err);
+			return res.sendStatus(404);
+		}
 
+		debug(`Send HLS segment: ${req.url}`);
 		return res.sendFile(filePath);
 	});
 }
