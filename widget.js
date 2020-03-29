@@ -488,7 +488,7 @@ class CastRemoteMenu extends PanelMenu.Button
 				shownItems = ['slideshowButton', 'repeatButton'];
 				break;
 			case 'LIVE':
-				shownItems = ['volumeSlider', 'togglePlayButton'];
+				shownItems = ['volumeSlider'];
 				break;
 			default:
 				break;
