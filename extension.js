@@ -31,9 +31,11 @@ function refreshRemote(playbackData)
 	if(!isShown)
 	{
 		if(remoteMenu.isActor)
-			return remoteMenu.actor.hide();
+			remoteMenu.actor.hide();
 		else
-			return remoteMenu.hide();
+			remoteMenu.hide();
+
+		return stopAddonsStreams();
 	}
 
 	if(
@@ -111,6 +113,22 @@ function refreshRemote(playbackData)
 		remoteMenu.actor.show();
 	else
 		remoteMenu.show();
+}
+
+function stopAddonsStreams()
+{
+	if(!castMenu) return;
+
+	let menuItems = castMenu.castSubMenu.menu._getMenuItems();
+
+	menuItems.forEach(item =>
+	{
+		if(
+			item._onCastStop
+			&& typeof item._onCastStop === 'function'
+		)
+			item._onCastStop();
+	});
 }
 
 function setRemotePosition()
