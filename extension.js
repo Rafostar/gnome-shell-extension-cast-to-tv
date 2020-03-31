@@ -242,10 +242,11 @@ function updateChromecastName(name)
 	let myDevice = castDevices.find(device => device.name === name);
 
 	if(myDevice)
-	{
 		Widget.remoteNames.chromecast = myDevice;
-		remoteMenu.refreshLabel();
-	}
+	else
+		Widget.remoteNames.chromecast = {};
+
+	remoteMenu.refreshLabel();
 }
 
 function updatePlayercastName(name)
