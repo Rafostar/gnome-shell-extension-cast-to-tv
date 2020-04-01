@@ -52,7 +52,7 @@ function getPlayerOptsArray()
 			'-frag_duration', '1000000',
 			'-movflags', '+empty_moov',
 			'-strict', '-2',
-			'-f', 'mp4',
+			'-f', 'mp4'
 		];
 	}
 
