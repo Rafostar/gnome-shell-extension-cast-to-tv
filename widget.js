@@ -70,7 +70,6 @@ var CastMainMenu = class extends PopupMenu.PopupMenuSection
 
 	spawnFileChooser(streamType)
 	{
-		Helper.closeOtherApps(Local.path);
 		Helper.startApp(Local.path, 'file-chooser', [streamType]);
 	}
 
