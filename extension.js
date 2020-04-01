@@ -366,7 +366,7 @@ function changeServiceEnabled()
 function enableService(enable)
 {
 	if(enable)
-		Helper.startApp(Local.path, 'server-monitor');
+		Helper.startApp(Local.path, 'server-monitor', null, true);
 	else
 		Helper.closeOtherApps(Local.path, true);
 }

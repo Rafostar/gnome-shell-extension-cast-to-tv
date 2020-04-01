@@ -8,6 +8,10 @@ const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 
 const NOTIFY_PATH = GLib.find_program_in_path('notify-send');
+const GJS_PATH = GLib.find_program_in_path('gjs');
+
+let launcher;
+let runApp;
 
 function getSettings(localPath, schemaName)
 {
@@ -50,24 +54,43 @@ function initTranslations(localPath, gettextDomain)
 
 function closeOtherApps(mainPath, totalKill)
 {
-	let extPath = mainPath.substring(0, mainPath.lastIndexOf('/'));
-	let addKill = (totalKill) ? '' : '/file-chooser';
+	if(runApp)
+	{
+		if(!runApp.get_identifier())
+			runApp = null;
+		else
+		{
+			runApp.wait_async(null, () => runApp = null);
+			runApp.force_exit();
+		}
+	}
 
 	/* Close other possible opened extension windows */
-	GLib.spawn_command_line_async('pkill -SIGINT -f ' + mainPath + addKill + '|' +
-		extPath + '/cast-to-tv-.*-addon@.*/app');
+	if(mainPath && totalKill)
+		GLib.spawn_command_line_async('pkill -SIGINT -f ' + mainPath);
 }
 
-function startApp(appPath, appName, args)
+function startApp(appPath, appName, args, noClose)
 {
 	appName = appName || 'app';
-	let spawnArgs = ['/usr/bin/gjs', appPath + '/' + appName + '.js'];
+	let spawnArgs = [GJS_PATH, appPath + '/' + appName + '.js'];
 
 	if(args && Array.isArray(args))
 		args.forEach(arg => spawnArgs.push(arg));
 
 	/* To not freeze gnome shell app needs to be run as separate process */
-	GLib.spawn_async(appPath, spawnArgs, null, 0, null);
+	if(noClose) return GLib.spawn_async(appPath, spawnArgs, null, 0, null);
+
+	if(!launcher)
+		launcher = new Gio.SubprocessLauncher();
+
+	launcher.set_cwd(appPath);
+
+	if(!runApp || !runApp.get_identifier())
+		return runApp = launcher.spawnv(spawnArgs);
+
+	runApp.wait_async(null, () => runApp = launcher.spawnv(spawnArgs));
+	runApp.force_exit();
 }
 
 function setDevicesWidget(widget, devices, activeText)
