@@ -36,15 +36,12 @@ function setLastMenuItem(extMenu, item, endOffset)
 	extMenu.castSubMenu.menu.moveMenuItem(item, lastItemIndex - endOffset);
 }
 
-function enableAddon(addonName, AddonMenuItem)
+function enableAddon(uuid)
 {
-	if(
-		!addonName
-		|| !AddonMenuItem
-		|| timeouts[addonName]
-	) {
+	let addonName = uuid.split('@')[0];
+
+	if(timeouts[addonName])
 		return;
-	}
 
 	/* Give main extension time to finish startup */
 	timeouts[addonName] = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2500, () =>
@@ -53,11 +50,13 @@ function enableAddon(addonName, AddonMenuItem)
 
 		castMenu = findCastToTv();
 		let mainExtension = Main.extensionManager.lookup('cast-to-tv@rafostar.github.com');
+		let addonExtension = Main.extensionManager.lookup(uuid);
 
-		if(!castMenu || !mainExtension)
+		if(!castMenu || !mainExtension || !addonExtension)
 			return GLib.SOURCE_REMOVE;
 
 		let { helper, soup, shared } = mainExtension.imports;
+		let { AddonMenuItem } = addonExtension.imports.widget;
 
 		addonMenuItems[addonName] = new AddonMenuItem({
 			helper: helper,
@@ -67,9 +66,6 @@ function enableAddon(addonName, AddonMenuItem)
 		});
 
 		addonMenuSignals[addonName] = [
-			addonMenuItems[addonName].connect('activate', () =>
-				helper.closeOtherApps(mainExtension.path)
-			),
 			addonMenuItems[addonName].connect('destroy', () =>
 			{
 				addonMenuSignals[addonName].forEach(signal =>
@@ -79,6 +75,25 @@ function enableAddon(addonName, AddonMenuItem)
 				addonMenuItems[addonName].destroyed = true;
 			})
 		];
+
+		if(
+			addonMenuItems[addonName].hasOwnProperty('hasExtApp')
+			&& addonMenuItems[addonName].hasExtApp
+		) {
+			addonMenuSignals[addonName].push(
+				addonMenuItems[addonName].connect('activate', () =>
+					helper.startApp(addonExtension.path)
+				)
+			)
+		}
+		else
+		{
+			addonMenuSignals[addonName].push(
+				addonMenuItems[addonName].connect('activate', () =>
+					helper.closeOtherApps()
+				)
+			)
+		}
 
 		let castMenuItems = castMenu.castSubMenu.menu._getMenuItems();
 		let insertIndex = castMenuItems.length - 1;
@@ -122,8 +137,10 @@ function enableAddon(addonName, AddonMenuItem)
 	});
 }
 
-function disableAddon(addonName)
+function disableAddon(uuid)
 {
+	let addonName = uuid.split('@')[0];
+
 	if(timeouts[addonName])
 	{
 		GLib.source_remove(timeouts[addonName]);
