@@ -318,7 +318,10 @@ function castFile()
 			});
 			break;
 		case 'other':
-			if(exports.selection.streamType !== 'PICTURE')
+			if(
+				!exports.addon
+				&& exports.selection.streamType !== 'PICTURE'
+			)
 				socket.emit('processes-done', true);
 			else
 				socket.emit('reload');
