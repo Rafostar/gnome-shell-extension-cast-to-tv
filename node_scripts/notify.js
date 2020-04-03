@@ -16,5 +16,9 @@ module.exports = function(summary, mainBody, data, infoBody)
 	if(infoBody && typeof infoBody === 'string')
 		mainBody += '.\n' + gettext.translate(infoBody) + '.';
 
-	spawn('notify-send', [summary, mainBody]);
+	spawn('notify-send', [
+		'-i', 'tv-symbolic',
+		'-u', 'normal',
+		summary, mainBody
+	]);
 }
