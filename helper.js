@@ -3,15 +3,15 @@ Convenience replacement
 Original convenience.js does not work correctly with this extension use-cases
 */
 
-const { Gio, GLib } = imports.gi;
+const { Gio, GLib, Notify } = imports.gi;
 const ByteArray = imports.byteArray;
 const Gettext = imports.gettext;
 
-const NOTIFY_PATH = GLib.find_program_in_path('notify-send');
 const GJS_PATH = GLib.find_program_in_path('gjs');
 
 let launcher;
 let runApp;
+let notification;
 
 function getSettings(localPath, schemaName)
 {
@@ -243,8 +243,15 @@ function createDir(dirPath, permissions)
 
 function notify(summary, mainBody)
 {
-	if(NOTIFY_PATH)
-		GLib.spawn_async(null, [NOTIFY_PATH, summary, mainBody], null, 0, null);
+	if(!notification)
+	{
+		Notify.init('Cast to TV');
+		notification = new Notify.Notification();
+		notification.set_urgency(Notify.Urgency.NORMAL);
+	}
+
+	notification.update(summary, mainBody, 'tv-symbolic');
+	notification.show();
 
 	log(summary + ': ' + mainBody);
 }
