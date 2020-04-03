@@ -289,8 +289,14 @@ var CastPlaylist = class
 		this.draggedItem = null;
 		let menuItems;
 
+		/* Item was restored earlier */
+		if(res && obj.itemRestored)
+			return;
+
 		if(res && obj.meta && typeof obj.meta === 'object')
 		{
+			obj.itemRestored = true;
+
 			menuItems = this.subMenu.menu._getMenuItems();
 			let newPlaylistItem = new CastPlaylistItem(obj.meta.text, obj.meta.filepath);
 			this._connectDragSigals(newPlaylistItem);
@@ -432,6 +438,9 @@ class CastPlaylistItem extends AltPopupImage
 		else
 			this.drag = DND.makeDraggable(this);
 
+		this.drag.meta = null;
+		this.drag.itemRestored = false;
+
 		this.setPlaying = (isPlaying) =>
 		{
 			let activate = (isPlaying === true) ? true : false;
@@ -490,8 +499,7 @@ class CastTempPlaylistItem extends AltPopupImage
 
 			source.drag.emit('drag-end', time, true);
 
-			if(actor) actor.destroy();
-			else source.destroy();
+			return true;
 		}
 
 		this.getVisible = () =>
