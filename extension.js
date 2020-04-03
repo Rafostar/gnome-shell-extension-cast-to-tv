@@ -337,9 +337,15 @@ function changeLabelVisibility()
 	let showLabel = Settings.get_boolean('remote-label');
 
 	if(showLabel)
+	{
 		remoteMenu.toplabel.show();
+		remoteMenu.barArrowIcon.show();
+	}
 	else
+	{
 		remoteMenu.toplabel.hide();
+		remoteMenu.barArrowIcon.hide();
+	}
 }
 
 function changeUseFriendlyName()

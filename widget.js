@@ -155,11 +155,12 @@ class CastRemoteMenu extends PanelMenu.Button
 			y_expand: true,
 			y_align: Clutter.ActorAlign.CENTER
 		});
+		this.barArrowIcon = PopupMenu.arrowIcon(St.Side.BOTTOM);
 
 		/* Display app icon, label and dropdown arrow */
 		this.box.add_actor(this.icon);
 		this.box.add_actor(this.toplabel);
-		this.box.add_actor(PopupMenu.arrowIcon(St.Side.BOTTOM));
+		this.box.add_actor(this.barArrowIcon);
 
 		if(this.isActor)
 			this.actor.add_child(this.box);
@@ -261,7 +262,10 @@ class CastRemoteMenu extends PanelMenu.Button
 		if(this.opts.isLabel)
 			this.refreshLabel();
 		else
+		{
 			this.toplabel.hide();
+			this.barArrowIcon.hide();
+		}
 
 		/* Hide remote by default */
 		(this.isActor) ? this.actor.hide() : this.hide();
