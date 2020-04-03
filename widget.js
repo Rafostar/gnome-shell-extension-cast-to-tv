@@ -2,7 +2,8 @@ const { GLib, St, Clutter, GObject } = imports.gi;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 const Slider = imports.ui.slider;
-const Local = imports.misc.extensionUtils.getCurrentExtension();
+const ExtUtils = imports.misc.extensionUtils;
+const Local = ExtUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
 const { AltPopupBase } = Local.imports.compat;
 const Soup = Local.imports.soup;
@@ -11,6 +12,10 @@ const Temp = Local.imports.temp;
 const Helper = Local.imports.helper;
 const _ = Gettext.gettext;
 
+const UTILS_OPEN_PREFS = (
+	ExtUtils.hasOwnProperty('openPrefs')
+	&& typeof ExtUtils.openPrefs === 'function'
+);
 const ICON_NAME = 'tv-symbolic';
 const MIN_DELAY = 3;
 const MAX_DELAY = 5;
@@ -75,6 +80,9 @@ var CastMainMenu = class extends PopupMenu.PopupMenuSection
 
 	spawnExtensionPrefs()
 	{
+		if(UTILS_OPEN_PREFS)
+			return ExtUtils.openPrefs();
+
 		/* Close open window before reopening */
 		GLib.spawn_command_line_async('pkill -SIGINT -f gnome-shell-extension-prefs');
 
