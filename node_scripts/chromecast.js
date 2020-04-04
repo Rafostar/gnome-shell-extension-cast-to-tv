@@ -1,5 +1,7 @@
 const path = require('path');
-const debug = require('debug')('chromecast');
+const debug = require('debug');
+const debugCast = debug('chromecast');
+const debugStatus = debug('chromecast:status');
 const chromecast = require('chromecast-controller');
 const internalIp = require('internal-ip').v4;
 const bridge = require('./bridge');
@@ -29,7 +31,7 @@ exports.cast = function()
 		chromecast._player.removeListener('status', handleChromecastStatus);
 	}
 
-	debug('NEW SELECTION');
+	debugCast('NEW SELECTION');
 	initChromecast();
 }
 
@@ -38,9 +40,9 @@ exports.remote = function(action, value)
 	if(remoteBusy) return;
 
 	if(!isNaN(value) || typeof value === 'boolean')
-		debug(`Signal from remote. ACTION: ${action}, VALUE: ${value}`);
+		debugCast(`Signal from remote. ACTION: ${action}, VALUE: ${value}`);
 	else
-		debug(`Signal from remote. ACTION: ${action}`);
+		debugCast(`Signal from remote. ACTION: ${action}`);
 
 	var position;
 	remoteBusy = true;
@@ -126,7 +128,7 @@ exports.remote = function(action, value)
 			controller.slideshow = false;
 			chromecast.stop((err) =>
 			{
-				if(err) debug(err);
+				if(err) debugCast(err);
 
 				closeCast(action);
 				unsetBusy();
@@ -168,7 +170,7 @@ function makeID()
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
 	}
 
-	debug(`Generated new session id: ${text}`);
+	debugCast(`Generated new session id: ${text}`);
 
 	return text;
 }
@@ -189,23 +191,30 @@ function initChromecast()
 		case 'VIDEO':
 			break;
 		case 'MUSIC':
-			if(bridge.config.musicVisualizer) initType = 'LIVE';
-			else mimeType = 'audio/*';
+			if(bridge.config.musicVisualizer)
+				initType = 'LIVE';
+			else
+				mimeType = 'audio/*';
 			break;
 		case 'PICTURE':
 			mimeType = 'image/*';
 			break;
 		default:
-			if(bridge.selection.hlsStream) mimeType = 'application/x-mpegurl';
+			if(bridge.selection.hlsStream)
+				mimeType = 'application/x-mpegurl';
+
 			initType = 'LIVE';
 			break;
 	}
 
 	var getTitle = () =>
 	{
-		if(mimeType === 'audio/*' && bridge.mediaData.title) return bridge.mediaData.title;
-		else if(bridge.selection.title) return bridge.selection.title;
-		else return path.parse(bridge.selection.filePath).name;
+		if(mimeType === 'audio/*' && bridge.mediaData.title)
+			return bridge.mediaData.title;
+		else if(bridge.selection.title)
+			return bridge.selection.title;
+		else
+			return path.parse(bridge.selection.filePath).name;
 	}
 
 	switch(mimeType)
@@ -255,7 +264,7 @@ function initChromecast()
 	}
 
 	mediaTracks.metadata.title = getTitle();
-	debug(`Media title: ${mediaTracks.metadata.title}`);
+	debugCast(`Media title: ${mediaTracks.metadata.title}`);
 
 	var getAutoplayState = () =>
 	{
@@ -299,7 +308,8 @@ function initChromecast()
 		...mediaTracks
 	};
 
-	debug(`Setting media: ${JSON.stringify(media)}`);
+	if(debug.enabled)
+		debugCast(`Setting media: ${JSON.stringify(media)}`);
 
 	var castOpts = {
 		autoplay: getAutoplayState(),
@@ -308,26 +318,28 @@ function initChromecast()
 		ip: getChromecastIp()
 	};
 
-	debug(`Setting opts: ${JSON.stringify(castOpts)}`);
+	if(debug.enabled)
+		debugCast(`Setting opts: ${JSON.stringify(castOpts)}`);
+
 	launchCast(media, castOpts);
 }
 
 function launchCast(media, castOpts)
 {
-	debug('Casting...');
+	debugCast('Casting...');
 
 	chromecast.cast(media, castOpts, (err) =>
 	{
 		if(err)
 		{
-			debug(`Could not cast: ${err.message}`);
+			debugCast(`Could not cast: ${err.message}`);
 			return showTranslatedError(err, castOpts);
 		}
 
 		chromecast._player.once('close', finishCast);
 		chromecast._player.on('status', handleChromecastStatus);
 
-		debug('Cast started');
+		debugCast('Cast started');
 		startPlayback(media.contentType);
 	});
 }
@@ -337,7 +349,7 @@ function startCastInterval()
 	if(castInterval) return;
 
 	castInterval = setInterval(() => getChromecastStatus(), 1000);
-	debug('Started status interval');
+	debugCast('Started status interval');
 }
 
 function stopCastInterval()
@@ -347,7 +359,7 @@ function stopCastInterval()
 	clearInterval(castInterval);
 	castInterval = null;
 
-	debug('Stopped status interval');
+	debugCast('Stopped status interval');
 }
 
 function clearPlayTimeout()
@@ -357,7 +369,7 @@ function clearPlayTimeout()
 	clearTimeout(playTimeout);
 	playTimeout = null;
 
-	debug('Stopped delayed playback');
+	debugCast('Stopped delayed playback');
 }
 
 function startPlayback(mimeType)
@@ -372,11 +384,11 @@ function startPlayback(mimeType)
 			if(!err)
 			{
 				playerVolume = volume;
-				return debug(`Obtained volume value: ${volume}`);
+				return debugCast(`Obtained volume value: ${volume}`);
 			}
 
 			playerVolume = 1;
-			debug(`Could not obtain volume value. Current setting: ${playerVolume}`);
+			debugCast(`Could not obtain volume value. Current setting: ${playerVolume}`);
 		});
 	}
 
@@ -391,19 +403,19 @@ function startPlayback(mimeType)
 			{
 				if(err)
 				{
-					debug('Could not play!');
-					debug(err);
+					debugCast('Could not play!');
+					debugCast(err);
 					return closeCast();
 				}
 
-				debug('Playback started');
+				debugCast('Playback started');
 				startCastInterval();
 				/* Refresh is handled in bridge.js */
 				if(!gnome.isRemote) bridge.setGnomeRemote(true);
 			});
 		}
 
-		debug('Starting delayed playback...');
+		debugCast('Starting delayed playback...');
 
 		/* mimeType video + streamType music = music with visualizer */
 		/* Visualizations are 60fps, so Chromecast needs to buffer more to not stutter */
@@ -416,15 +428,15 @@ function startPlayback(mimeType)
 	{
 		if(mimeType === 'image/*')
 		{
-			debug('Showing image');
+			debugCast('Showing image');
 			if(controller.slideshow)
 			{
 				controller.setSlideshow();
-				debug('Started slideshow timer');
+				debugCast('Started slideshow timer');
 			}
 		}
 		else
-			debug('Playback autostart');
+			debugCast('Playback autostart');
 
 		startCastInterval();
 
@@ -439,7 +451,7 @@ function getChromecastStatus()
 	{
 		if(err)
 		{
-			debug(`Chromecast status error: ${err}`);
+			debugCast(`Chromecast status error: ${err}`);
 			return showTranslatedError(err);
 		}
 		else if(status && typeof status === 'object')
@@ -451,6 +463,12 @@ function getChromecastStatus()
 
 function handleChromecastStatus(status)
 {
+	if(debug.enabled)
+	{
+		debugStatus('Got Chromecast status');
+		debugStatus(status);
+	}
+
 	playerStatus = { ...playerStatus, ...status };
 	playerStatus.volume = playerVolume;
 
@@ -480,7 +498,7 @@ function handleChromecastStatus(status)
 
 function showIdleError()
 {
-	debug('Chromecast is IDLE due to ERROR!');
+	debugCast('Chromecast is IDLE due to ERROR!');
 
 	var info = (initType === 'LIVE') ? messages.chromecast.tryAgain : null;
 	notify('Chromecast', messages.chromecast.playError, bridge.selection.filePath, info);
@@ -490,7 +508,7 @@ function showTranslatedError(err, opts)
 {
 	var msg = err.message.toLowerCase();
 	var info = null;
-	debug(err);
+	debugCast(err);
 
 	opts = opts || {};
 
@@ -507,7 +525,7 @@ function showTranslatedError(err, opts)
 			notify('Chromecast', messages.chromecast.connectFailed, null, info);
 			break;
 		default:
-			debug(`Unhandled message: ${msg}`);
+			debugCast(`Unhandled message: ${msg}`);
 			break;
 	}
 }
@@ -538,14 +556,14 @@ function closeCast(action)
 	else if(action !== 'STOP' && currentTrackID < listLastID)
 		return controller.changeTrack(currentTrackID + 1);
 
-	debug('Closing cast session...');
+	debugCast('Closing cast session...');
 	chromecast.close(err =>
 	{
-		if(!err) debug('Session closed');
-		else debug('Could not close session!');
+		if(!err) debugCast('Session closed');
+		else debugCast('Could not close session!');
 
 		bridge.setGnomeRemote(false);
-		debug('Cast finished!');
+		debugCast('Cast finished!');
 	});
 }
 
@@ -560,5 +578,5 @@ function finishCast()
 	chromecast._player.removeListener('status', handleChromecastStatus);
 
 	bridge.setGnomeRemote(false);
-	debug('Cast finished due to close event!');
+	debugCast('Cast finished due to close event!');
 }
