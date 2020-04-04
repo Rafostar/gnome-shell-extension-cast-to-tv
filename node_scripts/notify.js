@@ -21,4 +21,6 @@ module.exports = function(summary, mainBody, data, infoBody)
 		'-u', 'normal',
 		summary, mainBody
 	]);
+
+	console.log(summary + ': ' + mainBody);
 }
