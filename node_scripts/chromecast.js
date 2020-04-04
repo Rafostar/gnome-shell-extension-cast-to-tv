@@ -52,7 +52,7 @@ exports.remote = function(action, value)
 	switch(action)
 	{
 		case 'PLAY':
-			chromecast.play((err) =>
+			chromecast.play(err =>
 			{
 				if(!err)
 				{
@@ -63,7 +63,7 @@ exports.remote = function(action, value)
 			});
 			break;
 		case 'PAUSE':
-			chromecast.pause((err) =>
+			chromecast.pause(err =>
 			{
 				if(!err)
 				{
@@ -126,7 +126,7 @@ exports.remote = function(action, value)
 		case 'STOP':
 			controller.repeat = false;
 			controller.slideshow = false;
-			chromecast.stop((err) =>
+			chromecast.stop(err =>
 			{
 				if(err) debugCast(err);
 
@@ -492,8 +492,38 @@ function handleChromecastStatus(status)
 		}
 	}
 
+	if(bridge.selection.maxLiveDelay)
+		checkLiveDelay(status);
+
 	if(!remoteBusy)
 		bridge.setGnomeStatus(playerStatus);
+}
+
+function checkLiveDelay(status)
+{
+	if(
+		remoteBusy
+		|| status.playerState !== 'PLAYING'
+		|| !status.liveSeekableRange
+		|| isNaN(status.liveSeekableRange.end)
+	)
+		return;
+
+	var currTime = status.currentTime;
+	var buffTime = status.liveSeekableRange.end;
+
+	debugCast(`Current stream time: ${currTime}`);
+	debugCast(`Stream buffered until: ${buffTime}`);
+
+	if(
+		buffTime > currTime
+		&& buffTime - currTime > bridge.selection.maxLiveDelay
+	) {
+		remoteBusy = true;
+
+		debugCast('Reducing stream delay...');
+		chromecast.seek(buffTime, () => remoteBusy = false);
+	}
 }
 
 function showIdleError()
