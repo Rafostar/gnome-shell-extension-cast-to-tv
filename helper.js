@@ -244,7 +244,14 @@ function createDir(dirPath, permissions)
 function notify(summary, mainBody)
 {
 	if(NOTIFY_PATH)
-		GLib.spawn_async(null, [NOTIFY_PATH, summary, mainBody], null, 0, null);
+	{
+		GLib.spawn_async(null, [
+			NOTIFY_PATH,
+			'-i', 'tv-symbolic',
+			'-u', 'normal',
+			summary, mainBody
+		], null, 0, null);
+	}
 
 	log(summary + ': ' + mainBody);
 }
