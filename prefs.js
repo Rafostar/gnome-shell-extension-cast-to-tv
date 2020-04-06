@@ -898,14 +898,12 @@ class ModulesSettings extends Gtk.VBox
 				);
 			}
 			catch(err) {
-				let extPath = Local.path.substring(0, Local.path.lastIndexOf('/'));
-
 				let errMsg = [
 					'Error: Could not spawn VTE terminal',
 					'Reason: ' + err.message,
 					'',
 					'Try installing from terminal with:',
-					'cd ' + extPath,
+					'cd ' + Local.path,
 					'npm install',
 					'\0'
 				].join('\n');
@@ -943,6 +941,8 @@ class ModulesSettings extends Gtk.VBox
 			this.pack_start(this.termWidget, true, true, 0);
 			this.pack_start(this.installButton, false, false, 0);
 			this.show_all();
+
+			return GLib.SOURCE_REMOVE;
 		});
 
 		this.installSignal = this.installButton.connect('clicked', installModules.bind(this));
