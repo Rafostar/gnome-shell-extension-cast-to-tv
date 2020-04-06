@@ -21,12 +21,14 @@ var CastPlaylist = class
 		this.subMenu = new CastPlaylistSubMenu();
 		this.tempMenuItem = null;
 		this.draggedItem = null;
+		this.isDragging = false;
 		this.remoteActive = false;
 
 		this._addMenuInsertItem(false, 0);
 
 		this._dragMonitor = {
-			dragMotion: this._onDragMotion.bind(this)
+			dragMotion: this._onDragMotion.bind(this),
+			dragDrop: this._onDragDrop.bind(this)
 		};
 
 		DND.addDragMonitor(this._dragMonitor);
@@ -57,8 +59,11 @@ var CastPlaylist = class
 
 			if(!this._isPathInMenu(filepath))
 			{
-				if(this.draggedItem && this.draggedItem.filepath === filepath)
-				{
+				if(
+					this.isDragging
+					&& this.draggedItem
+					&& this.draggedItem.filepath === filepath
+				) {
 					if(!this.draggedItem.isPlaying && isActive)
 						this.draggedItem.setPlaying(true);
 					else if(this.draggedItem.isPlaying && !isActive)
@@ -70,7 +75,7 @@ var CastPlaylist = class
 		}
 
 		/* Sort playlist */
-		if(!this.draggedItem) this.sortMenuItems(playlistArray);
+		if(!this.isDragging) this.sortMenuItems(playlistArray);
 	}
 
 	addMenuPlaylistItem(filepath, isActive, position)
@@ -182,24 +187,22 @@ var CastPlaylist = class
 				/* targetItem is the target we are searching for */
 				return targetItem;
 			}
-			else
-			{
-				/* Limit loop by max children depth of PopupImageMenuItem */
-				let iterLimit = 2;
 
-				while(
-					iterLimit--
-					&& targetItem.get_parent
-					&& typeof targetItem.get_parent === 'function'
-				) {
-					targetItem = targetItem.get_parent();
+			/* Limit loop by max children depth of PopupImageMenuItem */
+			let iterLimit = 2;
 
-					if(targetItem.hasOwnProperty('_delegate'))
-						targetItem = targetItem._delegate;
+			while(
+				iterLimit--
+				&& targetItem.get_parent
+				&& typeof targetItem.get_parent === 'function'
+			) {
+				targetItem = targetItem.get_parent();
 
-					if(targetItem[searchValue])
-						return targetItem;
-				}
+				if(targetItem.hasOwnProperty('_delegate'))
+					targetItem = targetItem._delegate;
+
+				if(targetItem[searchValue])
+					return targetItem;
 			}
 		}
 
@@ -211,10 +214,7 @@ var CastPlaylist = class
 		/* Drag signals are disconnected on actor destroy via DND disconnectAll() */
 
 		/* Show placeholder item when dragging started */
-		menuItem.drag.connect('drag-begin', () => this._onDragBegin(menuItem));
-
-		/* Remove item when dragged anywhere besides playlist */
-		menuItem.drag.connect('drag-cancelled', this._onDragCancelled.bind(this));
+		menuItem.drag.connect('drag-begin', this._onDragBegin.bind(this));
 
 		/* Handle drop item response */
 		menuItem.drag.connect('drag-end', this._onDragEnd.bind(this));
@@ -222,7 +222,9 @@ var CastPlaylist = class
 
 	_onDragBegin(obj)
 	{
-		this.draggedItem = obj;
+		this.draggedItem = obj.actor._delegate;
+		this.isDragging = true;
+
 		let menuItems = this.subMenu.menu._getMenuItems();
 		let heighArr = [];
 
@@ -263,30 +265,9 @@ var CastPlaylist = class
 		}
 	}
 
-	_onDragCancelled()
-	{
-		if(this.draggedItem)
-		{
-			if(!this.draggedItem.isPlaying || !this.remoteActive)
-			{
-				this.draggedItem.destroy();
-				this.draggedItem = null;
-
-				if(this.tempMenuItem.isActor)
-					this.tempMenuItem.actor.hide();
-				else
-					this.tempMenuItem.hide();
-
-				if(this.remoteActive)
-					this.updatePlaylistFile();
-			}
-		}
-	}
-
 	_onDragEnd(obj, time, res)
 	{
-		/* DND automatically destroys or restores item depending on drag success */
-		this.draggedItem = null;
+		this.isDragging = false;
 		let menuItems;
 
 		/* Item was restored earlier */
@@ -308,12 +289,11 @@ var CastPlaylist = class
 		}
 		else
 		{
-			this.subMenu.menu.moveMenuItem(obj, 0);
+			this.subMenu.menu.moveMenuItem(this.draggedItem, 0);
 
 			/* Force removal of active style */
-			menuItems = this.subMenu.menu._getMenuItems();
-			menuItems[0].active = true;
-			menuItems[0].active = false;
+			this.draggedItem.active = true;
+			this.draggedItem.active = false;
 		}
 
 		if(this.tempMenuItem.isActor)
@@ -321,7 +301,8 @@ var CastPlaylist = class
 		else
 			this.tempMenuItem.hide();
 
-		this.updatePlaylistFile();
+		if(this.remoteActive)
+			this.updatePlaylistFile();
 	}
 
 	_onDragMotion(dragEvent)
@@ -360,6 +341,27 @@ var CastPlaylist = class
 		this.tempMenuItem.label.show();
 
 		return DND.DragMotionResult.CONTINUE;
+	}
+
+	_onDragDrop(dropEvent)
+	{
+		/* Allow DND to call "acceptDrop" and handle event */
+		if(!this.draggedItem || this._getParentWithValue(dropEvent.targetActor, 'isTempPlaylistItem'))
+			return DND.DragDropResult.CONTINUE;
+
+		if(!this.draggedItem.isPlaying || !this.remoteActive)
+		{
+			/* Destroy dragged causes DND to run its "_cancelDrag" function */
+			this.draggedItem.destroy();
+			this.draggedItem = null;
+		}
+		else
+		{
+			/* Cancel drag to animate flight back to playlist */
+			this.draggedItem.drag._cancelDrag(dropEvent.clutterEvent.get_time());
+		}
+
+		return DND.DragDropResult.FAILURE;
 	}
 
 	destroy()
@@ -491,6 +493,9 @@ class CastTempPlaylistItem extends AltPopupImage
 		/* This function is called by DND */
 		this.acceptDrop = (source, actor, x, y, time) =>
 		{
+			if(!source.drag)
+				return false;
+
 			source.drag.meta = {
 				text: source.label.text,
 				filepath: source.filepath,
