@@ -5,7 +5,7 @@ const Slider = imports.ui.slider;
 const ExtUtils = imports.misc.extensionUtils;
 const Local = ExtUtils.getCurrentExtension();
 const Gettext = imports.gettext.domain(Local.metadata['gettext-domain']);
-const { AltPopupBase } = Local.imports.compat;
+const { AltPopupBase, IS_OLD_SHELL } = Local.imports.compat;
 const Soup = Local.imports.soup;
 const Playlist = Local.imports.playlist;
 const Temp = Local.imports.temp;
@@ -670,7 +670,12 @@ class CastSliderItem extends AltPopupBase
 		{
 			this.add_actor(this._sliderIcon);
 			this.add_actor(this._sliderButton);
-			this.add(this._slider, { expand: true });
+
+			if(IS_OLD_SHELL)
+				this.add(this._slider, { expand: true });
+			else
+				this.add_child(this._slider);
+
 			this.visible = true;
 		}
 
