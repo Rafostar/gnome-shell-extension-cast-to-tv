@@ -78,7 +78,7 @@ var CastPlaylist = class
 		if(!this.isDragging) this.sortMenuItems(playlistArray);
 	}
 
-	addMenuPlaylistItem(filepath, isActive, position)
+	addMenuPlaylistItem(filepath, isActive)
 	{
 		let title;
 
@@ -95,7 +95,7 @@ var CastPlaylist = class
 
 		if(isActive) playlistItem.setPlaying(true);
 
-		this.subMenu.menu.addMenuItem(playlistItem, position);
+		this.subMenu.menu.addMenuItem(playlistItem);
 	}
 
 	sortMenuItems(playlistArray)
@@ -139,6 +139,9 @@ var CastPlaylist = class
 
 	updatePlaylistFile()
 	{
+		if(!this.remoteActive || !Soup.client)
+			return;
+
 		let menuItems = this.subMenu.menu._getMenuItems();
 		let filePlaylist = [];
 
@@ -150,8 +153,6 @@ var CastPlaylist = class
 
 		if(!filePlaylist.length)
 			filePlaylist = [''];
-
-		if(!Soup.client) return;
 
 		Soup.client.postPlaylist(filePlaylist);
 	}
@@ -241,9 +242,14 @@ var CastPlaylist = class
 				heighArr.push(height);
 		});
 
-		this.subMenu.menu.moveMenuItem(
-			this.tempMenuItem, menuItems.indexOf(this.draggedItem)
-		);
+		let tempIndex = menuItems.indexOf(this.tempMenuItem);
+		let dragIndex = menuItems.indexOf(this.draggedItem);
+
+		/* Check if invisible insert item is above or below selected item */
+		this.draggedItem.restoreIndex = (tempIndex > dragIndex) ?
+			dragIndex : dragIndex - 1;
+
+		this.subMenu.menu.moveMenuItem(this.tempMenuItem, dragIndex);
 
 		if(this.tempMenuItem.isActor)
 			this.tempMenuItem.actor.show();
@@ -267,33 +273,32 @@ var CastPlaylist = class
 
 	_onDragEnd(obj, time, res)
 	{
-		this.isDragging = false;
-		let menuItems;
-
-		/* Item was restored earlier */
-		if(res && obj.itemRestored)
+		if(!this.isDragging || !this.draggedItem)
 			return;
 
-		if(res && obj.meta && typeof obj.meta === 'object')
-		{
-			obj.itemRestored = true;
+		this.isDragging = false;
 
-			menuItems = this.subMenu.menu._getMenuItems();
-			let newPlaylistItem = new CastPlaylistItem(obj.meta.text, obj.meta.filepath);
+		if(this.draggedItem.dropOnTemp || this.draggedItem.isPlaying)
+		{
+			let menuItems = this.subMenu.menu._getMenuItems();
+
+			let newPlaylistItem = new CastPlaylistItem(
+				this.draggedItem.title, this.draggedItem.filepath
+			);
 			this._connectDragSigals(newPlaylistItem);
 
-			if(obj.meta.active)
+			if(this.draggedItem.isPlaying)
 				newPlaylistItem.setPlaying(true);
 
-			this.subMenu.menu.addMenuItem(newPlaylistItem, menuItems.indexOf(this.tempMenuItem));
-		}
-		else
-		{
-			this.subMenu.menu.moveMenuItem(this.draggedItem, 0);
+			let tempIndex = menuItems.indexOf(this.tempMenuItem);
 
-			/* Force removal of active style */
-			this.draggedItem.active = true;
-			this.draggedItem.active = false;
+			let position = (res)
+				? tempIndex
+				: (tempIndex > this.draggedItem.restoreIndex)
+				? this.draggedItem.restoreIndex
+				: this.draggedItem.restoreIndex + 1;
+
+			this.subMenu.menu.addMenuItem(newPlaylistItem, position);
 		}
 
 		if(this.tempMenuItem.isActor)
@@ -301,8 +306,10 @@ var CastPlaylist = class
 		else
 			this.tempMenuItem.hide();
 
-		if(this.remoteActive)
-			this.updatePlaylistFile();
+		this.draggedItem.destroy();
+		this.draggedItem = null;
+
+		this.updatePlaylistFile();
 	}
 
 	_onDragMotion(dragEvent)
@@ -380,6 +387,23 @@ var CastPlaylist = class
 	}
 }
 
+class DragOverride extends DND._Draggable
+{
+	constructor(actor, params)
+	{
+		super(actor, params);
+	}
+
+	_getRestoreLocation()
+	{
+		let x = this._snapBackX;
+		let y = this._snapBackY;
+		let scale = this._snapBackScale;
+
+		return [x, y, scale];
+	}
+}
+
 let CastPlaylistSubMenu = GObject.registerClass(
 class CastPlaylistSubMenu extends PopupMenu.PopupSubMenuMenuItem
 {
@@ -434,16 +458,16 @@ class CastPlaylistItem extends AltPopupImage
 
 		this.isPlaylistItem = true;
 		this.isPlaying = false;
+		this.title = title;
 		this.filepath = filepath;
+		this.restoreIndex = 0;
+		this.dropOnTemp = false;
 		this.isActor = (this.hasOwnProperty('actor'));
 
 		if(this.isActor)
-			this.drag = DND.makeDraggable(this.actor);
+			this.drag = new DragOverride(this.actor);
 		else
-			this.drag = DND.makeDraggable(this);
-
-		this.drag.meta = null;
-		this.drag.itemRestored = false;
+			this.drag = new DragOverride(this);
 	}
 
 	setPlaying(isPlaying)
@@ -500,12 +524,7 @@ class CastTempPlaylistItem extends AltPopupImage
 		if(!source.drag)
 			return false;
 
-		source.drag.meta = {
-			text: source.label.text,
-			filepath: source.filepath,
-			active: source.isPlaying
-		};
-
+		source.dropOnTemp = true;
 		source.drag.emit('drag-end', time, true);
 
 		return true;
