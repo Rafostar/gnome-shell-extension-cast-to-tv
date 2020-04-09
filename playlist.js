@@ -352,8 +352,11 @@ var CastPlaylist = class
 
 	_onDragDrop(dropEvent)
 	{
+		let targetItem = (dropEvent.targetActor.hasOwnProperty('_delegate')) ?
+			dropEvent.targetActor._delegate : dropEvent.targetActor;
+
 		/* Allow DND to call "acceptDrop" and handle event */
-		if(!this.draggedItem || this._getParentWithValue(dropEvent.targetActor, 'isTempPlaylistItem'))
+		if(!this.draggedItem || this._getParentWithValue(targetItem, 'isTempPlaylistItem'))
 			return DND.DragDropResult.CONTINUE;
 
 		if(!this.draggedItem.isPlaying || !this.remoteActive)
