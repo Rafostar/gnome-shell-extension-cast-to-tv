@@ -1,4 +1,4 @@
-const { Clutter, GObject } = imports.gi;
+const { GObject } = imports.gi;
 const PopupMenu = imports.ui.popupMenu;
 const DND = imports.ui.dnd;
 const Local = imports.misc.extensionUtils.getCurrentExtension();
