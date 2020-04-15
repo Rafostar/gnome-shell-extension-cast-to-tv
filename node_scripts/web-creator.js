@@ -58,6 +58,7 @@ exports.encodedStream = function(req, res)
 			'Connection': 'close',
 			'Content-Type': 'video/mp4'
 		});
+
 		switch(streamType)
 		{
 			case 'MUSIC':
