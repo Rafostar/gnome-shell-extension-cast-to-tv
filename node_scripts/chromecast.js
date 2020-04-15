@@ -14,6 +14,7 @@ const shared = require('../shared');
 var playerStatus = {};
 var playerVolume = 1;
 var remoteBusy = false;
+var delayCount = 0;
 var castInterval;
 var playTimeout;
 var initType;
@@ -178,7 +179,7 @@ function makeID()
 function initChromecast()
 {
 	var mimeType = 'video/*';
-	var trackIds = null;
+	var trackIds = [];
 	var mediaTracks = null;
 	var ip = internalIp.sync();
 	var port = bridge.config.listeningPort;
@@ -220,22 +221,25 @@ function initChromecast()
 	switch(mimeType)
 	{
 		case 'video/*':
-			trackIds = [1];
 			mediaTracks = {
-				textTrackStyle: {
-					...shared.chromecast.subsStyle,
-					...bridge.config.chromecastSubtitles
-				},
-				tracks: shared.chromecast.tracks,
 				metadata: {
 					metadataType: 1,
 					images: [{url: ''}]
 				}
 			};
+
+			if(!bridge.selection.subsPath)
+				break;
+
+			trackIds = [1];
+			mediaTracks.textTrackStyle = {
+				...shared.chromecast.subsStyle,
+				...bridge.config.chromecastSubtitles
+			};
+			mediaTracks.tracks = shared.chromecast.tracks;
 			mediaTracks.tracks[0].trackContentId = `http://${ip}:${port}/subswebplayer?session=${sessionID}`;
 			break;
 		case 'audio/*':
-			trackIds = [];
 			mediaTracks = {
 				metadata: {
 					metadataType: 3,
@@ -244,7 +248,6 @@ function initChromecast()
 			};
 			break;
 		case 'image/*':
-			trackIds = [];
 			mediaTracks = {
 				metadata: {
 					metadataType: 4,
@@ -253,7 +256,6 @@ function initChromecast()
 			};
 			break;
 		default:
-			trackIds = [];
 			mediaTracks = {
 				metadata: {
 					metadataType: 1,
@@ -340,7 +342,7 @@ function launchCast(media, castOpts)
 		chromecast._player.on('status', handleChromecastStatus);
 
 		debugCast('Cast started');
-		startPlayback(media.contentType);
+		startPlayback(media);
 	});
 }
 
@@ -372,9 +374,10 @@ function clearPlayTimeout()
 	debugCast('Stopped delayed playback');
 }
 
-function startPlayback(mimeType)
+function startPlayback(media)
 {
 	remoteBusy = false;
+	var mimeType = media.contentType;
 
 	/* Get startup volume level when not casting picture */
 	if(mimeType !== 'image/*')
@@ -393,7 +396,7 @@ function startPlayback(mimeType)
 	}
 
 	/* Delay playback to allow media buffer a little */
-	if(mimeType === 'video/*')
+	if(mimeType === 'video/*' && !media.autoplay)
 	{
 		var play = () =>
 		{
@@ -505,32 +508,43 @@ function checkLiveDelay(status)
 		remoteBusy
 		|| status.playerState !== 'PLAYING'
 		|| !status.liveSeekableRange
+		|| isNaN(status.currentTime)
 		|| isNaN(status.liveSeekableRange.end)
 	)
-		return;
+		return delayCount = 0;
 
 	var currTime = status.currentTime;
 	var buffTime = status.liveSeekableRange.end;
 
-	debugCast(`Current stream time: ${currTime}`);
-	debugCast(`Stream buffered until: ${buffTime}`);
+	if(buffTime < currTime)
+		return delayCount = 0;
 
-	if(
-		buffTime > currTime
-		&& buffTime - currTime > bridge.selection.maxLiveDelay
-	) {
+	var currDelay = (buffTime - currTime).toFixed(1);
+	debugCast(`Current stream delay: ${currDelay} sec`);
+
+	if(currDelay > bridge.selection.maxLiveDelay)
+	{
+		if(delayCount < 5)
+		{
+			delayCount++;
+			return debugCast(`Delay observed: ${delayCount} times`);
+		}
+
 		remoteBusy = true;
 
 		debugCast('Reducing stream delay...');
 		chromecast.seek(buffTime, () => remoteBusy = false);
 	}
+
+	/* This has to be cleared after seek */
+	delayCount = 0;
 }
 
 function showIdleError()
 {
 	debugCast('Chromecast is IDLE due to ERROR!');
 
-	var info = (initType === 'LIVE') ? messages.chromecast.tryAgain : null;
+	var info = (initType === 'LIVE' && !bridge.addon) ? messages.chromecast.tryAgain : null;
 	notify('Chromecast', messages.chromecast.playError, bridge.selection.filePath, info);
 }
 
