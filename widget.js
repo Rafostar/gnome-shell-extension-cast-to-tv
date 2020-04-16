@@ -67,10 +67,7 @@ var castMenu = class CastToTvMenu extends PopupMenu.PopupMenuSection
 
 		this.spawnExtensionPrefs = () =>
 		{
-			/* Close open window before reopening */
-			GLib.spawn_command_line_async('pkill -SIGINT -f gnome-shell-extension-prefs');
-
-			/* Open extension preferences */
+			/* Open extension preferences (pre-3.36) */
 			GLib.spawn_async('/usr/bin', ['gnome-shell-extension-prefs',
 				'cast-to-tv@rafostar.github.com'], null, 0, null);
 		}
