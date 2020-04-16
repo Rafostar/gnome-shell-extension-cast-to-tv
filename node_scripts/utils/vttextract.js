@@ -70,6 +70,9 @@ function parseArgs()
 			case '--recursive':
 				opts.recursive = true;
 				break;
+			case '-h':
+			case '--help':
+				return false;
 			default:
 				if(!opts.inPath)
 					opts.inPath = process.argv[i];
