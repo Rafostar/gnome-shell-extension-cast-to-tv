@@ -547,13 +547,13 @@ function processMusicSelection(cb)
 			return cb(null);
 		}
 
-		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, cover) =>
+		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, coverPath) =>
 		{
 			if(!err)
 			{
-				exports.mediaData.coverPath = path.join(parsedFile.dir, cover);
+				exports.mediaData.coverPath = coverPath;
 				remove.tempCover();
-				debug(`Found cover file in music dir: ${cover}`);
+				debug(`Found cover file in music dir: ${coverPath}`);
 
 				return cb(null);
 			}
@@ -620,12 +620,12 @@ function processPlayercastSelection(cb)
 			return cb(null);
 		}
 
-		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, cover) =>
+		extract.music.findCoverInDir(parsedFile.dir, coverNames, (err, coverPath) =>
 		{
 			if(!err)
 			{
-				exports.mediaData.coverPath = path.join(parsedFile.dir, cover);
-				debug(`Found cover file in music dir: ${cover}`);
+				exports.mediaData.coverPath = coverPath;
+				debug(`Found cover file in music dir: ${coverPath}`);
 
 				return cb(null);
 			}
