@@ -27,7 +27,7 @@
 
 Expand extension functionality through Add-ons:
 * [Links Add-on](https://github.com/Rafostar/cast-to-tv-links-addon) - cast media from web pages
-* [Desktop Add-on](https://github.com/Rafostar/cast-to-tv-desktop-addon) - desktop streaming (experimental on early development stage)
+* [Desktop Add-on](https://github.com/Rafostar/cast-to-tv-desktop-addon) - desktop streaming
 
 ## Download
 ### For latest release and changelog check out [releases page](https://github.com/Rafostar/gnome-shell-extension-cast-to-tv/releases).
