@@ -367,25 +367,15 @@ function processSelection(cb)
 			remove.tempSubs();
 			cb(null);
 			break;
-		case 'VIDEO':
-		case 'VIDEO_AENC':
-			remove.tempCover();
-			processVideoSelection(cb);
-			break;
 		default:
+			var isVidEnc = (exports.selection.streamType.includes('_VENC'));
 			remove.tempCover();
-			if(exports.config.burnSubtitles)
-			{
-				remove.tempSubs();
-				processVideoTranscode(cb);
-			}
-			else
-				processVideoSelection(cb);
+			processVideoSelection(isVidEnc, cb);
 			break;
 	}
 }
 
-function processVideoSelection(cb)
+function processVideoSelection(isVidEnc, cb)
 {
 	extract.video.subsProcess = true;
 
@@ -409,85 +399,31 @@ function processVideoSelection(cb)
 			return cb(null);
 		}
 
-		var opts = {
-			file: exports.selection.subsPath,
-			outPath: shared.vttSubsPath,
-			overwrite: true,
-			vttparser: true
-		};
-
-		debug('Converting subtitles file...');
-		extract.video.subsToVtt(opts, (err) =>
+		if(!isVidEnc || !exports.config.burnSubtitles)
 		{
-			if(err)
-			{
-				exports.selection.subsPath = "";
-				remove.tempSubs();
+			var opts = {
+				file: exports.selection.subsPath,
+				outPath: shared.vttSubsPath,
+				overwrite: true,
+				vttparser: true
+			};
 
-				return cb(err);
-			}
-
-			exports.selection.subsPath = opts.outPath;
-			debug('Successfully converted subtitles file');
-
-			return cb(null);
-		});
-	}
-	else
-	{
-		if(
-			!exports.config.extractorReuse
-			|| !exports.config.extractorDir
-		) {
-			return analyzeVideoFile(null, cb);
-		}
-
-		fs.access(exports.config.extractorDir, fs.constants.F_OK, (err) =>
-		{
-			if(err)
-			{
-				debug('Could not access reusable subtitles dir');
-				return analyzeVideoFile(null, cb);
-			}
-
-			var file = path.parse(exports.selection.filePath);
-			var reusePath = path.join(exports.config.extractorDir, file.name + '.vtt');
-
-			fs.access(reusePath, fs.constants.F_OK, (err) =>
+			debug('Converting subtitles file...');
+			return extract.video.subsToVtt(opts, (err) =>
 			{
 				if(err)
 				{
-					debug('No reusable subtitles file');
-					return analyzeVideoFile(reusePath, cb);
+					exports.selection.subsPath = "";
+					remove.tempSubs();
+
+					return cb(err);
 				}
 
-				debug('Found reusable subtitles file');
-				exports.selection.subsPath = reusePath;
+				exports.selection.subsPath = opts.outPath;
+				debug('Successfully converted subtitles file');
 
 				return cb(null);
 			});
-		});
-	}
-}
-
-function processVideoTranscode(cb)
-{
-	extract.video.subsProcess = true;
-
-	debug('Processing file for transcoding...');
-
-	if(exports.config.receiverType === 'other')
-		socket.emit('reload');
-
-	if(exports.selection.subsPath)
-	{
-		var subs = path.parse(exports.selection.subsPath);
-		var isVtt = (subs.ext.toLowerCase() === '.vtt');
-
-		if(isVtt)
-		{
-			debug('Selected "vtt" subtitles - no conversion needed');
-			return cb(null);
 		}
 
 		extract.video.getSubsCharEnc(exports.selection.subsPath, (err, charEnc) =>
@@ -503,23 +439,40 @@ function processVideoTranscode(cb)
 	}
 	else
 	{
-		var ffprobeOpts = {
-			ffprobePath : exports.config.ffprobePath,
-			filePath: exports.selection.filePath
-		};
+		if(isVidEnc && exports.config.burnSubtitles)
+			return analyzeVideoTranscode(cb);
 
-		extract.analyzeFile(ffprobeOpts, (err, ffprobeData) =>
+		if(
+			!exports.config.extractorReuse
+			|| !exports.config.extractorDir
+		) {
+			return analyzeVideoFile(isVidEnc, null, cb);
+		}
+
+		fs.access(exports.config.extractorDir, fs.constants.F_OK, (err) =>
 		{
-			if(err) return cb(err);
+			if(err)
+			{
+				debug('Could not access reusable subtitles dir');
+				return analyzeVideoFile(isVidEnc, null, cb);
+			}
 
-			exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+			var file = path.parse(exports.selection.filePath);
+			var reusePath = path.join(exports.config.extractorDir, file.name + '.vtt');
 
-			if(exports.mediaData.isSubsMerged)
-				debug('Found subtitles merged in file');
-			else
-				debug('No merged subtitles detected');
+			fs.access(reusePath, fs.constants.F_OK, (err) =>
+			{
+				if(err)
+				{
+					debug('No reusable subtitles file');
+					return analyzeVideoFile(isVidEnc, reusePath, cb);
+				}
 
-			return cb(null);
+				debug('Found reusable subtitles file');
+				exports.selection.subsPath = reusePath;
+
+				return cb(null);
+			});
 		});
 	}
 }
@@ -640,7 +593,7 @@ function processPlayercastSelection(cb)
 	});
 }
 
-function analyzeVideoFile(reusePath, cb)
+function analyzeVideoFile(isVidEnc, reusePath, cb)
 {
 	var ffprobeOpts = {
 		ffprobePath : exports.config.ffprobePath,
@@ -658,6 +611,16 @@ function analyzeVideoFile(reusePath, cb)
 		}
 
 		exports.mediaData.isSubsMerged = extract.video.getIsSubsMerged(ffprobeData);
+
+		if(
+			isVidEnc
+			&& exports.config.burnSubtitles
+			&& exports.mediaData.isSubsMerged
+		) {
+			debug('Found subtitles merged in file');
+
+			return cb(null);
+		}
 
 		if(!exports.mediaData.isSubsMerged)
 		{
