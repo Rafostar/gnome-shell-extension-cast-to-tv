@@ -410,6 +410,7 @@ function processVideoSelection(cb)
 		}
 
 		var opts = {
+			ffmpegPath: exports.config.ffmpegPath,
 			file: exports.selection.subsPath,
 			outPath: shared.vttSubsPath,
 			overwrite: true,
@@ -561,6 +562,7 @@ function processMusicSelection(cb)
 			if(extract.music.getIsCoverMerged(ffprobeData))
 			{
 				var opts = {
+					ffmpegPath: exports.config.ffmpegPath,
 					file: exports.selection.filePath,
 					outPath: shared.coverDefault + '.jpg',
 					overwrite: true
@@ -669,6 +671,7 @@ function analyzeVideoFile(reusePath, cb)
 		}
 
 		var opts = {
+			ffmpegPath: exports.config.ffmpegPath,
 			file: exports.selection.filePath,
 			outPath: reusePath || shared.vttSubsPath,
 			overwrite: true,
