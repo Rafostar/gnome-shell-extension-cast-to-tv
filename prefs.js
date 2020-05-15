@@ -24,8 +24,8 @@ function init()
 	Helper.initTranslations(Local.path);
 }
 
-let MissingNotification = GObject.registerClass(
-class MissingNotification extends Gtk.VBox
+let CastMissingAppInfoBox = GObject.registerClass(
+class CastMissingAppInfoBox extends Gtk.VBox
 {
 	_init(dependName)
 	{
@@ -49,8 +49,8 @@ class MissingNotification extends Gtk.VBox
 	}
 });
 
-let StreamingNotification = GObject.registerClass(
-class StreamingNotification extends Gtk.VBox
+let CastIsStreamingInfoBox = GObject.registerClass(
+class CastIsStreamingInfoBox extends Gtk.VBox
 {
 	_init()
 	{
@@ -81,13 +81,13 @@ class StreamingNotification extends Gtk.VBox
 		});
 		this.pack_start(label, true, true, 0);
 
-		let remoteWidget = new RemoteSettings();
+		let remoteWidget = new CastRemoteSettingsGrid();
 		this.pack_start(remoteWidget, true, true, 0);
 	}
 });
 
-let MainSettings = GObject.registerClass(
-class MainSettings extends Gtk.VBox
+let CastMainSettingsBox = GObject.registerClass(
+class CastMainSettingsBox extends Gtk.VBox
 {
 	_init()
 	{
@@ -229,8 +229,8 @@ class MainSettings extends Gtk.VBox
 	}
 });
 
-let RemoteSettings = GObject.registerClass(
-class RemoteSettings extends Gtk.Grid
+let CastRemoteSettingsGrid = GObject.registerClass(
+class CastRemoteSettingsGrid extends Gtk.Grid
 {
 	_init()
 	{
@@ -334,8 +334,8 @@ class RemoteSettings extends Gtk.Grid
 	}
 });
 
-let ChromecastSettings = GObject.registerClass(
-class ChromecastSettings extends Gtk.Grid
+let CastChromecastSettingsGrid = GObject.registerClass(
+class CastChromecastSettingsGrid extends Gtk.Grid
 {
 	_init()
 	{
@@ -376,7 +376,7 @@ class ChromecastSettings extends Gtk.Grid
 			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton])
 		);
 		this.ipConfSignal = this.ipConfButton.connect('clicked', () => {
-			let castIp = new ChromecastIpSettings(this);
+			let castIp = new CastChromecastIpDialog(this);
 		});
 		Settings.bind('chromecast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, box);
@@ -524,8 +524,8 @@ class ChromecastSettings extends Gtk.Grid
 	}
 });
 
-let OtherSettings = GObject.registerClass(
-class OtherSettings extends Gtk.Notebook
+let CastOtherSettingsNotebook = GObject.registerClass(
+class CastOtherSettingsNotebook extends Gtk.Notebook
 {
 	_init()
 	{
@@ -535,9 +535,9 @@ class OtherSettings extends Gtk.Notebook
 		this.createdWidgets = [];
 
 		let otherWidgets = [
-			EncoderSettings,
-			ExtractorSettings,
-			MiscSettings
+			CastEncoderSettingsGrid,
+			CastExtractorSettingsGrid,
+			CastMiscSettingsGrid
 		];
 
 		otherWidgets.forEach(OtherWidget =>
@@ -559,8 +559,8 @@ class OtherSettings extends Gtk.Notebook
 	}
 });
 
-let EncoderSettings = GObject.registerClass(
-class EncoderSettings extends Gtk.Grid
+let CastEncoderSettingsGrid = GObject.registerClass(
+class CastEncoderSettingsGrid extends Gtk.Grid
 {
 	_init()
 	{
@@ -606,8 +606,8 @@ class EncoderSettings extends Gtk.Grid
 	}
 });
 
-let ExtractorSettings = GObject.registerClass(
-class ExtractorSettings extends Gtk.Grid
+let CastExtractorSettingsGrid = GObject.registerClass(
+class CastExtractorSettingsGrid extends Gtk.Grid
 {
 	_init()
 	{
@@ -697,8 +697,8 @@ class ExtractorSettings extends Gtk.Grid
 	}
 });
 
-let MiscSettings = GObject.registerClass(
-class MiscSettings extends Gtk.Grid
+let CastMiscSettingsGrid = GObject.registerClass(
+class CastMiscSettingsGrid extends Gtk.Grid
 {
 	_init()
 	{
@@ -799,8 +799,8 @@ class MiscSettings extends Gtk.Grid
 	}
 });
 
-let AddonsSettings = GObject.registerClass(
-class AddonsSettings extends Gtk.Notebook
+let CastAddonsSettingsNotebook = GObject.registerClass(
+class CastAddonsSettingsNotebook extends Gtk.Notebook
 {
 	_init()
 	{
@@ -847,8 +847,8 @@ class AddonsSettings extends Gtk.Notebook
 	}
 });
 
-let ModulesSettings = GObject.registerClass(
-class ModulesSettings extends Gtk.VBox
+let CastModulesSettingsBox = GObject.registerClass(
+class CastModulesSettingsBox extends Gtk.VBox
 {
 	_init()
 	{
@@ -959,8 +959,8 @@ class ModulesSettings extends Gtk.VBox
 	}
 });
 
-let AboutPage = GObject.registerClass(
-class AboutPage extends Gtk.VBox
+let CastAboutPageBox = GObject.registerClass(
+class CastAboutPageBox extends Gtk.VBox
 {
 	_init()
 	{
@@ -1026,8 +1026,8 @@ class AboutPage extends Gtk.VBox
 	}
 });
 
-let CastNotebook = GObject.registerClass(
-class CastNotebook extends Gtk.Notebook
+let CastPrefsNotebook = GObject.registerClass(
+class CastPrefsNotebook extends Gtk.Notebook
 {
 	_init()
 	{
@@ -1035,20 +1035,20 @@ class CastNotebook extends Gtk.Notebook
 
 		this.delay = 0;
 
-		this.mainWidget = new MainSettings();
+		this.mainWidget = new CastMainSettingsBox();
 		this.addToNotebook(this.mainWidget, _("Main"));
 
-		this.remoteWidget = new RemoteSettings();
+		this.remoteWidget = new CastRemoteSettingsGrid();
 		this.addToNotebook(this.remoteWidget, _("Remote"));
 
-		this.chromecastWidget = new ChromecastSettings();
+		this.chromecastWidget = new CastChromecastSettingsGrid();
 		this.addToNotebook(this.chromecastWidget, "Chromecast");
 
-		this.otherWidget = new OtherSettings();
+		this.otherWidget = new CastOtherSettingsNotebook();
 		/* TRANSLATORS: Other extension settings */
 		this.addToNotebook(this.otherWidget, _("Other"));
 
-		this.addonsWidget = new AddonsSettings();
+		this.addonsWidget = new CastAddonsSettingsNotebook();
 		let addonsNumber = this.addonsWidget.get_n_pages();
 
 		if(addonsNumber == 0)
@@ -1063,11 +1063,11 @@ class CastNotebook extends Gtk.Notebook
 
 		if(!Local.metadata['custom-install'])
 		{
-			this.modulesWidget = new ModulesSettings();
+			this.modulesWidget = new CastModulesSettingsBox();
 			this.addToNotebook(this.modulesWidget, _("Modules"));
 		}
 
-		this.aboutWidget = new AboutPage();
+		this.aboutWidget = new CastAboutPageBox();
 		this.addToNotebook(this.aboutWidget, _("About"));
 	}
 
@@ -1107,18 +1107,18 @@ class CastNotebook extends Gtk.Notebook
 	}
 });
 
-let CastToTvSettings = GObject.registerClass(
-class CastToTvSettings extends Gtk.VBox
+let CastToTvPrefsBox = GObject.registerClass(
+class CastToTvPrefsBox extends Gtk.VBox
 {
 	_init()
 	{
 		super._init();
 
 		this.timeout = null;
-		this.notebook = new CastNotebook();
+		this.notebook = new CastPrefsNotebook();
 		this.pack_start(this.notebook, true, true, 0);
 
-		this.notification = new StreamingNotification();
+		this.notification = new CastIsStreamingInfoBox();
 		this.pack_start(this.notification, true, true, 0);
 
 		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
@@ -1195,8 +1195,8 @@ class CastToTvSettings extends Gtk.VBox
 	}
 });
 
-let ChromecastIpSettings = GObject.registerClass(
-class ChromecastIpSettings extends Gtk.Dialog
+let CastChromecastIpDialog = GObject.registerClass(
+class CastChromecastIpDialog extends Gtk.Dialog
 {
 	_init(parent)
 	{
@@ -1548,8 +1548,8 @@ function buildPrefsWidget()
 {
 	let widget = null;
 
-	if(!NODE_PATH) return widget = new MissingNotification('nodejs');
-	else if(!NPM_PATH) return widget = new MissingNotification('npm');
+	if(!NODE_PATH) return widget = new CastMissingAppInfoBox('nodejs');
+	else if(!NPM_PATH) return widget = new CastMissingAppInfoBox('npm');
 
 	nodeDir = NODE_PATH.substring(0, NODE_PATH.lastIndexOf('/'));
 	nodeBin = NODE_PATH.substring(NODE_PATH.lastIndexOf('/') + 1);
@@ -1561,7 +1561,7 @@ function buildPrefsWidget()
 		Soup.createClient(listeningPort, wsPort);
 	}
 
-	widget = new CastToTvSettings();
+	widget = new CastToTvPrefsBox();
 	widget.show_all();
 	widget.notification.hide();
 
