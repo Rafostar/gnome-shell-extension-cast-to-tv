@@ -373,7 +373,7 @@ class CastChromecastSettingsGrid extends Gtk.Grid
 
 		this.devChangeSignal = Settings.connect('changed::chromecast-devices', this.onDevEdit.bind(this, widget));
 		this.scanSignal = this.scanButton.connect('clicked',
-			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton])
+			scanDevices.bind(this, widget, [this.scanButton, this.ipConfButton], 'googlecast')
 		);
 		this.ipConfSignal = this.ipConfButton.connect('clicked', () => {
 			let castIp = new CastChromecastIpDialog(this);
@@ -1395,7 +1395,7 @@ class CastChromecastIpDialog extends Gtk.Dialog
 	}
 });
 
-function scanDevices(widget, buttons)
+function scanDevices(widget, buttons, serviceName)
 {
 	buttons.forEach(button => button.set_sensitive(false));
 
@@ -1406,7 +1406,7 @@ function scanDevices(widget, buttons)
 	widget.set_active(0);
 
 	let [res, pid] = GLib.spawn_async(
-		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/scanner'],
+		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/scanner', serviceName],
 		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
 	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>

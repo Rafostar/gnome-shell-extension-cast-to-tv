@@ -72,6 +72,10 @@
       <default>""</default>
       <summary>Playercast device name</summary>
     </key>
+    <key name="playercast-devices" type="s">
+      <default>"[]"</default>
+      <summary>Scanned Playercast devices list</summary>
+    </key>
     <!-- Encoder -->
     <key name="video-acceleration" type="s">
       <default>"none"</default>
