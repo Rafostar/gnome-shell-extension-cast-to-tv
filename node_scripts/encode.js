@@ -46,17 +46,34 @@ function getAudioOptsArray(isEncodeAudio)
 
 function getPlayerOptsArray()
 {
-	if(bridge.config.receiverType !== 'playercast')
-	{
-		return [
-			'-frag_duration', '1000000',
-			'-movflags', '+empty_moov',
-			'-strict', '-2',
-			'-f', 'mp4'
-		];
-	}
+	if(bridge.config.receiverType === 'playercast')
+		return ['-f', 'matroska'];
 
-	return ['-f', 'matroska'];
+	return [
+		'-frag_duration', '1000000',
+		'-movflags', '+empty_moov',
+		'-strict', '-2',
+		'-f', 'mp4'
+	];
+}
+
+function getIsBurnSubs()
+{
+	return (
+		bridge.config.burnSubtitles
+		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
+	) ? true : false;
+}
+
+function insertSubsAfter(encodeOpts, arrEl)
+{
+	if(!getIsBurnSubs())
+		return;
+
+	encodeOpts.splice(
+		encodeOpts.indexOf(arrEl) + 1, 0,
+		'-vf', 'subtitles=' + getSubsOptions(), '-sn'
+	);
 }
 
 function createEncodeProcess(encodeOpts)
@@ -127,15 +144,7 @@ exports.video = function(isEncodeAudio)
 	'pipe:1'
 	];
 
-	if(
-		bridge.config.burnSubtitles
-		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
-	) {
-		encodeOpts.splice(
-			encodeOpts.indexOf('libx264') + 1, 0,
-			'-vf', 'subtitles=' + getSubsOptions(), '-sn'
-		);
-	}
+	insertSubsAfter(encodeOpts, 'libx264');
 
 	return createEncodeProcess(encodeOpts);
 }
@@ -153,10 +162,8 @@ exports.videoVaapi = function(isEncodeAudio)
 	'pipe:1'
 	];
 
-	if(
-		bridge.config.burnSubtitles
-		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
-	) {
+	if(getIsBurnSubs())
+	{
 		encodeOpts.unshift(
 			'-hwaccel', 'vaapi',
 			'-hwaccel_device', '/dev/dri/renderD128',
@@ -190,15 +197,25 @@ exports.videoNvenc = function(isEncodeAudio)
 	'pipe:1'
 	];
 
-	if(
-		bridge.config.burnSubtitles
-		&& (bridge.mediaData.isSubsMerged || bridge.selection.subsPath)
-	) {
-		encodeOpts.splice(
-			encodeOpts.indexOf('h264_nvenc') + 1, 0,
-			'-vf', 'subtitles=' + getSubsOptions(), '-sn'
-		);
-	}
+	insertSubsAfter(encodeOpts, 'h264_nvenc');
+
+	return createEncodeProcess(encodeOpts);
+}
+
+exports.videoAmf = function(isEncodeAudio)
+{
+	var encodeOpts = [
+	'-i', bridge.selection.filePath,
+	'-c:v', 'h264_amf',
+	'-level:v', '4.1',
+	'-b:v', bridge.config.videoBitrate + 'M',
+	'-c:a', ...getAudioOptsArray(isEncodeAudio),
+	'-metadata', 'title=Cast to TV - AMF Encoded Stream',
+	...getPlayerOptsArray(),
+	'pipe:1'
+	];
+
+	insertSubsAfter(encodeOpts, 'h264_amf');
 
 	return createEncodeProcess(encodeOpts);
 }

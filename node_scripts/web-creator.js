@@ -76,6 +76,9 @@ exports.encodedStream = function(req, res)
 					case 'nvenc':
 						encode.videoNvenc(audioEnc).pipe(res);
 						break;
+					case 'amf':
+						encode.videoAmf(audioEnc).pipe(res);
+						break;
 					default:
 						encode.video(audioEnc).pipe(res);
 						break;

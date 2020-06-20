@@ -583,6 +583,7 @@ class CastEncoderSettingsGrid extends Gtk.Grid
 		widget.append('none', _("None"));
 		widget.append('vaapi', "VAAPI");
 		widget.append('nvenc', "NVENC");
+		widget.append('amf', "AMF");
 		Settings.bind('video-acceleration', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
 		addToGrid(this, label, widget);
 
