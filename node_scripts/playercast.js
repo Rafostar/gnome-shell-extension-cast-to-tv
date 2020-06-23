@@ -6,18 +6,24 @@ const socket = require('./server-socket');
 const sender = require('./sender');
 const events = require('./events');
 
+var parsedName;
 var connectTimeout;
 
 exports.cast = function()
 {
 	var recName = null;
+	var foundDev = null;
 
-	if(
-		bridge.config.playercastName
-		&& socket.playercasts.includes(bridge.config.playercastName)
-	) {
-		recName = bridge.config.playercastName;
-		debug(`Cast to connected playercast: ${recName}`);
+	if(bridge.config.playercastName)
+	{
+		parsedName = (bridge.config.playercastName.split('.local')[0]).toLowerCase();
+		foundDev = socket.playercasts.find(dev => dev.toLowerCase() === parsedName);
+
+		if(foundDev)
+		{
+			recName = foundDev;
+			debug(`Cast to already connected playercast: ${recName}`);
+		}
 	}
 
 	if(!bridge.config.playercastName && socket.playercasts.length)
@@ -52,13 +58,8 @@ function emitCast(receiverName)
 
 function findReceiver(receiverName, cb)
 {
-	const fullName = (receiverName)
-		? (receiverName.split(' ').join('') + '.').toLowerCase()
-		: null;
-
 	const opts = {
-		name: fullName,
-		friendly_name: receiverName,
+		name: receiverName,
 		service_name: '_playercast._tcp.local',
 		service_type: 'PTR'
 	};
@@ -129,11 +130,10 @@ function onPlayercastAdded(addedName)
 {
 	debug('New Playercast added');
 
-	if(
-		bridge.config.playercastName
-		&& addedName !== bridge.config.playercastName
-	) {
-		return debug('Playercast name mismatch');
+	if(parsedName && bridge.config.playercastName)
+	{
+		if(addedName.toLowerCase() !== parsedName)
+			return debug('Playercast name mismatch');
 	}
 
 	clearConnectTimeout();
