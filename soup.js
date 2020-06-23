@@ -385,9 +385,16 @@ class CastClient extends Soup.Session
 		)
 			return cb(null);
 
-		this.wsConn.connect('closed', () =>
+		this.wsClosedSignal = this.wsConn.connect('closed', () =>
 		{
+			this.wsConn.disconnect(this.wsClosedSignal);
+
+			if(this.wsMessageSignal)
+				this.wsConn.disconnect(this.wsMessageSignal);
+
+			this.wsConn.run_dispose();
 			this.wsConn = null;
+
 			cb(null);
 		});
 
@@ -399,7 +406,7 @@ class CastClient extends Soup.Session
 		if(!this.wsConn)
 			return cb(new Error('Websocket not connected'));
 
-		this.wsConn.connect('message', (self, type, bytes) =>
+		this.wsMessageSignal = this.wsConn.connect('message', (self, type, bytes) =>
 		{
 			/* Ignore not compatible messages */
 			if(type !== Soup.WebsocketDataType.TEXT)
