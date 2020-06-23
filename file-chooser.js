@@ -171,8 +171,16 @@ class fileChooser
 
 			Soup.client.getPlayercasts(devices =>
 			{
+				/* Restore empty devices list if someone messed it externally */
+				try { devices = JSON.parse(Settings.get_string('playercast-devices')); }
+				catch(err) { Settings.set_string('playercast-devices', "[]"); }
+
 				this.playercastSelect.remove_all();
 				this.playercastSelect.append('', _("Automatic"));
+
+				this.setDevicesSignal = Settings.connect(
+					'changed::playercast-devices', this._setDevices.bind(this)
+				);
 				Helper.setDevicesWidget(this.playercastSelect, devices, activeText);
 
 				if(!this.boundPlayercastDevices)
