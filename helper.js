@@ -95,7 +95,7 @@ function startApp(appPath, appName, args, noClose)
 
 function setDevicesWidget(widget, devices, activeText)
 {
-	if(Array.isArray(devices))
+	if(Array.isArray(devices) && devices.length)
 	{
 		let foundActive = false;
 		let appendIndex = 0;
@@ -103,33 +103,19 @@ function setDevicesWidget(widget, devices, activeText)
 
 		devices.forEach(device =>
 		{
-			if(typeof device === 'object')
+			let value = (device.name) ? device.name : null;
+			let text = (device.friendlyName) ? device.friendlyName : null;
+
+			if(value && text && !appendArray.includes(value))
 			{
-				let value = (device.name) ? device.name : null;
-				let text = (device.friendlyName) ? device.friendlyName : null;
+				if(!device.name.endsWith('.local') && !device.ip)
+					return;
 
-				if(value && text && !appendArray.includes(value))
-				{
-					if(!device.name.endsWith('.local') && !device.ip)
-						return;
-
-					widget.append(value, text);
-					appendArray.push(value);
-					appendIndex++;
-
-					if(!foundActive && activeText && activeText === text)
-					{
-						widget.set_active(appendIndex);
-						foundActive = true;
-					}
-				}
-			}
-			else
-			{
-				widget.append(device, device);
+				widget.append(value, text);
+				appendArray.push(value);
 				appendIndex++;
 
-				if(!foundActive && activeText && activeText === device)
+				if(!foundActive && activeText && activeText === text)
 				{
 					widget.set_active(appendIndex);
 					foundActive = true;

@@ -18,6 +18,7 @@ const FILE_MANAGERS = ['nautilus', 'nemo'];
 
 let nodeDir;
 let nodeBin;
+let soupClient;
 
 function init()
 {
@@ -197,7 +198,7 @@ class CastMainSettingsBox extends Gtk.VBox
 
 	checkService()
 	{
-		Soup.client.getIsServiceEnabled(data =>
+		soupClient.getIsServiceEnabled(data =>
 		{
 			if(data && data.isEnabled)
 				this.setDisplayInfo(true);
@@ -516,7 +517,7 @@ class CastChromecastSettingsGrid extends Gtk.Grid
 		this.fontStyle.disconnect(this.styleSignal);
 		this.scaleButton.disconnect(this.scaleSignal);
 		this.fontColor.disconnect(this.fontColorSignal);
-		this.outlineSignal.disconnect(this.outlineSignal);
+		this.outlineSwitch.disconnect(this.outlineSignal);
 		this.edgeColor.disconnect(this.edgeSignal);
 		this.bgColor.disconnect(this.bgSignal);
 
@@ -710,6 +711,7 @@ class CastMiscSettingsGrid extends Gtk.Grid
 		this.title = new Gtk.Label({ label: _("Misc") });
 		let label = null;
 		let widget = null;
+		let box = null;
 
 		/* Label: Playercast */
 		label = new SettingLabel(_("Playercast app"), true);
@@ -717,16 +719,24 @@ class CastMiscSettingsGrid extends Gtk.Grid
 
 		/* Playercast device name */
 		label = new SettingLabel(_("Device selection"));
+		box = new Gtk.HBox({halign:Gtk.Align.END});
 		widget = new Gtk.ComboBoxText();
+		this.playercastScanButton = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
+		box.pack_end(this.playercastScanButton, false, false, 4);
+		box.pack_end(widget, false, false, 0);
 		setDevices(widget, true);
 		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		let currentPlayercast = Settings.get_string('playercast-name');
-		if(widget.active_id != currentPlayercast)
+		let savedPlayercast = Settings.get_string('playercast-name');
+		if(widget.active_id != savedPlayercast)
 		{
-			widget.append(currentPlayercast, currentPlayercast);
-			widget.active_id = currentPlayercast;
+			widget.append(getLocalPlayercastName(savedPlayercast), savedPlayercast);
+			widget.active_id = savedPlayercast;
 		}
-		addToGrid(this, label, widget);
+		this.playercastChangeSignal = Settings.connect('changed::playercast-devices', this.onDevEdit.bind(this, widget));
+		this.playercastScanSignal = this.playercastScanButton.connect('clicked',
+			scanDevices.bind(this, widget, [this.playercastScanButton], 'playercast')
+		);
+		addToGrid(this, label, box);
 
 		/* Label: Web Player */
 		label = new SettingLabel(_("Web Player"), true, true);
@@ -790,8 +800,17 @@ class CastMiscSettingsGrid extends Gtk.Grid
 		return false;
 	}
 
+	onDevEdit(widget)
+	{
+		let activeText = widget.get_active_text();
+		setDevices(widget, true, activeText);
+	}
+
 	destroy()
 	{
+		Settings.disconnect(this.playercastChangeSignal);
+		this.playercastScanButton.disconnect(this.playercastScanSignal);
+
 		if(this.nautilusSwitch)
 			this.nautilusSwitch.disconnect(this.nautilusSignal);
 
@@ -1121,23 +1140,25 @@ class CastToTvPrefsBox extends Gtk.VBox
 		this.notification = new CastIsStreamingInfoBox();
 		this.pack_start(this.notification, true, true, 0);
 
-		Soup.client.getPlaybackData(data => this._onPlayingChange(data));
+		soupClient.getPlaybackData(data => this._onPlayingChange(data));
 
 		this.intPortSignal = Settings.connect('changed::internal-port', () => this.delayReconnect());
+		this.destroySignal = this.connect('destroy', () => this._onPrefsDestroy());
+
 		this.createWebsocketConn();
 	}
 
 	createWebsocketConn(isRefresh)
 	{
-		Soup.client.connectWebsocket('prefs', (err) =>
+		soupClient.connectWebsocket('prefs', (err) =>
 		{
 			if(err) return this.delayReconnect();
 
 			if(isRefresh)
-				Soup.client.getPlaybackData(data => this._onPlayingChange(data));
+				soupClient.getPlaybackData(data => this._onPlayingChange(data));
 
-			Soup.client.onWebsocketMsg((err, data) =>
-				{
+			soupClient.onWebsocketMsg((err, data) =>
+			{
 				if(err) return log('Cast to TV: '+ err.message);
 
 				if(data.hasOwnProperty('isPlaying'))
@@ -1146,12 +1167,14 @@ class CastToTvPrefsBox extends Gtk.VBox
 					this.notebook.mainWidget.setDisplayInfo(data.isEnabled);
 			});
 
-			Soup.client.wsConn.connect('closed', () => this.delayReconnect());
+			this.wsClosedSignal = soupClient.wsConn.connect('closed', () => this.delayReconnect());
 		});
 	}
 
 	delayReconnect()
 	{
+		if(!soupClient) return;
+
 		if(this.timeout)
 			GLib.source_remove(this.timeout);
 
@@ -1160,8 +1183,8 @@ class CastToTvPrefsBox extends Gtk.VBox
 			this.timeout = null;
 			let wsPort = Settings.get_int('internal-port');
 
-			if(wsPort != Soup.client.wsPort)
-				Soup.client.setWsPort(wsPort);
+			if(wsPort != soupClient.wsPort)
+				soupClient.setWsPort(wsPort);
 
 			this.createWebsocketConn(true);
 
@@ -1185,13 +1208,28 @@ class CastToTvPrefsBox extends Gtk.VBox
 		}
 	}
 
-	destroy()
+	_onPrefsDestroy()
 	{
+		this.disconnect(this.destroySignal);
+
+		if(
+			soupClient
+			&& soupClient.wsConn
+			&& this.wsClosedSignal
+		) {
+			soupClient.wsConn.disconnect(this.wsClosedSignal);
+		}
+
 		Settings.disconnect(this.intPortSignal);
 		this.notebook.destroy();
 		this.notification.destroy();
 
-		super.destroy();
+		soupClient.disconnectWebsocket(() =>
+		{
+			soupClient.abort();
+			soupClient.run_dispose();
+			soupClient = null;
+		});
 	}
 });
 
@@ -1397,6 +1435,7 @@ class CastChromecastIpDialog extends Gtk.Dialog
 
 function scanDevices(widget, buttons, serviceName)
 {
+	let isPlayercast = (serviceName && serviceName === 'playercast');
 	buttons.forEach(button => button.set_sensitive(false));
 
 	widget.remove_all();
@@ -1405,43 +1444,65 @@ function scanDevices(widget, buttons, serviceName)
 	/* Show Scanning label */
 	widget.set_active(0);
 
+	const onSetDevicesFinish = function()
+	{
+		/* Set Automatic as active */
+		widget.set_active(0);
+		buttons.forEach(button => button.set_sensitive(true));
+	}
+
 	let [res, pid] = GLib.spawn_async(
 		nodeDir, [nodeBin, Local.path + '/node_scripts/utils/scanner', serviceName],
 		null, GLib.SpawnFlags.DO_NOT_REAP_CHILD, null);
 
 	GLib.child_watch_add(GLib.PRIORITY_LOW, pid, () =>
 	{
-		setDevices(widget);
-		/* Set Automatic as active */
-		widget.set_active(0);
-		buttons.forEach(button => button.set_sensitive(true));
+		let devicesPromise = setDevices(widget, isPlayercast);
+
+		if(!devicesPromise)
+			return onSetDevicesFinish();
+
+		devicesPromise.then(() => onSetDevicesFinish());
 	});
 }
 
-function setDevices(widget, isPlayercasts, activeText)
+function setDevices(widget, isPlayercast, activeText)
 {
 	widget.remove_all();
 	widget.append('', _("Automatic"));
+
+	let devName = (isPlayercast) ? 'playercast' : 'chromecast';
 	let devices = [];
 
-	if(isPlayercasts)
+	/* Restore empty devices list if someone messed it externally */
+	try { devices = JSON.parse(Settings.get_string(`${devName}-devices`)); }
+	catch(err) { Settings.set_string(`${devName}-devices`, "[]"); }
+
+	if(!isPlayercast)
 	{
-		Soup.client.getPlayercasts(playercasts =>
+		Helper.setDevicesWidget(widget, devices, activeText);
+		return false;
+	}
+
+	return new Promise(resolve =>
+	{
+		soupClient.getPlayercasts(playercasts =>
 		{
 			if(playercasts)
-				devices = playercasts;
+			{
+				playercasts.forEach(fn =>
+				{
+					let localName = getLocalPlayercastName(fn);
+
+					if(!devices.some(dev => dev.name === localName))
+						devices.unshift({ name: localName, friendlyName: fn, ip: '' });
+				});
+			}
 
 			Helper.setDevicesWidget(widget, devices, activeText);
+			resolve();
 		});
-	}
-	else
-	{
-		/* Restore empty devices list if someone messed it externally */
-		try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
-		catch(err) { Settings.set_string('chromecast-devices', "[]"); }
-
-		Helper.setDevicesWidget(widget, devices, activeText);
-	}
+	});
 }
 
 function getHostIpAsync(cb)
@@ -1463,6 +1524,11 @@ function getHostIpAsync(cb)
 
 		return cb(ip4);
 	});
+}
+
+function getLocalPlayercastName(friendlyName)
+{
+	return (friendlyName.split(' ').join('')).toLowerCase() + '.local';
 }
 
 function enableNautilusExtension(enabled)
@@ -1554,11 +1620,11 @@ function buildPrefsWidget()
 	nodeDir = NODE_PATH.substring(0, NODE_PATH.lastIndexOf('/'));
 	nodeBin = NODE_PATH.substring(NODE_PATH.lastIndexOf('/') + 1);
 
-	if(!Soup.client)
+	if(!soupClient)
 	{
 		let listeningPort = Settings.get_int('listening-port');
 		let wsPort = Settings.get_int('internal-port');
-		Soup.createClient(listeningPort, wsPort);
+		soupClient = new Soup.CastClient(listeningPort, wsPort);
 	}
 
 	widget = new CastToTvPrefsBox();
