@@ -7,6 +7,7 @@ const sender = require('./sender');
 const encode = require('./encode');
 const remove = require('./remove');
 const chromecast = require('./chromecast');
+const playercast = require('./playercast');
 const gnome = require('./gnome');
 const notify = require('./notify');
 const messages = require('./messages.js');
@@ -311,11 +312,7 @@ function castFile()
 			chromecast.cast();
 			break;
 		case 'playercast':
-			socket.emit('playercast', {
-				name: exports.config.playercastName || socket.playercasts[0],
-				mediaData: exports.mediaData,
-				...exports.selection
-			});
+			playercast.cast();
 			break;
 		case 'other':
 			if(
@@ -339,8 +336,6 @@ function notifyFromError(err)
 		notify('Cast to TV', messages.ffprobeError, exports.selection.filePath);
 	else if(err.message.includes('FFprobe exec error'))
 		notify('Cast to TV', messages.ffprobePath);
-	else if(err.message === 'No playercasts connected')
-		notify('Playercast', messages.chromecast.notFound);
 	else
 		notify('Cast to TV', messages.extractError, exports.selection.filePath);
 }
@@ -599,9 +594,6 @@ function processMusicSelection(cb)
 function processPlayercastSelection(cb)
 {
 	debug('Processing playercast file...');
-
-	if(socket.playercasts.length === 0)
-		return cb(new Error('No playercasts connected'));
 
 	if(
 		exports.selection.streamType !== 'MUSIC'
