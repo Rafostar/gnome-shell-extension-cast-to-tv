@@ -1489,9 +1489,9 @@ function setDevices(widget, isPlayercast, activeText)
 
 	return new Promise(resolve =>
 	{
-		soupClient.getPlayercasts(playercasts =>
+		soupClient.getPlayercasts(additionalDevs =>
 		{
-			devices = Helper.parsePlayercastDevices(playercasts, devices);
+			devices = Helper.parsePlayercastDevices(devices, additionalDevs);
 
 			Helper.setDevicesWidget(widget, devices, activeText);
 			resolve();

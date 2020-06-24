@@ -122,7 +122,7 @@ class fileChooser
 		catch(err) { Settings.set_string(recType + '-devices', "[]"); }
 
 		if(recType === 'playercast' && additionalDevs)
-			devices = Helper.parsePlayercastDevices(additionalDevs, devices);
+			devices = Helper.parsePlayercastDevices(devices, additionalDevs);
 
 		this[recSelect].remove_all();
 		this[recSelect].append('', _("Automatic"));

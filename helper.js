@@ -133,16 +133,20 @@ function setDevicesWidget(widget, devices, activeText)
 	widget.set_active(0);
 }
 
-function parsePlayercastDevices(webData, localData)
+function parsePlayercastDevices(localData, webData)
 {
 	if(webData)
 	{
 		webData.forEach(fn =>
 		{
-			let fullName = (fn.split(' ').join('')).toLowerCase() + '.local';
-
-			if(!localData.some(dev => dev.name === fullName))
-				localData.unshift({ name: fullName, friendlyName: fn, ip: '' });
+			if(!localData.some(dev => dev.friendlyName === fn))
+			{
+				localData.unshift({
+					name: (fn.split(' ').join('')).toLowerCase() + '.local',
+					friendlyName: fn,
+					ip: ''
+				});
+			}
 		});
 	}
 
