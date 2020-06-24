@@ -138,6 +138,10 @@ class fileChooser
 				recType + '-name', this[recSelect],
 				'active-id', Gio.SettingsBindFlags.DEFAULT
 			);
+			/* Set to Automatic instead of empty box */
+			if(!this[recSelect].get_active_text())
+				this[recSelect].set_active(0);
+
 			this[recBound] = true;
 		}
 

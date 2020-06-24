@@ -724,9 +724,13 @@ class CastMiscSettingsGrid extends Gtk.Grid
 		this.playercastScanButton = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
 		box.pack_end(this.playercastScanButton, false, false, 4);
 		box.pack_end(this.playercastSelect, false, false, 0);
-		setDevices(this.playercastSelect, true).then(() =>
-			Settings.bind('playercast-name', this.playercastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT)
-		);
+		setDevices(this.playercastSelect, true).then(() => {
+			Settings.bind('playercast-name', this.playercastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT);
+
+			/* Set to Automatic instead of empty box */
+			if(!this.playercastSelect.get_active_text())
+				this.playercastSelect.set_active(0);
+		});
 		this.playercastChangeSignal = Settings.connect(
 			'changed::playercast-devices', this.onPlayercastEdit.bind(this, this.playercastSelect)
 		);
