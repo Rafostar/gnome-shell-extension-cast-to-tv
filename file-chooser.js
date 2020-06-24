@@ -110,6 +110,52 @@ class fileChooser
 		box.pack_start(this.playercastSelect, true, true, 0);
 	}
 
+	_refreshDevicesBox(recType, additionalDevs)
+	{
+		let devices = [];
+		let recSelect = recType + 'Select';
+		let recBound = recType + 'Bound';
+		let activeText = this[recSelect].get_active_text();
+
+		/* Restore empty devices list if someone messed it externally */
+		try { devices = JSON.parse(Settings.get_string(recType + '-devices')); }
+		catch(err) { Settings.set_string(recType + '-devices', "[]"); }
+
+		if(recType === 'playercast' && additionalDevs)
+			devices = Helper.parsePlayercastDevices(additionalDevs, devices);
+
+		this[recSelect].remove_all();
+		this[recSelect].append('', _("Automatic"));
+
+		this.setDevicesSignal = Settings.connect(
+			'changed::' + recType + '-devices', this._setDevices.bind(this)
+		);
+		Helper.setDevicesWidget(this[recSelect], devices, activeText);
+
+		if(!this[recBound])
+		{
+			Settings.bind(
+				recType + '-name', this[recSelect],
+				'active-id', Gio.SettingsBindFlags.DEFAULT
+			);
+			this[recBound] = true;
+		}
+
+		if(!this.isPlaying)
+		{
+			this.deviceSelectLabel.show();
+
+			if(recType === 'chromecast')
+				this.playercastSelect.hide();
+			else
+				this.chromecastSelect.hide();
+
+			this[recSelect].show();
+		}
+		else
+			hideDeviceSelection();
+	}
+
 	_setDevices()
 	{
 		if(this.setDevicesSignal)
@@ -118,8 +164,6 @@ class fileChooser
 			this.setDevicesSignal = null;
 		}
 
-		let devices = [];
-		let activeText = '';
 		let receiverType = Settings.get_string('receiver-type');
 
 		const hideDeviceSelection = () =>
@@ -129,82 +173,21 @@ class fileChooser
 			this.chromecastSelect.hide();
 		}
 
-		if(receiverType === 'chromecast')
+		switch(receiverType)
 		{
-			this.deviceSelectLabel.label = 'Chromecast:';
-			activeText = this.chromecastSelect.get_active_text();
-
-			/* Restore empty devices list if someone messed it externally */
-			try { devices = JSON.parse(Settings.get_string('chromecast-devices')); }
-			catch(err) { Settings.set_string('chromecast-devices', "[]"); }
-
-			this.chromecastSelect.remove_all();
-			this.chromecastSelect.append('', _("Automatic"));
-
-			this.setDevicesSignal = Settings.connect(
-				'changed::chromecast-devices', this._setDevices.bind(this)
-			);
-			Helper.setDevicesWidget(this.chromecastSelect, devices, activeText);
-
-			if(!this.boundChromecastDevices)
-			{
-				Settings.bind(
-					'chromecast-name', this.chromecastSelect,
-					'active-id', Gio.SettingsBindFlags.DEFAULT
+			case 'chromecast':
+				this.deviceSelectLabel.label = 'Chromecast:';
+				this._refreshDevicesBox(receiverType, null);
+				break;
+			case 'playercast':
+				this.deviceSelectLabel.label = 'Playercast:';
+				Soup.client.getPlayercasts(playercasts =>
+					this._refreshDevicesBox(receiverType, playercasts)
 				);
-				this.boundChromecastDevices = true;
-			}
-
-			if(!this.isPlaying)
-			{
-				this.deviceSelectLabel.show();
-				this.playercastSelect.hide();
-				this.chromecastSelect.show();
-			}
-			else
+				break;
+			default:
 				hideDeviceSelection();
-		}
-		else if(receiverType === 'playercast')
-		{
-			this.deviceSelectLabel.label = 'Playercast:';
-			activeText = this.playercastSelect.get_active_text();
-
-			Soup.client.getPlayercasts(devices =>
-			{
-				/* Restore empty devices list if someone messed it externally */
-				try { devices = JSON.parse(Settings.get_string('playercast-devices')); }
-				catch(err) { Settings.set_string('playercast-devices', "[]"); }
-
-				this.playercastSelect.remove_all();
-				this.playercastSelect.append('', _("Automatic"));
-
-				this.setDevicesSignal = Settings.connect(
-					'changed::playercast-devices', this._setDevices.bind(this)
-				);
-				Helper.setDevicesWidget(this.playercastSelect, devices, activeText);
-
-				if(!this.boundPlayercastDevices)
-				{
-					Settings.bind(
-						'playercast-name', this.playercastSelect,
-						'active-id', Gio.SettingsBindFlags.DEFAULT
-					);
-					this.boundPlayercastDevices = true;
-				}
-
-				if(!this.isPlaying)
-				{
-					this.deviceSelectLabel.show();
-					this.chromecastSelect.hide();
-					this.playercastSelect.show();
-				}
-				else
-					hideDeviceSelection();
-			});
-		}
-		else
-		{
-			hideDeviceSelection();
+				break;
 		}
 	}
 

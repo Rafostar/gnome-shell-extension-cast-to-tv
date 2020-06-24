@@ -6,7 +6,6 @@ const socket = require('./server-socket');
 const sender = require('./sender');
 const events = require('./events');
 
-var parsedName;
 var connectTimeout;
 
 exports.cast = function()
@@ -16,12 +15,11 @@ exports.cast = function()
 
 	if(bridge.config.playercastName)
 	{
-		parsedName = (bridge.config.playercastName.split('.local')[0]).toLowerCase();
-		foundDev = socket.playercasts.find(dev => dev.toLowerCase() === parsedName);
+		var isConnected = socket.playercasts.some(dev => dev === bridge.config.playercastName);
 
-		if(foundDev)
+		if(isConnected)
 		{
-			recName = foundDev;
+			recName = bridge.config.playercastName;
 			debug(`Cast to already connected playercast: ${recName}`);
 		}
 	}
@@ -59,9 +57,8 @@ function emitCast(receiverName)
 function findReceiver(receiverName, cb)
 {
 	const opts = {
-		name: receiverName,
-		service_name: '_playercast._tcp.local',
-		service_type: 'PTR'
+		friendly_name: receiverName,
+		service_name: '_playercast._tcp.local'
 	};
 
 	scanner(opts, cb);
@@ -130,9 +127,9 @@ function onPlayercastAdded(addedName)
 {
 	debug('New Playercast added');
 
-	if(parsedName && bridge.config.playercastName)
+	if(bridge.config.playercastName)
 	{
-		if(addedName.toLowerCase() !== parsedName)
+		if(addedName !== bridge.config.playercastName)
 			return debug('Playercast name mismatch');
 	}
 

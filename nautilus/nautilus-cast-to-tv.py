@@ -24,7 +24,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def __init__(self):
         GObject.Object.__init__(self)
         self.subs_path = ""
-        self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
         self.ext_settings = None
         self.ws_conn = None
@@ -176,18 +175,15 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             cast_submenu = submenu
             playlist_allowed = self.get_playlist_allowed(stream_type)
         else:
-            device_config_name = device['name']
+            device_config_name = device['friendlyName']
             cast_submenu = FileManager.Menu()
-            name_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=device['friendlyName'])
+            name_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=device_config_name)
             name_item.set_submenu(cast_submenu)
             submenu.append_item(name_item)
             playlist_allowed = False
             receiver_type = self.ext_settings.get_string('receiver-type')
-            if receiver_type == 'chromecast':
-                if device_config_name == self.ext_settings.get_string('chromecast-name'):
-                    playlist_allowed = self.get_playlist_allowed(stream_type)
-            elif receiver_type == 'playercast':
-                if device_config_name == self.ext_settings.get_string('playercast-name'):
+            if receiver_type == 'chromecast' or receiver_type == 'playercast':
+                if device_config_name == self.ext_settings.get_string(receiver_type + '-name'):
                     playlist_allowed = self.get_playlist_allowed(stream_type)
 
         cast_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=_(cast_label))
@@ -222,29 +218,17 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         receiver_type = self.ext_settings.get_string('receiver-type')
         receiver_name = None
 
-        if receiver_type == 'chromecast' or receiver_type == 'playercast':
+        if receiver_type == 'other':
+            return _("Web browser | Media player")
+        else:
             if not use_friendly_name:
                 return receiver_type.capitalize()
             else:
                 receiver_name = self.ext_settings.get_string(receiver_type + '-name')
-                if not receiver_name:
+                if receiver_name:
+                    return receiver_name
+                else:
                     return receiver_type.capitalize()
-        elif receiver_type == 'other':
-            return _("Web browser | Media player")
-        else:
-            return None
-
-        # Reduce extension settings reads (and below loop runs) when selecting files
-        if receiver_name == self.current_name['name']:
-            return self.current_name['fn']
-
-        for device in json.loads(self.ext_settings.get_string(receiver_type + '-devices')):
-            if device['name'] == receiver_name:
-                self.current_name['name'] = device['name']
-                self.current_name['fn'] = device['friendlyName']
-                return self.current_name['fn']
-
-        return None
 
     def get_file_path(self, file):
         file_location = file.get_location()

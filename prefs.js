@@ -720,21 +720,18 @@ class CastMiscSettingsGrid extends Gtk.Grid
 		/* Playercast device name */
 		label = new SettingLabel(_("Device selection"));
 		box = new Gtk.HBox({halign:Gtk.Align.END});
-		widget = new Gtk.ComboBoxText();
+		this.playercastSelect = new Gtk.ComboBoxText();
 		this.playercastScanButton = Gtk.Button.new_from_icon_name('view-refresh-symbolic', 4);
 		box.pack_end(this.playercastScanButton, false, false, 4);
-		box.pack_end(widget, false, false, 0);
-		setDevices(widget, true);
-		Settings.bind('playercast-name', widget, 'active-id', Gio.SettingsBindFlags.DEFAULT);
-		let savedPlayercast = Settings.get_string('playercast-name');
-		if(widget.active_id != savedPlayercast)
-		{
-			widget.append(getLocalPlayercastName(savedPlayercast), savedPlayercast);
-			widget.active_id = savedPlayercast;
-		}
-		this.playercastChangeSignal = Settings.connect('changed::playercast-devices', this.onDevEdit.bind(this, widget));
+		box.pack_end(this.playercastSelect, false, false, 0);
+		setDevices(this.playercastSelect, true).then(() =>
+			Settings.bind('playercast-name', this.playercastSelect, 'active-id', Gio.SettingsBindFlags.DEFAULT)
+		);
+		this.playercastChangeSignal = Settings.connect(
+			'changed::playercast-devices', this.onPlayercastEdit.bind(this, this.playercastSelect)
+		);
 		this.playercastScanSignal = this.playercastScanButton.connect('clicked',
-			scanDevices.bind(this, widget, [this.playercastScanButton], 'playercast')
+			scanDevices.bind(this, this.playercastSelect, [this.playercastScanButton], 'playercast')
 		);
 		addToGrid(this, label, box);
 
@@ -800,7 +797,7 @@ class CastMiscSettingsGrid extends Gtk.Grid
 		return false;
 	}
 
-	onDevEdit(widget)
+	onPlayercastEdit(widget)
 	{
 		let activeText = widget.get_active_text();
 		setDevices(widget, true, activeText);
@@ -1224,6 +1221,8 @@ class CastToTvPrefsBox extends Gtk.VBox
 		this.notebook.destroy();
 		this.notification.destroy();
 
+		if(!soupClient) return;
+
 		soupClient.disconnectWebsocket(() =>
 		{
 			soupClient.abort();
@@ -1488,16 +1487,7 @@ function setDevices(widget, isPlayercast, activeText)
 	{
 		soupClient.getPlayercasts(playercasts =>
 		{
-			if(playercasts)
-			{
-				playercasts.forEach(fn =>
-				{
-					let localName = getLocalPlayercastName(fn);
-
-					if(!devices.some(dev => dev.name === localName))
-						devices.unshift({ name: localName, friendlyName: fn, ip: '' });
-				});
-			}
+			devices = Helper.parsePlayercastDevices(playercasts, devices);
 
 			Helper.setDevicesWidget(widget, devices, activeText);
 			resolve();
@@ -1524,11 +1514,6 @@ function getHostIpAsync(cb)
 
 		return cb(ip4);
 	});
-}
-
-function getLocalPlayercastName(friendlyName)
-{
-	return (friendlyName.split(' ').join('')).toLowerCase() + '.local';
 }
 
 function enableNautilusExtension(enabled)

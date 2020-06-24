@@ -103,23 +103,24 @@ function setDevicesWidget(widget, devices, activeText)
 
 		devices.forEach(device =>
 		{
-			let value = (device.name) ? device.name : null;
-			let text = (device.friendlyName) ? device.friendlyName : null;
+			if(
+				(!device.name
+				|| !device.friendlyName
+				|| appendArray.includes(device.friendlyName))
+				|| (!device.name.endsWith('.local')
+				&& !device.ip)
+			) {
+				return;
+			}
 
-			if(value && text && !appendArray.includes(value))
+			widget.append(device.friendlyName, device.friendlyName);
+			appendArray.push(device.friendlyName);
+			appendIndex++;
+
+			if(!foundActive && activeText && activeText === device.friendlyName)
 			{
-				if(!device.name.endsWith('.local') && !device.ip)
-					return;
-
-				widget.append(value, text);
-				appendArray.push(value);
-				appendIndex++;
-
-				if(!foundActive && activeText && activeText === text)
-				{
-					widget.set_active(appendIndex);
-					foundActive = true;
-				}
+				widget.set_active(appendIndex);
+				foundActive = true;
 			}
 		});
 
@@ -130,6 +131,22 @@ function setDevicesWidget(widget, devices, activeText)
 	}
 
 	widget.set_active(0);
+}
+
+function parsePlayercastDevices(webData, localData)
+{
+	if(webData)
+	{
+		webData.forEach(fn =>
+		{
+			let fullName = (fn.split(' ').join('')).toLowerCase() + '.local';
+
+			if(!localData.some(dev => dev.name === fullName))
+				localData.unshift({ name: fullName, friendlyName: fn, ip: '' });
+		});
+	}
+
+	return localData;
 }
 
 function readFromFile(path)

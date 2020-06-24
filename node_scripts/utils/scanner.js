@@ -9,11 +9,22 @@ var opts = {
 
 scanner(opts, (err, devices) =>
 {
-	if(err) devices = [];
-	else devices.forEach(device => device.ip = '');
+	var results = [];
+
+	if(!err)
+	{
+		devices.forEach(device =>
+		{
+			results.push({
+				name: device.name,
+				friendlyName: device.friendlyName,
+				ip: ''
+			});
+		});
+	}
 
 	const devName = (SERVICE !== 'googlecast') ? SERVICE : 'chromecast';
-	gnome.setSetting(`${devName}-devices`, JSON.stringify(devices));
+	gnome.setSetting(`${devName}-devices`, JSON.stringify(results));
 });
 
 gnome.loadSchema();
