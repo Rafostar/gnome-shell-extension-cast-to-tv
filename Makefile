@@ -34,16 +34,18 @@ compilemo: compilemo-base compilemo-addons
 # Compile extension .mo files #
 compilemo-base:
 	for i in $(MSGSRC); do \
-		mkdir -p ./locale/`basename $$i .po`/LC_MESSAGES; \
-		msgfmt -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
+		msggrep $$i -T -e "" | grep -q "" \
+		&& mkdir -p ./locale/`basename $$i .po`/LC_MESSAGES \
+		&& msgfmt -o ./locale/`basename $$i .po`/LC_MESSAGES/$(GETTEXT).mo $$i; \
 	done;
 
 # Compile addons .mo files #
 compilemo-addons:
 	for i in $(POFOLDERS); do \
 		for j in $$i/*.po; do \
-			mkdir -p ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES; \
-			msgfmt -o ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES/`basename $$i`.mo $$j; \
+			msggrep $$j -T -e "" | grep -q "" \
+			&& mkdir -p ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES \
+			&& msgfmt -o ./locale_addons/`basename $$i`/`basename $$j .po`/LC_MESSAGES/`basename $$i`.mo $$j; \
 		done; \
 	done;
 
