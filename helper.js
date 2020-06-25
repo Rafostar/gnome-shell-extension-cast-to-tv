@@ -139,14 +139,14 @@ function parsePlayercastDevices(localData, webData)
 	{
 		webData.forEach(fn =>
 		{
-			if(!localData.some(dev => dev.friendlyName === fn))
-			{
-				localData.unshift({
-					name: (fn.split(' ').join('')).toLowerCase() + '.local',
-					friendlyName: fn,
-					ip: ''
-				});
-			}
+			if(localData.some(dev => dev.friendlyName === fn))
+				return;
+
+			localData.unshift({
+				name: (fn.split(' ').join('')).toLowerCase() + '.local',
+				friendlyName: fn,
+				ip: ''
+			});
 		});
 	}
 
