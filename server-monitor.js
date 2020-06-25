@@ -119,23 +119,37 @@ class ServerMonitor
 		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
 		if(!folderExists)
 		{
-			Helper.notify('Cast to TV', 'npm modules not installed!');
-
+			Helper.notify('Cast to TV', 'Required npm modules are not installed!');
 			return false;
 		}
 
-		let dependencies = this._getDependencies(sourceDir);
+		/* Read cast-to-tv package.json */
+		let pkgInfo = this._getPkgInfo(sourceDir);
 
-		if(!dependencies)
+		if(!pkgInfo || !pkgInfo.dependencies)
+		{
+			log('Cast to TV: could not read package.json!');
 			return false;
+		}
+
+		let dependencies = pkgInfo.dependencies;
 
 		for(let module in dependencies)
 		{
-			let moduleExists = GLib.file_test(`${modulesPath}/${module}`, GLib.FileTest.EXISTS);
+			let modulePath = `${modulesPath}/${module}`;
+			let moduleExists = GLib.file_test(modulePath, GLib.FileTest.EXISTS);
+
 			if(!moduleExists)
 			{
 				Helper.notify('Cast to TV', `Missing npm module: ${module}`);
+				return false;
+			}
 
+			let isRequiredVer = this._checkPkgVersion(modulePath, dependencies[module]);
+
+			if(!isRequiredVer)
+			{
+				Helper.notify('Cast to TV', 'Installed npm modules are outdated!');
 				return false;
 			}
 		}
@@ -170,16 +184,28 @@ class ServerMonitor
 		return true;
 	}
 
-	_getDependencies(readPath)
+	_checkPkgVersion(modulePath, version)
 	{
-		let data = Helper.readFromFile(`${readPath}/package.json`);
+		let isExactVer = false;
+		let pkgInfo = this._getPkgInfo(modulePath);
 
-		if(data && data.dependencies)
-			return data.dependencies;
+		if(!pkgInfo || !pkgInfo.version)
+			return false;
 
-		log('Cast to TV: could not read npm dependencies!');
+		if(isNaN(version.charAt(0)))
+			version = version.substring(1);
+		else
+			isExactVer = true;
 
-		return null;
+		return (isExactVer)
+			? pkgInfo.version == version
+			: pkgInfo.version >= version
+	}
+
+	_getPkgInfo(modulePath)
+	{
+		let data = Helper.readFromFile(`${modulePath}/package.json`);
+		return (data) ? data : null;
 	}
 
 	_onSettingsChanged()
