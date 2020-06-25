@@ -21,14 +21,14 @@ class ServerMonitor
 {
 	constructor()
 	{
-		let canStart = (this._isExtensionEnabled() && !this._getIsServerRunning());
+		let canStart = (this._getIsExtensionEnabled() && !this._getIsServerRunning());
+		if(!canStart) return;
 
 		if(!NODE_PATH)
 			Helper.notify('Cast to TV', 'nodejs' + ' ' + "is not installed!");
 
 		if(
-			!canStart
-			|| !NODE_PATH
+			!NODE_PATH
 			|| !this._checkModules()
 			|| !this._checkAddons()
 		) {
@@ -93,7 +93,7 @@ class ServerMonitor
 		GLib.spawn_command_line_sync(`pkill -SIGINT -f ${LOCAL_PATH}/node_scripts/server`);
 	}
 
-	_isExtensionEnabled()
+	_getIsExtensionEnabled()
 	{
 		let allDisabled = Settings.get_boolean('disable-user-extensions');
 		if(!allDisabled)
@@ -116,7 +116,7 @@ class ServerMonitor
 
 		let data = Soup.client.getIsServiceEnabledSync();
 
-		return (data && data.isEnabled);
+		return (data && data.isEnabled) ? true : false;
 	}
 
 	_checkModules(sourceDir)
@@ -219,7 +219,7 @@ class ServerMonitor
 
 	_onSettingsChanged()
 	{
-		let enabled = this._isExtensionEnabled();
+		let enabled = this._getIsExtensionEnabled();
 
 		if(!enabled)
 			this.stopServer();
