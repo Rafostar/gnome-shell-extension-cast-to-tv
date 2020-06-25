@@ -3,6 +3,7 @@ const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
 
 const EXTENSION_NAME = 'cast-to-tv@rafostar.github.com';
 const LOCAL_PATH = GLib.get_current_dir();
+const NODE_PATH = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 
 imports.searchPath.unshift(LOCAL_PATH);
 const Helper = imports.helper;
@@ -22,8 +23,21 @@ class ServerMonitor
 	{
 		let canStart = (this._isExtensionEnabled() && !this._getIsServerRunning());
 
-		if(!canStart || !this._checkModules() || !this._checkAddons())
+		if(!NODE_PATH)
+			Helper.notify('Cast to TV', 'nodejs' + ' ' + "is not installed!");
+
+		if(
+			!canStart
+			|| !NODE_PATH
+			|| !this._checkModules()
+			|| !this._checkAddons()
+		) {
+			/* If there was an error do not try to start on each login */
+			if(CastSettings.get_boolean('service-wanted'))
+				CastSettings.set_boolean('service-wanted', false);
+
 			return;
+		}
 
 		Settings.connect('changed::disable-user-extensions', () => this._onSettingsChanged());
 		Settings.connect('changed::enabled-extensions', () => this._onSettingsChanged());
@@ -34,15 +48,10 @@ class ServerMonitor
 
 	startServer()
 	{
-		let nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
-
-		if(!nodePath)
-		{
-			log('Cast to TV: nodejs executable not found!');
-			return loop.quit();
-		}
-
-		let proc = Gio.Subprocess.new([nodePath, `${LOCAL_PATH}/node_scripts/server`], Gio.SubprocessFlags.NONE);
+		let proc = Gio.Subprocess.new(
+			[NODE_PATH, `${LOCAL_PATH}/node_scripts/server`],
+			Gio.SubprocessFlags.NONE
+		);
 		log('Cast to TV: service started');
 
 		proc.wait_async(null, () =>
