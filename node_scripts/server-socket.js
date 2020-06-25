@@ -10,6 +10,7 @@ const messages = require('./messages');
 const gnome = require('./gnome');
 const controller = require('./remote-controller');
 const sender = require('./sender');
+const events = require('./events');
 const shared = require('../shared');
 
 var clientTimeout;
@@ -129,6 +130,7 @@ function handleMessages(socket)
 		{
 			exports.playercasts.push(socket.playercastName);
 			socket.emit('invalid', false);
+			events.emit('playercast-added', socket.playercastName);
 		}
 		else
 		{

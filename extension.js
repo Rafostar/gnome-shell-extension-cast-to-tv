@@ -202,15 +202,14 @@ function updateTempConfig(schemaKey, valueType)
 			});
 			break;
 		case 'chromecastName':
-			if(remoteMenu.opts.useFriendlyName)
-				updateChromecastName(postData[confKey]);
-
-			Soup.client.postConfig(postData);
-			break;
 		case 'playercastName':
 			if(remoteMenu.opts.useFriendlyName)
-				updatePlayercastName(postData[confKey]);
-
+			{
+				updateDeviceName(
+					confKey.substring(0, confKey.length - 4),
+					postData[confKey]
+				);
+			}
 			Soup.client.postConfig(postData);
 			break;
 		case 'chromecastDevices':
@@ -240,50 +239,23 @@ function updateTempConfig(schemaKey, valueType)
 	}
 }
 
-function updateChromecastName(name)
+function updateDeviceName(receiverType, name)
 {
-	name = name || Settings.get_string('chromecast-name');
+	if(receiverType !== 'other')
+		name = name || Settings.get_string(`${receiverType}-name`);
 
-	if(
-		Widget.remoteNames.chromecast.name
-		&& Widget.remoteNames.chromecast.name === name
-	)
-		return remoteMenu.refreshLabel();
+	Widget.remoteNames[receiverType] = (name) ? name : null;
 
-	let castDevices = null;
-
-	try { castDevices = JSON.parse(Settings.get_string('chromecast-devices')); }
-	catch(err) { Settings.set_string('chromecast-devices', "[]"); }
-
-	if(!castDevices) return;
-
-	let myDevice = castDevices.find(device => device.name === name);
-
-	if(myDevice)
-		Widget.remoteNames.chromecast = myDevice;
-	else
-		Widget.remoteNames.chromecast = {};
-
-	remoteMenu.refreshLabel();
-}
-
-function updatePlayercastName(name)
-{
-	name = name || Settings.get_string('playercast-name');
-
-	Widget.remoteNames.playercast = (name) ? name : null;
-	remoteMenu.refreshLabel();
+	if(remoteMenu)
+		remoteMenu.refreshLabel();
 }
 
 function onBrowserData(browser)
 {
-	if(browser && browser.name)
-		Widget.remoteNames.browser = browser.name;
-	else
-		Widget.remoteNames.browser = null;
+	if(!browser || !browser.name)
+		return;
 
-	if(remoteMenu)
-		remoteMenu.refreshLabel();
+	updateDeviceName('other', browser.name);
 }
 
 function updateReceiverName(receiverType)
@@ -299,10 +271,8 @@ function updateReceiverName(receiverType)
 	switch(receiverType)
 	{
 		case 'chromecast':
-			updateChromecastName();
-			break;
 		case 'playercast':
-			updatePlayercastName();
+			updateDeviceName(receiverType);
 			break;
 		case 'other':
 			Soup.client.getBrowser(data => onBrowserData(data));
@@ -429,6 +399,12 @@ function onNodeWebsocket(err, msg)
 	Soup.server.emitIsServiceEnabled(enable);
 }
 
+function onPlaybackStatus(data)
+{
+	if(remoteMenu)
+		remoteMenu.updateRemote(data);
+}
+
 function init()
 {
 	Helper.initTranslations(Local.path);
@@ -502,11 +478,7 @@ function enable()
 			Soup.server.addNodeHandler((err, msg) => onNodeWebsocket(err, msg));
 			Soup.server.onPlaybackData(data => refreshRemote(data));
 			Soup.server.onBrowserData(data => onBrowserData(data));
-			Soup.server.onPlaybackStatus(data =>
-			{
-				if(remoteMenu)
-					remoteMenu.updateRemote(data);
-			});
+			Soup.server.onPlaybackStatus(data => onPlaybackStatus(data));
 			Soup.server.createWebsockets();
 
 			if(internalPort != usedPort)

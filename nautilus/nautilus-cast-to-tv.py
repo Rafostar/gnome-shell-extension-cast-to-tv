@@ -24,7 +24,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def __init__(self):
         GObject.Object.__init__(self)
         self.subs_path = ""
-        self.current_name = {"name": "", "fn": ""}
         self.settings = Gio.Settings('org.gnome.shell')
         self.ext_settings = None
         self.ws_conn = None
@@ -127,18 +126,28 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
         if len(files) > 1:
             cast_label += "s"
 
+        connected_devices = None
         cast_devices = []
         parsed_devices = []
         receiver_type = self.ext_settings.get_string('receiver-type')
 
         if not self.ws_data or not self.ws_data['isPlaying']:
-            if receiver_type == 'chromecast':
-                cast_devices = json.loads(self.ext_settings.get_string('chromecast-devices'))
+            if receiver_type == 'playercast':
+                connected_devices = self.get_soup_data('playercasts')
+                for friendly_name in connected_devices:
+                    full_name = (friendly_name.replace(' ', '')).lower() + '.local'
+                    device = {"name": full_name, "friendlyName": friendly_name}
+                    parsed_devices.append(device)
+            if (receiver_type == 'chromecast' or receiver_type == 'playercast'):
+                cast_devices = json.loads(self.ext_settings.get_string(receiver_type + '-devices'))
                 for device in cast_devices:
-                    if (device['name'].endswith('.local') or device['ip']):
+                    if (
+                        (device['name'].endswith('.local')
+                        or device['ip'])
+                        and (not connected_devices
+                        or device['friendlyName'] not in connected_devices)
+                    ):
                         parsed_devices.append(device)
-            elif receiver_type == 'playercast':
-                parsed_devices = self.get_soup_data('playercasts')
 
         if len(parsed_devices) > 1:
             menu_label = self.get_menu_name(False)
@@ -154,8 +163,6 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
         if len(parsed_devices) > 1:
             for device in parsed_devices:
-                if receiver_type == 'playercast':
-                    device = {"friendlyName": device, "name": device}
                 self.add_menu_device(stream_type, files, cast_label, submenu, device, False)
         else:
             self.add_menu_device(stream_type, files, cast_label, submenu, None, True)
@@ -168,18 +175,15 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
             cast_submenu = submenu
             playlist_allowed = self.get_playlist_allowed(stream_type)
         else:
-            device_config_name = device['name']
+            device_config_name = device['friendlyName']
             cast_submenu = FileManager.Menu()
-            name_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=device['friendlyName'])
+            name_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=device_config_name)
             name_item.set_submenu(cast_submenu)
             submenu.append_item(name_item)
             playlist_allowed = False
             receiver_type = self.ext_settings.get_string('receiver-type')
-            if receiver_type == 'chromecast':
-                if device_config_name == self.ext_settings.get_string('chromecast-name'):
-                    playlist_allowed = self.get_playlist_allowed(stream_type)
-            elif receiver_type == 'playercast':
-                if device_config_name == self.ext_settings.get_string('playercast-name'):
+            if receiver_type == 'chromecast' or receiver_type == 'playercast':
+                if device_config_name == self.ext_settings.get_string(receiver_type + '-name'):
                     playlist_allowed = self.get_playlist_allowed(stream_type)
 
         cast_item = FileManager.MenuItem(name='CastToTVMenu::CastFile', label=_(cast_label))
@@ -212,40 +216,19 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
 
     def get_menu_name(self, use_friendly_name):
         receiver_type = self.ext_settings.get_string('receiver-type')
-        chromecast_name = None
+        receiver_name = None
 
-        if receiver_type == 'chromecast':
-            if not use_friendly_name:
-                return "Chromecast"
-            else:
-                chromecast_name = self.ext_settings.get_string('chromecast-name')
-                if not chromecast_name:
-                    return "Chromecast"
-        elif receiver_type == 'playercast':
-            if not use_friendly_name:
-                return "Playercast"
-            else:
-                playercast_name = self.ext_settings.get_string('playercast-name')
-                if playercast_name:
-                    return playercast_name
-                else:
-                    return "Playercast"
-        elif receiver_type == 'other':
+        if receiver_type == 'other':
             return _("Web browser | Media player")
         else:
-            return None
-
-        # Reduce extension settings reads (and below loop runs) when selecting files
-        if chromecast_name == self.current_name['name']:
-            return self.current_name['fn']
-
-        for device in json.loads(self.ext_settings.get_string('chromecast-devices')):
-            if device['name'] == chromecast_name:
-                self.current_name['name'] = device['name']
-                self.current_name['fn'] = device['friendlyName']
-                return self.current_name['fn']
-
-        return None
+            if not use_friendly_name:
+                return receiver_type.capitalize()
+            else:
+                receiver_name = self.ext_settings.get_string(receiver_type + '-name')
+                if receiver_name:
+                    return receiver_name
+                else:
+                    return receiver_type.capitalize()
 
     def get_file_path(self, file):
         file_location = file.get_location()
@@ -318,12 +301,10 @@ class CastToTVMenu(GObject.Object, FileManager.MenuProvider):
     def cast_files_cb(self, menu, files, stream_type, device_config_name):
         if device_config_name != None:
             receiver_type = self.ext_settings.get_string('receiver-type')
-            if receiver_type == 'chromecast':
-                self.post_soup_data('config', { "chromecastName": device_config_name }, False)
-                self.ext_settings.set_string('chromecast-name', device_config_name)
-            elif receiver_type == 'playercast':
-                self.post_soup_data('config', { "playercastName": device_config_name }, False)
-                self.ext_settings.set_string('playercast-name', device_config_name)
+            if receiver_type == 'chromecast' or receiver_type == 'playercast':
+                obj_key = receiver_type + 'Name'
+                self.post_soup_data('config', { obj_key: device_config_name }, False)
+                self.ext_settings.set_string(receiver_type + '-name', device_config_name)
 
         playlist = self.get_parsed_playlist(files)
 

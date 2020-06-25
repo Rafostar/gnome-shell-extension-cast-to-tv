@@ -316,7 +316,7 @@ function initChromecast()
 	var castOpts = {
 		autoplay: getAutoplayState(),
 		activeTrackIds: trackIds,
-		name: getChromecastName(),
+		friendly_name: getChromecastName(),
 		ip: getChromecastIp()
 	};
 

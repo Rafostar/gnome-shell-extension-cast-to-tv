@@ -95,7 +95,7 @@ function startApp(appPath, appName, args, noClose)
 
 function setDevicesWidget(widget, devices, activeText)
 {
-	if(Array.isArray(devices))
+	if(Array.isArray(devices) && devices.length)
 	{
 		let foundActive = false;
 		let appendIndex = 0;
@@ -103,37 +103,24 @@ function setDevicesWidget(widget, devices, activeText)
 
 		devices.forEach(device =>
 		{
-			if(typeof device === 'object')
-			{
-				let value = (device.name) ? device.name : null;
-				let text = (device.friendlyName) ? device.friendlyName : null;
-
-				if(value && text && !appendArray.includes(value))
-				{
-					if(!device.name.endsWith('.local') && !device.ip)
-						return;
-
-					widget.append(value, text);
-					appendArray.push(value);
-					appendIndex++;
-
-					if(!foundActive && activeText && activeText === text)
-					{
-						widget.set_active(appendIndex);
-						foundActive = true;
-					}
-				}
+			if(
+				(!device.name
+				|| !device.friendlyName
+				|| appendArray.includes(device.friendlyName))
+				|| (!device.name.endsWith('.local')
+				&& !device.ip)
+			) {
+				return;
 			}
-			else
-			{
-				widget.append(device, device);
-				appendIndex++;
 
-				if(!foundActive && activeText && activeText === device)
-				{
-					widget.set_active(appendIndex);
-					foundActive = true;
-				}
+			widget.append(device.friendlyName, device.friendlyName);
+			appendArray.push(device.friendlyName);
+			appendIndex++;
+
+			if(!foundActive && activeText && activeText === device.friendlyName)
+			{
+				widget.set_active(appendIndex);
+				foundActive = true;
 			}
 		});
 
@@ -144,6 +131,26 @@ function setDevicesWidget(widget, devices, activeText)
 	}
 
 	widget.set_active(0);
+}
+
+function parsePlayercastDevices(localData, webData)
+{
+	if(webData)
+	{
+		webData.forEach(fn =>
+		{
+			if(localData.some(dev => dev.friendlyName === fn))
+				return;
+
+			localData.unshift({
+				name: (fn.split(' ').join('')).toLowerCase() + '.local',
+				friendlyName: fn,
+				ip: ''
+			});
+		});
+	}
+
+	return localData;
 }
 
 function readFromFile(path)

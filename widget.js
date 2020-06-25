@@ -21,9 +21,9 @@ const MIN_DELAY = 3;
 const MAX_DELAY = 5;
 
 var remoteNames = {
-	chromecast: {},
+	chromecast: null,
 	playercast: null,
-	browser: null
+	other: null
 };
 
 var statusIcon = new St.Icon({ icon_name: ICON_NAME, style_class: 'system-status-icon' });
@@ -349,31 +349,16 @@ class CastRemoteMenu extends PanelMenu.Button
 
 	refreshLabel()
 	{
+		if(!this.opts.receiverType)
+			return;
+
 		/* Change remote label */
-		switch(this.opts.receiverType)
-		{
-			case 'chromecast':
-				if(this.opts.useFriendlyName && remoteNames.chromecast.friendlyName)
-					this.toplabel.text = remoteNames.chromecast.friendlyName;
-				else
-					this.toplabel.text = "Chromecast";
-				break;
-			case 'playercast':
-				if(this.opts.useFriendlyName && remoteNames.playercast)
-					this.toplabel.text = remoteNames.playercast;
-				else
-					this.toplabel.text = "Playercast";
-				break;
-			case 'other':
-				/* TRANSLATORS: Web browser label for top bar remote */
-				if(this.opts.useFriendlyName && remoteNames.browser)
-					this.toplabel.text = remoteNames.browser;
-				else
-					this.toplabel.text = _("Browser");
-				break;
-			default:
-				break;
-		}
+		this.toplabel.text = (this.opts.useFriendlyName && remoteNames[this.opts.receiverType])
+			? remoteNames[this.opts.receiverType]
+			: (this.opts.receiverType === 'other')
+			/* TRANSLATORS: Web browser label for top bar remote */
+			? _("Browser")
+			: this.opts.receiverType.charAt(0).toUpperCase() + this.opts.receiverType.slice(1);
 	}
 
 	updateRemote(status)

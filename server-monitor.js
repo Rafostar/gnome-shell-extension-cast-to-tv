@@ -3,6 +3,7 @@ const Settings = new Gio.Settings({ schema: 'org.gnome.shell' });
 
 const EXTENSION_NAME = 'cast-to-tv@rafostar.github.com';
 const LOCAL_PATH = GLib.get_current_dir();
+const NODE_PATH = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
 
 imports.searchPath.unshift(LOCAL_PATH);
 const Helper = imports.helper;
@@ -20,10 +21,23 @@ class ServerMonitor
 {
 	constructor()
 	{
-		let canStart = (this._isExtensionEnabled() && !this._getIsServerRunning());
+		let canStart = (this._getIsExtensionEnabled() && !this._getIsServerRunning());
+		if(!canStart) return;
 
-		if(!canStart || !this._checkModules() || !this._checkAddons())
+		if(!NODE_PATH)
+			Helper.notify('Cast to TV', 'nodejs' + ' ' + "is not installed!");
+
+		if(
+			!NODE_PATH
+			|| !this._checkModules()
+			|| !this._checkAddons()
+		) {
+			/* If there was an error do not try to start on each login */
+			if(CastSettings.get_boolean('service-wanted'))
+				CastSettings.set_boolean('service-wanted', false);
+
 			return;
+		}
 
 		Settings.connect('changed::disable-user-extensions', () => this._onSettingsChanged());
 		Settings.connect('changed::enabled-extensions', () => this._onSettingsChanged());
@@ -34,15 +48,10 @@ class ServerMonitor
 
 	startServer()
 	{
-		let nodePath = (GLib.find_program_in_path('nodejs') || GLib.find_program_in_path('node'));
-
-		if(!nodePath)
-		{
-			log('Cast to TV: nodejs executable not found!');
-			return loop.quit();
-		}
-
-		let proc = Gio.Subprocess.new([nodePath, `${LOCAL_PATH}/node_scripts/server`], Gio.SubprocessFlags.NONE);
+		let proc = Gio.Subprocess.new(
+			[NODE_PATH, `${LOCAL_PATH}/node_scripts/server`],
+			Gio.SubprocessFlags.NONE
+		);
 		log('Cast to TV: service started');
 
 		proc.wait_async(null, () =>
@@ -84,7 +93,7 @@ class ServerMonitor
 		GLib.spawn_command_line_sync(`pkill -SIGINT -f ${LOCAL_PATH}/node_scripts/server`);
 	}
 
-	_isExtensionEnabled()
+	_getIsExtensionEnabled()
 	{
 		let allDisabled = Settings.get_boolean('disable-user-extensions');
 		if(!allDisabled)
@@ -107,7 +116,7 @@ class ServerMonitor
 
 		let data = Soup.client.getIsServiceEnabledSync();
 
-		return (data && data.isEnabled);
+		return (data && data.isEnabled) ? true : false;
 	}
 
 	_checkModules(sourceDir)
@@ -119,23 +128,37 @@ class ServerMonitor
 		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
 		if(!folderExists)
 		{
-			Helper.notify('Cast to TV', 'npm modules not installed!');
-
+			Helper.notify('Cast to TV', 'Required npm modules are not installed!');
 			return false;
 		}
 
-		let dependencies = this._getDependencies(sourceDir);
+		/* Read cast-to-tv package.json */
+		let pkgInfo = this._getPkgInfo(sourceDir);
 
-		if(!dependencies)
+		if(!pkgInfo || !pkgInfo.dependencies)
+		{
+			log('Cast to TV: could not read package.json!');
 			return false;
+		}
+
+		let dependencies = pkgInfo.dependencies;
 
 		for(let module in dependencies)
 		{
-			let moduleExists = GLib.file_test(`${modulesPath}/${module}`, GLib.FileTest.EXISTS);
+			let modulePath = `${modulesPath}/${module}`;
+			let moduleExists = GLib.file_test(modulePath, GLib.FileTest.EXISTS);
+
 			if(!moduleExists)
 			{
 				Helper.notify('Cast to TV', `Missing npm module: ${module}`);
+				return false;
+			}
 
+			let isRequiredVer = this._checkPkgVersion(modulePath, dependencies[module]);
+
+			if(!isRequiredVer)
+			{
+				Helper.notify('Cast to TV', 'Installed npm modules are outdated!');
 				return false;
 			}
 		}
@@ -170,21 +193,33 @@ class ServerMonitor
 		return true;
 	}
 
-	_getDependencies(readPath)
+	_checkPkgVersion(modulePath, version)
 	{
-		let data = Helper.readFromFile(`${readPath}/package.json`);
+		let isExactVer = false;
+		let pkgInfo = this._getPkgInfo(modulePath);
 
-		if(data && data.dependencies)
-			return data.dependencies;
+		if(!pkgInfo || !pkgInfo.version)
+			return false;
 
-		log('Cast to TV: could not read npm dependencies!');
+		if(isNaN(version.charAt(0)))
+			version = version.substring(1);
+		else
+			isExactVer = true;
 
-		return null;
+		return (isExactVer)
+			? pkgInfo.version == version
+			: pkgInfo.version >= version
+	}
+
+	_getPkgInfo(modulePath)
+	{
+		let data = Helper.readFromFile(`${modulePath}/package.json`);
+		return (data) ? data : null;
 	}
 
 	_onSettingsChanged()
 	{
-		let enabled = this._isExtensionEnabled();
+		let enabled = this._getIsExtensionEnabled();
 
 		if(!enabled)
 			this.stopServer();
