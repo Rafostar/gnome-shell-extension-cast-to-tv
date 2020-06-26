@@ -227,7 +227,7 @@ var CastPlaylist = class
 		this.isDragging = true;
 
 		let menuItems = this.subMenu.menu._getMenuItems();
-		let heighArr = [];
+		let heightArr = [];
 
 		menuItems.forEach(menuItem =>
 		{
@@ -238,8 +238,8 @@ var CastPlaylist = class
 			let height = (menuItem.isActor) ?
 				menuItem.actor.height : menuItem.height;
 
-			if(!heighArr.includes(height))
-				heighArr.push(height);
+			if(!heightArr.includes(height))
+				heightArr.push(height);
 		});
 
 		let tempIndex = menuItems.indexOf(this.tempMenuItem);
@@ -256,7 +256,7 @@ var CastPlaylist = class
 		else
 			this.tempMenuItem.show();
 
-		let maxHeight = Math.max.apply(null, heighArr);
+		let maxHeight = Math.max.apply(null, heightArr);
 
 		/* Temp item cannot be shorter than any playlist item */
 		if(this.tempMenuItem.isActor)
