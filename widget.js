@@ -736,6 +736,7 @@ class CastTitleItem extends AltPopupBase
 
 		this._title = new St.Label({
 			text: "",
+			style: 'font-weight: bold;',
 			x_align: Clutter.ActorAlign.CENTER,
 			x_expand: true
 		});
