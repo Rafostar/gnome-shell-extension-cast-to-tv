@@ -297,7 +297,7 @@ function initChromecast()
 			return null;
 
 		var foundDevice = devices.find(dev =>
-			(dev.ip && dev.name === bridge.config.chromecastName)
+			(dev.ip && dev.friendlyName === bridge.config.chromecastName)
 		);
 
 		return (foundDevice) ? foundDevice.ip : null;
