@@ -79,11 +79,14 @@ sudo pacman -S npm nodejs ffmpeg
 ```
 
 ### Nautilus integration (optional)
-* Ubuntu: `sudo apt install python-nautilus python3-gi`
+* Ubuntu: `sudo apt install python3-nautilus python3-gi`
 * Fedora: `sudo dnf install nautilus-python python3-gobject`
 * Arch: `sudo pacman -S python-nautilus python-gobject`
 
-Older Fedora releases also require `pygobject3`.
+Ubuntu releases older than 20.04 require `python-nautilus` instead of ` python3-nautilus`.<br>
+Older Fedora releases additionally require `pygobject3`.
+
+Nautilus integration is disabled by default. Remember to turn it on in this extension settings.
 
 ## Install npm dependencies
 **Before using extension** you also **must** install some additional npm packages.
