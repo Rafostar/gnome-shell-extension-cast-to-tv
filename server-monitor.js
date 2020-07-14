@@ -125,19 +125,21 @@ class ServerMonitor
 
 		let modulesPath = `${sourceDir}/node_modules`;
 
-		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
-		if(!folderExists)
-		{
-			Helper.notify('Cast to TV', 'Required npm modules are not installed!');
-			return false;
-		}
-
 		/* Read cast-to-tv package.json */
 		let pkgInfo = this._getPkgInfo(sourceDir);
 
 		if(!pkgInfo || !pkgInfo.dependencies)
 		{
-			log('Cast to TV: could not read package.json!');
+			Helper.notify('Cast to TV', `Unreadable package.json in "${sourceDir}"`);
+			return false;
+		}
+
+		/* Modules check should be after package.json read */
+		let folderExists = GLib.file_test(modulesPath, GLib.FileTest.EXISTS);
+		if(!folderExists)
+		{
+			log(`Cast to TV: missing folder "${modulesPath}"`);
+			Helper.notify('Cast to TV', 'Required npm modules are not installed!');
 			return false;
 		}
 
