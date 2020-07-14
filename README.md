@@ -41,7 +41,7 @@ After enabling the extension, remember to install all [requirements](https://git
 ## Requirements
 Here is a list of required programs that Cast to TV depends on:
 * [npm](https://www.npmjs.com/get-npm) (for dependencies installation)
-* [nodejs](https://nodejs.org)
+* [nodejs](https://nodejs.org) (v8.6 or newer)
 * [ffmpeg](https://ffmpeg.org) (with ffprobe)
 
 Please make sure you have all of the above installed.
