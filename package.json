@@ -9,7 +9,7 @@
     "bowser": "^2.9.0",
     "chromecast-controller": "^0.3.1",
     "debug": "^4.1.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "ffmpeg-extract": "^1.1.2",
     "gettext-parser": "^3.1.0",
     "internal-ip": "^4.3.0",
